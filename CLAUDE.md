@@ -146,6 +146,39 @@ print("✅ Alle Icons vollständig ersetzt")
 
 ---
 
+## ⚠️ PFLICHT-REGEL: Dateien umbenennen (atomisch)
+
+**Wenn eine Datei umbenannt wird, MÜSSEN alle Querverweise in EINEM einzigen Commit aktualisiert werden.**
+
+### Warum diese Regel existiert
+Zwischen zwei Commits deployt GitHub Pages die Zwischenzustände. Wenn Datei A auf `mr-invite-v5.html` verlinkt und diese Datei dann in einem separaten Commit zu `MeinRezeptbuch-invite-v5.html` umbenannt wird, entsteht ein Deployment-Fenster mit 404-Fehlern – selbst wenn beide Commits nur Minuten auseinanderliegen.
+
+### Pflicht-Checkliste bei jeder Umbenennung
+
+**Vor dem Umbenennen** – alle Stellen finden, die auf die Datei verweisen:
+```bash
+grep -rn "alter-dateiname" --include="*.html" --include="*.js" --include="*.json" .
+```
+
+**In EINEM einzigen Commit** alles zusammen ändern:
+1. Datei umbenennen (`git mv alter-name.html neuer-name.html`)
+2. Alle `href="alter-name.html"` → `href="neuer-name.html"`
+3. Alle `src="alter-name.html"` → `src="neuer-name.html"`
+4. Alle `location.replace('...alter-name.html'...)` → neuer Name
+5. Alle `window.open('...alter-name.html'...)` → neuer Name
+6. Alle absoluten GitHub-Pages-URLs mit altem Namen → neue URLs
+7. Alle Referenzen in `app-manifest.json`, `sw.js`, `app-sw.js`
+
+**Verifizieren vor dem Commit:**
+```bash
+grep -rn "alter-dateiname" --include="*.html" --include="*.js" --include="*.json" .
+# Ergebnis muss leer sein!
+```
+
+**Regel:** Niemals eine Datei umbenennen und die Referenzaktualisierung auf einen späteren Commit verschieben.
+
+---
+
 ## Häufige Aufgaben
 
 ### Neue Funktion hinzufügen
