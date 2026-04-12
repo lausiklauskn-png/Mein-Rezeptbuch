@@ -179,6 +179,88 @@ grep -rn "alter-dateiname" --include="*.html" --include="*.js" --include="*.json
 
 ---
 
+## ⚠️ REGEL: Übernahme vom Schwesterprojekt – Pflicht-URL-Prüfung
+
+Wenn Code von **Muttis-Rezeptbuch** nach **Mein-Rezeptbuch** übertragen wird, enthalten alle Dateien Muttis-spezifische Namen und URLs. Diese müssen **vollständig** ersetzt werden – sonst entstehen unsichtbare Zeitbomben die erst später als 404 auffallen.
+
+**Nach jeder Übernahme diesen grep ausführen:**
+```bash
+grep -rn "mr-gift\|mr-invite\|muttis\|Muttis-Rezeptbuch\|MuttisRezeptbuch\|muttisrezeptbuch" \
+  --include="*.html" --include="*.js" --include="*.json" .
+# Ergebnis muss leer sein!
+```
+
+**Typische Stellen mit alten Namen:**
+- `window.open('...mr-invite-v4.html'...)` im Einstellungs-Dialog der Haupt-App
+- `location.replace('...mr-gift.html'...)` in den Gift-Seiten
+- `dlBlob(..., 'muttis-rezeptbuch.html')` bei Download-Funktionen
+- Absolute GitHub-Pages-URLs in `href`, `src`, `content`
+
+**Regel:** Nie annehmen, dass "der Code schon passt" – immer mit grep verifizieren.
+
+---
+
+## ⚠️ REGEL: Eigenständige Seiten werden DIREKT bearbeitet
+
+Die folgenden Dateien sind **eigenständige HTML-Seiten** – sie laufen NICHT durch `build.py`:
+
+| Datei | Typ |
+|-------|-----|
+| `MeinRezeptbuch-gift.html` | direkt bearbeiten + committen |
+| `MeinRezeptbuch-gift2.html` | direkt bearbeiten + committen |
+| `MeinRezeptbuch-invite-v5.html` | direkt bearbeiten + committen |
+| `USP_MeinRezeptbuch.html` | direkt bearbeiten + committen |
+| `USP_Erklaerung zu MeinRezb.html` | direkt bearbeiten + committen |
+| `impressum.html` | direkt bearbeiten + committen |
+
+`build.py` ist **ausschließlich** für `index.html` zuständig.
+
+**Pflicht-Checkliste nach Änderungen an eigenständigen Seiten:**
+```
+✅ Datei direkt geändert (NICHT via build.py)
+✅ Alle internen Links auf Korrektheit geprüft (keine mr-* oder Muttis-URLs)
+✅ Icons inline als Base64 (keine externen Dateireferenzen)
+```
+
+---
+
+## ⚠️ REGEL: Icons in eigenständigen Seiten müssen inline sein
+
+Externe Icon-Referenzen (`href="icons/icon-book-blue.svg"`) in eigenständigen HTML-Seiten sind **verboten**. Wenn die Icon-Datei umbenannt oder verschoben wird, bricht das Icon lautlos.
+
+**Pflicht:** Alle Icons in gift.html, gift2.html, invite-v5.html und USP-Seiten müssen als **inline Base64 data-URI** eingebettet sein:
+
+```html
+<!-- FALSCH – externe Referenz: -->
+<link rel="icon" href="icons/icon-book-blue.svg">
+
+<!-- RICHTIG – inline Base64: -->
+<link rel="icon" type="image/svg+xml" href="data:image/svg+xml;base64,...">
+```
+
+**Verifizieren:**
+```bash
+grep -n 'rel="icon"' MeinRezeptbuch-gift.html MeinRezeptbuch-gift2.html MeinRezeptbuch-invite-v5.html
+# Jede Zeile muss "data:" enthalten – kein "href="icons/" erlaubt
+```
+
+---
+
+## ⚠️ REGEL: Icon-Änderungen erfordern einen einzigen vollständigen Durchgang
+
+Fehler aus der Praxis: Icon in gift.html geändert → ein Commit → danach Nachbesserung nötig (`ac02360 Icon-Fix`), weil die anderen Seiten vergessen wurden.
+
+**Vor dem ersten Icon-Commit** alle betroffenen Stellen inventarisieren:
+```bash
+grep -rn 'rel="icon"\|rel="apple-touch-icon"\|icons:\[' \
+  MeinRezeptbuch-gift.html MeinRezeptbuch-gift2.html \
+  MeinRezeptbuch-invite-v5.html app-manifest.json app-sw.js
+```
+
+**Alle diese Stellen in EINEM Commit** aktualisieren – kein "ich mache die anderen Seiten später".
+
+---
+
 ## Häufige Aufgaben
 
 ### Neue Funktion hinzufügen
