@@ -2,7 +2,7 @@
   "relation": ["delegate_permission/common.handle_all_urls"],
   "target": {
     "namespace": "android_app",
-    "package_name": "de.klausnitzsche.muttisrezeptbuch",
+    "package_name": "de.klausnitzsche.meinrezeptbuch",
     "sha256_cert_fingerprints": [
       "PLACEHOLDER:SHA256:FINGERPRINT:REPLACE:WITH:KEYTOOL:OUTPUT"
     ]
