@@ -117,6 +117,35 @@ Wenn der Benutzer **"Hochladen"** schreibt:
 
 ---
 
+## Icon-Aktualisierungen: Pflicht-Verifikation
+
+Nach **jeder** Icon-Änderung vor dem Commit **datenbasiert** prüfen – nicht nur die `<link>`-Tags:
+
+```python
+# Alle alten Base64-PNGs aus der Referenzdatei extrahieren
+import re
+with open('alte_referenz.html', 'r') as f:
+    alte_b64s = set(re.findall(r'data:image/png;base64,([A-Za-z0-9+/]+=*)', f.read()))
+
+# Prüfen: Kein einziger alter PNG-Block darf noch in der neuen Datei vorkommen
+with open('QC_MeinRezb_*.html', 'r') as f:
+    neue_datei = f.read()
+
+verbleibend = [b for b in alte_b64s if b in neue_datei]
+assert not verbleibend, f"Noch {len(verbleibend)} alte Icons!"
+print("✅ Alle Icons vollständig ersetzt")
+```
+
+**Alle 4 Orte** wo Icons stecken können:
+1. `<link rel="icon">` – Tab-Favicon
+2. `<link rel="apple-touch-icon">` – iOS-Icon
+3. `var mj={...icons:[...]}` – **PWA-Install-Dialog** ← wird oft vergessen!
+4. `shortcuts[].icons` im Manifest + `<img src="data:...">` im Seiteninhalt
+
+**Regel:** Erst alle Base64-Blobs inventarisieren, dann ersetzen, dann verifizieren.
+
+---
+
 ## Häufige Aufgaben
 
 ### Neue Funktion hinzufügen
