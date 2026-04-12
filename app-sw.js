@@ -1,5 +1,5 @@
 // Service Worker for Mein Rezeptbuch (Hauptapp)
-const CACHE = 'mrz-v3';
+const CACHE = 'mrz-v4';
 const SHELL = ['./index.html', './app-manifest.json', './icons/icon-book-192.png', './icons/icon-book-512.png'];
 
 self.addEventListener('install', e => {
