@@ -1,0 +1,51 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1024 1024">
+  <defs>
+    <linearGradient id="bgPremium" x1="18%" y1="14%" x2="82%" y2="86%">
+      <stop offset="0%"   stop-color="#6a1b9a"/>  <!-- Violett -->
+      <stop offset="20%"  stop-color="#1565c0"/>  <!-- Blau -->
+      <stop offset="40%"  stop-color="#00838f"/>  <!-- Cyan -->
+      <stop offset="58%"  stop-color="#2e7d32"/>  <!-- Grün -->
+      <stop offset="78%"  stop-color="#e65100"/>  <!-- Orange -->
+      <stop offset="100%" stop-color="#b71c1c"/>  <!-- Rot -->
+    </linearGradient>
+  </defs>
+
+  <!-- Hintergrund: vollflächig (kein weißer Rand) -->
+  <rect x="0" y="0" width="1024" height="1024" fill="url(#bgPremium)"/>
+
+  <!-- Buch Außenform -->
+  <g
+    fill="none"
+    stroke="#fff8f2"
+    stroke-width="50"
+    stroke-linecap="round"
+    stroke-linejoin="round"
+  >
+    <path d="
+      M308 722
+      V356
+      Q308 326 340 326
+      Q424 326 512 388
+      Q600 326 684 326
+      Q716 326 716 356
+      V722
+    "/>
+
+    <line x1="512" y1="388" x2="512" y2="722"/>
+  </g>
+
+  <!-- Buch Innenlinien -->
+  <g
+    fill="none"
+    stroke="#fff8f2"
+    stroke-width="36"
+    stroke-linecap="round"
+    stroke-linejoin="round"
+  >
+    <path d="M378 432 Q442 432 512 468"/>
+    <path d="M646 432 Q582 432 512 468"/>
+
+    <path d="M308 722 Q410 700 512 736"/>
+    <path d="M716 722 Q614 700 512 736"/>
+  </g>
+</svg>

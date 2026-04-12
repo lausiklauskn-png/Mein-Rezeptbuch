@@ -1,0 +1,119 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="512" height="512">
+  <defs>
+    <!-- Spectrum cover gradient -->
+    <linearGradient id="specCov" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%"    stop-color="#FF0000"/>
+      <stop offset="16.6%" stop-color="#FF7700"/>
+      <stop offset="33.3%" stop-color="#FFE500"/>
+      <stop offset="50%"   stop-color="#00CC00"/>
+      <stop offset="66.6%" stop-color="#00CCFF"/>
+      <stop offset="83.3%" stop-color="#0044FF"/>
+      <stop offset="100%"  stop-color="#8800FF"/>
+    </linearGradient>
+    <!-- Spine spectrum -->
+    <linearGradient id="specSp" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%"   stop-color="#FF0000"/>
+      <stop offset="25%"  stop-color="#FFE500"/>
+      <stop offset="50%"  stop-color="#00CC00"/>
+      <stop offset="75%"  stop-color="#0044FF"/>
+      <stop offset="100%" stop-color="#8800FF"/>
+    </linearGradient>
+    <!-- Left page -->
+    <linearGradient id="pgL" x1="1" y1="0" x2="0" y2="0">
+      <stop offset="0%"   stop-color="#f9f4ec"/>
+      <stop offset="100%" stop-color="#ede5d5"/>
+    </linearGradient>
+    <!-- Right page -->
+    <linearGradient id="pgR" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0%"   stop-color="#f9f4ec"/>
+      <stop offset="100%" stop-color="#ede5d5"/>
+    </linearGradient>
+    <!-- Header bar spectrum -->
+    <linearGradient id="specBar" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0%"    stop-color="#FF0000"/>
+      <stop offset="20%"   stop-color="#FF7700"/>
+      <stop offset="40%"   stop-color="#FFE500"/>
+      <stop offset="60%"   stop-color="#00CC00"/>
+      <stop offset="80%"   stop-color="#0044FF"/>
+      <stop offset="100%"  stop-color="#8800FF"/>
+    </linearGradient>
+    <!-- Drop shadow -->
+    <filter id="sh" x="-14%" y="-14%" width="128%" height="128%">
+      <feDropShadow dx="0" dy="10" stdDeviation="18" flood-color="#100820" flood-opacity="0.45"/>
+    </filter>
+  </defs>
+
+  <!-- ── LEFT COVER (spectrum) ── -->
+  <rect x="30" y="72" width="220" height="372" rx="14" ry="14"
+        fill="url(#specCov)" filter="url(#sh)"/>
+
+  <!-- ── RIGHT COVER (spectrum) ── -->
+  <rect x="262" y="72" width="220" height="372" rx="14" ry="14"
+        fill="url(#specCov)" filter="url(#sh)"/>
+
+  <!-- ── LEFT PAGE (cream) ── -->
+  <rect x="44" y="84" width="204" height="348" rx="4" ry="4"
+        fill="url(#pgL)"/>
+
+  <!-- ── RIGHT PAGE (cream) ── -->
+  <rect x="264" y="84" width="204" height="348" rx="4" ry="4"
+        fill="url(#pgR)"/>
+
+  <!-- ── SPINE ── -->
+  <rect x="240" y="64" width="32" height="388" rx="6" ry="6"
+        fill="url(#specSp)"/>
+  <rect x="253" y="64" width="4" height="388"
+        fill="#ffffff" opacity="0.25"/>
+
+  <!-- ══ LEFT PAGE CONTENT ══ -->
+
+  <!-- Chapter header bar (spectrum) -->
+  <rect x="60" y="102" width="172" height="14" rx="7"
+        fill="url(#specBar)" opacity="0.90"/>
+
+  <!-- Text lines left (spectrum colours) -->
+  <g opacity="0.55">
+    <rect x="60" y="130" width="172" height="7" rx="3.5" fill="#FF2200"/>
+    <rect x="60" y="148" width="142" height="7" rx="3.5" fill="#FF7700"/>
+    <rect x="60" y="166" width="172" height="7" rx="3.5" fill="#FFE500"/>
+    <rect x="60" y="193" width="172" height="7" rx="3.5" fill="#00BB00"/>
+    <rect x="60" y="211" width="120" height="7" rx="3.5" fill="#00AAEE"/>
+    <rect x="60" y="229" width="172" height="7" rx="3.5" fill="#0044FF"/>
+    <rect x="60" y="256" width="172" height="7" rx="3.5" fill="#8800FF"/>
+    <rect x="60" y="274" width="154" height="7" rx="3.5" fill="#FF2200"/>
+    <rect x="60" y="292" width="172" height="7" rx="3.5" fill="#FF7700"/>
+    <rect x="60" y="319" width="172" height="7" rx="3.5" fill="#FFE500"/>
+    <rect x="60" y="337" width="132" height="7" rx="3.5" fill="#00BB00"/>
+    <rect x="60" y="355" width="172" height="7" rx="3.5" fill="#00AAEE"/>
+    <rect x="60" y="382" width="172" height="7" rx="3.5" fill="#0044FF"/>
+    <rect x="60" y="400" width="108" height="7" rx="3.5" fill="#8800FF"/>
+  </g>
+
+  <!-- ══ RIGHT PAGE CONTENT ══ -->
+
+  <!-- Chapter header bar (spectrum) -->
+  <rect x="280" y="102" width="172" height="14" rx="7"
+        fill="url(#specBar)" opacity="0.90"/>
+
+  <!-- Text lines right (spectrum colours) -->
+  <g opacity="0.55">
+    <rect x="280" y="130" width="172" height="7" rx="3.5" fill="#00AAEE"/>
+    <rect x="280" y="148" width="146" height="7" rx="3.5" fill="#0044FF"/>
+    <rect x="280" y="166" width="172" height="7" rx="3.5" fill="#8800FF"/>
+    <rect x="280" y="193" width="172" height="7" rx="3.5" fill="#FF2200"/>
+    <rect x="280" y="211" width="128" height="7" rx="3.5" fill="#FF7700"/>
+    <rect x="280" y="229" width="172" height="7" rx="3.5" fill="#FFE500"/>
+    <rect x="280" y="256" width="172" height="7" rx="3.5" fill="#00BB00"/>
+    <rect x="280" y="274" width="156" height="7" rx="3.5" fill="#00AAEE"/>
+    <rect x="280" y="292" width="172" height="7" rx="3.5" fill="#0044FF"/>
+    <rect x="280" y="319" width="172" height="7" rx="3.5" fill="#8800FF"/>
+    <rect x="280" y="337" width="138" height="7" rx="3.5" fill="#FF2200"/>
+    <rect x="280" y="355" width="172" height="7" rx="3.5" fill="#FF7700"/>
+    <rect x="280" y="382" width="172" height="7" rx="3.5" fill="#FFE500"/>
+    <rect x="280" y="400" width="116" height="7" rx="3.5" fill="#00BB00"/>
+  </g>
+
+  <!-- Page curl hint (bottom-right corner) -->
+  <path d="M468 432 Q468 448 452 448 L468 448 Z"
+        fill="#d8d0f0" opacity="0.55"/>
+</svg>
