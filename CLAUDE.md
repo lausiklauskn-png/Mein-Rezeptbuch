@@ -276,3 +276,48 @@ grep -rn 'rel="icon"\|rel="apple-touch-icon"\|icons:\[' \
 ### Sprache hinzufügen
 - Im `LANGS`-Objekt neuen Sprachblock ergänzen
 - `CL`-Variable und `T(k)`-Funktion funktionieren automatisch
+
+---
+
+## Menüleiste (Bottom Nav) – Aktuelle Implementierung
+
+### Schriftgrößen (Stand nach PR #3)
+| Element | CSS-Klasse | Wert |
+|---|---|---|
+| Nav-Icon | `.bn-ico` | `font-size:1.15rem` |
+| Nav-Label (Basis) | `.bn-lbl` | `font-size:.65rem` |
+| Nav-Label (Typografie-Override) | `.bn-lbl` (Ende `<style>`) | `font-size:var(--text-sm)` = 13px |
+
+### navTo() – Schritt-zurück-Verhalten
+**Alle Nav-Buttons** rufen `navTo(n)` statt `showSc(n)` auf.
+
+`navTo(n)` schließt zuerst offene fov-Overlays (Import, Export, API-Key, Sprache, Hilfe, Manual), **bevor** zum Ziel-Tab navigiert wird. Ist ein Overlay offen → wird nur geschlossen (ein Schritt zurück). Ist keins offen → normaler `showSc(n)`-Aufruf.
+
+```javascript
+// navTo() steht direkt nach showSc() in der QC-Datei
+function navTo(n){ ... }
+```
+
+**Regel:** Neue Nav-Buttons immer mit `navTo()` statt `showSc()` anlegen.
+
+---
+
+## Mein-Menü-Overlay (`.mv-*`) – Design-Parität mit Import-Overlay (`.fov-*`)
+
+Das `#mv`-Overlay (Mein Menü / Wochenplan) soll **optisch identisch** mit dem `#importOv`-Overlay sein.
+
+### Aktuelle CSS-Werte (Stand nach PR #3)
+| Element | `.mv-*` | entspricht `.fov-*` |
+|---|---|---|
+| Header | `.mv-hdr` | `.fov-hdr` – `cursor:pointer`, klickbar zum Schließen |
+| Zurück-Pfeil | `.mv-back` | `color:rgba(255,255,255,.56)` |
+| Titel | `.mv-title` | `font-size:.98rem; color:#fff` |
+| Druck-Button | `.mv-print-btn` | Icon-Stil: `font-size:1.15rem; color:rgba(255,255,255,.72)` |
+| Tab-Leiste | `.mv-tabs` | `.fov-tabs` |
+| Tab-Schrift | `.mvtab` | `font-size:.72rem; padding:9px 4px; color:rgba(255,255,255,.80)` |
+| Tab aktiv | `.mvtab.on` | `color:#fff; border-bottom-color:var(--gold)` |
+
+### Spektral-Theme
+`.mv-hdr` und `.mv-tabs` haben denselben Regenbogen-Verlauf wie `.fov-hdr`/`.fov-tabs`.
+
+**Regel:** Bei Änderungen an `.fov-hdr`/`.fovtab` immer prüfen ob `.mv-hdr`/`.mvtab` ebenfalls angepasst werden müssen.
