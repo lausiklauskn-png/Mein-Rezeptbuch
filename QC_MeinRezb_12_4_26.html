@@ -7081,7 +7081,8 @@ function _rcardHdStart(e){
   const card=hd.closest('.rcard');if(!card||!card.id)return;
   const rid=parseInt(card.id.replace('c',''));if(!rid)return;
   const t=e.touches[0];
-  _rcardPending={hd,card,rid,startX:t.clientX,startY:t.clientY};
+  const timer=setTimeout(()=>{if(_rcardPending)_rcardPending.ready=true;},350);
+  _rcardPending={hd,card,rid,startX:t.clientX,startY:t.clientY,timer,ready:false};
   document.addEventListener('touchmove',_rcardHdMove,{passive:false});
   document.addEventListener('touchend',_rcardHdEnd,{passive:true});
   document.addEventListener('touchcancel',_rcardHdEnd,{passive:true});
@@ -7091,6 +7092,11 @@ function _rcardHdMove(e){
   const t=e.touches[0];
   const dx=t.clientX-_rcardPending.startX,dy=t.clientY-_rcardPending.startY;
   if(Math.abs(dx)>12){_rcardHdEnd();return;}// horizontal → Wisch-Navigation läuft
+  if(!_rcardPending.ready){
+    // Noch keine 350ms: Bei Bewegung > 8px sofort abbrechen (= normaler Tap/Scroll)
+    if(Math.abs(dx)>8||Math.abs(dy)>8)_rcardHdEnd();
+    return;
+  }
   if(Math.abs(dy)>10){
     e.preventDefault();
     const{hd,card,rid}=_rcardPending;
@@ -7115,6 +7121,7 @@ function _rcardHdMove(e){
 }
 function _rcardHdEnd(){
   if(!_rcardPending)return;
+  clearTimeout(_rcardPending.timer);
   document.removeEventListener('touchmove',_rcardHdMove);
   document.removeEventListener('touchend',_rcardHdEnd);
   document.removeEventListener('touchcancel',_rcardHdEnd);
