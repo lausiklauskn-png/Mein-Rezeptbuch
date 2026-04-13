@@ -156,8 +156,8 @@ body.nav-collapsed{padding-bottom:calc(16px + var(--sb))}
 .bn.on{color:var(--br)}
 .bn.on::after{content:'';position:absolute;top:0;left:20%;right:20%;height:2.5px;
   background:var(--br);border-radius:0 0 3px 3px}
-.bn-ico{font-size:1.05rem;line-height:1}
-.bn-lbl{font-size:.47rem;font-weight:700;letter-spacing:.05em;text-transform:uppercase}
+.bn-ico{font-size:1.15rem;line-height:1}
+.bn-lbl{font-size:.65rem;font-weight:700;letter-spacing:.04em;text-transform:uppercase}
 #bnMen{white-space:nowrap}
 .spell-offer-bar{background:var(--golds);border-bottom:1px solid rgba(168,132,30,.22);padding:7px 13px;font-size:.73rem;color:#7a5c00;font-weight:600;cursor:pointer;display:flex;align-items:center;gap:6px;transition:background .15s;user-select:none}
 .spell-offer-bar:hover{background:#f5e28a}
@@ -1406,7 +1406,7 @@ button:active{transform:scale(0.97)}
 .rname{font-size:var(--text-md);line-height:var(--leading-tight)}
 .rmeta{font-size:var(--text-xs)}
 .slbl{font-size:var(--text-xs)}
-.bn-lbl{font-size:var(--text-xs)}
+.bn-lbl{font-size:var(--text-sm)}
 .sett-lbl{font-size:var(--text-base)}
 .sett-sub{font-size:var(--text-sm)}
 .logo{font-size:var(--text-base)}
@@ -2353,20 +2353,20 @@ Vielen Dank für deine Unterstützung.</div>
 <nav id="bnav">
   <div class="nav-pull" onclick="toggleNav()" title="Navigation ein-/ausblenden"></div>
   <div class="nav-items">
-    <div class="bn on" id="bn-recipes" onclick="showSc('recipes')">
+    <div class="bn on" id="bn-recipes" onclick="navTo('recipes')">
       <div class="bn-ico">📖</div><div class="bn-lbl" id="bnRec">Rezepte</div>
     </div>
-    <div class="bn" id="bn-folders" onclick="showSc('folders')">
+    <div class="bn" id="bn-folders" onclick="navTo('folders')">
       <div class="bn-ico">📂</div><div class="bn-lbl" id="bnFld">Ordner</div>
     </div>
-    <div class="bn" id="bn-menu" onclick="showSc('menu')">
+    <div class="bn" id="bn-menu" onclick="navTo('menu')">
       <div class="bn-ico">🍽️</div><div class="bn-lbl" id="bnMen">Menü</div>
       <div class="bn-badge" id="menuBadge" style="display:none">0</div>
     </div>
-    <div class="bn" id="bn-backup" onclick="showSc('backup')">
+    <div class="bn" id="bn-backup" onclick="navTo('backup')">
       <div class="bn-ico">🗄️</div><div class="bn-lbl" id="bnBv">Tresor</div>
     </div>
-    <div class="bn" id="bn-settings" onclick="showSc('settings')">
+    <div class="bn" id="bn-settings" onclick="navTo('settings')">
       <div class="bn-ico">⚙️</div><div class="bn-lbl" id="bnSet">Einst.</div>
     </div>
   </div>
@@ -4089,6 +4089,24 @@ function showSc(n,dir){
   if(n==='settings')updateSettings();
   if(n==='backup')_renderVault();
   window.scrollTo(0,0);
+}
+// Navigation via Menüleiste: erst offene Overlays schließen, dann Screen wechseln
+function navTo(n){
+  const _fovClose=[
+    {id:'importOv',   fn:function(){closeImport();}},
+    {id:'exportOv',   fn:function(){closeExport();}},
+    {id:'apikeyOv',   fn:function(){closeApiKeyOv();}},
+    {id:'langOv',     fn:function(){closeLang();}},
+    {id:'helpOv',     fn:function(){closeHelpOv();}},
+    {id:'manualOv',   fn:function(){var e=document.getElementById('manualOv');if(e)e.style.display='none';}},
+  ];
+  var closed=false;
+  for(var i=0;i<_fovClose.length;i++){
+    var el=document.getElementById(_fovClose[i].id);
+    if(el&&el.style.display&&el.style.display!=='none'){_fovClose[i].fn();closed=true;break;}
+  }
+  if(closed)return; // einen Schritt zurück – Ziel-Tab wird beim nächsten Klick aufgerufen
+  showSc(n);
 }
 function updateSettings(){
   renderThemeGrid();renderLangGrid();
