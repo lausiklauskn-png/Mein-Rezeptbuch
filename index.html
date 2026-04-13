@@ -1453,7 +1453,7 @@ const _CR=Object.freeze({c:'© 2026 Klaus Nitzsche',r:'All rights reserved',v:'v
     <button class="hbtn" onclick="openHelp()" title="Hilfe · Teilen · Reparatur" id="helpHdrBtn">ℹ️</button>
 <!-- === ONBOARDING START === -->
     <!-- === ONBOARDING END === -->
-    <button class="hbtn add" onclick="openNewPanel()">+ <span id="hAddLbl">Rezept</span></button>
+    <button class="hbtn add" onclick="toggleNewPanel()">+ <span id="hAddLbl">Rezept</span></button>
   </div>
 </div>
 
@@ -6435,6 +6435,7 @@ function tglFld(hdr){
 // NEW RECIPE
 // ═══════════════════════════════════════════════════════
 function openNewPanel(){renderCatNav();document.getElementById('newPanel').classList.add('open');showSc('recipes');setTimeout(()=>document.getElementById('newName')?.focus(),200);}
+function toggleNewPanel(){const np=document.getElementById('newPanel');if(np.classList.contains('open'))closeNewPanel();else openNewPanel();}
 
 function ensureFolderBlanks(fid){
   const TARGET=10;
