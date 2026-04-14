@@ -3727,7 +3727,7 @@ let R=[],MS=[],FD=[];
 let CAT='all',SQ='',MVT='tl';
 let EN={},EI={},ES={},CST={rid:null,slotId:null,sel:null};
 let DoneS={},DoneI={},DoneAL={};
-let pendImgs=[],scanData=null;
+let pendImgs=[],scanData=null,scanDataStore=null;
 let SERV={}; // rid → current serving count (active scaling)
 let cropQueue=[]; // rids waiting for crop editor after bulk import
 let deferredPWA=null;
@@ -3768,6 +3768,23 @@ function _idbGet(k){
   })).catch(()=>null);
 }
 
+// ── Bild-Komprimierung via Canvas ────────────────────────
+function resizeImage(dataUrl,maxW,quality){
+  return new Promise(resolve=>{
+    const img=new Image();
+    img.onload=()=>{
+      const scale=Math.min(1,maxW/img.width);
+      const w=Math.round(img.width*scale),h=Math.round(img.height*scale);
+      const c=document.createElement('canvas');
+      c.width=w;c.height=h;
+      c.getContext('2d').drawImage(img,0,0,w,h);
+      resolve(c.toDataURL('image/jpeg',quality));
+    };
+    img.onerror=()=>resolve(dataUrl);
+    img.src=dataUrl;
+  });
+}
+
 // ── Undo-System (Rezept-Editor, max. 10 Schritte) ────────
 var _undoStack={};
 var _lastEditRid=null;
@@ -3789,15 +3806,19 @@ function undoRec(rid){
 }
 // ─────────────────────────────────────────────────────────
 function sv(){
-  const data=JSON.stringify(R.filter(r=>!r.blank));
+  const recs=R.filter(r=>!r.blank);
+  // Bilder separat in IDB — localStorage bleibt schlank (kein Speicherlimit-Problem)
+  const imgMap={};
+  const light=recs.map(r=>{if(r.img)imgMap[r.id]=r.img;return Object.assign({},r,{img:''});});
+  const data=JSON.stringify(light);
   try{
     localStorage.setItem('mrz9',data);
     localStorage.setItem('mrz9_ts',new Date().toISOString());
   }catch(e){
-    // Speicher voll: alten Eintrag NICHT löschen – Daten bleiben in IDB erhalten
     toast('⚠️ Speicher voll! Daten in Backup gesichert.');
   }
   _idbSet('mrz9',data);
+  _idbSet('mrz9_imgs',JSON.stringify(imgMap));
 }
 function svM(){
   const data=JSON.stringify(MS);
@@ -3937,6 +3958,14 @@ async function boot(){
     if(!r.imgCrop)r.imgCrop={x:50,y:50,scale:1}; // crop/pan/zoom
     if(r.prepTime===undefined)r.prepTime=null; // null = auto-detect from steps
   });
+  // Bilder aus IDB wiederherstellen (werden nicht mehr in localStorage gespeichert)
+  try{
+    const rawImgs=await _idbGet('mrz9_imgs');
+    if(rawImgs){
+      const imgMap=JSON.parse(rawImgs);
+      R.forEach(r=>{if(imgMap[r.id])r.img=imgMap[r.id];});
+    }
+  }catch(e){}
   // Seed blank slots on first run (nur echte Rezepte zählen)
   if(!R.some(r=>!r.blank)){
     const BLANKS={vorsp:10,suppe:10,fleisch:10,fisch:10,vegi:10,kuchen:10,dessert:10};
@@ -4247,8 +4276,9 @@ function handleImgSel(e){
   const named=R.filter(r=>r.name);
   files.forEach(f=>{
     const fr=new FileReader();
-    fr.onload=ev=>{
-      pendImgs.push({name:f.name,dataUrl:ev.target.result,rid:named[0]?.id||null});
+    fr.onload=async ev=>{
+      const compressed=await resizeImage(ev.target.result,800,0.75);
+      pendImgs.push({name:f.name,dataUrl:compressed,rid:named[0]?.id||null});
       if(++done===files.length)renderPendImgs();
     };fr.readAsDataURL(f);
   });
@@ -4744,11 +4774,17 @@ function loadScanFile(file){
   if(!file)return;
   if(file.size>5*1024*1024){toast('⚠️ Bild zu groß (max. 5 MB). Bitte ein kleineres Foto wählen.');return;}
   const fr=new FileReader();
-  fr.onload=ev=>{
-    scanData=ev.target.result;
+  fr.onload=async ev=>{
+    const orig=ev.target.result;
+    // 1200px für KI-Erkennung (mehr Detail = bessere Texterkennung)
+    // 800px/0.75 für Rezeptbild-Speicher (~80KB statt mehrerer MB)
+    [scanData,scanDataStore]=await Promise.all([
+      resizeImage(orig,1200,0.90),
+      resizeImage(orig,800,0.75)
+    ]);
     const prev=document.getElementById('scanPrev');
     const ph=document.getElementById('scanPhotoContent');
-    if(prev){prev.src=scanData;prev.style.display='block';}
+    if(prev){prev.src=scanDataStore;prev.style.display='block';}
     if(ph)ph.style.display='none';
     document.getElementById('scanActions').style.display='block';
     document.getElementById('scanResultWrap').innerHTML='';
@@ -4793,8 +4829,10 @@ async function runBatchScan(files){
   for(let i=0;i<files.length;i++){
     updBar(`Bild ${i+1} von ${total}: <em>${h(files[i].name)}</em> …`);
     try{
-      const b64data=await new Promise((res,rej)=>{const fr=new FileReader();fr.onload=e=>res(e.target.result);fr.onerror=rej;fr.readAsDataURL(files[i]);});
-      const b64=b64data.split(',')[1],mime=b64data.split(';')[0].split(':')[1]||'image/jpeg';
+      const origData=await new Promise((res,rej)=>{const fr=new FileReader();fr.onload=e=>res(e.target.result);fr.onerror=rej;fr.readAsDataURL(files[i]);});
+      // 1200px für API-Erkennung, 800px für Rezeptbild-Speicher
+      const[apiData,storeData]=await Promise.all([resizeImage(origData,1200,0.90),resizeImage(origData,800,0.75)]);
+      const b64=apiData.split(',')[1],mime=apiData.split(';')[0].split(':')[1]||'image/jpeg';
       const prompt=`You are a recipe extraction expert. Look at this recipe image carefully and extract ALL information.
 Return ONLY a valid JSON object — no markdown, no explanation, just the raw JSON:
 {
@@ -4816,7 +4854,7 @@ Rules:
       const resp=await fetch('https://api.anthropic.com/v1/messages',{
         method:'POST',
         headers:{'Content-Type':'application/json','x-api-key':key,'anthropic-version':'2023-06-01','anthropic-dangerous-direct-browser-access':'true'},
-        body:JSON.stringify({model:'claude-opus-4-5',max_tokens:3000,
+        body:JSON.stringify({model:(_SCAN_MODELS[_scanModel]||_SCAN_MODELS.schnell).id,max_tokens:(_SCAN_MODELS[_scanModel]||_SCAN_MODELS.schnell).tokens,
           messages:[{role:'user',content:[
             {type:'image',source:{type:'base64',media_type:mime,data:b64}},
             {type:'text',text:prompt}
@@ -4830,7 +4868,7 @@ Rules:
       const catId=CATS.find(c=>c.id===rec.category)?rec.category:'fleisch';
       const srvNum=parseInt(rec.servings)||4;
       const nr={id:Date.now()+i,name:rec.name||'Gescanntes Rezept',cat:catId,shut:false,
-        img:'',folder:'',blank:false,servings:srvNum,imgCrop:{x:50,y:50,scale:1},
+        img:storeData||'',folder:'',blank:false,servings:srvNum,imgCrop:{x:50,y:50,scale:1},
         flavors:rec.flavor?[rec.flavor]:[],
         ings:(rec.ingredients||[]).map((ing,x)=>({id:x+1,amt:ing.amt||'',unit:ing.unit||'',name:ing.name||'',ck:false,note:''})),
         steps:(rec.steps||[]).map((s,x)=>({id:x+1,txt:typeof s==='string'?s:s.txt||'',note:''})),
@@ -4863,7 +4901,7 @@ function handleScanDrop(e){
 }
 
 function resetScan(){
-  scanData=null;
+  scanData=null;scanDataStore=null;
   const prev=document.getElementById('scanPrev');
   const ph=document.getElementById('scanPhotoContent');
   if(prev){prev.src='';prev.style.display='none';}
@@ -5190,7 +5228,7 @@ function acceptScan(){
   const empty=R.find(r=>r.blank&&!r.name&&r.cat===catId);
   const srvNum=parseInt(rec.servings)||4;
   const nr={id:Date.now(),name:rec.name||'Gescanntes Rezept',cat:catId,shut:false,
-    img:scanData||'',folder:'',blank:false,servings:srvNum,imgCrop:{x:50,y:50,scale:1},
+    img:scanDataStore||scanData||'',folder:'',blank:false,servings:srvNum,imgCrop:{x:50,y:50,scale:1},
     flavors:rec.flavor?[rec.flavor]:[],
     ings:(rec.ingredients||[]).map((i,x)=>({id:x+1,amt:i.amt||'',unit:i.unit||'',name:i.name||'',ck:false,note:''})),
     steps:(rec.steps||[]).map((s,x)=>({id:x+1,txt:typeof s==='string'?s:s.txt||'',note:''})),
@@ -6517,12 +6555,11 @@ function pickImgForCard(rid){
   inp.onchange=e=>{
     const f=e.target.files[0];if(!f)return;
     const fr=new FileReader();
-    fr.onload=ev=>{
+    fr.onload=async ev=>{
       const r=R.find(r=>r.id===rid);if(!r)return;
-      r.img=ev.target.result;
-      r.imgCrop={x:50,y:50,scale:1}; // reset crop for new image
+      r.img=await resizeImage(ev.target.result,800,0.75);
+      r.imgCrop={x:50,y:50,scale:1};
       sv();render();
-      // Automatically open crop editor for the new image
       setTimeout(()=>openCrop(rid),120);
     };
     fr.readAsDataURL(f);
