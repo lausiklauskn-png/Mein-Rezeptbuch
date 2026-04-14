@@ -1427,7 +1427,7 @@ button:active{transform:scale(0.97)}
 <script>
 </head>
 <body>
-<script>(function(){var t=localStorage.getItem('mtheme9');if(t&&t!=='default')document.body.setAttribute('data-theme',t);})();</script>
+<script>(function(){var t=localStorage.getItem('mtheme9m');if(t&&t!=='default')document.body.setAttribute('data-theme',t);})();</script>
 
 <div id="boot-splash">
   <div class="bs-ico">📖</div>
@@ -3625,7 +3625,7 @@ const LANGS={
     ,manPdfLbl:'PDF'
   }
 };
-let CL=localStorage.getItem('mlang9')||'de';
+let CL=localStorage.getItem('mlang9m')||'de';
 function T(k){return(LANGS[CL]||LANGS.de)[k]||k;}
 // ─── Translation helpers ───────────────────────────────
 // Returns the saved translation object for the current UI language, or null
@@ -3693,7 +3693,7 @@ let _IDB=null;
 function _idbOpen(){
   return new Promise((res,rej)=>{
     if(_IDB){res(_IDB);return;}
-    const req=indexedDB.open('MrzBackup1',1);
+    const req=indexedDB.open('MeinRzBackup1',1);
     req.onerror=()=>rej(req.error);
     req.onsuccess=()=>{_IDB=req.result;res(_IDB);};
     req.onupgradeneeded=e=>{
@@ -3745,23 +3745,23 @@ function undoRec(rid){
 function sv(){
   const data=JSON.stringify(R.filter(r=>!r.blank));
   try{
-    localStorage.setItem('mrz9',data);
-    localStorage.setItem('mrz9_ts',new Date().toISOString());
+    localStorage.setItem('mrz9m',data);
+    localStorage.setItem('mrz9m_ts',new Date().toISOString());
   }catch(e){
     // Speicher voll: alten Eintrag NICHT löschen – Daten bleiben in IDB erhalten
     toast('⚠️ Speicher voll! Daten in Backup gesichert.');
   }
-  _idbSet('mrz9',data);
+  _idbSet('mrz9m',data);
 }
 function svM(){
   const data=JSON.stringify(MS);
-  localStorage.setItem('mms9',data);
-  _idbSet('mms9',data);
+  localStorage.setItem('mms9m',data);
+  _idbSet('mms9m',data);
 }
 function svFD(){
   const data=JSON.stringify(FD);
-  localStorage.setItem('mfd9',data);
-  _idbSet('mfd9',data);
+  localStorage.setItem('mfd9m',data);
+  _idbSet('mfd9m',data);
 }
 
 // AUTO-BACKUP (pagehide / visibilitychange) → Implementierung im Backup-Vault-Block
@@ -3792,12 +3792,12 @@ function _showRestoreDialog(snapTs,recCnt,onRestore){
   </div>`;
   document.body.appendChild(ov);
   document.getElementById('restoreYes').onclick=()=>{ov.remove();onRestore();};
-  document.getElementById('restoreNo').onclick=()=>{ov.remove();localStorage.setItem('mrz9_restore_declined',snapTs);};
+  document.getElementById('restoreNo').onclick=()=>{ov.remove();localStorage.setItem('mrz9m_restore_declined',snapTs);};
 }
 
 // ── iOS: proaktiver Export-Reminder ──────────────────────────────────────
 function _showIosExportReminder(){
-  const lastExp=localStorage.getItem('mrz9_last_export')||'';
+  const lastExp=localStorage.getItem('mrz9m_last_export')||'';
   const daysSince=lastExp?Math.floor((Date.now()-new Date(lastExp))/864e5):999;
   if(daysSince<=7)return;
   const realRecs=R.filter(r=>!r.blank&&r.name).length;
@@ -3841,14 +3841,14 @@ async function boot(){
   applyA11y();
   const _iosDevice=/iPad|iPhone|iPod/.test(navigator.userAgent)||(navigator.platform==='MacIntel'&&navigator.maxTouchPoints>1);
   // Load from localStorage — if empty or iOS mismatch, try IndexedDB restore
-  let rawR=localStorage.getItem('mrz9');
-  let rawM=localStorage.getItem('mms9');
-  let rawFD=localStorage.getItem('mfd9');
-  const idbR=await _idbGet('mrz9');
+  let rawR=localStorage.getItem('mrz9m');
+  let rawM=localStorage.getItem('mms9m');
+  let rawFD=localStorage.getItem('mfd9m');
+  const idbR=await _idbGet('mrz9m');
   if(!rawR){
     if(idbR){
       rawR=idbR;
-      try{localStorage.setItem('mrz9',idbR);toast('🔄 Rezepte aus Backup wiederhergestellt');}
+      try{localStorage.setItem('mrz9m',idbR);toast('🔄 Rezepte aus Backup wiederhergestellt');}
       catch(e){toast('🔄 Rezepte aus Backup geladen (Speicher voll)');}
     }
   } else if(_iosDevice&&idbR){
@@ -3859,8 +3859,8 @@ async function boot(){
       if(idbCount>lsCount){rawR=idbR;toast('🔄 Neuere Daten aus Backup geladen');}
     }catch(e){}
   }
-  if(!rawM){const bM=await _idbGet('mms9');if(bM){rawM=bM;localStorage.setItem('mms9',bM);}}
-  if(!rawFD){const bFD=await _idbGet('mfd9');if(bFD){rawFD=bFD;localStorage.setItem('mfd9',bFD);}}
+  if(!rawM){const bM=await _idbGet('mms9m');if(bM){rawM=bM;localStorage.setItem('mms9m',bM);}}
+  if(!rawFD){const bFD=await _idbGet('mfd9m');if(bFD){rawFD=bFD;localStorage.setItem('mfd9m',bFD);}}
   _bootProg(38,'Rezepte verarbeiten…');
 
   R=JSON.parse(rawR||'null')||[];
@@ -3878,7 +3878,7 @@ async function boot(){
       if(!s.courseType)s.courseType='main';
     });
   })();
-  FD=JSON.parse(localStorage.getItem('mfd9')||'null')||[];
+  FD=JSON.parse(localStorage.getItem('mfd9m')||'null')||[];
   // Migrate & ensure fields
   R.forEach(r=>{
     if(!r.img)r.img='';
@@ -3919,10 +3919,10 @@ async function boot(){
   if(!MS.length){MS=[{id:Date.now(),lbl:courseName('main'),ico:'🍲',rid:0}];svM();}
   _bootProg(65,'Sprache & Thema…');
   // Apply theme
-  const th=localStorage.getItem('mtheme9')||'spektral';
+  const th=localStorage.getItem('mtheme9m')||'spektral';
   if(th!=='default')document.body.setAttribute('data-theme',th);
   // Apply API key
-  const key=localStorage.getItem('claudeKey9');
+  const key=localStorage.getItem('claudeKey9m');
   // Key is managed by initScanPane — not pre-filled visually for security
   applyLang(CL);
   _bootProg(82,'Oberfläche aufbauen…');
@@ -3933,13 +3933,13 @@ async function boot(){
   // Kein Restore-Dialog wenn gerade ein geteiltes Rezept geöffnet wird
   if(!location.hash.startsWith('#share=')){
     try{
-      const raw=await _idbGet('mrz9_bvault');
+      const raw=await _idbGet('mrz9m_bvault');
       const vault=JSON.parse(raw||'[]')||[];
       if(vault.length>0){
         const newest=vault.sort((a,b)=>b.ts.localeCompare(a.ts))[0];
         const vaultRecs=(JSON.parse(newest.r||'[]')||[]).filter(r=>!r.blank&&r.name);
         const lsRecs=R.filter(r=>!r.blank&&r.name).length;
-        const _declined=localStorage.getItem('mrz9_restore_declined');
+        const _declined=localStorage.getItem('mrz9m_restore_declined');
         if(vaultRecs.length>0 && vaultRecs.length>lsRecs && newest.ts!==_declined){
           _showRestoreDialog(newest.ts,vaultRecs.length,async()=>{
             const restored=JSON.parse(newest.r)||[];
@@ -3970,7 +3970,7 @@ async function boot(){
 // LANGUAGE
 // ═══════════════════════════════════════════════════════
 function applyLang(code){
-  CL=code;localStorage.setItem('mlang9',code);
+  CL=code;localStorage.setItem('mlang9m',code);
   document.documentElement.lang=code;
   const L=LANGS[code]||LANGS.de;
   // Update static ids
@@ -4038,14 +4038,14 @@ function selectLang(code){applyLang(code);render();closeLang();toast(LANGS[code]
 // THEME
 // ═══════════════════════════════════════════════════════
 function setTheme(id){
-  localStorage.setItem('mtheme9',id);
+  localStorage.setItem('mtheme9m',id);
   if(id==='default')document.body.removeAttribute('data-theme');
   else document.body.setAttribute('data-theme',id);
   renderThemeGrid();
 }
 function renderThemeGrid(){
   const g=document.getElementById('themeGrid');if(!g)return;
-  const cur=localStorage.getItem('mtheme9')||'default';
+  const cur=localStorage.getItem('mtheme9m')||'default';
   g.innerHTML=THEMES.map(t=>`
     <div class="theme-chip ${t.id===cur?'on':''}" onclick="setTheme('${t.id}')">
       <div class="theme-prev">${t.strips.map(c=>`<div class="theme-strip" style="background:${c}"></div>`).join('')}</div>
@@ -4604,7 +4604,7 @@ const _KEY_ERR={
 };
 
 // ── SCAN: KEY MANAGEMENT ──────────────────────────────
-function getSavedKey(){return localStorage.getItem('claudeKey9')||'';}
+function getSavedKey(){return localStorage.getItem('claudeKey9m')||'';}
 
 function onApiKeyInput(v){
   const btn=document.getElementById('scanSaveBtn');
@@ -4646,7 +4646,7 @@ async function saveAndStartScan(){
   if(btn){btn.disabled=true;btn.innerHTML='⏳ Code wird geprüft …';}
   try{
     await validateApiKey(v);
-    localStorage.setItem('claudeKey9',v);
+    localStorage.setItem('claudeKey9m',v);
     document.getElementById('stepDone3').textContent='✅';
     switchToScanMain();
     initTxtPane();
@@ -4663,7 +4663,7 @@ async function saveAndStartScan(){
 
 function saveApiKey(){
   const v=document.getElementById('apiKeyIn')?.value||'';
-  if(v)localStorage.setItem('claudeKey9',v);
+  if(v)localStorage.setItem('claudeKey9m',v);
 }
 
 function showKeySetup(){
@@ -4871,7 +4871,7 @@ Rules:
     if(!resp.ok){
       const e=await resp.json();
       if(e.error?.type==='authentication_error'){
-        localStorage.removeItem('claudeKey9');
+        localStorage.removeItem('claudeKey9m');
         showKeySetup();
         throw new Error('Ungültiger API-Key. Bitte neu eingeben.');
       }
@@ -5307,7 +5307,7 @@ function _resetDonateTimer(){
 }
 function clearAll(){
   if(!confirm(T('clearConfirm')))return;
-  ['mrz9','mms9','mfd9'].forEach(k=>localStorage.removeItem(k));
+  ['mrz9m','mms9m','mfd9m'].forEach(k=>localStorage.removeItem(k));
   location.reload();
 }
 
@@ -7576,8 +7576,8 @@ document.addEventListener('keydown',e=>{
 // ═══════════════════════════════════════════════════════
 // INIT
 // ═══════════════════════════════════════════════════════
-var A11Y_SIZE = localStorage.getItem('a11ySize9') || 'md';
-var A11Y_HC   = localStorage.getItem('a11yHc9') === '1';
+var A11Y_SIZE = localStorage.getItem('a11ySize9m') || 'md';
+var A11Y_HC   = localStorage.getItem('a11yHc9m') === '1';
 var _A11Y_MAP = ['sm','md','lg'];
 // ─── GLOBAL TOOLTIP ──────────────────────────────────────────────────────
 function _initTooltips(){
@@ -7898,13 +7898,13 @@ function applyA11y() {
 
 function setA11ySize(v) {
   A11Y_SIZE = _A11Y_MAP[parseInt(v,10)] || 'md';
-  localStorage.setItem('a11ySize9', A11Y_SIZE);
+  localStorage.setItem('a11ySize9m', A11Y_SIZE);
   applyA11y();
 }
 
 function setA11yContrast(on) {
   A11Y_HC = !!on;
-  localStorage.setItem('a11yHc9', on ? '1' : '0');
+  localStorage.setItem('a11yHc9m', on ? '1' : '0');
   applyA11y();
 }
 
@@ -7916,10 +7916,10 @@ var _appRateRid   = null;
 
 function checkAppRating(rid, stars) {
   if (stars < 4) return;
-  var shown = JSON.parse(localStorage.getItem('appRateShown9')||'[]');
+  var shown = JSON.parse(localStorage.getItem('appRateShown9m')||'[]');
   if (shown.indexOf(rid) !== -1) return;
   shown.push(rid);
-  localStorage.setItem('appRateShown9', JSON.stringify(shown));
+  localStorage.setItem('appRateShown9m', JSON.stringify(shown));
   _appRateRid = rid; _appRateStars = stars;
   setTimeout(openAppRate, 700);
 }
@@ -7949,9 +7949,9 @@ function closeAppRate() {
 }
 
 function submitAppRate() {
-  var ratings = JSON.parse(localStorage.getItem('appRatings9')||'[]');
+  var ratings = JSON.parse(localStorage.getItem('appRatings9m')||'[]');
   ratings.push({stars:_appRateStars, date:new Date().toISOString(), rid:_appRateRid});
-  localStorage.setItem('appRatings9', JSON.stringify(ratings));
+  localStorage.setItem('appRatings9m', JSON.stringify(ratings));
   window.open('https://play.google.com/store/apps/details?id=de.klausnitzsche.meinrezeptbuch','_blank');
   closeAppRate();
 }
@@ -8211,14 +8211,14 @@ async function pasteTxtKey() {
 function saveTxtKey() {
   const v = (document.getElementById('txtApiKeyIn')?.value || '').trim();
   if (!v || v.length < 10) { toast('⚠️ Zugangscode einfügen'); return; }
-  localStorage.setItem('claudeKey9', v);
+  localStorage.setItem('claudeKey9m', v);
   initTxtPane();
   initScanPane();
   toast('🚀 Text-KI aktiv!');
 }
 
 function resetTxtKey() {
-  localStorage.removeItem('claudeKey9');
+  localStorage.removeItem('claudeKey9m');
   initTxtPane();
   // auch Scan-Setup zurücksetzen
   document.getElementById('scanSetup').style.display = 'block';
@@ -8321,7 +8321,7 @@ ${raw}`;
     if (!resp.ok) {
       const e = await resp.json();
       if (e.error?.type === 'authentication_error') {
-        localStorage.removeItem('claudeKey9'); showKeySetup();
+        localStorage.removeItem('claudeKey9m'); showKeySetup();
         throw new Error('Ungültiger API-Key');
       }
       throw new Error(e.error?.message || 'HTTP ' + resp.status);
@@ -8680,7 +8680,7 @@ function saveAndStartTxt() {
   const v = (document.getElementById('txtKeyIn')?.value || '').trim();
   if (!v) { toast('⚠️ Zugangscode einfügen'); return; }
   if (v.length < 20) { toast('⚠️ Code zu kurz — vollständig kopieren'); return; }
-  localStorage.setItem('claudeKey9', v);
+  localStorage.setItem('claudeKey9m', v);
   document.getElementById('txtStepDone3').textContent = '✅';
   initTxtPane();
   // auch Scan-Pane aktualisieren
@@ -8691,7 +8691,7 @@ function saveAndStartTxt() {
 function showTxtKeySetup() {
   document.getElementById('txtSetup').style.display = 'block';
   document.getElementById('txtMain').style.display = 'none';
-  localStorage.removeItem('claudeKey9');
+  localStorage.removeItem('claudeKey9m');
   const inp = document.getElementById('txtKeyIn');
   if (inp) inp.focus();
 }
@@ -8786,7 +8786,7 @@ const TRANSL_LANGS=[
 var TR_SEL={};
 var TR_OPEN=new Set();
 
-function getKey(){return localStorage.getItem('claudeKey9')||'';}
+function getKey(){return localStorage.getItem('claudeKey9m')||'';}
 
 function openTransl(rid){
   const panel=document.getElementById('tp-'+rid);
@@ -8889,7 +8889,7 @@ ${steps}`;
     });
     if(!resp.ok){
       const e=await resp.json();
-      if(e.error?.type==='authentication_error'){localStorage.removeItem('claudeKey9');toast&&toast('⚠️ Ungültiger API-Key');return;}
+      if(e.error?.type==='authentication_error'){localStorage.removeItem('claudeKey9m');toast&&toast('⚠️ Ungültiger API-Key');return;}
       throw new Error(e.error?.message||'HTTP '+resp.status);
     }
     const data=await resp.json();
@@ -9161,7 +9161,7 @@ ${steps}`;
 // ═══════════════════════════════════════════════════════
 // BACKUP VAULT – Mehrere Sicherungen verwalten
 // ═══════════════════════════════════════════════════════
-const _BV_KEY='mrz9_bvault';
+const _BV_KEY='mrz9m_bvault';
 const _BV_MAX_AUTO=5;
 const _BV_MAX_MAN=10;
 const _isIOS=/iPad|iPhone|iPod/.test(navigator.userAgent)||(navigator.platform==='MacIntel'&&navigator.maxTouchPoints>1);
@@ -9187,9 +9187,9 @@ function _stripImgs(recs){return recs.map(r=>{const c={...r};delete c.img;return
 function _extractImgs(recs){const m={};recs.forEach(r=>{if(r.id&&r.img)m[r.id]=r.img;});return m;}
 
 // Bilder eines Vault-Eintrags separat in IDB speichern/laden/löschen
-async function _bvImgsSave(entryId,imgMap){await _idbSet('mrz9_bvi_'+entryId,JSON.stringify(imgMap));}
+async function _bvImgsSave(entryId,imgMap){await _idbSet('mrz9m_bvi_'+entryId,JSON.stringify(imgMap));}
 async function _bvImgsLoad(entryId){
-  const raw=await _idbGet('mrz9_bvi_'+entryId);
+  const raw=await _idbGet('mrz9m_bvi_'+entryId);
   if(!raw)return{};
   try{return JSON.parse(raw)||{};}catch(e){return{};}
 }
@@ -9199,7 +9199,7 @@ async function _bvImgsDel(entryId){
     const db=await _idbOpen();
     await new Promise((res,rej)=>{
       const tx=db.transaction('kv','readwrite');
-      tx.objectStore('kv').delete('mrz9_bvi_'+entryId);
+      tx.objectStore('kv').delete('mrz9m_bvi_'+entryId);
       tx.oncomplete=res;tx.onerror=()=>rej(tx.error);
     });
   }catch(e){}
@@ -9215,7 +9215,7 @@ async function _autoSnapshot(){
     fd:JSON.stringify(FD)
   };
   // legacy single-snap (für Boot-Restore bei leerem localStorage)
-  await _idbSet('mrz9_snap',JSON.stringify(snap));
+  await _idbSet('mrz9m_snap',JSON.stringify(snap));
   // vault entry
   const vault=await _bvRead();
   const autoSlots=vault.filter(x=>x.type==='auto');
@@ -9372,7 +9372,7 @@ function exportFromVault(entry){
   dlBlob(new Blob([JSON.stringify({version:9,exported:entry.ts,recipes:recs,menu:ms,folders:fd},null,2)],
     {type:'application/json'}),`rezeptbuch-backup-${dt}.json`);
   // iOS: letztes Export-Datum merken
-  localStorage.setItem('mrz9_last_export',new Date().toISOString());
+  localStorage.setItem('mrz9m_last_export',new Date().toISOString());
   toast('📤 JSON exportiert');
 }
 
@@ -9397,7 +9397,7 @@ async function _renderVault(){
 
   // iOS-Warnung
   if(_isIOS){
-    const lastExp=localStorage.getItem('mrz9_last_export')||'';
+    const lastExp=localStorage.getItem('mrz9m_last_export')||'';
     const daysSince=lastExp?Math.floor((Date.now()-new Date(lastExp))/864e5):999;
     if(daysSince>6||!lastExp){
       const localeMap={de:'de-DE',en:'en-GB',ru:'ru-RU',zh:'zh-CN',es:'es-ES',fr:'fr-FR',it:'it-IT',pt:'pt-PT'};
@@ -9935,7 +9935,7 @@ var qrcode=function(){var t=function(t,r){var e=t,n=g[r],o=null,i=0,a=null,u=[],
 <script>
 /* === ONBOARDING START === */
 (function(){
-  var OB_KEY='claudeKey9';
+  var OB_KEY='claudeKey9m';
 
   // ── Scan Intercept ───────────────────────────────────
   window.obMaybeInterceptScan=function(){
