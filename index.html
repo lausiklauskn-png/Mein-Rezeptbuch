@@ -788,6 +788,22 @@ body.nav-collapsed{padding-bottom:calc(16px + var(--sb))}
 .scan-prev-more{font-size:.67rem;color:#36706a;font-style:italic;padding:3px 0}
 .scan-prev-ing{font-size:.74rem;color:#1e4a45;padding:2px 0;line-height:1.4}
 .scan-prev-more{font-size:.68rem;color:#36706a;font-style:italic;padding:2px 0}
+/* Scan-Modus Selektor */
+.scan-mode-wrap{margin:10px 0 8px}
+.scan-mode-title{font-size:.66rem;font-weight:700;color:var(--br2);text-transform:uppercase;letter-spacing:.05em;margin-bottom:6px}
+.scan-mode-cards{display:grid;grid-template-columns:1fr 1fr 1fr;gap:6px}
+.scan-mode-card{background:var(--parch);border:2px solid var(--sand2);border-radius:10px;padding:9px 5px;text-align:center;cursor:pointer;transition:border-color .15s,background .15s}
+.scan-mode-card:active{opacity:.8}
+.scan-mode-card.selected{border-color:var(--teal);background:var(--teals)}
+.scan-mode-card.selected .smc-label{color:var(--teal)}
+.smc-icon{font-size:1.3rem;margin-bottom:2px;line-height:1}
+.smc-label{font-size:.73rem;font-weight:700;color:var(--br);margin-bottom:2px}
+.smc-stars{font-size:.58rem;color:#f0a500;letter-spacing:.5px;margin-bottom:2px}
+.smc-cost{font-size:.64rem;font-weight:700;color:var(--grn);margin-bottom:2px}
+.smc-desc{font-size:.57rem;color:var(--br3);line-height:1.3}
+.scan-upgrade-hint{background:var(--golds);border:1.5px solid var(--gold);border-radius:8px;padding:8px 10px;font-size:.7rem;color:#7a5800;display:flex;align-items:center;gap:8px;margin:6px 0;flex-wrap:wrap}
+.scan-upgrade-btn{background:var(--gold);color:#fff;border:none;border-radius:6px;padding:5px 11px;font-size:.69rem;font-weight:700;cursor:pointer;margin-left:auto;white-space:nowrap}
+.scan-upgrade-btn:active{opacity:.8}
 
 /* toast */
 .toast{position:fixed;bottom:calc(var(--bnh)+var(--sb)+10px);left:50%;transform:translateX(-50%);
@@ -2067,6 +2083,34 @@ Vielen Dank für deine Unterstützung.</div>
         </div>
 
         
+        <!-- ── Scan-Modus Auswahl ── -->
+        <div class="scan-mode-wrap" id="scanModeWrap">
+          <div class="scan-mode-title">⚙️ Scan-Qualität wählen</div>
+          <div class="scan-mode-cards">
+            <div class="scan-mode-card selected" id="smc-schnell" onclick="selectScanModel('schnell')" title="Schnell &amp; günstig — ideal für einfache, bekannte Gerichte">
+              <div class="smc-icon">⚡</div>
+              <div class="smc-label">Schnell</div>
+              <div class="smc-stars">★★★☆☆</div>
+              <div class="smc-cost">~0,001 €</div>
+              <div class="smc-desc">Bekannte Gerichte</div>
+            </div>
+            <div class="scan-mode-card" id="smc-standard" onclick="selectScanModel('standard')" title="Ausgewogen — gute Qualität für die meisten Rezepte">
+              <div class="smc-icon">🧠</div>
+              <div class="smc-label">Standard</div>
+              <div class="smc-stars">★★★★☆</div>
+              <div class="smc-cost">~0,005 €</div>
+              <div class="smc-desc">Komplexe Rezepte</div>
+            </div>
+            <div class="scan-mode-card" id="smc-profi" onclick="selectScanModel('profi')" title="Beste Qualität — maximale Genauigkeit, auch für unleserliche Rezepte">
+              <div class="smc-icon">💎</div>
+              <div class="smc-label">Profi</div>
+              <div class="smc-stars">★★★★★</div>
+              <div class="smc-cost">~0,02 €</div>
+              <div class="smc-desc">Max. Genauigkeit</div>
+            </div>
+          </div>
+        </div>
+
         <div id="scanStatus" class="scan-status"></div>
         <div id="scanResultWrap"></div>
 
@@ -4587,6 +4631,23 @@ const _KEY_ERR={
   ratelimit:'⏳ Zu viele Anfragen — bitte 1 Minute warten und nochmal versuchen'
 };
 
+// ── Scan-Modelle ──────────────────────────────────────
+var _scanModel='schnell';
+const _SCAN_MODELS={
+  schnell: {id:'claude-haiku-4-5-20251001', tokens:2000, label:'⚡ Schnell'},
+  standard:{id:'claude-sonnet-4-6',          tokens:3000, label:'🧠 Standard'},
+  profi:   {id:'claude-opus-4-5',             tokens:4000, label:'💎 Profi'}
+};
+function selectScanModel(key){
+  _scanModel=key;
+  ['schnell','standard','profi'].forEach(k=>{
+    const el=document.getElementById('smc-'+k);
+    if(el)el.classList.toggle('selected',k===key);
+  });
+  const lbl=document.getElementById('scanBtnLbl');
+  if(lbl)lbl.textContent='Rezept erkennen · '+(_SCAN_MODELS[key]||_SCAN_MODELS.schnell).label;
+}
+
 // ── SCAN: KEY MANAGEMENT ──────────────────────────────
 function getSavedKey(){return localStorage.getItem('claudeKey9')||'';}
 
@@ -4846,7 +4907,7 @@ Rules:
     const resp=await fetch('https://api.anthropic.com/v1/messages',{
       method:'POST',
       headers:{'Content-Type':'application/json','x-api-key':key,'anthropic-version':'2023-06-01','anthropic-dangerous-direct-browser-access':'true'},
-      body:JSON.stringify({model:'claude-opus-4-5',max_tokens:3000,
+      body:JSON.stringify({model:(_SCAN_MODELS[_scanModel]||_SCAN_MODELS.schnell).id,max_tokens:(_SCAN_MODELS[_scanModel]||_SCAN_MODELS.schnell).tokens,
         messages:[{role:'user',content:[
           {type:'image',source:{type:'base64',media_type:mime,data:b64}},
           {type:'text',text:prompt}
@@ -5113,6 +5174,14 @@ function renderScanResult(rec){
         ✅ Ins Rezeptbuch eintragen
       </button>
       <button class="scan-retry-btn" onclick="document.getElementById('scanFileIn').click()">📷 Anderes Foto wählen</button>
+      ${(()=>{
+        const lowQ=(rec.ingredients||[]).length<3||(rec.steps||[]).length<2;
+        if(_scanModel==='profi')return '';
+        const nextModel=_scanModel==='schnell'?'standard':'profi';
+        const nextLabel=_SCAN_MODELS[nextModel].label;
+        const hint=lowQ?'⚠️ Ergebnis scheint unvollständig —':'💡 Besseres Ergebnis möglich —';
+        return `<div class="scan-upgrade-hint">${hint}<button class="scan-upgrade-btn" onclick="selectScanModel('${nextModel}');triggerScan()">🔄 Nochmal mit ${nextLabel}</button></div>`;
+      })()}
     </div>`;
 }
 function acceptScan(){
