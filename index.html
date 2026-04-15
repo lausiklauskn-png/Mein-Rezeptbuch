@@ -402,7 +402,6 @@ body.nav-collapsed{padding-bottom:calc(16px + var(--sb))}
 .menu-top{background:var(--parch);border-bottom:1px solid var(--sand2);padding:10px 12px 0;margin-bottom:9px}
 .menu-top-hdr{display:flex;align-items:center;justify-content:space-between;margin-bottom:7px}
 .menutitle{font-family:Georgia,serif;font-size:1.02rem}
-.menudate{font-size:.65rem;color:var(--br3)}
 .menu-acts{display:flex;gap:5px;padding-bottom:9px}
 .mact{flex:1;border:1.5px solid var(--sand2);background:var(--sand);border-radius:8px;padding:9px 5px;text-align:center;cursor:pointer}
 .mact:active{background:var(--sand2)}
@@ -1565,7 +1564,6 @@ const _CR=Object.freeze({c:'© 2026 Klaus Nitzsche',r:'All rights reserved',v:'v
   <div class="menu-top">
     <div class="menu-top-hdr">
       <div class="menutitle" id="menuTitle">🍽️ Menüplaner</div>
-      <div class="menudate" id="menuDate"></div>
     </div>
     <div class="menu-acts">
       <div class="mact gld" onclick="openMV()">
@@ -5613,10 +5611,6 @@ function badge(){
 // MENU SCREEN
 // ═══════════════════════════════════════════════════════
 function renderMenu(){
-  const d=new Date();
-  document.getElementById('menuDate').textContent=d.toLocaleDateString(
-    CL==='zh'?'zh-CN':CL==='ru'?'ru-RU':CL==='en'?'en-GB':'de-DE',
-    {weekday:'long',day:'numeric',month:'long'});
   renderWeek();
 }
 // ─── Wochennavigation ───
