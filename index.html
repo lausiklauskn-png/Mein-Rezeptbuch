@@ -1757,11 +1757,13 @@ const _CR=Object.freeze({c:'© 2026 Klaus Nitzsche',r:'All rights reserved',v:'v
 
 <div class="sc" id="sc-folders">
   <div class="fld-top">
-    <div class="fld-top-title" id="fldTitle">📂 Meine Ordner</div>
-    <div class="sc-act-row">
-      <button class="sc-act-btn" onclick="openImport()" title="Importieren">📥 Import</button>
-      <button class="sc-act-btn" onclick="openExport()" title="Exportieren">📤 Export</button>
-      <button class="sc-act-btn add" onclick="showSc('recipes');openNewPanel()">+ Rezept</button>
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:7px">
+      <div class="fld-top-title" id="fldTitle" style="margin-bottom:0">📂 Meine Ordner</div>
+      <div style="display:flex;gap:5px">
+        <button class="sc-act-btn" onclick="openImport()" title="Importieren">📥</button>
+        <button class="sc-act-btn" onclick="openExport()" title="Exportieren">📤</button>
+        <button class="sc-act-btn add" onclick="showSc('recipes');openNewPanel()">+ Rezept</button>
+      </div>
     </div>
     <div class="fld-acts">
       <div class="fldact t" onclick="showSc('recipes');setTimeout(()=>document.getElementById('srchIn').focus(),200)">
