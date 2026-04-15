@@ -1451,6 +1451,9 @@ button:active{transform:scale(0.97)}
 /* srch-row: Suchzeile mit Inline-Buttons */
 .srch-row{display:flex;align-items:center;gap:7px;padding-bottom:7px}
 .srch-row .srch-inner{flex:1;min-width:0;margin-bottom:0}
+.srch-inner .srch-acts{display:flex;gap:2px;margin-left:auto;flex-shrink:0}
+.srch-inner .srch-act-btn{background:transparent;border:none;height:26px;padding:0 5px;font-size:.78rem}
+.srch-inner .srch-act-btn.add{background:var(--rust);color:#fff;border-radius:13px;padding:0 8px;border:none}
 .srch-acts{display:flex;gap:4px;flex-shrink:0}
 .srch-act-btn{height:32px;padding:0 9px;border-radius:16px;border:1.5px solid var(--sand2);
   background:var(--sand);color:var(--ink);font-size:.68rem;font-weight:700;
@@ -1583,12 +1586,10 @@ button:active{transform:scale(0.97)}
 
 <div class="sc on" id="sc-recipes">
   <div class="srch-bar">
-    <div class="srch-row">
-      <div class="srch-inner">
-        <span style="font-size:.95rem;color:var(--br3)">🔍</span>
-        <input id="srchIn" oninput="doSearch(this.value)"/>
-        <button class="srch-x" id="srchX" onclick="clearSearch()" title="Suche löschen" style="display:none">✕</button>
-      </div>
+    <div class="srch-inner">
+      <span style="font-size:.95rem;color:var(--br3)">🔍</span>
+      <input id="srchIn" oninput="doSearch(this.value)"/>
+      <button class="srch-x" id="srchX" onclick="clearSearch()" title="Suche löschen" style="display:none">✕</button>
       <div class="srch-acts">
         <button class="srch-act-btn" onclick="openImport()" title="Importieren">📥</button>
         <button class="srch-act-btn" onclick="openExport()" title="Exportieren">📤</button>
