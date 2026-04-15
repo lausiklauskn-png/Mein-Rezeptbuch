@@ -1581,12 +1581,10 @@ const _CR=Object.freeze({c:'© 2026 Klaus Nitzsche',r:'All rights reserved',v:'v
 
 <div class="sc on" id="sc-recipes">
   <div class="srch-bar">
-    <div class="srch-row">
-      <div class="srch-inner">
-        <span style="font-size:.95rem;color:var(--br3)">🔍</span>
-        <input id="srchIn" oninput="doSearch(this.value)"/>
-        <button class="srch-x" id="srchX" onclick="clearSearch()" title="Suche löschen" style="display:none">✕</button>
-      </div>
+    <div class="srch-inner">
+      <span style="font-size:.95rem;color:var(--br3)">🔍</span>
+      <input id="srchIn" oninput="doSearch(this.value)"/>
+      <button class="srch-x" id="srchX" onclick="clearSearch()" title="Suche löschen" style="display:none">✕</button>
       <div class="srch-acts">
         <button class="srch-act-btn" onclick="openImport()" title="Importieren">📥</button>
         <button class="srch-act-btn" onclick="openExport()" title="Exportieren">📤</button>
