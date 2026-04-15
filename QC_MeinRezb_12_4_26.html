@@ -1767,11 +1767,13 @@ button:active{transform:scale(0.97)}
 
 <div class="sc" id="sc-backup">
   <div class="fld-top">
-    <div class="fld-top-title">🗄️ <span id="sBvScreenTitle">Backup-Tresor</span></div>
-    <div class="sc-act-row">
-      <button class="sc-act-btn" onclick="openImport()" title="Importieren">📥 Import</button>
-      <button class="sc-act-btn" onclick="openExport()" title="Exportieren">📤 Export</button>
-      <button class="sc-act-btn add" onclick="showSc('recipes');openNewPanel()">+ Rezept</button>
+    <div style="display:flex;align-items:center;justify-content:space-between">
+      <div class="fld-top-title" style="margin-bottom:0">🗄️ <span id="sBvScreenTitle">Backup-Tresor</span></div>
+      <div style="display:flex;gap:5px">
+        <button class="sc-act-btn" onclick="openImport()" title="Importieren">📥</button>
+        <button class="sc-act-btn" onclick="openExport()" title="Exportieren">📤</button>
+        <button class="sc-act-btn add" onclick="showSc('recipes');openNewPanel()">+ Rezept</button>
+      </div>
     </div>
   </div>
   <div id="bvaultBody" style="padding:10px 12px 80px;-webkit-overflow-scrolling:touch"></div>
