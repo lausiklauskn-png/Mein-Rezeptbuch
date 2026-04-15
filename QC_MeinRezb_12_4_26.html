@@ -1623,17 +1623,17 @@ button:active{transform:scale(0.97)}
   <div class="menu-top">
     <div class="menu-top-hdr">
       <div class="menutitle" id="menuTitle">🍽️ Menüplaner</div>
+      <div style="display:flex;gap:5px">
+        <button class="sc-act-btn" onclick="openImport()" title="Importieren">📥</button>
+        <button class="sc-act-btn" onclick="openExport()" title="Exportieren">📤</button>
+        <button class="sc-act-btn add" onclick="openNewPanel()">+ Rezept</button>
+      </div>
     </div>
     <div class="menu-date-row" id="menuDate"></div>
     <div class="menu-acts">
       <div class="mact gld" onclick="openMV()">
         <div class="mico">👁️</div><div class="mlbl" id="mActView">Menü & Einkaufsliste</div>
       </div>
-    </div>
-    <div class="sc-act-row">
-      <button class="sc-act-btn" onclick="openImport()" title="Importieren">📥 Import</button>
-      <button class="sc-act-btn" onclick="openExport()" title="Exportieren">📤 Export</button>
-      <button class="sc-act-btn add" onclick="openNewPanel()">+ Rezept</button>
     </div>
   </div>
   
