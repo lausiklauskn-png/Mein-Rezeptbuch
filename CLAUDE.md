@@ -146,6 +146,121 @@ print("✅ Alle Icons vollständig ersetzt")
 
 ---
 
+## ⚠️ PFLICHT-REGEL: Dateien umbenennen (atomisch)
+
+**Wenn eine Datei umbenannt wird, MÜSSEN alle Querverweise in EINEM einzigen Commit aktualisiert werden.**
+
+### Warum diese Regel existiert
+Zwischen zwei Commits deployt GitHub Pages die Zwischenzustände. Wenn Datei A auf `mr-invite-v5.html` verlinkt und diese Datei dann in einem separaten Commit zu `MeinRezeptbuch-invite-v5.html` umbenannt wird, entsteht ein Deployment-Fenster mit 404-Fehlern – selbst wenn beide Commits nur Minuten auseinanderliegen.
+
+### Pflicht-Checkliste bei jeder Umbenennung
+
+**Vor dem Umbenennen** – alle Stellen finden, die auf die Datei verweisen:
+```bash
+grep -rn "alter-dateiname" --include="*.html" --include="*.js" --include="*.json" .
+```
+
+**In EINEM einzigen Commit** alles zusammen ändern:
+1. Datei umbenennen (`git mv alter-name.html neuer-name.html`)
+2. Alle `href="alter-name.html"` → `href="neuer-name.html"`
+3. Alle `src="alter-name.html"` → `src="neuer-name.html"`
+4. Alle `location.replace('...alter-name.html'...)` → neuer Name
+5. Alle `window.open('...alter-name.html'...)` → neuer Name
+6. Alle absoluten GitHub-Pages-URLs mit altem Namen → neue URLs
+7. Alle Referenzen in `app-manifest.json`, `sw.js`, `app-sw.js`
+
+**Verifizieren vor dem Commit:**
+```bash
+grep -rn "alter-dateiname" --include="*.html" --include="*.js" --include="*.json" .
+# Ergebnis muss leer sein!
+```
+
+**Regel:** Niemals eine Datei umbenennen und die Referenzaktualisierung auf einen späteren Commit verschieben.
+
+---
+
+## ⚠️ REGEL: Übernahme vom Schwesterprojekt – Pflicht-URL-Prüfung
+
+Wenn Code von **Muttis-Rezeptbuch** nach **Mein-Rezeptbuch** übertragen wird, enthalten alle Dateien Muttis-spezifische Namen und URLs. Diese müssen **vollständig** ersetzt werden – sonst entstehen unsichtbare Zeitbomben die erst später als 404 auffallen.
+
+**Nach jeder Übernahme diesen grep ausführen:**
+```bash
+grep -rn "mr-gift\|mr-invite\|muttis\|Muttis-Rezeptbuch\|MuttisRezeptbuch\|muttisrezeptbuch" \
+  --include="*.html" --include="*.js" --include="*.json" .
+# Ergebnis muss leer sein!
+```
+
+**Typische Stellen mit alten Namen:**
+- `window.open('...mr-invite-v4.html'...)` im Einstellungs-Dialog der Haupt-App
+- `location.replace('...mr-gift.html'...)` in den Gift-Seiten
+- `dlBlob(..., 'muttis-rezeptbuch.html')` bei Download-Funktionen
+- Absolute GitHub-Pages-URLs in `href`, `src`, `content`
+
+**Regel:** Nie annehmen, dass "der Code schon passt" – immer mit grep verifizieren.
+
+---
+
+## ⚠️ REGEL: Eigenständige Seiten werden DIREKT bearbeitet
+
+Die folgenden Dateien sind **eigenständige HTML-Seiten** – sie laufen NICHT durch `build.py`:
+
+| Datei | Typ |
+|-------|-----|
+| `MeinRezeptbuch-gift.html` | direkt bearbeiten + committen |
+| `MeinRezeptbuch-gift2.html` | direkt bearbeiten + committen |
+| `MeinRezeptbuch-invite-v5.html` | direkt bearbeiten + committen |
+| `USP_MeinRezeptbuch.html` | direkt bearbeiten + committen |
+| `USP_Erklaerung zu MeinRezb.html` | direkt bearbeiten + committen |
+| `impressum.html` | direkt bearbeiten + committen |
+
+`build.py` ist **ausschließlich** für `index.html` zuständig.
+
+**Pflicht-Checkliste nach Änderungen an eigenständigen Seiten:**
+```
+✅ Datei direkt geändert (NICHT via build.py)
+✅ Alle internen Links auf Korrektheit geprüft (keine mr-* oder Muttis-URLs)
+✅ Icons inline als Base64 (keine externen Dateireferenzen)
+```
+
+---
+
+## ⚠️ REGEL: Icons in eigenständigen Seiten müssen inline sein
+
+Externe Icon-Referenzen (`href="icons/icon-book-blue.svg"`) in eigenständigen HTML-Seiten sind **verboten**. Wenn die Icon-Datei umbenannt oder verschoben wird, bricht das Icon lautlos.
+
+**Pflicht:** Alle Icons in gift.html, gift2.html, invite-v5.html und USP-Seiten müssen als **inline Base64 data-URI** eingebettet sein:
+
+```html
+<!-- FALSCH – externe Referenz: -->
+<link rel="icon" href="icons/icon-book-blue.svg">
+
+<!-- RICHTIG – inline Base64: -->
+<link rel="icon" type="image/svg+xml" href="data:image/svg+xml;base64,...">
+```
+
+**Verifizieren:**
+```bash
+grep -n 'rel="icon"' MeinRezeptbuch-gift.html MeinRezeptbuch-gift2.html MeinRezeptbuch-invite-v5.html
+# Jede Zeile muss "data:" enthalten – kein "href="icons/" erlaubt
+```
+
+---
+
+## ⚠️ REGEL: Icon-Änderungen erfordern einen einzigen vollständigen Durchgang
+
+Fehler aus der Praxis: Icon in gift.html geändert → ein Commit → danach Nachbesserung nötig (`ac02360 Icon-Fix`), weil die anderen Seiten vergessen wurden.
+
+**Vor dem ersten Icon-Commit** alle betroffenen Stellen inventarisieren:
+```bash
+grep -rn 'rel="icon"\|rel="apple-touch-icon"\|icons:\[' \
+  MeinRezeptbuch-gift.html MeinRezeptbuch-gift2.html \
+  MeinRezeptbuch-invite-v5.html app-manifest.json app-sw.js
+```
+
+**Alle diese Stellen in EINEM Commit** aktualisieren – kein "ich mache die anderen Seiten später".
+
+---
+
 ## Häufige Aufgaben
 
 ### Neue Funktion hinzufügen
@@ -161,3 +276,48 @@ print("✅ Alle Icons vollständig ersetzt")
 ### Sprache hinzufügen
 - Im `LANGS`-Objekt neuen Sprachblock ergänzen
 - `CL`-Variable und `T(k)`-Funktion funktionieren automatisch
+
+---
+
+## Menüleiste (Bottom Nav) – Aktuelle Implementierung
+
+### Schriftgrößen (Stand nach PR #3)
+| Element | CSS-Klasse | Wert |
+|---|---|---|
+| Nav-Icon | `.bn-ico` | `font-size:1.15rem` |
+| Nav-Label (Basis) | `.bn-lbl` | `font-size:.65rem` |
+| Nav-Label (Typografie-Override) | `.bn-lbl` (Ende `<style>`) | `font-size:var(--text-sm)` = 13px |
+
+### navTo() – Schritt-zurück-Verhalten
+**Alle Nav-Buttons** rufen `navTo(n)` statt `showSc(n)` auf.
+
+`navTo(n)` schließt zuerst offene fov-Overlays (Import, Export, API-Key, Sprache, Hilfe, Manual), **bevor** zum Ziel-Tab navigiert wird. Ist ein Overlay offen → wird nur geschlossen (ein Schritt zurück). Ist keins offen → normaler `showSc(n)`-Aufruf.
+
+```javascript
+// navTo() steht direkt nach showSc() in der QC-Datei
+function navTo(n){ ... }
+```
+
+**Regel:** Neue Nav-Buttons immer mit `navTo()` statt `showSc()` anlegen.
+
+---
+
+## Mein-Menü-Overlay (`.mv-*`) – Design-Parität mit Import-Overlay (`.fov-*`)
+
+Das `#mv`-Overlay (Mein Menü / Wochenplan) soll **optisch identisch** mit dem `#importOv`-Overlay sein.
+
+### Aktuelle CSS-Werte (Stand nach PR #3)
+| Element | `.mv-*` | entspricht `.fov-*` |
+|---|---|---|
+| Header | `.mv-hdr` | `.fov-hdr` – `cursor:pointer`, klickbar zum Schließen |
+| Zurück-Pfeil | `.mv-back` | `color:rgba(255,255,255,.56)` |
+| Titel | `.mv-title` | `font-size:.98rem; color:#fff` |
+| Druck-Button | `.mv-print-btn` | Icon-Stil: `font-size:1.15rem; color:rgba(255,255,255,.72)` |
+| Tab-Leiste | `.mv-tabs` | `.fov-tabs` |
+| Tab-Schrift | `.mvtab` | `font-size:.72rem; padding:9px 4px; color:rgba(255,255,255,.80)` |
+| Tab aktiv | `.mvtab.on` | `color:#fff; border-bottom-color:var(--gold)` |
+
+### Spektral-Theme
+`.mv-hdr` und `.mv-tabs` haben denselben Regenbogen-Verlauf wie `.fov-hdr`/`.fov-tabs`.
+
+**Regel:** Bei Änderungen an `.fov-hdr`/`.fovtab` immer prüfen ob `.mv-hdr`/`.mvtab` ebenfalls angepasst werden müssen.
