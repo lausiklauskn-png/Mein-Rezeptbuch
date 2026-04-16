@@ -508,6 +508,113 @@
 </div>
 
 
+<!-- ─────────── ABSCHNITT 6 ─────────── -->
+<div class="section">
+  <h2><span class="section-num">6</span>KI-Bilderkennung: Wie erkennt die KI ein Rezept aus einem Foto?</h2>
+
+  <div class="explain">
+    Eine neue Funktion von <em>Mein Rezeptbuch</em> heißt „Rezept aus reinem Bild" – kein Text im Bild nötig.
+    Du fotografierst ein Gericht, und die KI erstellt daraus ein vollständiges Rezept.
+    Wie ist das möglich?
+  </div>
+
+  <div class="chain">
+    <div class="chain-item c1"><span class="ci">🗄️</span> Riesige DB-Sammlungen (z. B. LAION-5B: 5,8 Mrd. Bild-Text-Paare)</div>
+    <div class="chain-arrow">↓</div>
+    <div class="chain-item c2"><span class="ci">🧠</span> Modell lernt: Bild → Beschreibung → Zutaten → Rezept</div>
+    <div class="chain-arrow">↓</div>
+    <div class="chain-item c3"><span class="ci">👁️</span> Multimodales Modell „sieht" Bilder wie ein Mensch</div>
+    <div class="chain-arrow">↓</div>
+    <div class="chain-end">📸 Foto eines Gerichts → vollständiges Rezept</div>
+  </div>
+
+  <div class="explain">
+    <strong>Was sind DB-Sammlungen?</strong> Datensätze wie <strong>LAION-5B</strong> enthalten
+    5,8 Milliarden Bild-Text-Paare aus dem Internet – Fotos von Gerichten zusammen mit
+    Beschreibungen, Rezepten und Zutatenangaben. Das Modell hat dabei gelernt, wie Lasagne
+    aussieht, welche Zutaten typisch sind und wie sie zubereitet werden – ohne dass ihm
+    das jemand explizit erklärt hat.
+  </div>
+
+  <div class="why-grid">
+    <div class="why-card cant">
+      <h3>❌ Kein klassischer Datenbankabgleich</h3>
+      Das Modell sucht nicht in einer Datenbank nach dem passenden Bild. Das Wissen
+      steckt in den <strong>Modellgewichten</strong> – wie bei einem Menschen, der
+      tausende Gerichte gesehen hat und sie instinktiv erkennt.
+    </div>
+    <div class="why-card can">
+      <h3>✓ Multimodales Muster-Matching</h3>
+      Farben, Texturen, Formen und Anrichtstil werden gleichzeitig ausgewertet →
+      das Modell erstellt ein plausibles Rezept – auch <strong>ohne einen einzigen
+      Buchstaben im Bild</strong>.
+    </div>
+  </div>
+
+  <div class="highlight">
+    <h3>Warum kein anderer Anbieter das so integriert anbieten kann</h3>
+    <p>
+      Normalerweise braucht man für diese Funktion einen <strong>eigenen Dienst</strong>
+      (z. B. Google Vision API + Food-Datenbank) mit entsprechenden Lizenzkosten und
+      Serverinfrastruktur. Hier übernimmt ein <strong>einziger GPT-4o-Aufruf</strong>
+      (0,002–0,015 €) alles auf einmal: Bild analysieren, Gericht erkennen,
+      Zutaten ableiten, Rezept formulieren. Kein eigener Server, keine eigene
+      Bilderkennung – und trotzdem State-of-the-Art-Ergebnis.
+    </p>
+  </div>
+</div>
+
+
+<!-- ─────────── ABSCHNITT 7 ─────────── -->
+<div class="section">
+  <h2><span class="section-num">7</span>PDF-Import: Kochbücher, Scans und eingebettete Bilder</h2>
+
+  <div class="explain">
+    PDFs gibt es in zwei grundverschiedenen Typen – und die App kann mit beiden umgehen:
+  </div>
+
+  <div class="vs-row">
+    <div class="vs-box good">
+      <h3>Digitale PDFs (Text eingebettet)</h3>
+      Text ist direkt als Zeichenkette im PDF gespeichert – kein Foto, kein Scan.
+      Die App <strong>extrahiert den Text direkt</strong>, ohne KI-Vision nötig.
+      Schnell, präzise, günstig.
+    </div>
+    <div class="vs-arrow">→</div>
+    <div class="vs-box good">
+      <h3>Scan-PDFs (Bilder von Seiten)</h3>
+      Seiten sind als eingebettete Bilder gespeichert – z. B. eingescannte Rezeptkarten
+      oder Fotoaufnahmen von Kochbuchseiten. Die App übergibt die Bilder an die
+      <strong>Vision-KI</strong>, die Handschrift, Drucktext und Zutaten erkennt.
+      Kein separates OCR-Programm nötig.
+    </div>
+  </div>
+
+  <div class="explain">
+    <strong>Warum scheitern andere Apps?</strong> Die meisten Apps können nur digitalen
+    Text aus PDFs lesen. Scan-PDFs (die häufigste Form gescannter Kochbücher und
+    Rezeptkarten) sind für sie entweder <strong>Datenmüll oder führen zu Fehlern</strong>.
+    <em>Mein Rezeptbuch</em> erkennt den PDF-Typ automatisch und wählt den richtigen
+    Verarbeitungsweg – ohne dass der Nutzer etwas einstellen muss.
+  </div>
+
+  <div class="why-grid">
+    <div class="why-card can">
+      <h3>✓ Was funktioniert</h3>
+      Digitale Kochbuch-PDFs · Magazin-PDFs · Als PDF gespeicherte Webseiten ·
+      Eingescannte Rezeptkarten · Fotos von Kochbuchseiten als PDF · Gemischte PDFs
+      (teils Text, teils Scan)
+    </div>
+    <div class="why-card can">
+      <h3>✓ Was die KI daraus macht</h3>
+      Titel · Zutatenliste · Zubereitungsschritte · Portionen ·
+      Kategorie-Vorschlag · optional Nährwerte –
+      alles in einem einzigen Schritt, strukturiert und direkt importierbar.
+    </div>
+  </div>
+</div>
+
+
 <!-- ─────────── FAZIT ─────────── -->
 <div class="fazit">
   <h2>Zusammenfassung: Das ist das wirkliche Alleinstellungsmerkmal</h2>
@@ -535,6 +642,17 @@
     <li>
       <strong>QR-Teilen ohne Internet</strong> – weil die App keine Abhängigkeit
       braucht und du nicht zum Abonnieren eines Familienplans gedrängt werden sollst.
+    </li>
+    <li>
+      <strong>Rezept aus reinem Bild (Vision-KI):</strong>
+      Kein Text nötig – multimodale Modelle, trainiert auf Milliarden Bild-Text-Paaren
+      (DB-Sammlungen wie LAION-5B). Kein anderer Consumer-Rezept-App-Anbieter hat das integriert.
+    </li>
+    <li>
+      <strong>PDF-Import (Text &amp; Bilder):</strong>
+      Digitale PDFs direkt extrahiert, Scan-PDFs per Vision-KI gelesen –
+      beides in einem Schritt, ohne separates OCR-Tool.
+      Andere Apps scheitern an Scan-PDFs vollständig.
     </li>
   </ul>
 </div>
