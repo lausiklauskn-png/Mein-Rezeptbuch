@@ -2147,15 +2147,19 @@ Vielen Dank für deine Unterstützung.</div>
           style="cursor:default">
           <div id="scanPhotoContent">
             <div class="scan-camera-ico">📸</div>
-            <div class="scan-photo-lbl" id="scanDropLbl">Rezept-Foto auswählen</div>
-            <div class="scan-photo-sub">Foto, Screenshot oder Scan · JPG · PNG</div>
+            <div class="scan-photo-lbl" id="scanDropLbl">Rezept-Foto oder PDF auswählen</div>
+            <div class="scan-photo-sub">Foto, Screenshot, Scan oder PDF · JPG · PNG · PDF</div>
           </div>
           <img id="scanPrev" src="" alt=""
             style="display:none;width:100%;max-height:210px;object-fit:contain;border-radius:8px"/>
+          <div id="scanPdfPrev" style="display:none;text-align:center;padding:24px 16px">
+            <div style="font-size:3rem;margin-bottom:8px">📄</div>
+            <div id="scanPdfName" style="font-size:.8rem;color:var(--br3);word-break:break-all"></div>
+          </div>
         </div>
-        <input type="file" id="scanFileIn" accept="image/*" multiple style="display:none"
+        <input type="file" id="scanFileIn" accept="image/*,application/pdf" multiple style="display:none"
           onchange="handleScanFile(event)"/>
-        <input type="file" id="scanFolderIn" accept="image/*" multiple webkitdirectory style="display:none"
+        <input type="file" id="scanFolderIn" accept="image/*,application/pdf" multiple webkitdirectory style="display:none"
           onchange="handleScanFile(event)"/>
         <input type="file" id="scanCameraIn" accept="image/*" capture="environment" style="display:none"
           onchange="handleScanFile(event)"/>
@@ -2173,8 +2177,17 @@ Vielen Dank für deine Unterstützung.</div>
           </button>
         </div>
         <div style="font-size:.63rem;color:var(--br3);line-height:1.5;margin-top:7px;padding:7px 10px;background:var(--golds);border-radius:8px;border:1px solid rgba(168,132,30,.2)">
-          🔒 <strong>Datensicherheit:</strong> Alle Rezepte werden lokal im Browser gespeichert. Beim KI-Scan wird das Bild verschlüsselt an Anthropic übertragen — kein Foto bleibt auf einem Server.
+          🔒 <strong>Datensicherheit:</strong> Alle Rezepte werden lokal im Browser gespeichert. Beim KI-Scan wird das Bild oder PDF verschlüsselt an Anthropic übertragen — keine Datei bleibt auf einem Server.
           <br/>Ordner wählen: Chrome/Edge fragen einmalig nach Berechtigung → „Erlauben" klicken → alle Bilder im Ordner werden geladen. Systemdateien werden ignoriert.
+        </div>
+        <div style="font-size:.63rem;color:var(--br3);line-height:1.6;margin-top:6px;padding:7px 10px;background:var(--parch);border-radius:8px;border:1px solid var(--sand2)">
+          <strong>Erkennbare Vorlagen:</strong>
+          <ul style="margin:3px 0 0;padding-left:16px">
+            <li>Handschriftliche Rezepte</li>
+            <li>Gedruckte Rezepte &amp; Kochbücher</li>
+            <li>Screenshots &amp; Fotos</li>
+            <li>PDF-Dateien</li>
+          </ul>
         </div>
 
         
@@ -2268,6 +2281,7 @@ Vielen Dank für deine Unterstützung.</div>
           <li>Rezepte aus Nachrichten, E-Mails &amp; Notizen</li>
           <li>Selbst getippte oder diktierte Rezepte</li>
           <li>Textdateien (.txt) per Drag &amp; Drop</li>
+          <li>PDF-Dateien per Drag &amp; Drop (Text wird extrahiert)</li>
         </ul>
       </div>
 
@@ -2374,7 +2388,7 @@ Vielen Dank für deine Unterstützung.</div>
               padding:28px 16px;pointer-events:none;position:absolute;top:0;left:0;right:0;bottom:0">
             <div style="font-size:2.8rem;margin-bottom:8px">📋</div>
             <div class="scan-photo-lbl" id="txtDropLblEl">Rezepttext eintippen oder einfügen</div>
-            <div class="scan-photo-sub" id="txtDropSubEl">Strg+V · Tippen · oder .txt-Datei hierher ziehen</div>
+            <div class="scan-photo-sub" id="txtDropSubEl">Strg+V · Tippen · oder .txt / .pdf hierher ziehen</div>
           </div>
           <textarea id="txtPasteArea"
             style="width:100%;min-height:180px;padding:14px 15px;border:none;
@@ -2720,7 +2734,7 @@ const LANGS={
     ,txtReadyLbl:'Text-KI aktiv'
     ,txtIntro:'Rezeptzettel, Notizen oder kopierte Texte einfügen — die KI strukturiert alles automatisch ins Rezeptbuch.'
     ,txtDropLbl:'Rezepttext eintippen oder einfügen'
-    ,txtDropSub:'Strg+V · Tippen · oder .txt-Datei hierher ziehen'
+    ,txtDropSub:'Strg+V · Tippen · oder .txt / .pdf hierher ziehen'
     ,txtScanBtn:'Rezept automatisch erkennen'
     ,txtReset:'↺ Text leeren'
     ,txtSaveKey:'Speichern & loslegen'
@@ -2830,7 +2844,7 @@ const LANGS={
     ,txtReadyLbl:'Text AI active'
     ,txtIntro:'Paste notes, copied text or any recipe — the AI structures everything automatically into your recipe book.'
     ,txtDropLbl:'Type or paste recipe text'
-    ,txtDropSub:'Ctrl+V · Type · or drag a .txt file here'
+    ,txtDropSub:'Ctrl+V · Type · or drag a .txt / .pdf file here'
     ,txtScanBtn:'Recognise recipe automatically'
     ,txtReset:'↺ Clear text'
     ,txtSaveKey:'Save & get started'
@@ -2940,7 +2954,7 @@ const LANGS={
     ,txtReadyLbl:'Текстовый ИИ активен'
     ,txtIntro:'Вставьте заметки, скопированный текст или любой рецепт — ИИ автоматически структурирует всё в книгу рецептов.'
     ,txtDropLbl:'Введите или вставьте текст рецепта'
-    ,txtDropSub:'Ctrl+V · Ввод · или перетащите .txt-файл'
+    ,txtDropSub:'Ctrl+V · Ввод · или перетащите .txt / .pdf'
     ,txtScanBtn:'Распознать рецепт автоматически'
     ,txtReset:'↺ Очистить текст'
     ,txtSaveKey:'Сохранить и начать'
@@ -3050,7 +3064,7 @@ const LANGS={
     ,txtReadyLbl:'文字AI已激活'
     ,txtIntro:'粘贴笔记、复制的文字或任何食谱 — AI 自动将所有内容整理进食谱书。'
     ,txtDropLbl:'在此输入或粘贴食谱文字'
-    ,txtDropSub:'Ctrl+V · 输入 · 或拖入.txt文件'
+    ,txtDropSub:'Ctrl+V · 输入 · 或拖入.txt / .pdf文件'
     ,txtScanBtn:'自动识别食谱'
     ,txtReset:'↺ 清空文字'
     ,txtSaveKey:'保存并开始'
@@ -3158,7 +3172,7 @@ const LANGS={
     ,txtReadyLbl:'IA de texto activa'
     ,txtIntro:'Pega notas, textos copiados o cualquier receta — la IA estructura todo automáticamente en el recetario.'
     ,txtDropLbl:'Escribe o pega el texto de la receta'
-    ,txtDropSub:'Ctrl+V · Escribir · o arrastra un archivo .txt'
+    ,txtDropSub:'Ctrl+V · Escribir · o arrastra un archivo .txt / .pdf'
     ,txtScanBtn:'Reconocer receta automáticamente'
     ,txtReset:'↺ Borrar texto'
     ,txtSaveKey:'Guardar y empezar'
@@ -3377,7 +3391,7 @@ const LANGS={
     ,txtReadyLbl:'IA texte active'
     ,txtIntro:'Collez des notes, textes copiés ou toute recette — l\'IA structure tout automatiquement dans votre livre de recettes.'
     ,txtDropLbl:'Tapez ou collez le texte de la recette'
-    ,txtDropSub:'Ctrl+V · Taper · ou glisser un fichier .txt'
+    ,txtDropSub:'Ctrl+V · Taper · ou glisser un fichier .txt / .pdf'
     ,txtScanBtn:'Reconnaître la recette automatiquement'
     ,txtReset:'↺ Effacer le texte'
     ,txtSaveKey:'Enregistrer et commencer'
@@ -3596,7 +3610,7 @@ const LANGS={
     ,txtReadyLbl:'IA testo attiva'
     ,txtIntro:'Incolla note, testi copiati o qualsiasi ricetta — l\'IA struttura tutto automaticamente nel ricettario.'
     ,txtDropLbl:'Digita o incolla il testo della ricetta'
-    ,txtDropSub:'Ctrl+V · Digitare · o trascinare un file .txt'
+    ,txtDropSub:'Ctrl+V · Digitare · o trascinare un file .txt / .pdf'
     ,txtScanBtn:'Riconoscere la ricetta automaticamente'
     ,txtReset:'↺ Cancella testo'
     ,txtSaveKey:'Salva e inizia'
@@ -3815,7 +3829,7 @@ const LANGS={
     ,txtReadyLbl:'IA de texto ativa'
     ,txtIntro:'Cole notas, textos copiados ou qualquer receita — a IA estrutura tudo automaticamente no livro de receitas.'
     ,txtDropLbl:'Digite ou cole o texto da receita'
-    ,txtDropSub:'Ctrl+V · Digitar · ou arrastar ficheiro .txt'
+    ,txtDropSub:'Ctrl+V · Digitar · ou arrastar ficheiro .txt / .pdf'
     ,txtScanBtn:'Reconhecer receita automaticamente'
     ,txtReset:'↺ Limpar texto'
     ,txtSaveKey:'Guardar e começar'
@@ -4949,6 +4963,29 @@ function initScanPane(){
 // ── SCAN: FILE HANDLING ───────────────────────────────
 function loadScanFile(file){
   if(!file)return;
+  const isPdf=file.type==='application/pdf'||file.name.toLowerCase().endsWith('.pdf');
+  if(isPdf){
+    const fr=new FileReader();
+    fr.onload=ev=>{
+      scanData=ev.target.result;
+      scanDataStore=null;
+      const prev=document.getElementById('scanPrev');
+      const pdfPrev=document.getElementById('scanPdfPrev');
+      const pdfName=document.getElementById('scanPdfName');
+      const ph=document.getElementById('scanPhotoContent');
+      if(prev)prev.style.display='none';
+      if(pdfPrev)pdfPrev.style.display='block';
+      if(pdfName)pdfName.textContent=file.name;
+      if(ph)ph.style.display='none';
+      document.getElementById('scanActions').style.display='block';
+      document.getElementById('scanResultWrap').innerHTML='';
+      const st=document.getElementById('scanStatus');
+      if(st)st.style.display='none';
+      if(getSavedKey())triggerScan();
+    };
+    fr.readAsDataURL(file);
+    return;
+  }
   if(file.size>5*1024*1024){toast('⚠️ Bild zu groß (max. 5 MB). Bitte ein kleineres Foto wählen.');return;}
   const fr=new FileReader();
   fr.onload=async ev=>{
@@ -5004,12 +5041,21 @@ async function runBatchScan(files){
     <div style="font-size:.72rem;color:var(--br3)">${msg}</div>`;}
   updBar('Starte …');
   for(let i=0;i<files.length;i++){
-    updBar(`Bild ${i+1} von ${total}: <em>${h(files[i].name)}</em> …`);
+    updBar(`Datei ${i+1} von ${total}: <em>${h(files[i].name)}</em> …`);
     try{
+      const fileIsPdf=files[i].type==='application/pdf'||files[i].name.toLowerCase().endsWith('.pdf');
       const origData=await new Promise((res,rej)=>{const fr=new FileReader();fr.onload=e=>res(e.target.result);fr.onerror=rej;fr.readAsDataURL(files[i]);});
-      // 1200px für API-Erkennung, 800px für Rezeptbild-Speicher
-      const[apiData,storeData]=await Promise.all([resizeImage(origData,1200,0.90),resizeImage(origData,800,0.75)]);
-      const b64=apiData.split(',')[1],mime=apiData.split(';')[0].split(':')[1]||'image/jpeg';
+      let apiData,storeData,b64,mime,contentBlock;
+      if(fileIsPdf){
+        b64=origData.split(',')[1];
+        contentBlock={type:'document',source:{type:'base64',media_type:'application/pdf',data:b64}};
+        storeData='';
+      }else{
+        // 1200px für API-Erkennung, 800px für Rezeptbild-Speicher
+        [apiData,storeData]=await Promise.all([resizeImage(origData,1200,0.90),resizeImage(origData,800,0.75)]);
+        b64=apiData.split(',')[1];mime=apiData.split(';')[0].split(':')[1]||'image/jpeg';
+        contentBlock={type:'image',source:{type:'base64',media_type:mime,data:b64}};
+      }
       const prompt=`You are a recipe extraction expert. Look at this recipe image carefully and extract ALL information.
 Return ONLY a valid JSON object — no markdown, no explanation, just the raw JSON:
 {
@@ -5033,7 +5079,7 @@ Rules:
         headers:{'Content-Type':'application/json','x-api-key':key,'anthropic-version':'2023-06-01','anthropic-dangerous-direct-browser-access':'true'},
         body:JSON.stringify({model:(_SCAN_MODELS[_scanModel]||_SCAN_MODELS.schnell).id,max_tokens:(_SCAN_MODELS[_scanModel]||_SCAN_MODELS.schnell).tokens,
           messages:[{role:'user',content:[
-            {type:'image',source:{type:'base64',media_type:mime,data:b64}},
+            contentBlock,
             {type:'text',text:prompt}
           ]}]})
       });
@@ -5051,9 +5097,9 @@ Rules:
         steps:(rec.steps||[]).map((s,x)=>({id:x+1,txt:typeof s==='string'?s:s.txt||'',note:''})),
         rating:{stars:0,comment:'',imps:[]}};
       R.unshift(nr);sv();ok++;
-    }catch(err){fail++;console.warn('Batch-Scan Fehler Bild '+(i+1),err);}
+    }catch(err){fail++;console.warn('Batch-Scan Fehler Datei '+(i+1),err);}
     done++;
-    updBar(done<total?`Bild ${done+1} von ${total} …`:`Fertig — ${ok} eingetragen${fail?', '+fail+' Fehler':''}`);
+    updBar(done<total?`Datei ${done+1} von ${total} …`:`Fertig — ${ok} eingetragen${fail?', '+fail+' Fehler':''}`);
   }
   // Final summary
   batchBar.innerHTML=`
@@ -5080,8 +5126,10 @@ function handleScanDrop(e){
 function resetScan(){
   scanData=null;scanDataStore=null;
   const prev=document.getElementById('scanPrev');
+  const pdfPrev=document.getElementById('scanPdfPrev');
   const ph=document.getElementById('scanPhotoContent');
   if(prev){prev.src='';prev.style.display='none';}
+  if(pdfPrev)pdfPrev.style.display='none';
   if(ph)ph.style.display='block';
   document.getElementById('scanActions').style.display='none';
   document.getElementById('scanResultWrap').innerHTML='';
@@ -5099,7 +5147,11 @@ async function triggerScan(){
   setScanSt(T('scanLoading'),'loading');
   document.getElementById('scanResultWrap').innerHTML='';
   document.getElementById('scanActions').style.display='block';
+  const isPdf=scanData.startsWith('data:application/pdf');
   const b64=scanData.split(',')[1],mime=scanData.split(';')[0].split(':')[1]||'image/jpeg';
+  const contentBlock=isPdf
+    ?{type:'document',source:{type:'base64',media_type:'application/pdf',data:b64}}
+    :{type:'image',source:{type:'base64',media_type:mime,data:b64}};
   const prompt=`You are a recipe extraction expert. Look at this recipe image carefully and extract ALL information.
 Return ONLY a valid JSON object — no markdown, no explanation, just the raw JSON:
 {
@@ -5124,7 +5176,7 @@ Rules:
       headers:{'Content-Type':'application/json','x-api-key':key,'anthropic-version':'2023-06-01','anthropic-dangerous-direct-browser-access':'true'},
       body:JSON.stringify({model:(_SCAN_MODELS[_scanModel]||_SCAN_MODELS.schnell).id,max_tokens:(_SCAN_MODELS[_scanModel]||_SCAN_MODELS.schnell).tokens,
         messages:[{role:'user',content:[
-          {type:'image',source:{type:'base64',media_type:mime,data:b64}},
+          contentBlock,
           {type:'text',text:prompt}
         ]}]})
     });
@@ -5418,7 +5470,7 @@ function acceptScan(){
   const newRid=(empty?empty.id:nr.id);
   closeImport();
   // Open crop editor so user can frame the dish right away
-  if(scanData){
+  if(scanDataStore){
     setTimeout(()=>openCrop(newRid),260);
   }else{
     toast('✅ '+h(nr.name));
@@ -8668,6 +8720,10 @@ function resetTxtKey() {
 function handleTxtDrop(e) {
   e.preventDefault();
   const file = e.dataTransfer.files[0];
+  if (file && (file.type === 'application/pdf' || file.name.toLowerCase().endsWith('.pdf'))) {
+    extractPdfText(file);
+    return;
+  }
   if (file && (file.type.startsWith('text') || file.name.endsWith('.txt'))) {
     const reader = new FileReader();
     reader.onload = ev => {
@@ -8683,6 +8739,40 @@ function handleTxtDrop(e) {
     const ta = document.getElementById('txtPasteArea');
     ta.value = txt;
     _txtUpdateUI(ta);
+  }
+}
+
+async function extractPdfText(file) {
+  const key = getSavedKey();
+  if (!key) { showKeySetup(); return; }
+  setTxtSt('⏳ PDF wird gelesen …', 'loading');
+  try {
+    const b64 = await new Promise((res, rej) => {
+      const fr = new FileReader();
+      fr.onload = ev => res(ev.target.result.split(',')[1]);
+      fr.onerror = rej;
+      fr.readAsDataURL(file);
+    });
+    const resp = await fetch('https://api.anthropic.com/v1/messages', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'x-api-key': key, 'anthropic-version': '2023-06-01', 'anthropic-dangerous-direct-browser-access': 'true' },
+      body: JSON.stringify({
+        model: 'claude-haiku-4-5-20251001',
+        max_tokens: 4000,
+        messages: [{ role: 'user', content: [
+          { type: 'document', source: { type: 'base64', media_type: 'application/pdf', data: b64 } },
+          { type: 'text', text: 'Extract all text content from this PDF document. Return only the plain text, preserving the original language and structure as closely as possible. No commentary, no formatting — just the raw text.' }
+        ]}]
+      })
+    });
+    if (!resp.ok) { const e = await resp.json(); throw new Error(e.error?.message || 'HTTP ' + resp.status); }
+    const data = await resp.json();
+    const text = data.content.map(c => c.text || '').join('');
+    const ta = document.getElementById('txtPasteArea');
+    if (ta) { ta.value = text; _txtUpdateUI(ta); }
+    setTxtSt('✅ PDF-Text extrahiert', 'ok');
+  } catch (err) {
+    setTxtSt('❌ PDF-Fehler: ' + err.message, 'err');
   }
 }
 
