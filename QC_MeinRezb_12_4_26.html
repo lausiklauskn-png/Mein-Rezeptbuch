@@ -4519,6 +4519,34 @@ function _compressImgStage1(dataUrl){
   });
 }
 
+// ── Sequenzieller Bildgenerator-Queue ────────────────────────────────────────
+// Nie alle Bilder gleichzeitig generieren – immer nur 1 Rezept aktiv im RAM.
+// rids      : Array von Rezept-IDs in Verarbeitungsreihenfolge
+// genFn     : async (rid, recipe) → dataUrl  (z.B. DALL-E-3-API-Call)
+// onProgress: ({done, total, ok, fail, rid}) → void
+async function _runImgQueue(rids, genFn, onProgress){
+  const total=rids.length;
+  let done=0,ok=0,fail=0;
+  for(const rid of rids){
+    const r=R.find(r=>r.id===rid);
+    if(r){
+      try{
+        let raw=await genFn(rid,r);        // 1. Bild generieren (ein Call)
+        r.img=await _compressImgStage1(raw); // 2. Stufe-1-Komprimierung
+        raw=null;                            // 3. Rohbild aus RAM löschen
+        sv();                                // 4. Ins Dokument schreiben
+        ok++;
+      }catch(err){
+        fail++;
+        console.warn('_runImgQueue rid='+rid,err);
+      }
+    }
+    done++;
+    if(onProgress) onProgress({done,total,ok,fail,rid});
+  }
+  return{ok,fail,total};
+}
+
 // ── Undo-System (Rezept-Editor, max. 10 Schritte) ────────
 var _undoStack={};
 var _lastEditRid=null;
