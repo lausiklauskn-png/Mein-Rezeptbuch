@@ -868,6 +868,13 @@ body.nav-collapsed{padding-bottom:calc(16px + var(--sb))}
 .kb-dchip{background:var(--parch);border:1.5px solid var(--sand2);border-radius:10px;padding:7px 6px 6px;font-size:.7rem;cursor:pointer;transition:all .15s;color:var(--br2);text-align:center;line-height:1.35;-webkit-tap-highlight-color:transparent}
 .kb-dchip span{display:block;font-size:1.1rem;margin-bottom:2px}
 .kb-dchip.on{background:linear-gradient(135deg,#6b35a8,#9b42c8);border-color:#6b35a8;color:#fff;font-weight:700}
+.kb-result-card{padding:14px 16px 16px;background:var(--parch)}
+.kb-result-ok{font-size:1.02rem;font-weight:700;color:var(--teal);margin-bottom:8px}
+.kb-result-stats{font-size:.76rem;color:var(--br2);margin-bottom:3px}
+.kb-result-cost{font-size:.85rem;font-weight:700;color:#6b35a8;margin-bottom:12px}
+.kb-result-btns{display:flex;flex-direction:column;gap:7px;margin-bottom:11px}
+.kb-result-row{display:flex;gap:7px}
+.kb-result-tip{font-size:.67rem;color:var(--br3);line-height:1.5;border-top:1px solid var(--sand2);padding-top:9px}
 .scan-upgrade-hint{background:var(--golds);border:1.5px solid var(--gold);border-radius:8px;padding:8px 10px;font-size:.7rem;color:#7a5800;display:flex;align-items:center;gap:8px;margin:6px 0;flex-wrap:wrap}
 .scan-upgrade-btn{background:var(--gold);color:#fff;border:none;border-radius:6px;padding:5px 11px;font-size:.69rem;font-weight:700;cursor:pointer;margin-left:auto;white-space:nowrap}
 .scan-upgrade-btn:active{opacity:.8}
@@ -6671,6 +6678,7 @@ const _KB_PRICE_OUT= 0.004  / 1000;   // $/token output
 let _kbAbort = false;
 let _kbAiData = [];   // [{r, intro, flavorNote, cookTip, servingIdea}]
 let _kbDesign = 'auto';
+let _kbLastHtml = '';
 
 const _KB_DESIGNS = {
   auto:      {ico:'✨',label:'KI entscheidet',hint:'',
@@ -6838,13 +6846,25 @@ Zubereitung: ${stepShort}`;
   }
 
   document.getElementById('kbProgTitle').textContent='✅ Kreativbuch fertig!';
+  const recCount=_kbAiData.length;
+  const pgCount=recCount+3;
+  const imgCount=_kbAiData.filter(d=>d.r.img).length;
+  const costStr='$'+totalCost.toFixed(2).replace('.',',');
   const barWrap=document.querySelector('.kb-bar-wrap');
-  const dlBtn=document.createElement('button');
-  dlBtn.className='bigbtn grn';
-  dlBtn.style.cssText='width:100%;margin-top:12px;font-size:.85rem';
-  dlBtn.textContent='📥 Kreativbuch herunterladen';
-  dlBtn.onclick=_kbDownload;
-  barWrap.appendChild(dlBtn);
+  barWrap.innerHTML=`<div class="kb-result-card">
+    <div class="kb-result-ok">✅ Dein Kreativbuch ist fertig!</div>
+    <div class="kb-result-stats">${recCount} Rezepte · ${pgCount} Seiten · ${imgCount} Bilder</div>
+    <div class="kb-result-cost">Tatsächliche Kosten: ${costStr}</div>
+    <div class="kb-result-btns">
+      <div class="kb-result-row">
+        <button class="exp-btn vlt" style="flex:1" onclick="_kbPreview()">👁 Vorschau</button>
+        <button class="exp-btn tl" style="flex:1" onclick="_kbPdf()">📥 Als PDF laden</button>
+      </div>
+      <button class="exp-btn brn" style="width:100%" onclick="_kbDownload()">📤 Als HTML laden</button>
+    </div>
+    <div class="kb-result-tip">💡 Tipp: HTML öffnen → Drucken → „Als PDF speichern" für beste Qualität</div>
+  </div>`;
+  _kbLastHtml=_kbBuildHtml();
 }
 
 function _kbDelay(ms){return new Promise(r=>setTimeout(r,ms));}
@@ -6874,8 +6894,8 @@ function _kbSetBar(done,total,cost){
   if(c)c.textContent='Echte Kosten bisher: $'+cost.toFixed(4).replace('.',',');
 }
 
-function _kbDownload(){
-  if(!_kbAiData.length){toast('⚠️ Keine Daten');return;}
+function _kbBuildHtml(){
+  if(!_kbAiData.length) return '';
   const bookName=(LANGS[CL]&&LANGS[CL].appTitle)||'Mein Rezeptbuch';
   const dt=new Date().toLocaleDateString(CL==='zh'?'zh-CN':CL==='ru'?'ru-RU':CL==='en'?'en-GB':'de-DE',{day:'numeric',month:'long',year:'numeric'});
   const dsnDef=_KB_DESIGNS[_kbDesign]||_KB_DESIGNS.auto;
@@ -6921,7 +6941,30 @@ function _kbDownload(){
 
   const N=pgs.length;
   const html=`<!DOCTYPE html><html lang="${CL}"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1"><title>✨ ${h(bookName)} – Kreativbuch</title><style>*{box-sizing:border-box;margin:0;padding:0}html,body{width:100%;height:100%;overflow:hidden;font-family:Georgia,serif;background:#2a1a0a}#wrap{display:flex;flex-direction:column;align-items:center;justify-content:center;width:100%;height:100%}#book{position:relative;width:100%;max-width:700px;height:calc(100dvh - 60px);margin:0 auto}.pg{position:absolute;inset:0;background:#fdfaf5;display:none;overflow:hidden;border-radius:6px;box-shadow:0 4px 32px rgba(0,0,0,.6);transform-origin:left center}.pg.show{display:block;z-index:5}.pg.prev{display:block;z-index:4}.pg.flip{display:block;z-index:10;animation:fp .4s ease forwards}.pg.flipb{display:block;z-index:10;animation:fpb .4s ease forwards}@keyframes fp{0%{transform:perspective(1400px) rotateY(0)}50%{transform:perspective(1400px) rotateY(-80deg)}100%{transform:perspective(1400px) rotateY(-180deg);opacity:0}}@keyframes fpb{0%{transform:perspective(1400px) rotateY(-180deg);opacity:0}50%{transform:perspective(1400px) rotateY(-80deg)}100%{transform:perspective(1400px) rotateY(0)}}.pi{padding:16px 20px;height:100%;overflow-y:auto;scrollbar-width:thin;font-size:.82rem}.cf{display:flex;flex-direction:column;align-items:center;justify-content:center;height:100%;text-align:center;background:linear-gradient(160deg,#7a5840,#5c3d2e);color:#f0e6d8}h1{font-size:1.5rem;line-height:1.25;margin-bottom:8px}#ctrl{display:flex;align-items:center;gap:16px;height:52px;flex-shrink:0}.cb{background:rgba(255,255,255,.1);border:1px solid rgba(255,255,255,.2);color:#fff;padding:10px 22px;border-radius:24px;font-size:.85rem;cursor:pointer;font-family:Georgia,serif}.cb:active{background:rgba(255,255,255,.22)}#pi{color:rgba(255,255,255,.5);font-size:.75rem;min-width:56px;text-align:center}</style></head><body><div id="wrap"><div id="book">${pgs.join('')}</div><div id="ctrl"><button class="cb" onclick="pp()">◀</button><div id="pi">1/${N}</div><button class="cb" onclick="np()">▶</button></div></div><script>let c=0,all=document.querySelectorAll('.pg');function sh(i){all.forEach(p=>p.className='pg');all[i].classList.add('show');if(i>0)all[i-1].classList.add('prev');c=i;document.getElementById('pi').textContent=(c+1)+'/'+all.length;}function np(){if(c<all.length-1){all[c].classList.add('flip');setTimeout(()=>{all[c].classList.remove('flip');sh(c+1);},420);}}function pp(){if(c>0){all[c-1].classList.add('flipb');setTimeout(()=>{all[c-1].classList.remove('flipb');sh(c-1);},420);}}document.getElementById('book').addEventListener('click',function(e){const x=e.clientX-e.currentTarget.getBoundingClientRect().left;x>e.currentTarget.offsetWidth/2?np():pp();});sh(0);<\/script></body></html>`;
+  return html;
+}
+
+function _kbDownload(){
+  const html=_kbLastHtml||_kbBuildHtml();
+  if(!html){toast('⚠️ Keine Daten');return;}
   dlBlob(new Blob([html],{type:'text/html'}),'kreativbuch.html');
+}
+
+function _kbPreview(){
+  const html=_kbLastHtml||_kbBuildHtml();
+  if(!html){toast('⚠️ Keine Daten');return;}
+  const u=URL.createObjectURL(new Blob([html],{type:'text/html'}));
+  window.open(u,'_blank');
+  setTimeout(()=>URL.revokeObjectURL(u),60000);
+}
+
+function _kbPdf(){
+  const html=_kbLastHtml||_kbBuildHtml();
+  if(!html){toast('⚠️ Keine Daten');return;}
+  const printHtml=html.replace('</script></body>',';setTimeout(()=>window.print(),600);</script></body>');
+  const u=URL.createObjectURL(new Blob([printHtml],{type:'text/html'}));
+  window.open(u,'_blank');
+  setTimeout(()=>URL.revokeObjectURL(u),120000);
 }
 
 // ═══════════════════════════════════════════════════════
