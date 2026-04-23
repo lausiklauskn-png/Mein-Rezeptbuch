@@ -4511,6 +4511,26 @@ function resizeImage(dataUrl,maxW,quality){
   });
 }
 
+// ── Stufe-1-Komprimierung: PNG/beliebig → JPEG 82%, max 1024px ───────────────
+// Wird nach jedem neu gespeicherten Bild aufgerufen (Upload, Scan, Karte).
+// DALL-E-3-PNGs (~800 KB) schrumpfen so auf ~120 KB (85% kleiner).
+function _compressImgStage1(dataUrl){
+  return new Promise(resolve=>{
+    const img=new Image();
+    img.onload=()=>{
+      const MAX=1024;
+      const scale=Math.min(1,MAX/Math.max(img.width,img.height));
+      const w=Math.round(img.width*scale),h=Math.round(img.height*scale);
+      const c=document.createElement('canvas');
+      c.width=w;c.height=h;
+      c.getContext('2d').drawImage(img,0,0,w,h);
+      resolve(c.toDataURL('image/jpeg',0.82));
+    };
+    img.onerror=()=>resolve(dataUrl);
+    img.src=dataUrl;
+  });
+}
+
 // ── Undo-System (Rezept-Editor, max. 10 Schritte) ────────
 var _undoStack={};
 var _lastEditRid=null;
@@ -5208,7 +5228,7 @@ function handleImgSel(e){
   files.forEach(f=>{
     const fr=new FileReader();
     fr.onload=async ev=>{
-      const compressed=await resizeImage(ev.target.result,800,0.75);
+      const compressed=await _compressImgStage1(ev.target.result);
       pendImgs.push({name:f.name,dataUrl:compressed,rid:named[0]?.id||null});
       if(++done===files.length)renderPendImgs();
     };fr.readAsDataURL(f);
@@ -5810,10 +5830,10 @@ function loadScanFile(file){
   fr.onload=async ev=>{
     const orig=ev.target.result;
     // 1200px für KI-Erkennung (mehr Detail = bessere Texterkennung)
-    // 800px/0.75 für Rezeptbild-Speicher (~80KB statt mehrerer MB)
+    // Stufe-1-Komprimierung für Speicher: max 1024px, JPEG 82%
     [scanData,scanDataStore]=await Promise.all([
       resizeImage(orig,1200,0.90),
-      resizeImage(orig,800,0.75)
+      _compressImgStage1(orig)
     ]);
     const prev=document.getElementById('scanPrev');
     const ph=document.getElementById('scanPhotoContent');
@@ -5871,7 +5891,7 @@ async function runBatchScan(files){
         storeData='';
       }else{
         // 1200px für API-Erkennung, 800px für Rezeptbild-Speicher
-        [apiData,storeData]=await Promise.all([resizeImage(origData,1200,0.90),resizeImage(origData,800,0.75)]);
+        [apiData,storeData]=await Promise.all([resizeImage(origData,1200,0.90),_compressImgStage1(origData)]);
         b64=apiData.split(',')[1];mime=apiData.split(';')[0].split(':')[1]||'image/jpeg';
         contentBlock={type:'image',source:{type:'base64',media_type:mime,data:b64}};
       }
@@ -7953,7 +7973,7 @@ function pickImgForCard(rid){
     const fr=new FileReader();
     fr.onload=async ev=>{
       const r=R.find(r=>r.id===rid);if(!r)return;
-      r.img=await resizeImage(ev.target.result,800,0.75);
+      r.img=await _compressImgStage1(ev.target.result);
       r.imgCrop={x:50,y:50,scale:1};
       sv();render();
       setTimeout(()=>openCrop(rid),120);
