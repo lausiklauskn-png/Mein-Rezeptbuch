@@ -12136,7 +12136,16 @@ async function generateFreePhoto(rid){
   if(!r||!r.name)return;
   const btn=document.querySelector(`[onclick="generateFreePhoto(${rid})"]`);
   if(btn){btn.disabled=true;btn.textContent='⏳';}
-  toast('⏳ '+T('freeFotoLoading'));
+  // Lade-Anzeige direkt in der Rezeptkarte
+  const card=document.getElementById('rc-'+rid);
+  let loader=null;
+  if(card){
+    loader=document.createElement('div');
+    loader.id='fph-loader-'+rid;
+    loader.style.cssText='display:flex;align-items:center;justify-content:center;gap:8px;padding:11px 14px;background:var(--golds);border-bottom:1px solid var(--sand2);font-size:.78rem;color:var(--brown);font-weight:600';
+    loader.innerHTML='<span style="animation:spin 1s linear infinite;display:inline-block">⏳</span> 📸 KI-Foto wird generiert…';
+    card.insertBefore(loader,card.firstChild);
+  }
   try{
     const prompt=encodeURIComponent(
       r.name+', food photography, professional, appetizing, natural lighting, close-up, restaurant quality'
@@ -12156,6 +12165,7 @@ async function generateFreePhoto(rid){
     toast('❌ '+e.message);
   }finally{
     if(btn){btn.disabled=false;btn.textContent='📸';}
+    if(loader&&loader.parentNode)loader.parentNode.removeChild(loader);
   }
 }
 
