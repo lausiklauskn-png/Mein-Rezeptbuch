@@ -4524,17 +4524,26 @@ function _compressImgStage1(dataUrl){
 // rids      : Array von Rezept-IDs in Verarbeitungsreihenfolge
 // genFn     : async (rid, recipe) → dataUrl  (z.B. DALL-E-3-API-Call)
 // onProgress: ({done, total, ok, fail, rid}) → void
-async function _runImgQueue(rids, genFn, onProgress){
+// opts.useIdb: true → Stufe 3: Bild in IDB statt r.img (RAM frei halten)
+async function _runImgQueue(rids, genFn, onProgress, opts){
   const total=rids.length;
+  const useIdb=opts?.useIdb===true;
   let done=0,ok=0,fail=0;
   for(const rid of rids){
     const r=R.find(r=>r.id===rid);
     if(r){
       try{
-        let raw=await genFn(rid,r);        // 1. Bild generieren (ein Call)
-        r.img=await _compressImgStage1(raw); // 2. Stufe-1-Komprimierung
-        raw=null;                            // 3. Rohbild aus RAM löschen
-        sv();                                // 4. Ins Dokument schreiben
+        let raw=await genFn(rid,r);             // 1. Bild generieren (ein Call)
+        let comp=await _compressImgStage1(raw); // 2. Stufe-1-Komprimierung
+        raw=null;                               // 3. Rohbild aus RAM löschen
+        if(useIdb){
+          await _idbSet('img_'+rid,comp);       // Stufe 3: in IDB sichern
+          comp=null;                            // komprimiertes Bild aus RAM
+          // r.img bleibt leer → erst beim PDF-Bau laden
+        }else{
+          r.img=comp;comp=null;
+        }
+        sv();                                   // 4. Ins Dokument schreiben
         ok++;
       }catch(err){
         fail++;
@@ -4545,6 +4554,45 @@ async function _runImgQueue(rids, genFn, onProgress){
     if(onProgress) onProgress({done,total,ok,fail,rid});
   }
   return{ok,fail,total};
+}
+
+// ── Bildcache-Zugriff (Stufe 3 / IndexedDB) ──────────────────────────────────
+function _idbSetImg(rid,dataUrl){return _idbSet('img_'+rid,dataUrl);}
+function _idbGetImg(rid){return _idbGet('img_'+rid);}
+
+// ── OpenAI-Schlüssel ──────────────────────────────────────────────────────────
+function getSavedOpenAiKey(){return localStorage.getItem('openaiKey9m')||'';}
+function setSavedOpenAiKey(k){if(k)localStorage.setItem('openaiKey9m',k);else localStorage.removeItem('openaiKey9m');}
+
+// ── DALL-E-3 Prompt-Builder ───────────────────────────────────────────────────
+function _buildDallePrompt(recipe){
+  const name=recipe.name||'dish';
+  const ings=(recipe.ings||[]).slice(0,4).map(i=>i.name).filter(Boolean).join(', ');
+  return `Food photography: a beautifully plated "${name}"${ings?', with '+ings:''}. Natural light, appetizing, rustic wooden or marble surface, no text, no labels.`;
+}
+
+// ── DALL-E-3 genFn (für _runImgQueue) ────────────────────────────────────────
+async function _dalleGenImg(rid,recipe){
+  const key=getSavedOpenAiKey();
+  if(!key)throw new Error('Kein OpenAI-Schlüssel');
+  const resp=await fetch('https://api.openai.com/v1/images/generations',{
+    method:'POST',
+    headers:{'Content-Type':'application/json','Authorization':'Bearer '+key},
+    body:JSON.stringify({model:'dall-e-3',prompt:_buildDallePrompt(recipe),n:1,size:'1024x1024',response_format:'b64_json'})
+  });
+  if(!resp.ok){const e=await resp.json().catch(()=>({}));throw new Error(e.error?.message||'HTTP '+resp.status);}
+  const data=await resp.json();
+  const b64=data.data?.[0]?.b64_json;
+  if(!b64)throw new Error('Kein Bild erhalten');
+  return 'data:image/png;base64,'+b64;
+}
+
+// ── DALL-E-3 Batch-Wrapper (Stufe 1 + 3 kombiniert) ──────────────────────────
+// Generiert Bilder sequenziell – je 1 Rezept aktiv, Rohbild + komprimiertes
+// Bild direkt in IDB, nie mehr als 1 Bild gleichzeitig im RAM.
+async function runDalleImgBatch(rids,onProgress){
+  if(!rids||!rids.length)return{ok:0,fail:0,total:0};
+  return _runImgQueue(rids,_dalleGenImg,onProgress,{useIdb:true});
 }
 
 // ── Undo-System (Rezept-Editor, max. 10 Schritte) ────────
@@ -6514,9 +6562,15 @@ function coverGridHtml(imgs,cellH,gap,radius,borderColor){
 // ═══════════════════════════════════════════════════════
 function exportPDF(){
   const pr=document.getElementById('pdfProg');pr.className='exp-prog on';pr.textContent=T('expPdfProg')||'⏳ Erstelle PDF …';
-  setTimeout(()=>{
+  setTimeout(async()=>{
     try{
       const named=R.filter(r=>r.name);if(!named.length){pr.textContent=T('expPdfNone')||'⚠️ Keine Rezepte';return;}
+      // Stufe 3: IDB-Bilder für Rezepte ohne r.img Bild für Bild vorladen
+      const _idbImgBuf={};
+      for(const r of named){
+        if(!r.img){const cached=await _idbGetImg(r.id);if(cached)_idbImgBuf[r.id]=cached;}
+      }
+      const _ri=(r)=>r.img||_idbImgBuf[r.id]||'';
       const bookName=(LANGS[CL]&&LANGS[CL].appTitle)||'Mein Rezeptbuch';
       const dt=new Date().toLocaleDateString(CL==='zh'?'zh-CN':CL==='ru'?'ru-RU':CL==='en'?'en-GB':'de-DE',{day:'numeric',month:'long',year:'numeric'});
 
@@ -6525,8 +6579,10 @@ function exportPDF(){
       const titleHtml=titleWords.length>=2?`${h(titleWords[0])}<br/>${h(titleWords.slice(1).join(' '))}`:h(bookName);
       const makeImgCell=(r2)=>{
         if(!r2)return`<td style="width:50%;height:4.5cm;background:#ede5d8;border-radius:6pt;padding:3pt"></td>`;
+        const imgSrc=_ri(r2);
+        if(!imgSrc)return`<td style="width:50%;height:4.5cm;background:#ede5d8;border-radius:6pt;padding:3pt"></td>`;
         const cr=r2.imgCrop||{x:50,y:50,scale:1};
-        return`<td style="width:50%;padding:3pt"><img src="${r2.img}" alt="" style="width:100%;height:4.5cm;object-fit:cover;object-position:${cr.x}% ${cr.y}%;display:block;border-radius:5pt;-webkit-print-color-adjust:exact;print-color-adjust:exact"/></td>`;
+        return`<td style="width:50%;padding:3pt"><img src="${imgSrc}" alt="" style="width:100%;height:4.5cm;object-fit:cover;object-position:${cr.x}% ${cr.y}%;display:block;border-radius:5pt;-webkit-print-color-adjust:exact;print-color-adjust:exact"/></td>`;
       };
       const coverImgs=getCoverImgs(4);
       const covGrid=`<table style="width:10cm;border-collapse:collapse;margin:0 auto 1cm"><tr>${makeImgCell(coverImgs[0])}${makeImgCell(coverImgs[1])}</tr><tr>${makeImgCell(coverImgs[2])}${makeImgCell(coverImgs[3])}</tr></table>`;
@@ -6579,7 +6635,8 @@ img.rphoto{width:100%;height:155pt;object-fit:cover;display:block;border-radius:
         }).join('');
       }
       // Helper: build one recipe page div
-      function pdfRecipePage(r,printName,ingList,trIngs,stepList,trSteps,cc,factor,extraCat){
+      function pdfRecipePage(r,printName,ingList,trIngs,stepList,trSteps,cc,factor,extraCat,imgSrc){
+        imgSrc=imgSrc??_ri(r);
         const flavorChips=(r.flavors||[]).map(f=>`<span class="fl" style="background:${cc}18;color:${cc};border:1pt solid ${cc}44">${h(f)}</span>`).join('');
         const catTxt=extraCat||catName(r.cat);
         const srv=r.servings?`${r.servings} ${T('srvBase')||'Portionen'}`:'';
@@ -6588,10 +6645,10 @@ img.rphoto{width:100%;height:155pt;object-fit:cover;display:block;border-radius:
         const stepsHtml=stepList.length?pdfSteps(stepList,trSteps,cc):'';
         const cr=r.imgCrop||{x:50,y:50};
         let mainBlock='';
-        if(r.img&&ingsHtml){
-          mainBlock=`<p class="sec" style="color:${cc};border-bottom-color:${cc}44">${T('sIngr').replace(/\P{L}/gu,'').trim()||'Zutaten'}</p><table class="layout"><tr><td class="photo"><img class="rphoto" src="${r.img}" style="object-position:${cr.x}% ${cr.y}%"/></td><td class="ingcol">${ingsHtml}</td></tr></table>`;
-        }else if(r.img){
-          mainBlock=`<div style="text-align:center;margin-bottom:8pt"><img src="${r.img}" style="height:140pt;max-width:100%;object-fit:cover;border-radius:4pt;-webkit-print-color-adjust:exact;print-color-adjust:exact" /></div>`;
+        if(imgSrc&&ingsHtml){
+          mainBlock=`<p class="sec" style="color:${cc};border-bottom-color:${cc}44">${T('sIngr').replace(/\P{L}/gu,'').trim()||'Zutaten'}</p><table class="layout"><tr><td class="photo"><img class="rphoto" src="${imgSrc}" style="object-position:${cr.x}% ${cr.y}%"/></td><td class="ingcol">${ingsHtml}</td></tr></table>`;
+        }else if(imgSrc){
+          mainBlock=`<div style="text-align:center;margin-bottom:8pt"><img src="${imgSrc}" style="height:140pt;max-width:100%;object-fit:cover;border-radius:4pt;-webkit-print-color-adjust:exact;print-color-adjust:exact" /></div>`;
         }else if(ingsHtml){
           mainBlock=`<p class="sec" style="color:${cc};border-bottom-color:${cc}44">${T('sIngr').replace(/\P{L}/gu,'').trim()||'Zutaten'}</p>${ingsHtml}`;
         }
