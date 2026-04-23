@@ -8462,6 +8462,7 @@ function rndCard(r){
         <div class="rmeta">${tot?`${tot} ${T('sIngr')} · ${dispTime?fmtPrepTime(dispTime):(r.steps||[]).length+' '+T('sSteps')}`:isBlank?`${catIco(r.cat)} ${catName(r.cat)}`:''}</div>
         ${r.name?`<div class="rcard-acts" onclick="event.stopPropagation()">
           ${r.name?`<button class="ra ren" onclick="event.stopPropagation();startRename(${r.id})" title="${T('ttlRename')}">✏️</button>`:''}
+          ${r.name?`<button class="ra imgr" onclick="pickImgForCard(${r.id})" title="${T('addImg')}">🖼️</button>`:''}
           ${r.name?`<button class="ra ${inMenu?'gld':'out'}" onclick="event.stopPropagation();${inMenu?`removeFromMenu(${r.id})`:`openCSheet(${r.id})`}" title="${inMenu?T('inMenuRm'):T('addToMenu')}">${inMenu?mSlot.ico+' ✓':T('addToMenu')}</button>`:''}
           ${r.name?`<button class="ra ren" onclick="event.stopPropagation();spellCheckCard(${r.id})" title="${T('ttlSpell')}" style="background:var(--golds);border-color:var(--gold);color:var(--gold)">✨</button>`:''}
           ${r.name?`<button class="ra ren" onclick="event.stopPropagation();shareRecipeQR(${r.id})" title="${T('shareTtl')}" style="background:var(--teals);border-color:var(--teal);color:var(--teal)">📤</button>`:''}
