@@ -5830,21 +5830,9 @@ async function pasteImgGenKey(){
 async function saveAndActivateImgGen(){
   const v=document.getElementById('imggenKeyIn')?.value?.trim()||'';
   if(!v)return;
-  const btn=document.getElementById('imggenSaveBtn');
-  const lbl=document.getElementById('imggenSaveBtnLbl');
-  if(btn)btn.disabled=true;
-  if(lbl)lbl.textContent='⏳ Prüfen…';
-  try{
-    await validateOpenAiImgKey(v);
-    saveOpenAiImgKey(v);
-    toast('✅ OpenAI-Schlüssel gespeichert!');
-    switchToImgGenMain();
-  }catch(e){
-    const msgs={auth:'❌ Ungültiger Key — bitte vollständig kopieren (beginnt mit sk-)',ratelimit:'⏳ Zu viele Anfragen — bitte kurz warten',billing:'💳 Kein Guthaben — bitte auf platform.openai.com/settings/billing aufladen'};
-    toast(msgs[e.message]||'❌ '+e.message);
-    if(btn)btn.disabled=false;
-    if(lbl)lbl.textContent='Speichern & aktivieren';
-  }
+  saveOpenAiImgKey(v);
+  toast('✅ OpenAI-Schlüssel gespeichert!');
+  switchToImgGenMain();
 }
 
 function switchToImgGenMain(){
