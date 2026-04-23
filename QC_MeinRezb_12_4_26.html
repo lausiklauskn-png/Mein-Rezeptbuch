@@ -8455,7 +8455,7 @@ function rndCard(r){
     ondragover="cardDragOver(event,${r.id})"
     ondragleave="cardDragLeave(${r.id})"
     ondrop="cardDrop(event,${r.id})">
-    ${r.img?(()=>{const cr=r.imgCrop||{x:50,y:50,scale:1};return`<div class="rcard-img-wrap" onclick="event.stopPropagation();openCrop(${r.id})" title="${T('cropTitle')}"><img class="rcard-img" src="${r.img}" alt="${h(r.name)}" loading="lazy" style="transform:scale(${cr.scale});transform-origin:${cr.x}% ${cr.y}%"/><div class="crop-hint"><div class="crop-hint-lbl">${T('cropHint')}</div></div></div>`;})():''}
+    ${r.img?(()=>{const cr=r.imgCrop||{x:50,y:50,scale:1};return`<div class="rcard-img-wrap"><img class="rcard-img" src="${r.img}" alt="${h(r.name)}" loading="lazy" style="transform:scale(${cr.scale});transform-origin:${cr.x}% ${cr.y}%"/></div>`;})():''}
     <div class="rcard-hd" onclick="${isBlank?'openInlineEdit('+r.id+')':'togCard('+r.id+')'}">
       <div class="stripe" style="background:${cc}"></div>
       <div class="rcard-hd-content">
@@ -8480,7 +8480,7 @@ function rndCard(r){
         <div class="chint">${r.shut?'▼ aufklappen':'▲ einklappen'}</div>
       </div>`}
     </div>
-    ${r.name?(()=>{const d=r.shut?'none':'flex';const crop=r.img?`<button class="imgbar" style="flex:1;border-left:1px solid var(--sand2)" onclick="openCrop(${r.id})">✂️ ${T('cropBtn')}</button>`:'';const free=`<button class="imgbar" onclick="generateFreePhoto(${r.id})" title="${T('freeFotoBtnTitle')}" style="padding:7px 11px;border-left:1px solid var(--sand2)">📸</button>`;const zine=getOpenAiImgKey()?`<button class="imgbar" onclick="openZineDialog(${r.id})" title="${T('zineBtnTitle')}" style="padding:7px 11px;border-left:1px solid var(--sand2)">🎨</button>`:'';return`<div style="display:${d};border-bottom:1px solid var(--sand2)"><button class="imgbar" style="flex:1" onclick="pickImgForCard(${r.id})">🖼️ ${T('addImg')}</button>${crop}${free}${zine}</div>`;})():''}
+    ${r.name?(()=>{const d=r.shut?'none':'flex';const free=`<button class="imgbar" style="flex:1" onclick="generateFreePhoto(${r.id})" title="${T('freeFotoBtnTitle')}">📸</button>`;const zine=getOpenAiImgKey()?`<button class="imgbar" onclick="openZineDialog(${r.id})" title="${T('zineBtnTitle')}" style="padding:7px 11px;border-left:1px solid var(--sand2)">🎨</button>`:'';return`<div style="display:${d};border-bottom:1px solid var(--sand2)">${free}${zine}</div>`;})():''}
     ${r.name&&!isBlank?'':''}
     <div class="rbody ${r.shut?'shut':''}">
       ${isBlank?`<div style="padding:7px 11px;background:var(--teals);font-size:.72rem;color:#1e4a45;display:flex;gap:5px;border-bottom:1px solid var(--sand2)"><span>✏️</span>${T('blankHint')}</div>`:''}
