@@ -1472,10 +1472,8 @@ button:active{transform:scale(0.97)}
 .zine-mode-card{background:var(--parch);border-radius:16px;padding:20px 18px;max-width:320px;width:90%;margin:0 auto;box-shadow:0 8px 32px rgba(0,0,0,.24)}
 .zine-mode-title{font-size:1.05rem;font-weight:700;color:var(--ink);margin-bottom:3px;font-family:Georgia,serif}
 .zine-mode-meta{font-size:.78rem;color:var(--br3);margin-bottom:10px}
-.zine-cost-box{background:var(--sand2);border-radius:8px;padding:8px 10px;font-size:.74rem;color:var(--br3);margin-bottom:14px;line-height:1.5}
-.zine-mode-lbl{font-size:.78rem;font-weight:700;color:var(--ink);margin-bottom:8px}
-.zine-mode-btns{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:10px}
-.zine-mode-btn{padding:11px 8px;border:1.5px solid var(--teal);border-radius:10px;background:var(--teals);color:var(--teal);font-size:.82rem;font-weight:700;cursor:pointer;text-align:center;line-height:1.5;transition:background .15s,color .15s}
+.zine-cost-box{background:var(--sand2);border-radius:8px;padding:9px 12px;font-size:.78rem;color:var(--br3);margin-bottom:14px;line-height:1.65}
+.zine-mode-btn{padding:11px 8px;border:1.5px solid var(--teal);border-radius:10px;background:var(--teals);color:var(--teal);font-size:.88rem;font-weight:700;cursor:pointer;text-align:center;line-height:1.5;transition:background .15s,color .15s}
 .zine-mode-btn:hover{background:var(--teal);color:#fff}
 .zine-cancel-btn{width:100%;padding:9px;background:var(--sand);border:1px solid var(--sand2);border-radius:8px;font-size:.84rem;color:var(--br3);cursor:pointer}
 .zine-pages{display:flex;flex-direction:column;gap:16px;padding:12px}
@@ -11181,17 +11179,14 @@ function saveZinePage(idx){
   <div class="zine-mode-card">
     <div class="zine-mode-title" id="zineModeTitle">✨ KI-Zine erstellen</div>
     <div class="zine-mode-meta" id="zineModeMeta">📄 3 Seiten · 3 Bilder · ~30 Sek.</div>
-    <div class="zine-cost-box">💰 <span id="zineCostLbl">Geschätzte Kosten: <strong>~0,15 $</strong></span><br><span id="zineCostNote">Von deinem OpenAI-Guthaben</span></div>
-    <div class="zine-mode-lbl" id="zineModeLbl">Modus wählen:</div>
-    <div class="zine-mode-btns">
-      <button class="zine-mode-btn" onclick="startZine('instant')" id="zineBtnInstant">
-        ⚡ Sofort<br><span style="font-size:.68rem;font-weight:400" id="zineBtnInstantSub">Alle Seiten auf einmal</span>
-      </button>
-      <button class="zine-mode-btn" onclick="startZine('stream')" id="zineBtnStream">
-        🌊 Live-Aufbau<br><span style="font-size:.68rem;font-weight:400" id="zineBtnStreamSub">Seiten bauen sich sichtbar auf</span>
-      </button>
+    <div class="zine-cost-box">
+      <span id="zineCostLbl">Geschätzte Kosten: <strong>~0,17 $</strong></span><br>
+      <span id="zineCostNote">Von deinem OpenAI-Guthaben</span>
     </div>
-    <button class="zine-cancel-btn" onclick="closeZineDialog()" id="zineCancelBtn">Abbrechen</button>
+    <div style="display:flex;gap:8px;margin-top:4px">
+      <button class="zine-cancel-btn" onclick="closeZineDialog()" id="zineCancelBtn" style="flex:1">Abbrechen</button>
+      <button class="zine-mode-btn" onclick="startZine('stream')" id="zineBtnCreate" style="flex:2;margin:0;padding:11px 8px">✨ <span id="zineBtnCreateLbl">Jetzt erstellen</span></button>
+    </div>
   </div>
 </div>
 
