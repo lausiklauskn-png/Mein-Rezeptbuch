@@ -6665,8 +6665,8 @@ function exportPDF(){
       const bookName=(LANGS[CL]&&LANGS[CL].appTitle)||'Mein Rezeptbuch';
       const dt=new Date().toLocaleDateString(CL==='zh'?'zh-CN':CL==='ru'?'ru-RU':CL==='en'?'en-GB':'de-DE',{day:'numeric',month:'long',year:'numeric'});
 
-      // Split into chunks of 15 for large collections
-      const CHUNK=15;
+      // Split into chunks of 25 — Chunk-Export greift ab 26+ Rezepten (Stufe 4)
+      const CHUNK=25;
       const chunks=[];
       for(let i=0;i<named.length;i+=CHUNK)chunks.push(named.slice(i,i+CHUNK));
       const nParts=chunks.length;
