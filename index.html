@@ -1835,6 +1835,12 @@ const _CR=Object.freeze({c:'© 2026 Klaus Nitzsche',r:'All rights reserved',v:'v
           <div class="sett-sub" id="sApiKeySub">Zugangscode verwalten</div></div>
         <div class="sett-arr">›</div>
       </div>
+      <div class="sett-row" onclick="openImport();switchFovTab('importOv','imggen',document.getElementById('impTabImgGen'))">
+        <div class="sett-ico">🎨</div>
+        <div class="sett-body"><div class="sett-lbl" id="sImgGenLbl">DALL-E Bildschlüssel</div>
+          <div class="sett-sub" id="sImgGenSub">OpenAI-Key für KI-Bilder</div></div>
+        <div class="sett-arr">›</div>
+      </div>
     </div>
     <div class="sett-sec" id="a11ySec">
       <div class="sett-head" id="sA11yHead">♿ BARRIEREFREIHEIT</div>
@@ -1961,6 +1967,7 @@ Vielen Dank für deine Unterstützung.</div>
     <div class="fovtab" onclick="switchFovTab('importOv','scan',this)" id="impTabScan" title="Rezept per KI-Scan erkennen">📄 KI-Scan</div>
     <div class="fovtab" onclick="switchFovTab('importOv','txt',this)" id="impTabTxt" title="Rezepttext eingeben">📝 Text</div>
     <div class="fovtab" onclick="switchFovTab('importOv','json',this)" id="impTabJson" title="Gespeicherte Rezeptsammlung laden">📥 Rezept laden</div>
+    <div class="fovtab" onclick="switchFovTab('importOv','imggen',this)" id="impTabImgGen" title="KI-Bild für Rezept erzeugen">🎨 KI-Bild</div>
   </div>
   <div class="fov-body">
     <div class="fov-pane on" id="imp-img">
@@ -2223,6 +2230,50 @@ Vielen Dank für deine Unterstützung.</div>
 
       </div>
     </div>
+
+    <div class="fov-pane" id="imp-imggen">
+      <div id="imggenSetup">
+        <div style="background:var(--teals);border-radius:10px;padding:12px 14px;margin-bottom:14px;border:1.5px solid var(--teal)">
+          <div style="font-size:.94rem;font-weight:700;color:var(--teal);font-family:Georgia,serif;margin-bottom:6px" id="imggenSetupTitleEl">🎨 KI-Bildgenerierung einrichten</div>
+          <div style="font-size:.76rem;color:#1e4a45;line-height:1.55" id="imggenSetupDescEl">Erzeugt automatisch ein appetitliches Foto für jedes Rezept — mit OpenAI DALL·E 3. Du brauchst dafür einen eigenen OpenAI API-Schlüssel.</div>
+        </div>
+        <div class="paste-box" style="margin-bottom:12px">
+          <div class="paste-box-label">🔑 <span id="imggenKeyLblEl">OpenAI API-Schlüssel</span></div>
+          <div class="paste-row">
+            <input class="scan-key-in" id="imggenKeyIn" type="password"
+              placeholder="sk-…"
+              oninput="onImgGenKeyInput(this.value)"
+              onkeydown="if(event.key==='Enter')saveAndActivateImgGen()"/>
+            <button class="paste-btn" onclick="pasteImgGenKey()" id="imggenPasteBtn" title="Schlüssel aus Zwischenablage einfügen">📋 Einfügen</button>
+          </div>
+          <button class="scan-key-btn" id="imggenSaveBtn" onclick="saveAndActivateImgGen()" disabled title="OpenAI-Schlüssel speichern und aktivieren">🚀 <span id="imggenSaveBtnLbl">Speichern & aktivieren</span></button>
+          <div class="scan-key-note">🔒 <span id="imggenHintEl">Bleibt nur auf deinem Gerät — wird niemals weitergegeben</span></div>
+        </div>
+        <div style="background:var(--sand2);border-radius:8px;padding:10px 12px;font-size:.74rem;color:var(--br3);line-height:1.65" id="imggenHowToEl">
+          <strong>So erhältst du deinen Schlüssel:</strong><br>
+          1. <a href="https://platform.openai.com/api-keys" target="_blank" rel="noopener" style="color:var(--teal)">platform.openai.com/api-keys</a> → „Create new secret key"<br>
+          2. Schlüssel kopieren (beginnt mit <code style="background:rgba(0,0,0,.07);padding:1px 4px;border-radius:3px;font-size:.68rem">sk-…</code>)<br>
+          3. Hier einfügen &amp; speichern<br>
+          <br>💡 Ein Bild kostet ~0,04 $ · Abrechnung direkt bei OpenAI
+        </div>
+      </div>
+
+      <div id="imggenMain" style="display:none">
+        <div class="scan-ready-bar">
+          <div class="scan-ready-ico">🎨</div>
+          <div class="scan-ready-txt">
+            <div class="scan-ready-lbl" id="imggenReadyLbl">KI-Bild aktiv</div>
+            <div class="scan-ready-sub" id="imggenReadySub">Schlüssel gespeichert</div>
+          </div>
+          <button class="scan-key-change" onclick="showImgGenSetup()" id="imggenChangeLbl" title="Schlüssel ändern">ändern</button>
+        </div>
+        <div style="background:var(--teals);border-radius:10px;padding:14px;border:1.5px solid var(--teal);margin-top:12px">
+          <div style="font-size:.88rem;font-weight:700;color:var(--teal);margin-bottom:6px" id="imggenReadyTitleEl">✅ Bereit zur Bildgenerierung</div>
+          <div style="font-size:.76rem;color:#1e4a45;line-height:1.55" id="imggenReadyDescEl">Du kannst jetzt in jedem Rezept auf das 🎨-Symbol tippen, um automatisch ein KI-generiertes Bild zu erstellen.</div>
+        </div>
+      </div>
+    </div>
+
     <div class="fov-pane" id="imp-json">
       <div style="background:var(--teals);border-radius:10px;padding:12px 14px;margin-bottom:14px;border:1.5px solid var(--teal)">
         <div style="font-size:.94rem;font-weight:700;color:var(--teal);font-family:Georgia,serif;margin-bottom:4px" id="bakTitle">📥 Rezeptsammlung laden</div>
@@ -2643,7 +2694,7 @@ const LANGS={
     mvTitle:'Mein Menü',mvTabTl:'🗓️ Ablauf',mvTabSh:'🛒 Einkaufen',mvTabCk:'👩‍🍳 Kochen',mvTabAl:'📋 Gesamt',
     mvPrint:'🖨️ Drucken / PDF',mvClose:'Schließen',
     bnRec:'Rezepte',bnFld:'Ordner',bnMen:'Menü',bnSet:'Einst.',bnBv:'Tresor',
-    impTitle:'📥 Importieren',impTabImg:'🖼️ Bilder',impTabWeb:'🌐 Web',impTabScan:'📄 KI-Scan',impTabTxt:'📝 Text',impTabJson:'📥 Rezept laden',
+    impTitle:'📥 Importieren',impTabImg:'🖼️ Bilder',impTabWeb:'🌐 Web',impTabScan:'📄 KI-Scan',impTabTxt:'📝 Text',impTabJson:'📥 Rezept laden',impTabImgGen:'🎨 KI-Bild',
     imgDropLbl:'Bilder auswählen oder hierher ziehen',
     imgInfoTitle:'🖼️ Bilder zu Rezepten hinzufügen',
     imgInfoDesc:'Wähle ein oder mehrere Fotos aus oder ziehe sie direkt hierher. Weise danach jedem Bild ein Rezept zu — das Foto wird dann automatisch dem gewählten Rezept zugeordnet.',
@@ -2751,6 +2802,8 @@ const LANGS={
     ,txtSc3T:'Code hier einfügen — fertig!'
     ,sKiZugang:'🔑 KI-ZUGANGSCODE'
     ,sApiKeySub:'Zugangscode verwalten'
+    ,sImgGenLbl:'DALL-E Bildschlüssel'
+    ,sImgGenSub:'OpenAI-Key für KI-Bilder'
     ,apiKeyOvTitle:'🔑 Was ist ein API-Key?'
     ,apiKeyHelpTtl:'Fragen und Hilfe zum API-Key'
     ,sManualHead:'📚 HANDBUCH'
@@ -2768,7 +2821,7 @@ const LANGS={
     mvTitle:'My Menu',mvTabTl:'🗓️ Overview',mvTabSh:'🛒 Shopping',mvTabCk:'👩‍🍳 Cooking',mvTabAl:'📋 Total',
     mvPrint:'🖨️ Print / PDF',mvClose:'Close',
     bnRec:'Recipes',bnFld:'Folders',bnMen:'Planner',bnSet:'Settings',bnBv:'Vault',
-    impTitle:'📥 Import',impTabImg:'🖼️ Images',impTabWeb:'🌐 Web',impTabScan:'📄 AI Scan',impTabTxt:'📝 Text',impTabJson:'📥 Load recipes',
+    impTitle:'📥 Import',impTabImg:'🖼️ Images',impTabWeb:'🌐 Web',impTabScan:'📄 AI Scan',impTabTxt:'📝 Text',impTabJson:'📥 Load recipes',impTabImgGen:'🎨 AI Image',
     imgDropLbl:'Select images or drag here',
     imgInfoTitle:'🖼️ Add images to recipes',
     imgInfoDesc:'Select one or more photos or drag them here. Then assign each image to a recipe — the photo will be automatically linked to the chosen recipe.',
@@ -2876,6 +2929,8 @@ const LANGS={
     ,txtSc3T:'Paste code here — done!'
     ,sKiZugang:'🔑 AI ACCESS CODE'
     ,sApiKeySub:'Manage access code'
+    ,sImgGenLbl:'DALL-E Image Key'
+    ,sImgGenSub:'OpenAI key for AI images'
     ,apiKeyOvTitle:'🔑 What is an API Key?'
     ,apiKeyHelpTtl:'Questions & help about the API Key'
     ,sManualHead:'📚 MANUAL'
@@ -2893,7 +2948,7 @@ const LANGS={
     mvTitle:'Моё меню',mvTabTl:'🗓️ Обзор',mvTabSh:'🛒 Покупки',mvTabCk:'👩‍🍳 Готовка',mvTabAl:'📋 Итого',
     mvPrint:'🖨️ Печать / PDF',mvClose:'Закрыть',
     bnRec:'Рецепты',bnFld:'Папки',bnMen:'Планир.',bnSet:'Настр.',bnBv:'Архив',
-    impTitle:'📥 Импорт',impTabImg:'🖼️ Фото',impTabWeb:'🌐 Интернет',impTabScan:'📄 ИИ-скан',impTabTxt:'📝 Текст',impTabJson:'📥 Загрузить',
+    impTitle:'📥 Импорт',impTabImg:'🖼️ Фото',impTabWeb:'🌐 Интернет',impTabScan:'📄 ИИ-скан',impTabTxt:'📝 Текст',impTabJson:'📥 Загрузить',impTabImgGen:'🎨 ИИ-Фото',
     imgDropLbl:'Выбрать фото или перетащить',
     imgInfoTitle:'🖼️ Добавить фото к рецептам',
     imgInfoDesc:'Выберите одно или несколько фото или перетащите их сюда. Затем назначьте каждому фото рецепт — фотография будет автоматически привязана к выбранному рецепту.',
@@ -3001,6 +3056,8 @@ const LANGS={
     ,txtSc3T:'Вставьте код сюда — готово!'
     ,sKiZugang:'🔑 КОД ДОСТУПА ИИ'
     ,sApiKeySub:'Управление кодом доступа'
+    ,sImgGenLbl:'DALL-E ключ'
+    ,sImgGenSub:'OpenAI-ключ для изображений'
     ,apiKeyOvTitle:'🔑 Что такое API-ключ?'
     ,apiKeyHelpTtl:'Вопросы и помощь по API-ключу'
     ,sManualHead:'📚 РУКОВОДСТВО'
@@ -3018,7 +3075,7 @@ const LANGS={
     mvTitle:'我的菜单',mvTabTl:'🗓️ 概览',mvTabSh:'🛒 购物',mvTabCk:'👩‍🍳 烹饪',mvTabAl:'📋 汇总',
     mvPrint:'🖨️ 打印 / PDF',mvClose:'关闭',
     bnRec:'食谱',bnFld:'文件夹',bnMen:'菜单计划',bnSet:'设置',bnBv:'备份',
-    impTitle:'📥 导入',impTabImg:'🖼️ 图片',impTabWeb:'🌐 网络',impTabScan:'📄 AI扫描',impTabTxt:'📝 文本',impTabJson:'📥 加载食谱',
+    impTitle:'📥 导入',impTabImg:'🖼️ 图片',impTabWeb:'🌐 网络',impTabScan:'📄 AI扫描',impTabTxt:'📝 文本',impTabJson:'📥 加载食谱',impTabImgGen:'🎨 AI图片',
     imgDropLbl:'选择或拖拽图片至此',
     imgInfoTitle:'🖼️ 为食谱添加图片',
     imgInfoDesc:'选择一张或多张照片，或直接拖放至此。然后为每张图片指定一个食谱——照片将自动关联到所选食谱。',
@@ -3126,6 +3183,8 @@ const LANGS={
     ,txtSc3T:'在此粘贴代码 — 完成！'
     ,sKiZugang:'🔑 AI访问码'
     ,sApiKeySub:'管理访问码'
+    ,sImgGenLbl:'DALL-E 图片密钥'
+    ,sImgGenSub:'用于AI图片的OpenAI密钥'
     ,apiKeyOvTitle:'🔑 什么是API密钥？'
     ,apiKeyHelpTtl:'关于API密钥的问题与帮助'
     ,sManualHead:'📚 手册'
@@ -3143,7 +3202,7 @@ const LANGS={
     mvTitle:'Mi menú',mvTabTl:'🗓️ Orden',mvTabSh:'🛒 Comprar',mvTabCk:'👩‍🍳 Cocinar',mvTabAl:'📋 Total',
     mvPrint:'🖨️ Imprimir / PDF',mvClose:'Cerrar',
     bnRec:'Recetas',bnFld:'Carpetas',bnMen:'Planif.',bnSet:'Ajustes',bnBv:'Bóveda',
-    impTitle:'📥 Importar',impTabImg:'🖼️ Imágenes',impTabWeb:'🌐 Web',impTabScan:'📄 Scan IA',impTabTxt:'📝 Texto',impTabJson:'📥 Cargar recetas',
+    impTitle:'📥 Importar',impTabImg:'🖼️ Imágenes',impTabWeb:'🌐 Web',impTabScan:'📄 Scan IA',impTabTxt:'📝 Texto',impTabJson:'📥 Cargar recetas',impTabImgGen:'🎨 IA Imagen',
     imgDropLbl:'Seleccionar imágenes o arrastrar aquí',
     imgInfoTitle:'🖼️ Añadir imágenes a recetas',
     imgInfoDesc:'Selecciona una o varias fotos o arrástralas aquí. Luego asigna cada imagen a una receta — la foto se vinculará automáticamente a la receta elegida.',
@@ -3249,6 +3308,8 @@ const LANGS={
     ,txtSc3T:'¡Pega el código aquí — listo!'
     ,sKiZugang:'🔑 CÓDIGO DE ACCESO IA'
     ,sApiKeySub:'Gestionar código de acceso'
+    ,sImgGenLbl:'Clave DALL-E'
+    ,sImgGenSub:'Clave OpenAI para imágenes IA'
     ,apiKeyOvTitle:'🔑 ¿Qué es un API Key?'
     ,apiKeyHelpTtl:'Preguntas y ayuda sobre el API Key'
     ,sManualHead:'📚 MANUAL'
@@ -3294,7 +3355,7 @@ const LANGS={
     impTabWeb:'🌐 Web',
     impTabScan:'📄 Scan IA',
     impTabTxt:'📝 Texte',
-    impTabJson:'📥 Charger recettes',
+    impTabJson:'📥 Charger recettes',impTabImgGen:'🎨 IA Image',
     imgDropLbl:'Sélectionner des images',
     imgInfoTitle:'🖼️ Ajouter des images aux recettes',
     imgInfoDesc:'Sélectionnez une ou plusieurs photos ou faites-les glisser ici. Associez ensuite chaque image à une recette — la photo sera automatiquement liée à la recette choisie.',
@@ -3483,6 +3544,8 @@ const LANGS={
     ,txtSc3T:'Collez le code ici — c\'est fait !'
     ,sKiZugang:'🔑 CODE D\'ACCÈS IA'
     ,sApiKeySub:'Gérer le code d\'accès'
+    ,sImgGenLbl:'Clé DALL-E'
+    ,sImgGenSub:'Clé OpenAI pour images IA'
     ,apiKeyOvTitle:'🔑 Qu\'est-ce qu\'une clé API ?'
     ,apiKeyHelpTtl:'Questions et aide sur la clé API'
     ,sManualHead:'📚 MANUEL'
@@ -3528,7 +3591,7 @@ const LANGS={
     impTabWeb:'🌐 Web',
     impTabScan:'📄 Scan IA',
     impTabTxt:'📝 Testo',
-    impTabJson:'📥 Carica ricette',
+    impTabJson:'📥 Carica ricette',impTabImgGen:'🎨 IA Immagine',
     imgDropLbl:'Seleziona immagini',
     imgInfoTitle:'🖼️ Aggiungi immagini alle ricette',
     imgInfoDesc:'Seleziona una o più foto o trascinale qui. Poi assegna ogni immagine a una ricetta — la foto verrà collegata automaticamente alla ricetta scelta.',
@@ -3717,6 +3780,8 @@ const LANGS={
     ,txtSc3T:'Incolla il codice qui — fatto!'
     ,sKiZugang:'🔑 CODICE DI ACCESSO IA'
     ,sApiKeySub:'Gestire il codice di accesso'
+    ,sImgGenLbl:'Chiave DALL-E'
+    ,sImgGenSub:'Chiave OpenAI per immagini IA'
     ,apiKeyOvTitle:'🔑 Cos\'è una chiave API?'
     ,apiKeyHelpTtl:'Domande e aiuto sulla chiave API'
     ,sManualHead:'📚 MANUALE'
@@ -3762,7 +3827,7 @@ const LANGS={
     impTabWeb:'🌐 Web',
     impTabScan:'📄 Scan IA',
     impTabTxt:'📝 Texto',
-    impTabJson:'📥 Carregar receitas',
+    impTabJson:'📥 Carregar receitas',impTabImgGen:'🎨 IA Imagem',
     imgDropLbl:'Selecionar imagens',
     imgInfoTitle:'🖼️ Adicionar imagens às receitas',
     imgInfoDesc:'Selecione uma ou mais fotos ou arraste-as para aqui. De seguida, associe cada imagem a uma receita — a foto será automaticamente ligada à receita escolhida.',
@@ -3946,6 +4011,8 @@ const LANGS={
     ,txtSaveKey:'Guardar e começar'
     ,sKiZugang:'🔑 CÓDIGO DE ACESSO IA'
     ,sApiKeySub:'Gerir código de acesso'
+    ,sImgGenLbl:'Chave DALL-E'
+    ,sImgGenSub:'Chave OpenAI para imagens IA'
     ,apiKeyOvTitle:'🔑 O que é uma chave API?'
     ,apiKeyHelpTtl:'Perguntas e ajuda sobre a chave API'
     ,sManualHead:'📚 MANUAL'
@@ -4495,6 +4562,9 @@ function updateSettings(){
   var _skh=document.getElementById('sKiHelpBtn');if(_skh)_skh.title=T('apiKeyHelpTtl');
   var _sal=document.getElementById('sApiKeyLbl');if(_sal)_sal.textContent=T('apiKeyLbl');
   var _sas=document.getElementById('sApiKeySub');if(_sas)_sas.textContent=T('sApiKeySub');
+  var _sigl=document.getElementById('sImgGenLbl');if(_sigl)_sigl.textContent=T('sImgGenLbl');
+  var _sigs=document.getElementById('sImgGenSub');if(_sigs)_sigs.textContent=T('sImgGenSub');
+  var _igtab=document.getElementById('impTabImgGen');if(_igtab)_igtab.textContent=T('impTabImgGen');
   applyA11y();
 }
 
@@ -4572,6 +4642,7 @@ function switchFovTab(ovId,tab,el){
   document.getElementById('imp-'+tab)?.classList.add('on');
   if(tab==='scan')initScanPane();
   if(tab==='txt')initTxtPane();
+  if(tab==='imggen')initImgGenPane();
 }
 
 // ═══════════════════════════════════════════════════════
@@ -4988,6 +5059,84 @@ function selectScanModel(key){
 
 // ── SCAN: KEY MANAGEMENT ──────────────────────────────
 function getSavedKey(){return localStorage.getItem('claudeKey9m')||'';}
+
+// ── IMGGEN: KEY MANAGEMENT ────────────────────────────
+const OPENAI_IMG_KEY_LS='openaiImgKey9m';
+function getOpenAiImgKey(){return localStorage.getItem(OPENAI_IMG_KEY_LS)||'';}
+function saveOpenAiImgKey(key){if(key)localStorage.setItem(OPENAI_IMG_KEY_LS,key.trim());else localStorage.removeItem(OPENAI_IMG_KEY_LS);}
+
+async function validateOpenAiImgKey(key){
+  const resp=await fetch('https://api.openai.com/v1/models',{
+    headers:{'Authorization':'Bearer '+key,'Content-Type':'application/json'}
+  });
+  if(!resp.ok){
+    const e=await resp.json().catch(()=>({}));
+    if(resp.status===401)throw new Error('auth');
+    if(resp.status===429)throw new Error('ratelimit');
+    if(resp.status===402)throw new Error('billing');
+    throw new Error(e.error?.message||'HTTP '+resp.status);
+  }
+  return true;
+}
+
+function onImgGenKeyInput(v){
+  const btn=document.getElementById('imggenSaveBtn');
+  if(btn)btn.disabled=v.trim().length<20;
+  const inp=document.getElementById('imggenKeyIn');
+  if(inp)inp.style.borderColor=v.trim().startsWith('sk-')&&v.length>20?'var(--grn)':'var(--sand2)';
+}
+
+async function pasteImgGenKey(){
+  try{
+    const txt=await navigator.clipboard.readText();
+    const inp=document.getElementById('imggenKeyIn');
+    if(inp){inp.value=txt.trim();onImgGenKeyInput(txt.trim());inp.focus();}
+    if(txt.trim().startsWith('sk-'))toast('✅ Zugangscode eingefügt!');
+  }catch(e){
+    const inp=document.getElementById('imggenKeyIn');
+    if(inp){inp.focus();inp.select();}
+    toast('📋 Strg+V / Cmd+V zum Einfügen');
+  }
+}
+
+async function saveAndActivateImgGen(){
+  const v=document.getElementById('imggenKeyIn')?.value?.trim()||'';
+  if(!v)return;
+  const btn=document.getElementById('imggenSaveBtn');
+  const lbl=document.getElementById('imggenSaveBtnLbl');
+  if(btn)btn.disabled=true;
+  if(lbl)lbl.textContent='⏳ Prüfen…';
+  try{
+    await validateOpenAiImgKey(v);
+    saveOpenAiImgKey(v);
+    toast('✅ OpenAI-Schlüssel gespeichert!');
+    switchToImgGenMain();
+  }catch(e){
+    const msgs={auth:'❌ Ungültiger Key — bitte vollständig kopieren (beginnt mit sk-)',ratelimit:'⏳ Zu viele Anfragen — bitte kurz warten',billing:'💳 Kein Guthaben — bitte auf platform.openai.com/settings/billing aufladen'};
+    toast(msgs[e.message]||'❌ '+e.message);
+    if(btn)btn.disabled=false;
+    if(lbl)lbl.textContent='Speichern & aktivieren';
+  }
+}
+
+function switchToImgGenMain(){
+  document.getElementById('imggenSetup').style.display='none';
+  document.getElementById('imggenMain').style.display='block';
+  const key=getOpenAiImgKey();
+  const sub=document.getElementById('imggenReadySub');
+  if(sub&&key)sub.textContent=key.slice(0,7)+'…'+key.slice(-4);
+}
+
+function showImgGenSetup(){
+  document.getElementById('imggenSetup').style.display='block';
+  document.getElementById('imggenMain').style.display='none';
+  setTimeout(()=>{const inp=document.getElementById('imggenKeyIn');if(inp){inp.value='';inp.focus();}},100);
+}
+
+function initImgGenPane(){
+  if(getOpenAiImgKey()){switchToImgGenMain();}
+  else{document.getElementById('imggenSetup').style.display='block';document.getElementById('imggenMain').style.display='none';}
+}
 
 function onApiKeyInput(v){
   const btn=document.getElementById('scanSaveBtn');
@@ -8147,8 +8296,8 @@ function _initTooltips(){
 
 // ── IMPORT-OVERLAY: Tab-Swipe ─────────────────────────
 (function(){
-  const TAB_ORDER=['img','web','scan','txt','json'];
-  const TAB_EL={img:'impTabImg',web:'impTabWeb',scan:'impTabScan',txt:'impTabTxt',json:'impTabJson'};
+  const TAB_ORDER=['img','web','scan','txt','json','imggen'];
+  const TAB_EL={img:'impTabImg',web:'impTabWeb',scan:'impTabScan',txt:'impTabTxt',json:'impTabJson',imggen:'impTabImgGen'};
   function doImportSwipe(dx){
     const ov=document.getElementById('importOv');
     if(!ov||ov.style.display==='none')return;
