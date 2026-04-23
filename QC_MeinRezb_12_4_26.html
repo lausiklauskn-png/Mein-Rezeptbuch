@@ -573,6 +573,28 @@ body.nav-collapsed{padding-bottom:calc(16px + var(--sb))}
 .exp-btn.brn{background:var(--sand2);color:var(--ink);border:1.5px solid var(--sand2)}.exp-btn.brn:active{background:var(--br);color:#fff}
 .exp-btn.tl{background:var(--teals);color:var(--teal);border:1.5px solid var(--teal)}.exp-btn.tl:active{background:var(--teal);color:#fff}
 .exp-prog{font-size:.69rem;color:var(--br3);margin-top:5px;display:none}.exp-prog.on{display:block}
+.exp-btn.pur{background:#f0e8ff;color:#6600cc;border:1.5px solid #8833dd}.exp-btn.pur:active{background:#8833dd;color:#fff}
+#aiBookOv .fov-hdr{background:linear-gradient(90deg,#5500bb,#8833dd,#bb55ff)}
+#aiBookOv .fov-body{padding:0;overflow:hidden;display:flex;flex-direction:column}
+#aiBookTopBar{display:flex;align-items:center;justify-content:space-between;padding:8px 11px;background:var(--parch);border-bottom:1px solid var(--sand2);flex-shrink:0}
+#aiBookSelAllBtn{font-size:.75rem;padding:5px 11px;border-radius:20px;border:1.5px solid var(--br3);background:var(--sand);color:var(--ink);cursor:pointer;font-weight:600}
+#aiBookCnt{font-size:.72rem;color:var(--br3)}
+#aiBookList{flex:1;overflow-y:auto;-webkit-overflow-scrolling:touch}
+.aibr{display:flex;align-items:center;gap:10px;padding:11px 13px;border-bottom:1px solid var(--sand2);cursor:pointer;-webkit-tap-highlight-color:transparent}
+.aibr:active{background:var(--sand2)}
+.aibr-cb{width:20px;height:20px;border-radius:5px;border:2px solid var(--br3);display:flex;align-items:center;justify-content:center;flex-shrink:0;font-size:.75rem;color:transparent;transition:background .1s,border-color .1s}
+.aibr-cb.on{background:#8833dd;border-color:#8833dd;color:#fff}
+.aibr-name{font-size:.82rem;flex:1;color:var(--ink);line-height:1.3}
+#aiBookQualSect{padding:10px 13px;border-top:1px solid var(--sand2);background:var(--parch);flex-shrink:0}
+#aiBookQualLblEl{font-size:.7rem;font-weight:700;color:var(--br3);margin-bottom:6px;text-transform:uppercase;letter-spacing:.04em}
+.aibq-row{display:flex;align-items:center;gap:9px;padding:8px 0;border-bottom:1px solid var(--sand2);cursor:pointer}
+.aibq-row:last-child{border-bottom:none}
+.aibq-row input[type=radio]{accent-color:#8833dd;width:17px;height:17px;cursor:pointer;flex-shrink:0}
+.aibq-name{font-size:.83rem;font-weight:600;color:var(--ink)}
+.aibq-sub{font-size:.68rem;color:var(--br3);margin-left:2px}
+#aiBookFoot{padding:10px 13px;padding-bottom:calc(10px + var(--sb));border-top:1px solid var(--sand2);background:var(--parch);flex-shrink:0}
+#aiBookWeiterBtn{width:100%;padding:13px;border:none;border-radius:9px;background:linear-gradient(135deg,#5500bb,#8833dd);color:#fff;font-size:.86rem;font-weight:700;cursor:pointer;letter-spacing:.01em}
+#aiBookWeiterBtn:disabled{opacity:.45;cursor:default}
 
 /* folders */
 .fld-top{padding:10px 12px 8px;background:var(--parch);border-bottom:1px solid var(--sand2)}
@@ -2430,6 +2452,14 @@ Vielen Dank für deine Unterstützung.</div>
       </div>
     </div>
     <div class="exp-card">
+      <div class="exp-ico">✨</div>
+      <div>
+        <div class="exp-title" id="expAiT">KI-Kreativbuch</div>
+        <div class="exp-desc" id="expAiD">Die KI generiert ein persönliches Kochbuch mit Bildern — Rezepte wählen & Qualität festlegen.</div>
+        <button class="exp-btn pur" onclick="openAiBook()" id="expAiBtn">✨ KI-Kreativbuch erstellen</button>
+      </div>
+    </div>
+    <div class="exp-card">
       <div class="exp-ico">💾</div>
       <div>
         <div class="exp-title" id="expJsonT">Datensicherung (JSON)</div>
@@ -2437,6 +2467,42 @@ Vielen Dank für deine Unterstützung.</div>
         <div class="exp-safe" id="expJsonSafe">🔒 Enthält keine API-Keys — sicher teilbar</div>
         <button class="exp-btn brn" onclick="exportData()" id="expJsonBtn" title="Alle Rezepte als JSON-Backup speichern">💾 Backup erstellen</button>
       </div>
+    </div>
+  </div>
+</div>
+
+
+<div class="fov" id="aiBookOv" style="display:none">
+  <div class="fov-hdr" onclick="closeAiBook()">
+    <button class="fov-back" onclick="event.stopPropagation();closeAiBook()" title="Zurück">←</button>
+    <div class="fov-title" id="aiBookTitle">✨ KI-Kreativbuch · Rezepte wählen</div>
+  </div>
+  <div class="fov-body">
+    <div id="aiBookTopBar">
+      <button id="aiBookSelAllBtn" onclick="aiBookToggleAll()">Alle wählen</button>
+      <span id="aiBookCnt">0 / 0</span>
+    </div>
+    <div id="aiBookList"></div>
+    <div id="aiBookQualSect">
+      <div id="aiBookQualLblEl">Qualität wählen:</div>
+      <label class="aibq-row">
+        <input type="radio" name="aibq" value="fast">
+        <span class="aibq-name" id="aibqFastName">⚡ Schnell</span>
+        <span class="aibq-sub" id="aibqFastSub">(nur Text, 0 Bilder)</span>
+      </label>
+      <label class="aibq-row">
+        <input type="radio" name="aibq" value="standard" checked>
+        <span class="aibq-name" id="aibqStdName">✨ Standard</span>
+        <span class="aibq-sub" id="aibqStdSub">(3 Bilder/Rezept)</span>
+      </label>
+      <label class="aibq-row">
+        <input type="radio" name="aibq" value="premium">
+        <span class="aibq-name" id="aibqPremName">🏆 Premium</span>
+        <span class="aibq-sub" id="aibqPremSub">(HD-Bilder, Hochformat)</span>
+      </label>
+    </div>
+    <div id="aiBookFoot">
+      <button id="aiBookWeiterBtn" onclick="aiBookWeiter()" disabled>Weiter → Kostenübersicht</button>
     </div>
   </div>
 </div>
@@ -2668,6 +2734,11 @@ const LANGS={
     expFlipT:'Blätterbuch (HTML)',expFlipD:'Interaktives Blätterbuch als HTML-Datei — offline in jedem Browser.',expFlipBtn:'📥 Blätterbuch erstellen',flipProg:'Erstelle …',flipDone:'✅ Blätterbuch erstellt!',
     expPdfT:'PDF-Buch',expPdfD:'Alle Rezepte als druckfertiges PDF mit Deckblatt.',expPdfBtn:'📥 PDF-Buch erstellen',expPdfProg:'⏳ Erstelle PDF …',expPdfNone:'⚠️ Keine Rezepte vorhanden',expPdfRecs:'Rezepte',
     expJsonT:'Datensicherung (JSON)',expJsonD:'Alle Rezepte & Menüpläne als JSON sichern.',expJsonSafe:'🔒 Enthält keine API-Keys — sicher teilbar',expJsonBtn:'💾 Backup erstellen',
+    expAiT:'KI-Kreativbuch',expAiD:'Die KI generiert ein persönliches Kochbuch mit Bildern.',expAiBtn:'✨ KI-Kreativbuch erstellen',
+    aiBookTitle:'✨ KI-Kreativbuch · Rezepte wählen',aiBookSelAll:'Alle wählen',aiBookDeselAll:'Alle abwählen',aiBookGewählt:'gewählt',
+    aiBookQualLbl:'Qualität wählen:',aiBookQFastName:'⚡ Schnell',aiBookQFastSub:'(nur Text, 0 Bilder)',
+    aiBookQStdName:'✨ Standard',aiBookQStdSub:'(3 Bilder/Rezept)',
+    aiBookQPremName:'🏆 Premium',aiBookQPremSub:'(HD-Bilder, Hochformat)',aiBookWeiter:'Weiter → Kostenübersicht',
     sTheme:'🎨 THEMA',sLang:'🌐 SPRACHE',sData:'📁 IMPORT & EXPORT',
     sImpLbl:'Importieren',sImpSub:'Bilder, KI-Scan, Backup',
     sExpLbl:'Exportieren',sExpSub:'E-Book, Blätterbuch, JSON',
@@ -2793,6 +2864,11 @@ const LANGS={
     expFlipT:'Flipbook (HTML)',expFlipD:'Interactive flipbook as HTML file — works offline in any browser.',expFlipBtn:'📥 Create flipbook',flipProg:'Creating …',flipDone:'✅ Flipbook created!',
     expPdfT:'PDF Book',expPdfD:'All recipes as a printable PDF with cover page.',expPdfBtn:'📥 Create PDF book',expPdfProg:'⏳ Creating PDF…',expPdfNone:'⚠️ No recipes available',expPdfRecs:'Recipes',
     expJsonT:'Backup (JSON)',expJsonD:'Save all recipes & menu as a JSON file.',expJsonSafe:'🔒 No API keys included — safe to share',expJsonBtn:'💾 Create backup',
+    expAiT:'AI Creative Book',expAiD:'AI generates a personal cookbook with images.',expAiBtn:'✨ Create AI cookbook',
+    aiBookTitle:'✨ AI Creative Book · Select recipes',aiBookSelAll:'Select all',aiBookDeselAll:'Deselect all',aiBookGewählt:'selected',
+    aiBookQualLbl:'Choose quality:',aiBookQFastName:'⚡ Quick',aiBookQFastSub:'(text only, 0 images)',
+    aiBookQStdName:'✨ Standard',aiBookQStdSub:'(3 images/recipe)',
+    aiBookQPremName:'🏆 Premium',aiBookQPremSub:'(HD images, portrait format)',aiBookWeiter:'Next → Cost overview',
     sTheme:'🎨 THEME',sLang:'🌐 LANGUAGE',sData:'📁 IMPORT & EXPORT',
     sImpLbl:'Import',sImpSub:'Images, AI scan, backup',
     sExpLbl:'Export',sExpSub:'E-Book, flipbook, JSON',
@@ -2918,6 +2994,11 @@ const LANGS={
     expFlipT:'Листалка (HTML)',expFlipD:'Интерактивная листалка как HTML-файл — работает офлайн.',expFlipBtn:'📥 Создать листалку',flipProg:'Создание …',flipDone:'✅ Листалка создана!',
     expPdfT:'PDF-книга',expPdfD:'Все рецепты как PDF для печати с обложкой.',expPdfBtn:'📥 Создать PDF-книгу',expPdfProg:'⏳ Создаю PDF …',expPdfNone:'⚠️ Нет рецептов',expPdfRecs:'Рецептов',
     expJsonT:'Резервная копия (JSON)',expJsonD:'Сохранить все рецепты и меню как JSON-файл.',expJsonSafe:'🔒 API-ключи не включены — безопасно для передачи',expJsonBtn:'💾 Создать резервную копию',
+    expAiT:'КИ-Кулинарная книга',expAiD:'ИИ создаёт персональную книгу с иллюстрациями.',expAiBtn:'✨ Создать КИ-книгу',
+    aiBookTitle:'✨ КИ-Книга · Выбрать рецепты',aiBookSelAll:'Выбрать все',aiBookDeselAll:'Снять выбор',aiBookGewählt:'выбрано',
+    aiBookQualLbl:'Качество:',aiBookQFastName:'⚡ Быстро',aiBookQFastSub:'(только текст, 0 фото)',
+    aiBookQStdName:'✨ Стандарт',aiBookQStdSub:'(3 фото/рецепт)',
+    aiBookQPremName:'🏆 Премиум',aiBookQPremSub:'(HD-фото, вертикальный)',aiBookWeiter:'Далее → Обзор цен',
     sTheme:'🎨 ТЕМА',sLang:'🌐 ЯЗЫК',sData:'📁 ИМПОРТ & ЭКСПОРТ',
     sImpLbl:'Импорт',sImpSub:'Фото, ИИ-скан, резерв',
     sExpLbl:'Экспорт',sExpSub:'Эл. книга, листалка, JSON',
@@ -3043,6 +3124,11 @@ const LANGS={
     expFlipT:'翻页书（HTML）',expFlipD:'交互式翻页书，离线在任何浏览器中使用。',expFlipBtn:'📥 创建翻页书',flipProg:'正在创建 …',flipDone:'✅ 翻页书已创建！',
     expPdfT:'PDF书籍',expPdfD:'所有食谱导出为带封面的可打印PDF。',expPdfBtn:'📥 创建PDF书籍',expPdfProg:'⏳ 正在创建PDF…',expPdfNone:'⚠️ 暂无食谱',expPdfRecs:'食谱',
     expJsonT:'数据备份（JSON）',expJsonD:'将所有食谱和菜单保存为JSON文件。',expJsonSafe:'🔒 不含API密钥 — 可安全共享',expJsonBtn:'💾 创建备份',
+    expAiT:'AI创意食谱书',expAiD:'AI生成带图片的个人食谱书。',expAiBtn:'✨ 创建AI食谱书',
+    aiBookTitle:'✨ AI创意书 · 选择食谱',aiBookSelAll:'全选',aiBookDeselAll:'取消全选',aiBookGewählt:'已选',
+    aiBookQualLbl:'选择质量：',aiBookQFastName:'⚡ 快速',aiBookQFastSub:'（仅文字，0张图片）',
+    aiBookQStdName:'✨ 标准',aiBookQStdSub:'（3张图片/食谱）',
+    aiBookQPremName:'🏆 高级',aiBookQPremSub:'（HD图片，竖版）',aiBookWeiter:'下一步 → 费用概览',
     sTheme:'🎨 主题',sLang:'🌐 语言',sData:'📁 导入 & 导出',
     sImpLbl:'导入',sImpSub:'图片、AI扫描、备份',
     sExpLbl:'导出',sExpSub:'电子书、翻页书、JSON',
@@ -3168,6 +3254,11 @@ const LANGS={
     expFlipT:'Libro interactivo (HTML)',expFlipD:'Libro interactivo como HTML — sin conexión en cualquier navegador.',expFlipBtn:'📥 Crear libro',flipProg:'Creando …',flipDone:'✅ Libro creado!',
     expPdfT:'Libro PDF',expPdfD:'Todas las recetas como PDF imprimible con portada.',expPdfBtn:'📥 Crear libro PDF',expPdfProg:'⏳ Creando PDF…',expPdfNone:'⚠️ No hay recetas',expPdfRecs:'Recetas',
     expJsonT:'Copia de seguridad (JSON)',expJsonD:'Guardar todas las recetas y menús como JSON.',expJsonSafe:'🔒 Sin claves API — seguro para compartir',expJsonBtn:'💾 Crear copia de seguridad',
+    expAiT:'Libro IA creativo',expAiD:'La IA genera un libro de cocina personal con imágenes.',expAiBtn:'✨ Crear libro IA',
+    aiBookTitle:'✨ Libro IA · Elegir recetas',aiBookSelAll:'Seleccionar todas',aiBookDeselAll:'Deseleccionar',aiBookGewählt:'seleccionadas',
+    aiBookQualLbl:'Elegir calidad:',aiBookQFastName:'⚡ Rápido',aiBookQFastSub:'(solo texto, 0 imágenes)',
+    aiBookQStdName:'✨ Estándar',aiBookQStdSub:'(3 imágenes/receta)',
+    aiBookQPremName:'🏆 Premium',aiBookQPremSub:'(imágenes HD, vertical)',aiBookWeiter:'Siguiente → Resumen de costes',
     sTheme:'🎨 TEMA',sLang:'🌐 IDIOMA',sData:'📁 IMPORTAR & EXPORTAR',
     sImpLbl:'Importar',sImpSub:'Imágenes, Scan IA, Copia',
     sExpLbl:'Exportar',sExpSub:'E-Book, Libro, JSON',
@@ -3335,6 +3426,11 @@ const LANGS={
     expJsonD:'Sauvegarder en JSON.',
     expJsonSafe:'🔒 Sans clés API — sûr à partager',
     expJsonBtn:'💾 Créer une sauvegarde',
+    expAiT:'Livre IA créatif',expAiD:"L'IA génère un livre de cuisine personnel avec images.",expAiBtn:'✨ Créer livre IA',
+    aiBookTitle:'✨ Livre IA · Choisir des recettes',aiBookSelAll:'Tout sélectionner',aiBookDeselAll:'Tout désélectionner',aiBookGewählt:'sélectionnées',
+    aiBookQualLbl:'Choisir la qualité :',aiBookQFastName:'⚡ Rapide',aiBookQFastSub:'(texte seul, 0 image)',
+    aiBookQStdName:'✨ Standard',aiBookQStdSub:'(3 images/recette)',
+    aiBookQPremName:'🏆 Premium',aiBookQPremSub:'(images HD, portrait)',aiBookWeiter:'Suivant → Aperçu des coûts',
     sTheme:'🎨 THEME',
     sLang:'🌐 LANGUE',
     sData:'📁 IMPORT EXPORT',
@@ -3569,6 +3665,11 @@ const LANGS={
     expJsonD:'Salva come JSON.',
     expJsonSafe:'🔒 Nessuna chiave API — sicuro da condividere',
     expJsonBtn:'💾 Crea backup',
+    expAiT:'Libro IA creativo',expAiD:"L'IA genera un libro di cucina personale con immagini.",expAiBtn:'✨ Crea libro IA',
+    aiBookTitle:'✨ Libro IA · Scegli ricette',aiBookSelAll:'Seleziona tutto',aiBookDeselAll:'Deseleziona tutto',aiBookGewählt:'selezionate',
+    aiBookQualLbl:'Scegli qualità:',aiBookQFastName:'⚡ Veloce',aiBookQFastSub:'(solo testo, 0 immagini)',
+    aiBookQStdName:'✨ Standard',aiBookQStdSub:'(3 immagini/ricetta)',
+    aiBookQPremName:'🏆 Premium',aiBookQPremSub:'(immagini HD, verticale)',aiBookWeiter:'Avanti → Panoramica costi',
     sTheme:'🎨 TEMA',
     sLang:'🌐 LINGUA',
     sData:'📁 IMPORTA ESPORTA',
@@ -3803,6 +3904,11 @@ const LANGS={
     expJsonD:'Guardar como JSON.',
     expJsonSafe:'🔒 Sem chaves API — seguro para partilhar',
     expJsonBtn:'💾 Criar cópia de segurança',
+    expAiT:'Livro IA criativo',expAiD:'A IA gera um livro de culinária pessoal com imagens.',expAiBtn:'✨ Criar livro IA',
+    aiBookTitle:'✨ Livro IA · Escolher receitas',aiBookSelAll:'Selecionar tudo',aiBookDeselAll:'Desmarcar tudo',aiBookGewählt:'selecionadas',
+    aiBookQualLbl:'Escolher qualidade:',aiBookQFastName:'⚡ Rápido',aiBookQFastSub:'(só texto, 0 imagens)',
+    aiBookQStdName:'✨ Standard',aiBookQStdSub:'(3 imagens/receita)',
+    aiBookQPremName:'🏆 Premium',aiBookQPremSub:'(imagens HD, retrato)',aiBookWeiter:'Seguinte → Resumo de custos',
     sTheme:'🎨 TEMA',
     sLang:'🌐 IDIOMA',
     sData:'📁 IMPORTAR EXPORTAR',
@@ -4337,6 +4443,9 @@ function applyLang(code){
     'sBvScreenTitle','sBvLbl','sBvSub',
     'expTitle','expPdfT','expPdfD','expPdfBtn','expFlipT','expFlipD','expFlipBtn',
     'expJsonT','expJsonD','expJsonSafe','expJsonBtn',
+    'expAiT','expAiD','expAiBtn',
+    'aiBookTitle','aiBookSelAll','aiBookDeselAll','aiBookGewählt',
+    'aiBookQualLbl','aiBookQFastName','aiBookQFastSub','aiBookQStdName','aiBookQStdSub','aiBookQPremName','aiBookQPremSub','aiBookWeiter',
     'sTheme','sLang','sData','sImpLbl','sImpSub','sExpLbl','sExpSub',
     'sInfo','sStore','sClear','sClearSub',
     'sManualHead','sManualLbl','sManualSub','manOvTitle','manPdfLbl',
@@ -4457,6 +4566,7 @@ function navTo(n){
   const _fovClose=[
     {id:'importOv',   fn:function(){closeImport();}},
     {id:'exportOv',   fn:function(){closeExport();}},
+    {id:'aiBookOv',   fn:function(){closeAiBook();}},
     {id:'apikeyOv',   fn:function(){closeApiKeyOv();}},
     {id:'langOv',     fn:function(){closeLang();}},
     {id:'helpOv',     fn:function(){closeHelpOv();}},
@@ -4552,6 +4662,90 @@ function openImport(){
 function closeImport(){document.getElementById('importOv').style.display='none';}
 function openExport(){document.getElementById('exportOv').style.display='flex';}
 function closeExport(){document.getElementById('exportOv').style.display='none';}
+
+// ═══════════════════════════════════════════════════════
+// KI-KREATIVBUCH – REZEPTE WÄHLEN
+// ═══════════════════════════════════════════════════════
+let _aiBookSel=new Set();
+
+function openAiBook(){
+  const ov=document.getElementById('aiBookOv');
+  ov.style.display='flex';
+  _aiBookSel.clear();
+  const named=R.filter(r=>r.name&&!r.blank);
+  named.forEach(r=>_aiBookSel.add(r.id));
+  _renderAiBookList(named);
+  document.getElementById('aiBookTitle').textContent=T('aiBookTitle');
+  document.getElementById('aiBookQualLblEl').textContent=T('aiBookQualLbl');
+  document.getElementById('aibqFastName').textContent=T('aiBookQFastName');
+  document.getElementById('aibqFastSub').textContent=T('aiBookQFastSub');
+  document.getElementById('aibqStdName').textContent=T('aiBookQStdName');
+  document.getElementById('aibqStdSub').textContent=T('aiBookQStdSub');
+  document.getElementById('aibqPremName').textContent=T('aiBookQPremName');
+  document.getElementById('aibqPremSub').textContent=T('aiBookQPremSub');
+  document.getElementById('aiBookWeiterBtn').textContent=T('aiBookWeiter');
+  const stdRadio=document.querySelector('input[name=aibq][value=standard]');
+  if(stdRadio)stdRadio.checked=true;
+}
+
+function closeAiBook(){
+  document.getElementById('aiBookOv').style.display='none';
+}
+
+function _renderAiBookList(named){
+  const list=document.getElementById('aiBookList');
+  list.innerHTML=named.length?named.map(r=>{
+    const on=_aiBookSel.has(r.id);
+    return`<div class="aibr" onclick="aiBookToggleRec(this,${r.id})" data-rid="${r.id}">
+      <div class="aibr-cb${on?' on':''}">${on?'✓':''}</div>
+      <div class="aibr-name">${h(r.name)}</div>
+    </div>`;
+  }).join(''):'';
+  _aiBookUpdateCount(named.length);
+}
+
+function aiBookToggleRec(el,rid){
+  if(_aiBookSel.has(rid))_aiBookSel.delete(rid);
+  else _aiBookSel.add(rid);
+  const on=_aiBookSel.has(rid);
+  const cb=el.querySelector('.aibr-cb');
+  cb.className='aibr-cb'+(on?' on':'');
+  cb.textContent=on?'✓':'';
+  const named=R.filter(r=>r.name&&!r.blank);
+  _aiBookUpdateCount(named.length);
+}
+
+function aiBookToggleAll(){
+  const named=R.filter(r=>r.name&&!r.blank);
+  const allSel=named.length>0&&named.every(r=>_aiBookSel.has(r.id));
+  if(allSel){_aiBookSel.clear();}
+  else{named.forEach(r=>_aiBookSel.add(r.id));}
+  document.getElementById('aiBookList').querySelectorAll('.aibr').forEach(el=>{
+    const rid=+el.dataset.rid;
+    const on=_aiBookSel.has(rid);
+    const cb=el.querySelector('.aibr-cb');
+    cb.className='aibr-cb'+(on?' on':'');
+    cb.textContent=on?'✓':'';
+  });
+  _aiBookUpdateCount(named.length);
+}
+
+function _aiBookUpdateCount(total){
+  const cnt=_aiBookSel.size;
+  document.getElementById('aiBookCnt').textContent=`${cnt} / ${total} ${T('aiBookGewählt')}`;
+  document.getElementById('aiBookWeiterBtn').disabled=cnt===0;
+  const named=R.filter(r=>r.name&&!r.blank);
+  const allSel=named.length>0&&named.every(r=>_aiBookSel.has(r.id));
+  document.getElementById('aiBookSelAllBtn').textContent=allSel?T('aiBookDeselAll'):T('aiBookSelAll');
+}
+
+function aiBookWeiter(){
+  if(_aiBookSel.size===0)return;
+  const qual=document.querySelector('input[name=aibq]:checked')?.value||'standard';
+  // Schritt 3: Kostenübersicht – folgt im nächsten Schritt
+  window._aiBookParams={ids:[..._aiBookSel],qual};
+}
+
 function switchFovTab(ovId,tab,el){
   const ov=document.getElementById(ovId);
   ov.querySelectorAll('.fovtab').forEach(t=>t.classList.remove('on'));
@@ -8174,7 +8368,7 @@ function _initTooltips(){
 (function(){
   const SC_ORDER=['recipes','folders','menu','backup','settings'];
   // IDs von Overlays/Modals — bei offenen Panels kein Seitenwechsel
-  const MODAL_IDS=['mv','importOv','exportOv','apikeyOv','courseSheet','spellModal',
+  const MODAL_IDS=['mv','importOv','exportOv','aiBookOv','apikeyOv','courseSheet','spellModal',
     'aip','aslBg','ob-wizard-bg','ob-helper-bg','ob-settings-bg','ob-scan-ov',
     'manualOv','bvaultModal'];
   function anyModalOpen(){
@@ -8278,6 +8472,7 @@ boot();
     {id:'bvaultModal',    close:function(){var e=document.getElementById('bvaultModal');if(e)e.style.display='none';}},
     {id:'importOv',       close:function(){closeImport();}},
     {id:'exportOv',       close:function(){closeExport();}},
+    {id:'aiBookOv',       close:function(){closeAiBook();}},
     {id:'apikeyOv',       close:function(){closeApiKeyOv();}},
     {id:'courseSheet',    close:function(){closeCSheet();}},
     {id:'folderSheet',    close:function(){closeFolderSheet();}},
