@@ -467,6 +467,8 @@ body.nav-collapsed{padding-bottom:calc(16px + var(--sb))}
 .sb-prog{height:2.5px;margin:0 10px 6px;background:var(--sand2);border-radius:2px;overflow:hidden}
 .sb-fill{height:100%;background:linear-gradient(90deg,#8ab07a,var(--grn));border-radius:2px;transition:width .3s}
 .sb-reset{font-size:.62rem;color:var(--br3);background:none;border:none;cursor:pointer;text-decoration:underline}
+@keyframes igPulse{0%,100%{opacity:1}50%{opacity:.35}}
+.ig-loading{animation:igPulse 1.1s ease-in-out infinite;color:var(--teal);font-size:.82rem;padding:16px;text-align:center}
 
 /* sheets */
 .sheet-bg{position:fixed;inset:0;background:rgba(46,31,16,.42);z-index:500;display:flex;flex-direction:column;justify-content:flex-end;animation:bgIn .15s ease}
@@ -2464,9 +2466,11 @@ Vielen Dank für deine Unterstützung.</div>
           </div>
           <div style="padding:0 12px 12px 12px">
             <button class="scan-key-btn" id="igGenBtn" onclick="startImgGen()" disabled>🎨 Bilder generieren</button>
-            <div id="igProgWrap" style="display:none;margin-top:10px">
-              <div class="sb-prog" style="margin-bottom:5px"><div class="sb-fill" id="igFill" style="width:0%"></div></div>
-              <div id="igProgLbl" style="font-size:.73rem;color:var(--br3)"></div>
+            <div id="igProgWrap" style="display:none;margin-top:12px">
+              <div style="background:var(--sand2);border-radius:8px;height:10px;overflow:hidden;margin-bottom:7px">
+                <div id="igFill" style="width:0%;height:100%;background:linear-gradient(90deg,var(--teal),var(--grn));border-radius:8px;transition:width .4s ease"></div>
+              </div>
+              <div id="igProgLbl" style="font-size:.78rem;color:var(--ink);text-align:center;font-weight:600"></div>
             </div>
           </div>
         </div>
@@ -4737,7 +4741,7 @@ async function runImgGenBatch(rids,onProgress){
     if(!eligible.length){
       // R noch nicht geladen – warten und erneut versuchen
       var el=document.getElementById('igList');
-      if(el)el.innerHTML='<div style="padding:16px;text-align:center;color:var(--br3);font-size:.8rem">⏳ Lade Rezepte …</div>';
+      if(el)el.innerHTML='<div class="ig-loading">⏳ Lade Rezepte …</div>';
       setTimeout(window.initImgGenSel,400);
       return;
     }
@@ -4754,10 +4758,12 @@ async function runImgGenBatch(rids,onProgress){
     if(btn){btn.disabled=true;btn.textContent='⏳ Generiere …';}
     if(wrap)wrap.style.display='block';
     if(fill)fill.style.width='0%';
+    if(lbl)lbl.textContent='0 % — starte …';
     var res=await runImgGenBatch(rids,function(p){
-      if(fill)fill.style.width=Math.round(p.done/p.total*100)+'%';
+      var pct=Math.round(p.done/p.total*100);
+      if(fill)fill.style.width=pct+'%';
       var r=(window.R||[]).find(function(x){return x.id===p.rid;});
-      if(lbl)lbl.textContent=p.done+'/'+p.total+(r?' — '+(r.name||''):'')+(p.fail?' · '+p.fail+' Fehler':'');
+      if(lbl)lbl.textContent=pct+' % — '+p.done+'/'+p.total+(r?' · '+(r.name||''):'')+(p.fail?' · '+p.fail+' ✗':'');
     });
     if(fill)fill.style.width='100%';
     if(lbl)lbl.textContent='✅ '+res.ok+' Bild'+(res.ok===1?'':'er')+' generiert'+(res.fail?' · '+res.fail+' Fehler':'');
