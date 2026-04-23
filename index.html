@@ -6672,9 +6672,14 @@ function exportPDF(){
       const nParts=chunks.length;
       const useChunks=nParts>1;
 
+      const partWord=T('expPdfPart')||'Teil';
+      const recsWord=T('expPdfRecs')||'Rezepte';
+      const statusLines=chunks.map((ch,i)=>`⏳ ${partWord} ${i+1}/${nParts}: ${recsWord} ${i*CHUNK+1}–${Math.min((i+1)*CHUNK,named.length)}`);
+      const renderChunkStatus=(headline)=>{
+        pr.innerHTML=`${headline}<br>${statusLines.map(l=>`&nbsp;&nbsp;&nbsp;${l}`).join('<br>')}`;
+      };
       if(useChunks){
-        const partWord=T('expPdfPart')||'Teil';
-        pr.textContent=`📚 ${T('expPdfChunkInfo')||'Dein Buch wird in'} ${nParts} ${partWord}e ${T('expPdfChunkSplit')||'aufgeteilt'} …`;
+        renderChunkStatus(`📚 ${T('expPdfChunkInfo')||'Dein Buch wird in'} ${nParts} ${partWord}e ${T('expPdfChunkSplit')||'aufgeteilt'} …`);
       }
 
       // Shared print CSS — print-safe (no flex, no grid)
@@ -6798,16 +6803,19 @@ img.rphoto{width:100%;height:155pt;object-fit:cover;display:block;border-radius:
         setTimeout(()=>{
           const html=buildPartHtml(chunkRecs,idx+1,nParts);
           const w=window.open('','_blank');
-          if(!w){toast('⚠️ Popup blockiert');pr.textContent='⚠️ Popup blockiert – bitte Popups erlauben';return;}
+          if(!w){toast('⚠️ Popup blockiert');pr.innerHTML='⚠️ Popup blockiert – bitte Popups erlauben';return;}
           w.document.write(html);w.document.close();
           setTimeout(()=>w.print(),400);
-          if(idx===nParts-1){
-            if(useChunks){
-              pr.textContent=`✅ ${nParts} PDF-Fenster geöffnet · Speichern → dann zusammenfügen: ilovepdf.com`;
+          if(useChunks){
+            statusLines[idx]=`✅ ${partWord} ${idx+1}/${nParts}: ${recsWord} ${idx*CHUNK+1}–${Math.min((idx+1)*CHUNK,named.length)} geöffnet`;
+            if(idx===nParts-1){
+              renderChunkStatus(`✅ ${nParts} PDF-Fenster geöffnet · Zusammenfügen: ilovepdf.com`);
             }else{
-              pr.textContent='✅ PDF-Fenster geöffnet — Drucken → Als PDF speichern';
-              setTimeout(()=>{pr.className='exp-prog';},5000);
+              renderChunkStatus(`📚 ${T('expPdfChunkInfo')||'Dein Buch wird in'} ${nParts} ${partWord}e ${T('expPdfChunkSplit')||'aufgeteilt'} …`);
             }
+          }else{
+            pr.textContent='✅ PDF-Fenster geöffnet — Drucken → Als PDF speichern';
+            setTimeout(()=>{pr.className='exp-prog';},5000);
           }
         },idx*800);
       });
