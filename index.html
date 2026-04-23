@@ -9509,7 +9509,7 @@ function _initTooltips(){
   // IDs von Overlays/Modals — bei offenen Panels kein Seitenwechsel
   const MODAL_IDS=['mv','importOv','exportOv','kbLightbox','kbCostOv','kbProgOv','aiBookOv','aiCostOv','apikeyOv','courseSheet','spellModal',
     'aip','aslBg','ob-wizard-bg','ob-helper-bg','ob-settings-bg','ob-scan-ov',
-    'manualOv','bvaultModal'];
+    'manualOv','bvaultModal','bselOv'];
   function anyModalOpen(){
     return MODAL_IDS.some(id=>{
       const el=document.getElementById(id);
@@ -12351,7 +12351,8 @@ function saveZinePage(idx){
 
   window.openBsel=function(mode){
     _bselMode=mode||'nutr';
-    _bselSel=new Set();
+    var eligible=(window.R||[]).filter(function(r){return r.name&&!r.blank;});
+    _bselSel=new Set(eligible.map(function(r){return r.id;}));
     _bselFldOpen=false;
     document.getElementById('bselFldRow').style.display='none';
     _bselRenderList();
@@ -12513,8 +12514,8 @@ function saveZinePage(idx){
 </script>
 
 <!-- ── Batch Recipe Selector Overlay ── -->
-<div id="bselOv" style="display:none" onclick="closeBsel()">
-  <div class="bsel-card" onclick="event.stopPropagation()">
+<div id="bselOv" style="display:none" onclick="if(event.target===this)closeBsel()">
+  <div class="bsel-card">
     <div class="bsel-hdr">
       <button class="bsel-close" onclick="closeBsel()">←</button>
       <div class="bsel-title">🌿 Nährwerte schätzen</div>
