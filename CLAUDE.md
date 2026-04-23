@@ -268,6 +268,10 @@ grep -rn 'rel="icon"\|rel="apple-touch-icon"\|icons:\[' \
 2. `python3 build.py` ausführen
 3. Hochladen
 
+### ⚠️ REGEL: Elementhöhe niemals per CSS calc(vw) — immer JS
+
+Hinweis: CSS `calc(vw)` wird in Chrome/Android ignoriert. Stattdessen `offsetWidth` messen + `style.setProperty` verwenden. Nur Getränke-Karten (`data-cat="drk"`) bekommen Hochformat 3:4, alle anderen bleiben Querformat 160px.
+
 ### Swipe / Touch / Drag & Drop
 - Swipe-Handler: IIFE ab `// ── SWIPE-NAVIGATION ──` (kurz vor `boot()`)
 - Touch-Drag: `setupTouchDrag()` und `setupWkTouchDrag()`
