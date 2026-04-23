@@ -1196,6 +1196,45 @@ html.a11y-hc body[data-theme=spektral] .bn-ico{color:#fff !important;text-shadow
 .save-transl-btn{width:100%;padding:9px;border-radius:10px;
   border:1.5px solid var(--gold,#c4a030);background:var(--golds,#fdf4df);
   color:var(--gold,#8a6010);font-family:inherit;font-size:.8rem;font-weight:700;cursor:pointer;margin-top:8px}
+/* ── Batch Recipe Selector ── */
+#bselOv{position:fixed;inset:0;z-index:9200;background:rgba(0,0,0,.5);display:flex;align-items:flex-end;justify-content:center}
+.bsel-card{background:var(--parch);border-radius:18px 18px 0 0;width:100%;max-width:520px;max-height:92vh;display:flex;flex-direction:column;padding-bottom:calc(var(--sb,0px))}
+.bsel-hdr{display:flex;align-items:center;gap:10px;padding:14px 14px 10px;border-bottom:1px solid var(--sand2);flex-shrink:0}
+.bsel-title{font-family:Georgia,serif;font-size:1rem;font-weight:700;flex:1;color:var(--ink)}
+.bsel-close{background:none;border:none;font-size:1.3rem;cursor:pointer;color:var(--br3);padding:4px;line-height:1}
+.bsel-badge{font-size:.7rem;color:var(--br3);white-space:nowrap}
+.bsel-quick{display:flex;gap:7px;padding:10px 12px;overflow-x:auto;flex-shrink:0;border-bottom:1px solid var(--sand2);scrollbar-width:none}
+.bsel-quick::-webkit-scrollbar{display:none}
+.bsel-qchip{background:#fff;border:1.5px solid var(--sand2);border-radius:20px;padding:5px 11px;font-size:.72rem;font-weight:700;cursor:pointer;white-space:nowrap;font-family:inherit;transition:background .15s,border-color .15s}
+.bsel-qchip:active{background:var(--teals);border-color:var(--teal)}
+.bsel-qchip:disabled{opacity:.38;cursor:default}
+.bsel-fld-row{display:flex;gap:6px;padding:7px 12px;overflow-x:auto;flex-shrink:0;border-bottom:1px solid var(--sand2);scrollbar-width:none;background:var(--sand)}
+.bsel-fld-row::-webkit-scrollbar{display:none}
+.bsel-fchip{background:#fff;border:1.5px solid var(--sand2);border-radius:14px;padding:4px 10px;font-size:.68rem;font-weight:700;cursor:pointer;white-space:nowrap;font-family:inherit}
+.bsel-fchip.on{background:var(--teal);border-color:var(--teal);color:#fff}
+.bsel-list{overflow-y:auto;flex:1;padding:8px 12px;-webkit-overflow-scrolling:touch;min-height:0}
+.bsel-item{display:flex;align-items:center;gap:10px;padding:9px 10px;border-radius:10px;cursor:pointer;margin-bottom:2px;transition:background .1s}
+.bsel-item:active{background:var(--sand2)}
+.bsel-item.on{background:var(--teals)}
+.bsel-cb{width:18px;height:18px;border:2px solid var(--sand2);border-radius:5px;flex-shrink:0;display:flex;align-items:center;justify-content:center;transition:all .15s}
+.bsel-item.on .bsel-cb{background:var(--teal);border-color:var(--teal)}
+.bsel-item.on .bsel-cb::after{content:'';width:4px;height:7px;border:2px solid #fff;border-top:none;border-left:none;transform:rotate(45deg);display:block;margin:0 auto}
+.bsel-name{font-size:.82rem;font-weight:600;color:var(--ink);flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.bsel-stars{font-size:.68rem;color:var(--gold);flex-shrink:0}
+.bsel-foot{padding:10px 12px;border-top:1px solid var(--sand2);flex-shrink:0}
+.bsel-costbar{background:var(--sand);border-radius:12px;padding:10px 12px;margin-bottom:8px;display:flex;align-items:center;gap:10px}
+.bsel-ampel{width:10px;height:10px;border-radius:50%;flex-shrink:0;transition:background .3s}
+.bsel-ampel.grn{background:#22c55e}
+.bsel-ampel.ylw{background:#f59e0b}
+.bsel-ampel.red{background:#ef4444}
+.bsel-costmid{flex:1;min-width:0}
+.bsel-costcount{font-size:.8rem;font-weight:700;color:var(--ink)}
+.bsel-costdetail{font-size:.67rem;color:var(--br3);margin-top:1px}
+.bsel-costright{text-align:right;flex-shrink:0}
+.bsel-costval{font-size:.92rem;font-weight:800;color:var(--ink)}
+.bsel-costtime{font-size:.66rem;color:var(--br3);margin-top:1px}
+.bsel-gobtn{width:100%;padding:11px;border-radius:10px;border:none;background:var(--teal);color:#fff;font-family:inherit;font-size:.85rem;font-weight:700;cursor:pointer}
+.bsel-gobtn:disabled{opacity:.4;cursor:not-allowed}
 /* ── Backup Vault ── */
 .bvault-modal{position:fixed;inset:0;z-index:9500;background:rgba(0,0,0,.52);display:flex;align-items:flex-end;justify-content:center}
 .bvault-card{background:var(--parch);border-radius:18px 18px 0 0;padding:0 0 calc(20px + var(--sb));width:100%;max-width:520px;max-height:88vh;display:flex;flex-direction:column}
@@ -2624,6 +2663,14 @@ Vielen Dank für deine Unterstützung.</div>
         <div class="exp-desc" id="expJsonD">Alle Rezepte & Menüpläne als JSON-Datei sichern. Zum Übertragen oder als Backup.</div>
         <div class="exp-safe" id="expJsonSafe">🔒 Enthält keine API-Keys — sicher teilbar</div>
         <button class="exp-btn brn" onclick="exportData()" id="expJsonBtn" title="Alle Rezepte als JSON-Backup speichern">💾 Backup erstellen</button>
+      </div>
+    </div>
+    <div class="exp-card">
+      <div class="exp-ico">🤖</div>
+      <div>
+        <div class="exp-title">Nährwerte schätzen (KI)</div>
+        <div class="exp-desc">Rezepte auswählen — KI schätzt Nährwerte. Zeigt Kosten & Zeitbedarf vor dem Start.</div>
+        <button class="exp-btn gld" onclick="closeExport();openBsel('nutr')">🌿 Rezepte auswählen …</button>
       </div>
     </div>
   </div>
@@ -12050,7 +12097,209 @@ function saveZinePage(idx){
   toast('✅ Bild als Rezeptbild gespeichert!');
   setTimeout(()=>closeZine(),400);
 }
+
+/* ── Batch Recipe Selector JS ── */
+(function(){
+  var _bselSel=new Set();
+  var _bselMode='nutr';
+  var _bselFldOpen=false;
+
+  window.openBsel=function(mode){
+    _bselMode=mode||'nutr';
+    _bselSel=new Set();
+    _bselFldOpen=false;
+    document.getElementById('bselFldRow').style.display='none';
+    _bselRenderList();
+    _bselUpdateCost();
+    document.getElementById('bselOv').style.display='flex';
+  };
+  window.closeBsel=function(){
+    document.getElementById('bselOv').style.display='none';
+  };
+
+  window.bselQuick=function(type){
+    var inMenuIds=new Set((window.MS||[]).map(function(s){return s.rid;}).filter(Boolean));
+    var eligible=(window.R||[]).filter(function(r){return r.name&&!r.blank;});
+    var picks=[];
+    if(type==='top5'){
+      picks=eligible.slice().sort(function(a,b){
+        return ((b.rating||{}).stars||0)-((a.rating||{}).stars||0);
+      }).slice(0,5);
+    } else if(type==='last10'){
+      picks=eligible.slice().sort(function(a,b){return (b.id||0)-(a.id||0);}).slice(0,10);
+    } else if(type==='menu'){
+      picks=eligible.filter(function(r){return inMenuIds.has(r.id);});
+    } else if(type==='folder'){
+      _bselFldOpen=!_bselFldOpen;
+      _bselRenderFolderRow();
+      return;
+    } else if(type==='all'){
+      picks=eligible;
+    }
+    _bselSel=new Set(picks.map(function(r){return r.id;}));
+    _bselRenderList();
+    _bselUpdateCost();
+  };
+
+  window.bselFldPick=function(fid){
+    var eligible=(window.R||[]).filter(function(r){return r.name&&!r.blank;});
+    var picks=eligible.filter(function(r){return r.folder===String(fid);});
+    _bselSel=new Set(picks.map(function(r){return r.id;}));
+    _bselFldOpen=false;
+    document.getElementById('bselFldRow').style.display='none';
+    _bselRenderList();
+    _bselUpdateCost();
+  };
+
+  window.bselToggle=function(id){
+    if(_bselSel.has(id))_bselSel.delete(id);
+    else _bselSel.add(id);
+    var item=document.querySelector('.bsel-item[data-id="'+id+'"]');
+    if(item)item.classList.toggle('on',_bselSel.has(id));
+    _bselUpdateCost();
+  };
+
+  function _bselRenderFolderRow(){
+    var row=document.getElementById('bselFldRow');
+    var fd=window.FD||[];
+    if(!_bselFldOpen||fd.length===0){row.style.display='none';return;}
+    row.style.display='flex';
+    row.innerHTML=fd.map(function(f){
+      return '<button class="bsel-fchip" onclick="bselFldPick(\''+f.id+'\')">'+
+        (f.ico||'📁')+' '+(f.name||'Ordner')+'</button>';
+    }).join('');
+  }
+
+  function _bselRenderList(){
+    var eligible=(window.R||[]).filter(function(r){return r.name&&!r.blank;});
+    var html=eligible.map(function(r){
+      var sel=_bselSel.has(r.id);
+      var stars=(r.rating||{}).stars||0;
+      var starStr=stars>0?'★'.repeat(stars):'';
+      return '<div class="bsel-item'+(sel?' on':'')+'" data-id="'+r.id+'" onclick="bselToggle('+r.id+')">'+
+        '<div class="bsel-cb"></div>'+
+        '<div class="bsel-name">'+(typeof h==='function'?h(r.name):r.name)+'</div>'+
+        (starStr?'<div class="bsel-stars">'+starStr+'</div>':'')+
+        '</div>';
+    }).join('');
+    document.getElementById('bselList').innerHTML=html||
+      '<div style="padding:20px;text-align:center;color:var(--br3);font-size:.8rem">Keine Rezepte vorhanden</div>';
+    document.getElementById('bselFolderBtn').disabled=(window.FD||[]).length===0;
+  }
+
+  function _bselUpdateCost(){
+    var n=_bselSel.size;
+    var usdPerRecipe=(700*0.80+150*4.0)/1e6;
+    var eurPerRecipe=usdPerRecipe*0.93;
+    var totalEur=n*eurPerRecipe;
+    var timeSec=n*5;
+    var timeStr=timeSec<60?'ca. '+timeSec+' Sek.':
+      timeSec<3600?'ca. '+Math.ceil(timeSec/60)+' Min.':'ca. '+Math.ceil(timeSec/3600)+' Std.';
+    var ampelEl=document.getElementById('bselAmpel');
+    var countEl=document.getElementById('bselCount');
+    var detailEl=document.getElementById('bselDetail');
+    var valEl=document.getElementById('bselCostVal');
+    var timeEl=document.getElementById('bselCostTime');
+    var badgeEl=document.getElementById('bselBadge');
+    var goBtn=document.getElementById('bselGoBtn');
+    var ampelCls=n===0?'grn':n<=15?'grn':n<=50?'ylw':'red';
+    if(ampelEl)ampelEl.className='bsel-ampel '+ampelCls;
+    if(countEl)countEl.textContent=n+' Rezept'+(n===1?'':'e')+' ausgewählt';
+    if(badgeEl)badgeEl.textContent=n>0?n+' gewählt':'';
+    if(n===0){
+      if(detailEl)detailEl.textContent='Wähle Rezepte aus oder nutze die Schnellauswahl';
+      if(valEl)valEl.textContent='0,00 €';
+      if(timeEl)timeEl.textContent='';
+    } else {
+      if(detailEl)detailEl.textContent='Claude Haiku · ~'+Math.round(n*700)+' Token';
+      if(valEl)valEl.textContent='~'+totalEur.toFixed(4).replace('.',',')+' €';
+      if(timeEl)timeEl.textContent=timeStr;
+    }
+    if(goBtn)goBtn.disabled=(n===0);
+  }
+
+  window.bselStart=async function(){
+    var rids=[..._bselSel];
+    if(rids.length===0)return;
+    var key=typeof getSavedKey==='function'?getSavedKey():'';
+    if(!key){if(typeof toast==='function')toast('❌ Kein API-Key hinterlegt');return;}
+    closeBsel();
+    var done=0;
+    for(var i=0;i<rids.length;i++){
+      if(typeof toast==='function')toast('⏳ Nährwerte '+(i+1)+'/'+rids.length+' …');
+      await _bselEstimateOne(rids[i]);
+      done++;
+    }
+    if(typeof toast==='function')toast('✅ '+done+' Nährwert'+(done===1?'':'e')+' geschätzt!');
+  };
+
+  async function _bselEstimateOne(rid){
+    var r=(window.R||[]).find(function(x){return x.id===rid;});
+    if(!r)return;
+    var key=typeof getSavedKey==='function'?getSavedKey():'';
+    if(!key)return;
+    var ingList=((r.ings||[]).map(function(x){
+      return ((x.amt||'')+' '+(x.unit||'')+' '+(x.name||'')).trim();
+    }).filter(Boolean)).join(', ');
+    var prompt='Estimate nutrition per serving for this recipe ('+(r.servings||4)+
+      ' servings): "'+r.name+'". Ingredients: '+ingList+
+      '. Reply ONLY with JSON: {"kcal":0,"fat":0,"carbs":0,"protein":0,"fiber":0,"sugar":0,"sodium":0}';
+    try{
+      var apiUrl=typeof _claudeApiUrl==='function'?_claudeApiUrl():'https://api.anthropic.com/v1/messages';
+      var hdrs=typeof _claudeHeaders==='function'?_claudeHeaders(key):{
+        'Content-Type':'application/json','x-api-key':key,
+        'anthropic-version':'2023-06-01','anthropic-dangerous-direct-browser-access':'true'};
+      var resp=await fetch(apiUrl,{method:'POST',headers:hdrs,
+        body:JSON.stringify({model:'claude-haiku-4-5-20251001',max_tokens:150,
+          messages:[{role:'user',content:prompt}]})});
+      if(!resp.ok)return;
+      var j=await resp.json();
+      var txt=(j.content&&j.content[0]&&j.content[0].text)||'';
+      var m=txt.match(/\{[^}]+\}/);
+      if(!m)return;
+      var nut=JSON.parse(m[0]);
+      if(!nut.kcal&&!nut.protein)return;
+      r.nutrition={kcal:+nut.kcal||0,fat:+nut.fat||0,carbs:+nut.carbs||0,
+        protein:+nut.protein||0,fiber:+nut.fiber||0,sugar:+nut.sugar||0,sodium:+nut.sodium||0};
+      if(typeof sv==='function')sv();
+    }catch(e){}
+  }
+})();
 </script>
+
+<!-- ── Batch Recipe Selector Overlay ── -->
+<div id="bselOv" style="display:none" onclick="closeBsel()">
+  <div class="bsel-card" onclick="event.stopPropagation()">
+    <div class="bsel-hdr">
+      <button class="bsel-close" onclick="closeBsel()">←</button>
+      <div class="bsel-title">🌿 Nährwerte schätzen</div>
+      <span class="bsel-badge" id="bselBadge"></span>
+    </div>
+    <div class="bsel-quick">
+      <button class="bsel-qchip" onclick="bselQuick('top5')">🌟 Top 5</button>
+      <button class="bsel-qchip" id="bselFolderBtn" onclick="bselQuick('folder')">📁 Ordner</button>
+      <button class="bsel-qchip" onclick="bselQuick('last10')">📅 Letzte 10</button>
+      <button class="bsel-qchip" onclick="bselQuick('menu')">✅ +Menü</button>
+      <button class="bsel-qchip" onclick="bselQuick('all')">☰ Alle</button>
+    </div>
+    <div class="bsel-fld-row" id="bselFldRow" style="display:none"></div>
+    <div class="bsel-list" id="bselList"></div>
+    <div class="bsel-foot">
+      <div class="bsel-costbar">
+        <div class="bsel-ampel grn" id="bselAmpel"></div>
+        <div class="bsel-costmid">
+          <div class="bsel-costcount" id="bselCount">0 Rezepte ausgewählt</div>
+          <div class="bsel-costdetail" id="bselDetail">Wähle Rezepte aus oder nutze die Schnellauswahl</div>
+        </div>
+        <div class="bsel-costright">
+          <div class="bsel-costval" id="bselCostVal">0,00 €</div>
+          <div class="bsel-costtime" id="bselCostTime"></div>
+        </div>
+      </div>
+      <button class="bsel-gobtn" id="bselGoBtn" disabled onclick="bselStart()">🤖 Nährwerte schätzen</button>
+    </div>
+  </div>
+</div>
 
 <!-- ── KI-Zine: Modus-Auswahl ──────────────────────────── -->
 <div id="zineModeDialog" class="zine-mode-ov" style="display:none" onclick="if(event.target===this)closeZineDialog()">
