@@ -862,6 +862,10 @@ body.nav-collapsed{padding-bottom:calc(16px + var(--sb))}
 .kb-bar-fill{height:100%;background:linear-gradient(90deg,#6b35a8,#9b42c8);border-radius:8px;transition:width .5s ease}
 .kb-bar-pct{font-size:.71rem;color:var(--br3);text-align:right;margin-bottom:4px}
 .kb-live-cost{font-size:.82rem;font-weight:700;color:#6b35a8;text-align:center;padding:3px 0}
+.kb-design-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:7px;margin:6px 0 14px}
+.kb-dchip{background:var(--parch);border:1.5px solid var(--sand2);border-radius:10px;padding:7px 6px 6px;font-size:.7rem;cursor:pointer;transition:all .15s;color:var(--br2);text-align:center;line-height:1.35;-webkit-tap-highlight-color:transparent}
+.kb-dchip span{display:block;font-size:1.1rem;margin-bottom:2px}
+.kb-dchip.on{background:linear-gradient(135deg,#6b35a8,#9b42c8);border-color:#6b35a8;color:#fff;font-weight:700}
 .scan-upgrade-hint{background:var(--golds);border:1.5px solid var(--gold);border-radius:8px;padding:8px 10px;font-size:.7rem;color:#7a5800;display:flex;align-items:center;gap:8px;margin:6px 0;flex-wrap:wrap}
 .scan-upgrade-btn{background:var(--gold);color:#fff;border:none;border-radius:6px;padding:5px 11px;font-size:.69rem;font-weight:700;cursor:pointer;margin-left:auto;white-space:nowrap}
 .scan-upgrade-btn:active{opacity:.8}
@@ -6656,6 +6660,27 @@ const _KB_PRICE_IN = 0.0008 / 1000;   // $/token input
 const _KB_PRICE_OUT= 0.004  / 1000;   // $/token output
 let _kbAbort = false;
 let _kbAiData = [];   // [{r, intro, flavorNote, cookTip, servingIdea}]
+let _kbDesign = 'auto';
+
+const _KB_DESIGNS = {
+  auto:      {ico:'✨',label:'KI entscheidet',hint:'',
+    cover:'linear-gradient(160deg,#7a5840,#5c3d2e)',ic:'background:#f3ecfa;border-color:#9b42c8;color:#3a1a5c'},
+  mediterran:{ico:'🌿',label:'Mediterran',
+    hint:'Schreibe im Stil eines mediterranen Kochbuchs: warm, sonnig, duftend nach Kräutern, Zitrone und Olivenöl. Verwende sinnliche, einladende Sprache mit Bildern des Südens.',
+    cover:'linear-gradient(160deg,#b06030,#7a3810)',ic:'background:#fff8f2;border-color:#c0703a;color:#5a2a10'},
+  nordisch:  {ico:'🌲',label:'Nordisch',
+    hint:'Schreibe im nordisch-minimalistischen Stil: ruhig, klar, naturverbunden. Kurze, präzise Sätze. Betone Frische, Qualität der Zutaten und Einfachheit.',
+    cover:'linear-gradient(160deg,#3a7a5a,#1a4030)',ic:'background:#f0f9f5;border-color:#3a7a5a;color:#1a3a28'},
+  rustikal:  {ico:'🍂',label:'Rustikal',
+    hint:'Schreibe im rustikal-nostalgischen Stil wie ein handgeschriebenes Familienrezeptbuch: gemütlich, herzlich, mit einem Hauch Erinnerung. Als würdest du einer Freundin das Rezept erklären.',
+    cover:'linear-gradient(160deg,#8b5e30,#4a2a10)',ic:'background:#fdf5e8;border-color:#8b5e30;color:#4a2a10'},
+  bunt:      {ico:'🎨',label:'Bunt & Kreativ',
+    hint:'Schreibe lebhaft und begeistert wie ein Food-Blogger: mit persönlicher Freude am Essen, kleinen Ausrufen und Begeisterung. Farbenfroh in der Sprache, Emojis erlaubt.',
+    cover:'linear-gradient(160deg,#c0403a,#7a1a20)',ic:'background:#fff0ee;border-color:#e0503a;color:#5a0a10'},
+  elegant:   {ico:'🥂',label:'Elegant',
+    hint:'Schreibe im Stil eines gehobenen Kochbuchs: verfeinert, präzise, mit kulinarischem Fachvokabular. Elegant und kultiviert, als würde das Gericht in einem Gourmet-Restaurant serviert.',
+    cover:'linear-gradient(160deg,#2a1a08,#1a0e04)',ic:'background:#fdfbf7;border-color:#8a6a30;color:#2a1a08'},
+};
 
 function startKreativbuch(){
   const key = getSavedKey();
@@ -6669,13 +6694,19 @@ function startKreativbuch(){
 
 function _kbShowCostOv(n, est){
   const fmt = c=>'$'+c.toFixed(4).replace('.',',');
+  _kbDesign = 'auto';
   const body = document.getElementById('kbCostOvBody');
+  const chips = Object.entries(_KB_DESIGNS).map(([k,v])=>
+    `<button class="kb-dchip${k==='auto'?' on':''}" data-kbstyle="${k}" onclick="_kbPickDesign(this)"><span>${v.ico}</span>${v.label}</button>`
+  ).join('');
   body.innerHTML =
     `<div style="padding:16px 16px 0">
-       <div style="font-size:.83rem;color:var(--br2);line-height:1.6;margin-bottom:14px">
+       <div style="font-size:.83rem;color:var(--br2);line-height:1.6;margin-bottom:12px">
          Claude schreibt für jedes Rezept eine persönliche Beschreibung, eine Geschmacksnotiz,
          einen Kochtipp und eine Servier-Idee. Das Ergebnis wird als Blätterbuch heruntergeladen.
        </div>
+       <div style="font-size:.72rem;font-weight:700;color:var(--br2);margin-bottom:5px">🎨 Design-Stil</div>
+       <div class="kb-design-grid">${chips}</div>
        <div class="kb-cost-box">
          <div class="kb-cost-row"><span>📖 Rezepte erkannt</span><span class="kb-cost-val">${n}</span></div>
          <div class="kb-cost-row"><span>🤖 Modell</span><span class="kb-cost-val">claude-haiku-4-5</span></div>
@@ -6692,6 +6723,12 @@ function _kbShowCostOv(n, est){
          onclick="closeKbCostOv();_kbRun()">✨ Jetzt generieren</button>
      </div>`;
   document.getElementById('kbCostOv').style.display='flex';
+}
+
+function _kbPickDesign(btn){
+  document.querySelectorAll('.kb-dchip').forEach(b=>b.classList.remove('on'));
+  btn.classList.add('on');
+  _kbDesign = btn.dataset.kbstyle;
 }
 
 function closeKbCostOv(){
@@ -6733,6 +6770,8 @@ async function _kbRun(){
 
     const ingShort=(r.ings||[]).slice(0,18).map(g=>`${g.amt}${g.unit?' '+g.unit:''} ${g.name}`).join(', ');
     const stepShort=(r.steps||[]).slice(0,6).map((s,n)=>`${n+1}. ${s.txt}`).join(' ');
+    const dsn=_KB_DESIGNS[_kbDesign]||_KB_DESIGNS.auto;
+    const styleBlock=dsn.hint?`\n\nSchreib-Stil: ${dsn.hint}`:'';
     const prompt=
 `Du bist ein kreativer Kochbuch-Autor. Schreibe auf Deutsch für dieses Rezept genau folgendes JSON (keine weiteren Texte außenrum):
 {
@@ -6740,7 +6779,7 @@ async function _kbRun(){
   "flavorNote": "1 Satz über Geschmack und Aroma",
   "cookTip": "1 kurzer Kochtipp",
   "servingIdea": "1 kurze Servier-Idee"
-}
+}${styleBlock}
 
 Rezept: ${r.name}
 Kategorie: ${catName(r.cat)}
@@ -6811,6 +6850,7 @@ function _kbDownload(){
   if(!_kbAiData.length){toast('⚠️ Keine Daten');return;}
   const bookName=(LANGS[CL]&&LANGS[CL].appTitle)||'Mein Rezeptbuch';
   const dt=new Date().toLocaleDateString(CL==='zh'?'zh-CN':CL==='ru'?'ru-RU':CL==='en'?'en-GB':'de-DE',{day:'numeric',month:'long',year:'numeric'});
+  const dsnDef=_KB_DESIGNS[_kbDesign]||_KB_DESIGNS.auto;
   const coverImgs=getCoverImgs(4);
   const makeCovCell=r2=>{
     if(!r2)return`<td style="width:50%;height:65px;background:rgba(255,255,255,.1);border-radius:4px"></td>`;
@@ -6822,7 +6862,7 @@ function _kbDownload(){
   const pgs=[];
   const flipHint=CL==='zh'?'点击翻页':CL==='ru'?'Нажмите для перелистывания':CL==='en'?'Tap to flip':'Tippen zum Blättern';
 
-  pgs.push(`<div class="pg"><div class="pi cf">${covGrid}<h1 style="font-size:1.3rem;margin-bottom:6px">✨ ${h(bookName)}</h1><p style="color:#c9a882;font-size:.7rem;margin:6px 0 12px">${_kbAiData.length} ${T('bnRec')} · ${dt}</p><p style="color:rgba(201,168,130,.5);font-size:.6rem;border:1px solid rgba(201,168,130,.25);padding:3px 12px;border-radius:14px">${flipHint} ▶</p></div></div>`);
+  pgs.push(`<div class="pg"><div class="pi cf" style="background:${dsnDef.cover}">${covGrid}<h1 style="font-size:1.3rem;margin-bottom:6px">✨ ${h(bookName)}</h1><p style="color:#c9a882;font-size:.7rem;margin:6px 0 12px">${_kbAiData.length} ${T('bnRec')} · ${dt}</p><p style="color:rgba(201,168,130,.5);font-size:.6rem;border:1px solid rgba(201,168,130,.25);padding:3px 12px;border-radius:14px">${flipHint} ▶</p></div></div>`);
   pgs.push(`<div class="pg"><div class="pi"><div style="font-weight:bold;color:#7a5840;border-bottom:2px solid #ede5d8;padding-bottom:4px;margin-bottom:6px;font-size:.75rem">📋 ${CL==='zh'?'目录':CL==='ru'?'Содержание':CL==='en'?'Contents':'Inhalt'}</div>${_kbAiData.map(({r},i)=>`<div onclick="gp(${i+2})" style="display:flex;justify-content:space-between;align-items:center;padding:3px 0;border-bottom:1px dotted #ede5d8;font-size:.62rem;cursor:pointer"><span>${catIco(r.cat)} ${h(r.name)}</span><span style="color:#9e7050;font-weight:bold">${i+2}</span></div>`).join('')}</div></div>`);
 
   _kbAiData.forEach(({r,intro,flavorNote,cookTip,servingIdea})=>{
@@ -6836,7 +6876,7 @@ function _kbDownload(){
     const labelIngr=`<div style="font-size:.57rem;font-weight:bold;text-transform:uppercase;letter-spacing:.08em;color:#c4a07a;margin:7px 0 3px">${T('sIngr')}</div>`;
     const labelSteps=`<div style="font-size:.57rem;font-weight:bold;text-transform:uppercase;letter-spacing:.08em;color:#c4a07a;margin:9px 0 3px">${T('sSteps')}</div>`;
     const aiCards=[
-      intro     ?`<div style="background:#f3ecfa;border-left:3px solid #9b42c8;border-radius:0 6px 6px 0;padding:6px 9px;margin-bottom:6px;font-size:.68rem;line-height:1.5;color:#3a1a5c;font-style:italic">${h(intro)}</div>`:null,
+      intro     ?`<div style="${dsnDef.ic};border-left:3px solid;border-radius:0 6px 6px 0;padding:6px 9px;margin-bottom:6px;font-size:.68rem;line-height:1.5;font-style:italic">${h(intro)}</div>`:null,
       flavorNote?`<div style="background:#fff8e8;border-left:3px solid var(--gold);border-radius:0 6px 6px 0;padding:5px 8px;margin-bottom:5px;font-size:.65rem;line-height:1.4;color:#7a5800">🍷 ${h(flavorNote)}</div>`:null,
       cookTip   ?`<div style="background:#e8f5f3;border-left:3px solid var(--teal);border-radius:0 6px 6px 0;padding:5px 8px;margin-bottom:5px;font-size:.65rem;line-height:1.4;color:#1e4a45">💡 ${h(cookTip)}</div>`:null,
       servingIdea?`<div style="background:#fdf0ea;border-left:3px solid #d05820;border-radius:0 6px 6px 0;padding:5px 8px;margin-bottom:5px;font-size:.65rem;line-height:1.4;color:#7a2010">🍽️ ${h(servingIdea)}</div>`:null,
@@ -6849,7 +6889,7 @@ function _kbDownload(){
       pgs.push(`<div class="pg"><div class="pi">${catBar}${titleEl}${aiCards}${ingsHtml?labelIngr+ingsHtml:''}${stepsHtml?labelSteps+stepsHtml:''}</div></div>`);
     }
   });
-  pgs.push(`<div class="pg"><div class="pi cf" style="background:linear-gradient(160deg,#5c3d2e,#3a2418)"><div style="font-size:2.5rem;margin-bottom:10px">✨</div><h1 style="font-size:1.3rem">${CL==='zh'?'祝您好胃口！':CL==='ru'?'Приятного аппетита!':CL==='en'?'Bon appétit!':'Guten Appetit!'}</h1><p style="color:#c9a882;font-size:.62rem;margin-top:10px">Claude-Kreativbuch · ${dt}</p></div></div>`);
+  pgs.push(`<div class="pg"><div class="pi cf" style="background:${dsnDef.cover}"><div style="font-size:2.5rem;margin-bottom:10px">✨</div><h1 style="font-size:1.3rem">${CL==='zh'?'祝您好胃口！':CL==='ru'?'Приятного аппетита!':CL==='en'?'Bon appétit!':'Guten Appetit!'}</h1><p style="color:#c9a882;font-size:.62rem;margin-top:10px">Claude-Kreativbuch · ${dt}</p></div></div>`);
 
   const N=pgs.length;
   const html=`<!DOCTYPE html><html lang="${CL}"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1"><title>✨ ${h(bookName)} – Kreativbuch</title><style>*{box-sizing:border-box;margin:0;padding:0}html,body{width:100%;height:100%;overflow:hidden;font-family:Georgia,serif;background:#2a1a0a}#wrap{display:flex;flex-direction:column;align-items:center;justify-content:center;width:100%;height:100%}#book{position:relative;width:100%;max-width:700px;height:calc(100dvh - 60px);margin:0 auto}.pg{position:absolute;inset:0;background:#fdfaf5;display:none;overflow:hidden;border-radius:6px;box-shadow:0 4px 32px rgba(0,0,0,.6);transform-origin:left center}.pg.show{display:block;z-index:5}.pg.prev{display:block;z-index:4}.pg.flip{display:block;z-index:10;animation:fp .4s ease forwards}.pg.flipb{display:block;z-index:10;animation:fpb .4s ease forwards}@keyframes fp{0%{transform:perspective(1400px) rotateY(0)}50%{transform:perspective(1400px) rotateY(-80deg)}100%{transform:perspective(1400px) rotateY(-180deg);opacity:0}}@keyframes fpb{0%{transform:perspective(1400px) rotateY(-180deg);opacity:0}50%{transform:perspective(1400px) rotateY(-80deg)}100%{transform:perspective(1400px) rotateY(0)}}.pi{padding:16px 20px;height:100%;overflow-y:auto;scrollbar-width:thin;font-size:.82rem}.cf{display:flex;flex-direction:column;align-items:center;justify-content:center;height:100%;text-align:center;background:linear-gradient(160deg,#7a5840,#5c3d2e);color:#f0e6d8}h1{font-size:1.5rem;line-height:1.25;margin-bottom:8px}#ctrl{display:flex;align-items:center;gap:16px;height:52px;flex-shrink:0}.cb{background:rgba(255,255,255,.1);border:1px solid rgba(255,255,255,.2);color:#fff;padding:10px 22px;border-radius:24px;font-size:.85rem;cursor:pointer;font-family:Georgia,serif}.cb:active{background:rgba(255,255,255,.22)}#pi{color:rgba(255,255,255,.5);font-size:.75rem;min-width:56px;text-align:center}</style></head><body><div id="wrap"><div id="book">${pgs.join('')}</div><div id="ctrl"><button class="cb" onclick="pp()">◀</button><div id="pi">1/${N}</div><button class="cb" onclick="np()">▶</button></div></div><script>let c=0,all=document.querySelectorAll('.pg');function sh(i){all.forEach(p=>p.className='pg');all[i].classList.add('show');if(i>0)all[i-1].classList.add('prev');c=i;document.getElementById('pi').textContent=(c+1)+'/'+all.length;}function np(){if(c<all.length-1){all[c].classList.add('flip');setTimeout(()=>{all[c].classList.remove('flip');sh(c+1);},420);}}function pp(){if(c>0){all[c-1].classList.add('flipb');setTimeout(()=>{all[c-1].classList.remove('flipb');sh(c-1);},420);}}document.getElementById('book').addEventListener('click',function(e){const x=e.clientX-e.currentTarget.getBoundingClientRect().left;x>e.currentTarget.offsetWidth/2?np():pp();});sh(0);<\/script></body></html>`;
