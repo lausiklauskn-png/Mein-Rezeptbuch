@@ -2814,6 +2814,9 @@ const LANGS={
     ,sImgGenLbl:'DALL-E Bildschlüssel'
     ,sImgGenSub:'OpenAI-Key für KI-Bilder'
     ,zineBtnTitle:'KI-Zine erstellen'
+    ,freeFotoBtnTitle:'Gratis KI-Foto erzeugen'
+    ,freeFotoLoading:'KI-Foto wird generiert…'
+    ,freeFotoDone:'Foto erfolgreich erstellt!'
     ,apiKeyOvTitle:'🔑 Was ist ein API-Key?'
     ,apiKeyHelpTtl:'Fragen und Hilfe zum API-Key'
     ,sManualHead:'📚 HANDBUCH'
@@ -2942,6 +2945,9 @@ const LANGS={
     ,sImgGenLbl:'DALL-E Image Key'
     ,sImgGenSub:'OpenAI key for AI images'
     ,zineBtnTitle:'Create AI Zine'
+    ,freeFotoBtnTitle:'Free AI photo'
+    ,freeFotoLoading:'Generating AI photo…'
+    ,freeFotoDone:'Photo created!'
     ,apiKeyOvTitle:'🔑 What is an API Key?'
     ,apiKeyHelpTtl:'Questions & help about the API Key'
     ,sManualHead:'📚 MANUAL'
@@ -3070,6 +3076,9 @@ const LANGS={
     ,sImgGenLbl:'DALL-E ключ'
     ,sImgGenSub:'OpenAI-ключ для изображений'
     ,zineBtnTitle:'Создать ИИ-Zine'
+    ,freeFotoBtnTitle:'Бесплатное ИИ-фото'
+    ,freeFotoLoading:'Генерация фото…'
+    ,freeFotoDone:'Фото создано!'
     ,apiKeyOvTitle:'🔑 Что такое API-ключ?'
     ,apiKeyHelpTtl:'Вопросы и помощь по API-ключу'
     ,sManualHead:'📚 РУКОВОДСТВО'
@@ -3198,6 +3207,9 @@ const LANGS={
     ,sImgGenLbl:'DALL-E 图片密钥'
     ,sImgGenSub:'用于AI图片的OpenAI密钥'
     ,zineBtnTitle:'创建AI Zine'
+    ,freeFotoBtnTitle:'免费AI照片'
+    ,freeFotoLoading:'正在生成AI照片…'
+    ,freeFotoDone:'照片已创建！'
     ,apiKeyOvTitle:'🔑 什么是API密钥？'
     ,apiKeyHelpTtl:'关于API密钥的问题与帮助'
     ,sManualHead:'📚 手册'
@@ -3324,6 +3336,9 @@ const LANGS={
     ,sImgGenLbl:'Clave DALL-E'
     ,sImgGenSub:'Clave OpenAI para imágenes IA'
     ,zineBtnTitle:'Crear Zine IA'
+    ,freeFotoBtnTitle:'Foto IA gratis'
+    ,freeFotoLoading:'Generando foto IA…'
+    ,freeFotoDone:'¡Foto creada!'
     ,apiKeyOvTitle:'🔑 ¿Qué es un API Key?'
     ,apiKeyHelpTtl:'Preguntas y ayuda sobre el API Key'
     ,sManualHead:'📚 MANUAL'
@@ -3561,6 +3576,9 @@ const LANGS={
     ,sImgGenLbl:'Clé DALL-E'
     ,sImgGenSub:'Clé OpenAI pour images IA'
     ,zineBtnTitle:'Créer Zine IA'
+    ,freeFotoBtnTitle:'Photo IA gratuite'
+    ,freeFotoLoading:'Génération photo IA…'
+    ,freeFotoDone:'Photo créée !'
     ,apiKeyOvTitle:'🔑 Qu\'est-ce qu\'une clé API ?'
     ,apiKeyHelpTtl:'Questions et aide sur la clé API'
     ,sManualHead:'📚 MANUEL'
@@ -3798,6 +3816,9 @@ const LANGS={
     ,sImgGenLbl:'Chiave DALL-E'
     ,sImgGenSub:'Chiave OpenAI per immagini IA'
     ,zineBtnTitle:'Crea Zine IA'
+    ,freeFotoBtnTitle:'Foto IA gratuita'
+    ,freeFotoLoading:'Generazione foto IA…'
+    ,freeFotoDone:'Foto creata!'
     ,apiKeyOvTitle:'🔑 Cos\'è una chiave API?'
     ,apiKeyHelpTtl:'Domande e aiuto sulla chiave API'
     ,sManualHead:'📚 MANUALE'
@@ -4030,6 +4051,9 @@ const LANGS={
     ,sImgGenLbl:'Chave DALL-E'
     ,sImgGenSub:'Chave OpenAI para imagens IA'
     ,zineBtnTitle:'Criar Zine IA'
+    ,freeFotoBtnTitle:'Foto IA gratuita'
+    ,freeFotoLoading:'A gerar foto IA…'
+    ,freeFotoDone:'Foto criada!'
     ,apiKeyOvTitle:'🔑 O que é uma chave API?'
     ,apiKeyHelpTtl:'Perguntas e ajuda sobre a chave API'
     ,sManualHead:'📚 MANUAL'
@@ -7400,7 +7424,7 @@ function rndCard(r){
         <div class="chint">${r.shut?'▼ aufklappen':'▲ einklappen'}</div>
       </div>`}
     </div>
-    ${r.name?(()=>{const d=r.shut?'none':'flex';const crop=r.img?`<button class="imgbar" style="flex:1;border-left:1px solid var(--sand2)" onclick="openCrop(${r.id})">✂️ ${T('cropBtn')}</button>`:'';const zine=getOpenAiImgKey()?`<button class="imgbar" onclick="openZineDialog(${r.id})" title="${T('zineBtnTitle')}" style="padding:7px 11px;border-left:1px solid var(--sand2)">🎨</button>`:'';return`<div style="display:${d};border-bottom:1px solid var(--sand2)"><button class="imgbar" style="flex:1" onclick="pickImgForCard(${r.id})">🖼️ ${T('addImg')}</button>${crop}${zine}</div>`;})():''}
+    ${r.name?(()=>{const d=r.shut?'none':'flex';const crop=r.img?`<button class="imgbar" style="flex:1;border-left:1px solid var(--sand2)" onclick="openCrop(${r.id})">✂️ ${T('cropBtn')}</button>`:'';const free=`<button class="imgbar" onclick="generateFreePhoto(${r.id})" title="${T('freeFotoBtnTitle')}" style="padding:7px 11px;border-left:1px solid var(--sand2)">📸</button>`;const zine=getOpenAiImgKey()?`<button class="imgbar" onclick="openZineDialog(${r.id})" title="${T('zineBtnTitle')}" style="padding:7px 11px;border-left:1px solid var(--sand2)">🎨</button>`:'';return`<div style="display:${d};border-bottom:1px solid var(--sand2)"><button class="imgbar" style="flex:1" onclick="pickImgForCard(${r.id})">🖼️ ${T('addImg')}</button>${crop}${free}${zine}</div>`;})():''}
     ${r.name&&!isBlank?'':''}
     <div class="rbody ${r.shut?'shut':''}">
       ${isBlank?`<div style="padding:7px 11px;background:var(--teals);font-size:.72rem;color:#1e4a45;display:flex;gap:5px;border-bottom:1px solid var(--sand2)"><span>✏️</span>${T('blankHint')}</div>`:''}
@@ -10934,6 +10958,39 @@ function helpAction(type){
       }
     }
   }, 150);
+}
+
+// ═══════════════════════════════════════════════════════
+// GRATIS KI-FOTO (Pollinations.ai – kein Key nötig)
+// ═══════════════════════════════════════════════════════
+const _POLL_BASE='https://image.pollinations.ai/prompt/';
+
+async function generateFreePhoto(rid){
+  const r=R.find(x=>x.id===rid);
+  if(!r||!r.name)return;
+  const btn=document.querySelector(`[onclick="generateFreePhoto(${rid})"]`);
+  if(btn){btn.disabled=true;btn.textContent='⏳';}
+  toast('⏳ '+T('freeFotoLoading'));
+  try{
+    const prompt=encodeURIComponent(
+      r.name+', food photography, professional, appetizing, natural lighting, close-up, restaurant quality'
+    );
+    const url=_POLL_BASE+prompt+'?width=512&height=768&model=flux&nologo=true&seed='+Date.now();
+    const resp=await fetch(url);
+    if(!resp.ok)throw new Error('HTTP '+resp.status);
+    const blob=await resp.blob();
+    const dataUrl=await new Promise(res=>{const fr=new FileReader();fr.onload=()=>res(fr.result);fr.readAsDataURL(blob);});
+    r.img=dataUrl;
+    r.imgCrop={x:50,y:50,scale:1};
+    save();
+    render();
+    toast('✅ '+T('freeFotoDone'));
+    setTimeout(()=>openCrop(rid),300);
+  }catch(e){
+    toast('❌ '+e.message);
+  }finally{
+    if(btn){btn.disabled=false;btn.textContent='📸';}
+  }
 }
 
 // ═══════════════════════════════════════════════════════
