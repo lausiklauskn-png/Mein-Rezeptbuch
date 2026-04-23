@@ -5436,10 +5436,138 @@ function closeAiCost(){
 }
 
 function aiCostDoGenerate(){
-  if(window._aiBookCostUsd)_aiCostAddMonth(window._aiBookCostUsd);
   closeAiCost();
   closeAiBook();
-  // Schritt 4: eigentliche Generierung folgt
+  _aiBookRun();
+}
+
+async function _aiBookRun(){
+  const p=window._aiBookParams;
+  if(!p||!p.ids.length)return;
+  const key=getSavedOpenAiKey();
+  if(!key){
+    toast('⚠️ OpenAI API-Key fehlt – bitte im Einstellungen-Tab unter KI-Bild hinterlegen.');
+    return;
+  }
+  const qual=p.qual;
+  const imgCnt=_AICOST_IMGS_QUAL[qual]||0;
+  const imgHd=(qual==='premium');
+  const imgPrice=imgHd?_AICOST_IMG_HD:_AICOST_IMG_STD;
+  const recs=R.filter(r=>p.ids.includes(r.id));
+  if(!recs.length)return;
+
+  _kbAbort=false;
+  const list=document.getElementById('kbProgList');
+  list.innerHTML='';
+  recs.forEach((r,i)=>{
+    const d=document.createElement('div');
+    d.className='kb-prog-item';d.id='kbri'+i;
+    d.innerHTML=`<div class="kb-prog-name" id="kbrn${i}">○ ${h(r.name)}</div><div class="kb-prog-sub" id="kbrs${i}"></div>`;
+    list.appendChild(d);
+  });
+  document.getElementById('kbProgTitle').textContent='✨ KI generiert dein Kreativbuch …';
+  document.getElementById('kbProgOv').style.display='flex';
+  _kbSetBar(0,recs.length,0);
+
+  let totalCost=0;
+  const aiResults=[];
+
+  for(let i=0;i<recs.length;i++){
+    if(_kbAbort)break;
+    const r=recs[i];
+    const nameEl=document.getElementById('kbrn'+i);
+    const subEl=document.getElementById('kbrs'+i);
+    nameEl.textContent='⏳ '+r.name;
+    subEl.innerHTML='<span>⏳ Text wird generiert …</span>';
+    _kbSetBar(i,recs.length,totalCost);
+
+    let txt='';
+    try{
+      const ings=(r.ings||[]).slice(0,10).map(g=>`${g.amt||g.amount||''} ${g.unit||''} ${g.name||''}`.trim()).filter(Boolean).join(', ');
+      const resp=await fetch('https://api.openai.com/v1/chat/completions',{
+        method:'POST',
+        headers:{'Content-Type':'application/json','Authorization':'Bearer '+key},
+        body:JSON.stringify({model:'gpt-4o',messages:[{role:'user',content:`Schreibe eine warmherzige Einleitung (ca. 100-120 Wörter) für das Rezept "${r.name}"${ings?'. Hauptzutaten: '+ings:''}. Auf Deutsch, persönlich, wie in einem Familienkochbuch. Nur den Text, keine Überschrift.`}],max_tokens:220,temperature:0.8})
+      });
+      if(!resp.ok){const e=await resp.json().catch(()=>({}));throw new Error(e.error?.message||'HTTP '+resp.status);}
+      txt=(await resp.json()).choices[0].message.content.trim();
+      totalCost+=_AICOST_TEXT_PER_REC;
+      subEl.innerHTML='<span>✅ Text generiert</span>';
+    }catch(err){
+      if(_kbAbort)break;
+      subEl.innerHTML='<span>⚠️ Text übersprungen</span>';
+    }
+    _kbSetBar(i,recs.length,totalCost);
+
+    const imgUrls=[];
+    if(imgCnt>0&&!_kbAbort){
+      const imgStatus=Array(imgCnt).fill('⏳');
+      const renderImgs=()=>{
+        const t=txt?'<span>✅ Text generiert</span> · ':'';
+        subEl.innerHTML=t+imgStatus.map((s,j)=>`<span style="margin-right:5px">${s} Bild ${j+1}/${imgCnt}</span>`).join('');
+      };
+      renderImgs();
+      for(let j=0;j<imgCnt;j++){
+        if(_kbAbort)break;
+        try{
+          const resp=await fetch('https://api.openai.com/v1/images/generations',{
+            method:'POST',
+            headers:{'Content-Type':'application/json','Authorization':'Bearer '+key},
+            body:JSON.stringify({model:'dall-e-3',prompt:`Professional food photography of "${r.name}". Appetizing, beautifully presented, well-lit, cookbook style.`,n:1,size:imgHd?'1792x1024':'1024x1024',quality:imgHd?'hd':'standard',response_format:'url'})
+          });
+          if(!resp.ok){const e=await resp.json().catch(()=>({}));throw new Error(e.error?.message||'HTTP '+resp.status);}
+          imgUrls.push((await resp.json()).data[0].url);
+          imgStatus[j]='✅';
+          totalCost+=imgPrice;
+        }catch(err){
+          if(!_kbAbort)imgStatus[j]='❌';
+        }
+        renderImgs();
+        _kbSetBar(i,recs.length,totalCost);
+      }
+    }
+    aiResults.push({r,txt,imgUrls});
+    nameEl.textContent='✅ '+r.name;
+    _kbSetBar(i+1,recs.length,totalCost);
+  }
+  if(_kbAbort)return;
+
+  _aiCostAddMonth(totalCost);
+
+  const date=new Date().toLocaleDateString('de-DE',{day:'2-digit',month:'2-digit',year:'numeric'});
+  const dt=new Date().toISOString().slice(0,10);
+  const pages=aiResults.map(({r,txt,imgUrls})=>{
+    const ings=(r.ings||[]).map(g=>`<li>${h((g.amt||g.amount||'')+(g.unit?' '+g.unit:'')+(g.name?' '+g.name:''))}</li>`).join('');
+    const steps=(r.steps||[]).map(s=>`<li>${h(s.txt||s.text||String(s))}</li>`).join('');
+    const imgs=imgUrls.map(u=>`<img src="${h(u)}" class="kb-img" alt="${h(r.name)}">`).join('');
+    return`<section class="kb-page"><h2 class="kb-title">${h(r.name)}</h2>${txt?`<p class="kb-intro">${h(txt)}</p>`:''}${imgs?`<div class="kb-imgs">${imgs}</div>`:''}${ings?`<div class="kb-s"><h3>Zutaten</h3><ul>${ings}</ul></div>`:''}${steps?`<div class="kb-s"><h3>Zubereitung</h3><ol>${steps}</ol></div>`:''}</section>`;
+  }).join('\n');
+  const imgAspect=imgHd?'16/9':'1';
+  const bookHtml=`<!DOCTYPE html>
+<html lang="de"><head><meta charset="UTF-8"><title>✨ KI-Kreativbuch</title>
+<style>*{box-sizing:border-box}body{margin:0;font-family:Georgia,serif;background:#faf6f0;color:#2a1808}
+.kb-cover{min-height:50vh;background:linear-gradient(135deg,#5500bb,#8833dd,#bb55ff);color:#fff;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:40px 24px}
+.kb-cover h1{font-size:clamp(2rem,5vw,3.5rem);margin:0 0 12px;font-style:italic}.kb-cover p{opacity:.85;margin:4px 0}
+.kb-page{max-width:800px;margin:0 auto;padding:40px 24px 60px;border-bottom:2px solid #ede0cc}
+.kb-title{font-size:clamp(1.6rem,3vw,2.2rem);color:#4a1a00;font-style:italic;margin:0 0 16px}
+.kb-intro{font-size:1rem;line-height:1.8;color:#3a2010;background:#fff8f0;border-left:4px solid #8833dd;padding:14px 18px;border-radius:4px;margin:0 0 20px}
+.kb-imgs{display:flex;flex-wrap:wrap;gap:10px;margin:16px 0}.kb-img{width:calc(33.33% - 8px);min-width:180px;border-radius:12px;box-shadow:0 4px 16px rgba(0,0,0,.15);object-fit:cover;aspect-ratio:${imgAspect}}
+.kb-s h3{color:#6b35a8;margin:20px 0 6px}.kb-s ul,.kb-s ol{padding-left:20px;line-height:1.9}
+@media print{.kb-page{page-break-after:always}}@media(max-width:600px){.kb-img{width:calc(50% - 6px)}}</style></head>
+<body><div class="kb-cover"><h1>✨ KI-Kreativbuch</h1><p>Mein persönliches Rezeptbuch</p><p style="opacity:.6;font-size:.85rem">Erstellt am ${date} · KI-illustriert · ${aiResults.length} Rezepte</p></div>
+${pages}</body></html>`;
+  dlBlob(new Blob([bookHtml],{type:'text/html;charset=utf-8'}),`kreativbuch-${dt}.html`);
+
+  document.getElementById('kbProgTitle').textContent='✅ Kreativbuch fertig!';
+  const barWrap=document.querySelector('.kb-bar-wrap');
+  const costStr='$'+totalCost.toFixed(2).replace('.',',');
+  const imgTotal=aiResults.reduce((s,x)=>s+x.imgUrls.length,0);
+  barWrap.innerHTML=`<div class="kb-result-card">
+    <div class="kb-result-ok">✅ Kreativbuch erstellt &amp; heruntergeladen!</div>
+    <div class="kb-result-stats">${aiResults.length} Rezepte · ${imgTotal} KI-Bilder</div>
+    <div class="kb-result-cost">Tatsächliche Kosten: ${costStr}</div>
+    <button class="exp-btn brn" style="width:100%;margin-top:8px" onclick="document.getElementById('kbProgOv').style.display='none'">✓ Schließen</button>
+  </div>`;
 }
 
 function switchFovTab(ovId,tab,el){
