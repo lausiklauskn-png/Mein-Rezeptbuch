@@ -2768,7 +2768,7 @@ Vielen Dank für deine Unterstützung.</div>
   <div class="fov-body">
     <div class="aico-summary" id="aiCostSummary"></div>
     <div class="aico-row">
-      <span class="aico-lbl" id="aiCostTextLbl">Textgenerierung (GPT-4o)</span>
+      <span class="aico-lbl" id="aiCostTextLbl">Textgenerierung (gpt-4o-mini)</span>
       <span class="aico-sub" id="aiCostTextSub"></span>
       <span class="aico-amt" id="aiCostTextAmt"></span>
     </div>
@@ -3054,7 +3054,7 @@ const LANGS={
     aiBookQualLbl:'Qualität wählen:',aiBookQFastName:'⚡ Schnell',aiBookQFastSub:'(nur Text, 0 Bilder)',
     aiBookQStdName:'✨ Standard',aiBookQStdSub:'(3 Bilder/Rezept)',
     aiBookQPremName:'🏆 Premium',aiBookQPremSub:'(HD-Bilder, Hochformat)',aiBookWeiter:'Weiter → Kostenübersicht',
-    aiCostTitle:'Kostenübersicht',aiCostTextLbl:'Textgenerierung (GPT-4o)',aiCostImgLbl:'Bildgenerierung (DALL-E 3)',
+    aiCostTitle:'Kostenübersicht',aiCostTextLbl:'Textgenerierung (gpt-4o-mini)',aiCostImgLbl:'Bildgenerierung (DALL-E 3)',
     aiCostTotalLbl:'Gesamt (geschätzt)',aiCostNote:'💡 Von deinem OpenAI-Guthaben abgezogen.\nBudget setzen → platform.openai.com',
     aiCostGenBtn:'✨ Jetzt generieren',aiCostCancelBtn:'Abbrechen',aiCostMonthPre:'Diesen Monat bisher:',
     aiCostRez:'Rezepte',aiCostImgPer:'Bilder/Rezept',aiCostToken:'Token',aiCostBilderX:'Bilder ×',
@@ -3195,7 +3195,7 @@ const LANGS={
     aiBookQualLbl:'Choose quality:',aiBookQFastName:'⚡ Quick',aiBookQFastSub:'(text only, 0 images)',
     aiBookQStdName:'✨ Standard',aiBookQStdSub:'(3 images/recipe)',
     aiBookQPremName:'🏆 Premium',aiBookQPremSub:'(HD images, portrait format)',aiBookWeiter:'Next → Cost overview',
-    aiCostTitle:'Cost overview',aiCostTextLbl:'Text generation (GPT-4o)',aiCostImgLbl:'Image generation (DALL-E 3)',
+    aiCostTitle:'Cost overview',aiCostTextLbl:'Text generation (gpt-4o-mini)',aiCostImgLbl:'Image generation (DALL-E 3)',
     aiCostTotalLbl:'Total (estimated)',aiCostNote:'💡 Deducted from your OpenAI balance.\nSet budget → platform.openai.com',
     aiCostGenBtn:'✨ Generate now',aiCostCancelBtn:'Cancel',aiCostMonthPre:'This month so far:',
     aiCostRez:'recipes',aiCostImgPer:'images/recipe',aiCostToken:'tokens',aiCostBilderX:'images ×',
@@ -5373,7 +5373,7 @@ function aiBookWeiter(){
 }
 
 // ── KOSTENÜBERSICHT (Schritt 3) ──────────────────────────────
-var _AICOST_TEXT_PER_REC=0.0133;   // GPT-4o ~1800 tokens/Rezept in USD
+var _AICOST_TEXT_PER_REC=0.0002;   // gpt-4o-mini ~400 tokens/Rezept in USD
 var _AICOST_IMG_STD=0.040;         // DALL-E 3 Standard (1024×1024) in USD
 var _AICOST_IMG_HD =0.080;         // DALL-E 3 HD (1792×1024) in USD
 var _AICOST_IMGS_QUAL={fast:0,standard:3,premium:5};
@@ -5415,7 +5415,7 @@ function openAiCost(){
     n+' '+T('aiCostRez')+' · '+qualName+' · '+imgs+' '+T('aiCostImgPer');
 
   document.getElementById('aiCostTextSub').textContent=
-    n+' × ~1.800 '+T('aiCostToken');
+    n+' × ~400 '+T('aiCostToken');
   document.getElementById('aiCostTextAmt').textContent=_aiCostFmt(textUsd);
 
   const imgRow=document.getElementById('aiCostImgRow');
@@ -5494,12 +5494,13 @@ async function _aiBookRun(){
     _kbSetBar(i,recs.length,totalCost);
 
     let txt='';
+    let txtErr='';
     try{
       const ings=(r.ings||[]).slice(0,10).map(g=>`${g.amt||g.amount||''} ${g.unit||''} ${g.name||''}`.trim()).filter(Boolean).join(', ');
       const resp=await fetch('https://api.openai.com/v1/chat/completions',{
         method:'POST',
         headers:{'Content-Type':'application/json','Authorization':'Bearer '+key},
-        body:JSON.stringify({model:'gpt-4o',messages:[{role:'user',content:`Schreibe eine warmherzige Einleitung (ca. 100-120 Wörter) für das Rezept "${r.name}"${ings?'. Hauptzutaten: '+ings:''}. Auf Deutsch, persönlich, wie in einem Familienkochbuch. Nur den Text, keine Überschrift.`}],max_tokens:220,temperature:0.8})
+        body:JSON.stringify({model:'gpt-4o-mini',messages:[{role:'user',content:`Schreibe eine warmherzige Einleitung (ca. 100-120 Wörter) für das Rezept "${r.name}"${ings?'. Hauptzutaten: '+ings:''}. Auf Deutsch, persönlich, wie in einem Familienkochbuch. Nur den Text, keine Überschrift.`}],max_tokens:220,temperature:0.8})
       });
       if(!resp.ok){const e=await resp.json().catch(()=>({}));throw new Error(e.error?.message||'HTTP '+resp.status);}
       txt=(await resp.json()).choices[0].message.content.trim();
@@ -5507,16 +5508,18 @@ async function _aiBookRun(){
       subEl.innerHTML='<span>✅ Text generiert</span>';
     }catch(err){
       if(_kbAbort)break;
-      subEl.innerHTML='<span>⚠️ Text übersprungen</span>';
+      txtErr=err.message||'Fehler';
+      subEl.innerHTML=`<span style="color:#c0392b">⚠️ Text: ${h(txtErr)}</span>`;
     }
     _kbSetBar(i,recs.length,totalCost);
 
     const imgUrls=[];
+    const imgErrs=[];
     if(imgCnt>0&&!_kbAbort){
       const imgStatus=Array(imgCnt).fill('⏳');
       const renderImgs=()=>{
-        const t=txt?'<span>✅ Text generiert</span> · ':'';
-        subEl.innerHTML=t+imgStatus.map((s,j)=>`<span style="margin-right:5px">${s} Bild ${j+1}/${imgCnt}</span>`).join('');
+        const t=txt?'<span>✅ Text</span> · ':(txtErr?'<span style="color:#c0392b">⚠️ Text</span> · ':'');
+        subEl.innerHTML=t+imgStatus.map((s,j)=>`<span style="margin-right:5px" title="${h(imgErrs[j]||'')}">${s} Bild ${j+1}/${imgCnt}</span>`).join('');
       };
       renderImgs();
       for(let j=0;j<imgCnt;j++){
@@ -5525,14 +5528,18 @@ async function _aiBookRun(){
           const resp=await fetch('https://api.openai.com/v1/images/generations',{
             method:'POST',
             headers:{'Content-Type':'application/json','Authorization':'Bearer '+key},
-            body:JSON.stringify({model:'dall-e-3',prompt:`Professional food photography of "${r.name}". Appetizing, beautifully presented, well-lit, cookbook style.`,n:1,size:imgHd?'1792x1024':'1024x1024',quality:imgHd?'hd':'standard',response_format:'url'})
+            body:JSON.stringify({model:'dall-e-3',prompt:`Professional food photography of "${r.name}". Appetizing, beautifully presented, well-lit, cookbook style.`,n:1,size:imgHd?'1792x1024':'1024x1024',quality:imgHd?'hd':'standard',response_format:'b64_json'})
           });
           if(!resp.ok){const e=await resp.json().catch(()=>({}));throw new Error(e.error?.message||'HTTP '+resp.status);}
-          imgUrls.push((await resp.json()).data[0].url);
+          const b64=(await resp.json()).data[0].b64_json;
+          if(!b64)throw new Error('Kein Bild erhalten');
+          imgUrls.push('data:image/png;base64,'+b64);
           imgStatus[j]='✅';
           totalCost+=imgPrice;
         }catch(err){
-          if(!_kbAbort)imgStatus[j]='❌';
+          if(_kbAbort)break;
+          imgStatus[j]='❌';
+          imgErrs[j]=err.message||'Fehler';
         }
         renderImgs();
         _kbSetBar(i,recs.length,totalCost);
