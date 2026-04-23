@@ -428,7 +428,7 @@ body.nav-collapsed{padding-bottom:calc(16px + var(--sb))}
 .mv-tabs{background:var(--br);border-top:1px solid rgba(255,255,255,.08);display:flex;flex-shrink:0}
 .mvtab{flex:1;padding:9px 4px;text-align:center;font-size:.72rem;font-weight:700;color:rgba(255,255,255,.80);cursor:pointer;border-bottom:2.5px solid transparent}
 .mvtab.on{color:#fff;border-bottom-color:var(--gold)}
-.mv-body{flex:1;overflow-y:auto;-webkit-overflow-scrolling:touch;padding:11px}
+.mv-body{flex:1;overflow-y:auto;-webkit-overflow-scrolling:touch;padding:11px;touch-action:pan-y;user-select:none}
 .mv-pane{display:none}.mv-pane.on{display:block}
 .mv-cbadge{display:inline-flex;align-items:center;gap:3px;background:var(--br);border-radius:12px;padding:2px 8px;font-size:.55rem;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--br3);margin-bottom:4px}
 .mv-rcard{background:var(--parch);border-radius:8px;border:1px solid var(--sand2);overflow:hidden;box-shadow:0 1px 4px var(--sh);margin-bottom:13px}
@@ -497,7 +497,7 @@ body.nav-collapsed{padding-bottom:calc(16px + var(--sb))}
 .fov-tabs{background:var(--br);border-top:1px solid rgba(255,255,255,.08);display:flex;flex-shrink:0}
 .fovtab{flex:1;padding:9px 4px;text-align:center;font-size:.72rem;font-weight:700;color:rgba(255,255,255,.80);cursor:pointer;border-bottom:2.5px solid transparent}
 .fovtab.on{color:#fff;border-bottom-color:var(--gold)}
-.fov-body{flex:1;overflow-y:auto;-webkit-overflow-scrolling:touch;padding:11px}
+.fov-body{flex:1;overflow-y:auto;-webkit-overflow-scrolling:touch;padding:11px;touch-action:pan-y;user-select:none}
 .fov-pane{display:none}.fov-pane.on{display:block}
 .dropzone{border:2.5px dashed var(--sand2);border-radius:10px;padding:22px 13px;text-align:center;cursor:pointer;background:var(--parch);margin-bottom:10px}
 .dropzone:active{border-color:var(--teal);background:var(--teals)}
@@ -573,6 +573,45 @@ body.nav-collapsed{padding-bottom:calc(16px + var(--sb))}
 .exp-btn.brn{background:var(--sand2);color:var(--ink);border:1.5px solid var(--sand2)}.exp-btn.brn:active{background:var(--br);color:#fff}
 .exp-btn.tl{background:var(--teals);color:var(--teal);border:1.5px solid var(--teal)}.exp-btn.tl:active{background:var(--teal);color:#fff}
 .exp-prog{font-size:.69rem;color:var(--br3);margin-top:5px;display:none}.exp-prog.on{display:block}
+.exp-btn.pur{background:#f0e8ff;color:#6600cc;border:1.5px solid #8833dd}.exp-btn.pur:active{background:#8833dd;color:#fff}
+#aiBookOv .fov-hdr{background:linear-gradient(90deg,#5500bb,#8833dd,#bb55ff)}
+#aiBookOv .fov-body{padding:0;overflow:hidden;display:flex;flex-direction:column}
+#aiBookTopBar{display:flex;align-items:center;justify-content:space-between;padding:8px 11px;background:var(--parch);border-bottom:1px solid var(--sand2);flex-shrink:0}
+#aiBookSelAllBtn{font-size:.75rem;padding:5px 11px;border-radius:20px;border:1.5px solid var(--br3);background:var(--sand);color:var(--ink);cursor:pointer;font-weight:600}
+#aiBookCnt{font-size:.72rem;color:var(--br3)}
+#aiBookList{flex:1;overflow-y:auto;-webkit-overflow-scrolling:touch}
+.aibr{display:flex;align-items:center;gap:10px;padding:11px 13px;border-bottom:1px solid var(--sand2);cursor:pointer;-webkit-tap-highlight-color:transparent}
+.aibr:active{background:var(--sand2)}
+.aibr-cb{width:20px;height:20px;border-radius:5px;border:2px solid var(--br3);display:flex;align-items:center;justify-content:center;flex-shrink:0;font-size:.75rem;color:transparent;transition:background .1s,border-color .1s}
+.aibr-cb.on{background:#8833dd;border-color:#8833dd;color:#fff}
+.aibr-name{font-size:.82rem;flex:1;color:var(--ink);line-height:1.3}
+#aiBookQualSect{padding:10px 13px;border-top:1px solid var(--sand2);background:var(--parch);flex-shrink:0}
+#aiBookQualLblEl{font-size:.7rem;font-weight:700;color:var(--br3);margin-bottom:6px;text-transform:uppercase;letter-spacing:.04em}
+.aibq-row{display:flex;align-items:center;gap:9px;padding:8px 0;border-bottom:1px solid var(--sand2);cursor:pointer}
+.aibq-row:last-child{border-bottom:none}
+.aibq-row input[type=radio]{accent-color:#8833dd;width:17px;height:17px;cursor:pointer;flex-shrink:0}
+.aibq-name{font-size:.83rem;font-weight:600;color:var(--ink)}
+.aibq-sub{font-size:.68rem;color:var(--br3);margin-left:2px}
+#aiBookFoot{padding:10px 13px;padding-bottom:calc(10px + var(--sb));border-top:1px solid var(--sand2);background:var(--parch);flex-shrink:0}
+#aiBookWeiterBtn{width:100%;padding:13px;border:none;border-radius:9px;background:linear-gradient(135deg,#5500bb,#8833dd);color:#fff;font-size:.86rem;font-weight:700;cursor:pointer;letter-spacing:.01em}
+#aiBookWeiterBtn:disabled{opacity:.45;cursor:default}
+/* aiCostOv */
+#aiCostOv .fov-hdr{background:linear-gradient(90deg,#5500bb,#8833dd,#bb55ff)}
+#aiCostOv .fov-body{padding:16px 14px 0;overflow-y:auto}
+.aico-summary{font-size:.77rem;color:var(--br3);margin-bottom:15px}
+.aico-row{display:grid;grid-template-columns:1fr auto;gap:2px 10px;margin-bottom:13px}
+.aico-lbl{font-size:.84rem;font-weight:600;color:var(--ink);grid-column:1}
+.aico-sub{font-size:.73rem;color:var(--br3);grid-column:1}
+.aico-amt{font-size:.86rem;font-weight:700;color:var(--ink);grid-column:2;grid-row:1/3;display:flex;align-items:center;white-space:nowrap}
+.aico-divider{border:none;border-top:1.5px solid var(--sand2);margin:4px 0 12px}
+.aico-total{display:flex;justify-content:space-between;align-items:center;margin-bottom:16px}
+.aico-total-lbl{font-size:.88rem;font-weight:700;color:var(--ink)}
+.aico-total-amt{font-size:1.12rem;font-weight:800;color:var(--ink)}
+.aico-note{font-size:.71rem;color:var(--br3);background:var(--sand);border-radius:8px;padding:10px 12px;margin-bottom:12px;line-height:1.6}
+.aico-month{font-size:.73rem;color:var(--br3);text-align:center;margin-bottom:14px}
+.aico-foot{display:flex;gap:9px;padding:12px 0 calc(14px + var(--sb))}
+.aico-cancel{flex:1;padding:12px;border:1.5px solid var(--sand2);border-radius:9px;background:var(--sand);color:var(--ink);font-size:.84rem;font-weight:600;cursor:pointer}
+.aico-gen{flex:2;padding:12px;border:none;border-radius:9px;background:linear-gradient(135deg,#5500bb,#8833dd);color:#fff;font-size:.86rem;font-weight:700;cursor:pointer;letter-spacing:.01em}
 
 /* folders */
 .fld-top{padding:10px 12px 8px;background:var(--parch);border-bottom:1px solid var(--sand2)}
@@ -1497,7 +1536,7 @@ button:active{transform:scale(0.97)}
   <div class="logo" id="appLogo">Mein <em>Rezeptbuch</em></div>
   <div class="hbtns">
     <button class="hbtn" onclick="openLang()" id="langBtn" title="Sprache wählen">🌐 DE</button>
-    <button class="hbtn" id="apiKeyHdrBtn" onclick="openApiKeyOv()" title="Was ist ein API-Key?">?</button>
+    <button class="hbtn" id="apiKeyHdrBtn" onclick="openApiKeyOv()" title="Was ist ein API-Key?">? 🔑</button>
     <button class="hbtn" onclick="openHelp()" title="Hilfe · Teilen · Reparatur" id="helpHdrBtn">ℹ️</button>
 <!-- === ONBOARDING START === -->
     <!-- === ONBOARDING END === -->
@@ -1885,17 +1924,16 @@ button:active{transform:scale(0.97)}
     <div class="sett-sec">
       <div class="sett-head" id="sInfo">ℹ️ INFO</div>
       <div class="sett-row ntap">
-        <div class="sett-ico">📖</div>
+        <div class="sett-ico" onclick="_iTap()" style="cursor:default;user-select:none;-webkit-user-select:none">📖</div>
         <div class="sett-body"><div class="sett-lbl">Mein Rezeptbuch</div>
-          <div class="sett-sub">Version 9.2 · Offline-fähig</div>
+          <div class="sett-sub">Version 9.5 · Offline-fähig</div>
           <div class="sett-sub" style="margin-top:3px;color:var(--br3)">© 2026 by Klaus Nitzsche</div>
           <div class="sett-sub" style="margin-top:1px"><a href="mailto:klaus-nitzsche@t-online.de" style="color:var(--br);font-size:.7rem">klaus-nitzsche@t-online.de</a></div></div>
       </div>
-      <div class="sett-row" onclick="checkAppUpdate()">
+      <div class="sett-row ntap">
         <div class="sett-ico">🔄</div>
         <div class="sett-body"><div class="sett-lbl" id="sUpdLbl">Auf Updates prüfen</div>
-          <div class="sett-sub" id="updateStatus">Aktuelle Version: 9.2</div></div>
-        <div class="sett-arr">›</div>
+          <div class="sett-sub" id="updateStatus">Updates werden automatisch im Hintergrund bereitgestellt.</div></div>
       </div>
       <div class="sett-row" onclick="toggleDonate()" id="sDonateRow">
         <div class="sett-ico">☕</div>
@@ -2191,35 +2229,32 @@ Vielen Dank für deine Unterstützung.</div>
             📁 Ganzer Ordner
           </button>
         </div>
-        <div style="font-size:.63rem;color:var(--br3);line-height:1.5;margin-top:7px;padding:7px 10px;background:var(--golds);border-radius:8px;border:1px solid rgba(168,132,30,.2)">
-          🔒 <strong>Datensicherheit:</strong> Alle Rezepte werden lokal im Browser gespeichert. Beim KI-Scan wird das Bild oder PDF verschlüsselt an Anthropic übertragen — keine Datei bleibt auf einem Server.
-          <br/>Ordner wählen: Chrome/Edge fragen einmalig nach Berechtigung → „Erlauben" klicken → alle Bilder im Ordner werden geladen. Systemdateien werden ignoriert.
-        </div>
+        <div id="scanDataSec" style="font-size:.63rem;color:var(--br3);line-height:1.5;margin-top:7px;padding:7px 10px;background:var(--golds);border-radius:8px;border:1px solid rgba(168,132,30,.2)">🔒 Datensicherheit: Alle Rezepte werden lokal im Browser gespeichert. Beim KI-Scan wird das Bild oder PDF verschlüsselt an Anthropic übertragen — keine Datei bleibt auf einem Server. Ordner wählen: Chrome/Edge fragen einmalig nach Berechtigung → „Erlauben" klicken → alle Bilder im Ordner werden geladen. Systemdateien werden ignoriert.</div>
 
         <!-- ── Scan-Modus Auswahl ── -->
         <div class="scan-mode-wrap" id="scanModeWrap">
-          <div class="scan-mode-title">⚙️ Scan-Qualität wählen</div>
+          <div class="scan-mode-title" id="scanModeTitle">⚙️ Scan-Qualität wählen</div>
           <div class="scan-mode-cards">
             <div class="scan-mode-card selected" id="smc-schnell" onclick="selectScanModel('schnell')" title="Schnell &amp; günstig — ideal für einfache, bekannte Gerichte">
               <div class="smc-icon">⚡</div>
-              <div class="smc-label">Schnell</div>
+              <div class="smc-label" id="smcFastLbl">Schnell</div>
               <div class="smc-stars">★★★☆☆</div>
               <div class="smc-cost">~0,001 €</div>
-              <div class="smc-desc">Bekannte Gerichte</div>
+              <div class="smc-desc" id="smcFastDesc">Bekannte Gerichte</div>
             </div>
             <div class="scan-mode-card" id="smc-standard" onclick="selectScanModel('standard')" title="Ausgewogen — gute Qualität für die meisten Rezepte">
               <div class="smc-icon">🧠</div>
-              <div class="smc-label">Standard</div>
+              <div class="smc-label" id="smcStdLbl">Standard</div>
               <div class="smc-stars">★★★★☆</div>
               <div class="smc-cost">~0,005 €</div>
-              <div class="smc-desc">Komplexe Rezepte</div>
+              <div class="smc-desc" id="smcStdDesc">Komplexe Rezepte</div>
             </div>
             <div class="scan-mode-card" id="smc-profi" onclick="selectScanModel('profi')" title="Beste Qualität — maximale Genauigkeit, auch für unleserliche Rezepte">
               <div class="smc-icon">💎</div>
-              <div class="smc-label">Profi</div>
+              <div class="smc-label" id="smcProfiLbl">Profi</div>
               <div class="smc-stars">★★★★★</div>
               <div class="smc-cost">~0,02 €</div>
-              <div class="smc-desc">Max. Genauigkeit</div>
+              <div class="smc-desc" id="smcProfiDesc">Max. Genauigkeit</div>
             </div>
           </div>
         </div>
@@ -2322,8 +2357,8 @@ Vielen Dank für deine Unterstützung.</div>
 
       
       <div style="background:var(--teals);border-radius:10px;padding:12px 14px;margin-bottom:14px;border:1.5px solid var(--teal)">
-        <div style="font-size:.94rem;font-weight:700;color:var(--teal);font-family:Georgia,serif;margin-bottom:4px" id="txtTitleEl">✍️ Rezept per Text übertragen</div>
-        <div style="font-size:.76rem;color:#1e4a45;line-height:1.55;margin-bottom:8px" id="txtDescEl">Kopiere oder tippe einen Rezepttext — die KI erkennt alle Felder automatisch und trägt das Rezept strukturiert ins Buch ein.</div>
+        <div style="font-size:.94rem;font-weight:700;color:var(--teal);font-family:Georgia,serif;margin-bottom:4px" id="txtTitle">✍️ Rezept per Text übertragen</div>
+        <div style="font-size:.76rem;color:#1e4a45;line-height:1.55;margin-bottom:8px" id="txtDesc">Kopiere oder tippe einen Rezepttext — die KI erkennt alle Felder automatisch und trägt das Rezept strukturiert ins Buch ein.</div>
         <div id="txtListHdr" style="font-size:.66rem;font-weight:700;color:var(--teal);text-transform:uppercase;letter-spacing:.06em;margin-bottom:4px">Mögliche Texteingaben</div>
         <ul id="txtListItems" style="margin:0;padding-left:15px;font-size:.73rem;color:#1e4a45;line-height:1.75">
           <li>Kopierter Text von Webseiten oder Apps</li>
@@ -2500,6 +2535,14 @@ Vielen Dank für deine Unterstützung.</div>
       </div>
     </div>
     <div class="exp-card">
+      <div class="exp-ico">✨</div>
+      <div>
+        <div class="exp-title" id="expAiT">KI-Kreativbuch</div>
+        <div class="exp-desc" id="expAiD">Die KI generiert ein persönliches Kochbuch mit Bildern — Rezepte wählen & Qualität festlegen.</div>
+        <button class="exp-btn pur" onclick="openAiBook()" id="expAiBtn">✨ KI-Kreativbuch erstellen</button>
+      </div>
+    </div>
+    <div class="exp-card">
       <div class="exp-ico">💾</div>
       <div>
         <div class="exp-title" id="expJsonT">Datensicherung (JSON)</div>
@@ -2507,6 +2550,74 @@ Vielen Dank für deine Unterstützung.</div>
         <div class="exp-safe" id="expJsonSafe">🔒 Enthält keine API-Keys — sicher teilbar</div>
         <button class="exp-btn brn" onclick="exportData()" id="expJsonBtn" title="Alle Rezepte als JSON-Backup speichern">💾 Backup erstellen</button>
       </div>
+    </div>
+  </div>
+</div>
+
+
+<div class="fov" id="aiBookOv" style="display:none">
+  <div class="fov-hdr" onclick="closeAiBook()">
+    <button class="fov-back" onclick="event.stopPropagation();closeAiBook()" title="Zurück">←</button>
+    <div class="fov-title" id="aiBookTitle">✨ KI-Kreativbuch · Rezepte wählen</div>
+  </div>
+  <div class="fov-body">
+    <div id="aiBookTopBar">
+      <button id="aiBookSelAllBtn" onclick="aiBookToggleAll()">Alle wählen</button>
+      <span id="aiBookCnt">0 / 0</span>
+    </div>
+    <div id="aiBookList"></div>
+    <div id="aiBookQualSect">
+      <div id="aiBookQualLblEl">Qualität wählen:</div>
+      <label class="aibq-row">
+        <input type="radio" name="aibq" value="fast">
+        <span class="aibq-name" id="aibqFastName">⚡ Schnell</span>
+        <span class="aibq-sub" id="aibqFastSub">(nur Text, 0 Bilder)</span>
+      </label>
+      <label class="aibq-row">
+        <input type="radio" name="aibq" value="standard" checked>
+        <span class="aibq-name" id="aibqStdName">✨ Standard</span>
+        <span class="aibq-sub" id="aibqStdSub">(3 Bilder/Rezept)</span>
+      </label>
+      <label class="aibq-row">
+        <input type="radio" name="aibq" value="premium">
+        <span class="aibq-name" id="aibqPremName">🏆 Premium</span>
+        <span class="aibq-sub" id="aibqPremSub">(HD-Bilder, Hochformat)</span>
+      </label>
+    </div>
+    <div id="aiBookFoot">
+      <button id="aiBookWeiterBtn" onclick="aiBookWeiter()" disabled>Weiter → Kostenübersicht</button>
+    </div>
+  </div>
+</div>
+
+
+<div class="fov" id="aiCostOv" style="display:none">
+  <div class="fov-hdr" onclick="closeAiCost()">
+    <button class="fov-back" onclick="event.stopPropagation();closeAiCost()" title="Zurück">←</button>
+    <div class="fov-title" id="aiCostTitle">Kostenübersicht</div>
+  </div>
+  <div class="fov-body">
+    <div class="aico-summary" id="aiCostSummary"></div>
+    <div class="aico-row">
+      <span class="aico-lbl" id="aiCostTextLbl">Textgenerierung (GPT-4o)</span>
+      <span class="aico-sub" id="aiCostTextSub"></span>
+      <span class="aico-amt" id="aiCostTextAmt"></span>
+    </div>
+    <div class="aico-row" id="aiCostImgRow">
+      <span class="aico-lbl" id="aiCostImgLbl">Bildgenerierung (DALL-E 3)</span>
+      <span class="aico-sub" id="aiCostImgSub"></span>
+      <span class="aico-amt" id="aiCostImgAmt"></span>
+    </div>
+    <hr class="aico-divider">
+    <div class="aico-total">
+      <span class="aico-total-lbl" id="aiCostTotalLbl">Gesamt (geschätzt)</span>
+      <span class="aico-total-amt" id="aiCostTotalAmt"></span>
+    </div>
+    <div class="aico-note" id="aiCostNoteEl"></div>
+    <div class="aico-month" id="aiCostMonthLine" style="display:none"></div>
+    <div class="aico-foot">
+      <button class="aico-cancel" onclick="closeAiCost()" id="aiCostCancelBtn">Abbrechen</button>
+      <button class="aico-gen" onclick="aiCostDoGenerate()" id="aiCostGenBtn">✨ Jetzt generieren</button>
     </div>
   </div>
 </div>
@@ -2720,7 +2831,7 @@ const LANGS={
     sc3T:'Prüfen & übernehmen',sc3D:'Ergebnis kontrollieren, dann übernehmen.',
     scanDropLbl:'Rezept-Foto oder PDF auswählen',apiKeyLbl:'Claude API-Schlüssel',
     apiHint:'Nur lokal gespeichert.',scanBtn:'✨ Scannen',
-    scanPhSub:'Foto, Screenshot, Scan oder PDF · JPG · PNG · PDF',
+    scanModeTitle:'⚙️ Scan-Qualität wählen',scanDataSec:'🔒 Datensicherheit: Alle Rezepte werden lokal im Browser gespeichert. Beim KI-Scan wird das Bild oder PDF verschlüsselt an Anthropic übertragen — keine Datei bleibt auf einem Server. Ordner wählen: Chrome/Edge fragen einmalig nach Berechtigung → „Erlauben" klicken → alle Bilder im Ordner werden geladen. Systemdateien werden ignoriert.',smcFastLbl:'Schnell',smcFastDesc:'Bekannte Gerichte',smcStdLbl:'Standard',smcStdDesc:'Komplexe Rezepte',smcProfiLbl:'Profi',smcProfiDesc:'Max. Genauigkeit',    scanPhSub:'Foto, Screenshot, Scan oder PDF · JPG · PNG · PDF',
     pdfReading:'⏳ PDF wird gelesen …',pdfOk:'✅ PDF-Text extrahiert',pdfErr:'❌ PDF-Fehler: ',
     bakTitle:'📥 Rezeptsammlung laden',
     bakDesc:'Hast du deine Rezepte früher schon gesichert, möchtest du sie auf ein neues Gerät übertragen, oder hat dir jemand seine Rezeptsammlung geschickt? Wähle einfach die Datei aus — alle Rezepte werden automatisch in dein Buch übernommen.',
@@ -2738,6 +2849,15 @@ const LANGS={
     expFlipT:'Blätterbuch (HTML)',expFlipD:'Interaktives Blätterbuch als HTML-Datei — offline in jedem Browser.',expFlipBtn:'📥 Blätterbuch erstellen',flipProg:'Erstelle …',flipDone:'✅ Blätterbuch erstellt!',
     expPdfT:'PDF-Buch',expPdfD:'Alle Rezepte als druckfertiges PDF mit Deckblatt.',expPdfBtn:'📥 PDF-Buch erstellen',expPdfProg:'⏳ Erstelle PDF …',expPdfNone:'⚠️ Keine Rezepte vorhanden',expPdfRecs:'Rezepte',
     expJsonT:'Datensicherung (JSON)',expJsonD:'Alle Rezepte & Menüpläne als JSON sichern.',expJsonSafe:'🔒 Enthält keine API-Keys — sicher teilbar',expJsonBtn:'💾 Backup erstellen',
+    expAiT:'KI-Kreativbuch',expAiD:'Die KI generiert ein persönliches Kochbuch mit Bildern.',expAiBtn:'✨ KI-Kreativbuch erstellen',
+    aiBookTitle:'✨ KI-Kreativbuch · Rezepte wählen',aiBookSelAll:'Alle wählen',aiBookDeselAll:'Alle abwählen',aiBookGewählt:'gewählt',
+    aiBookQualLbl:'Qualität wählen:',aiBookQFastName:'⚡ Schnell',aiBookQFastSub:'(nur Text, 0 Bilder)',
+    aiBookQStdName:'✨ Standard',aiBookQStdSub:'(3 Bilder/Rezept)',
+    aiBookQPremName:'🏆 Premium',aiBookQPremSub:'(HD-Bilder, Hochformat)',aiBookWeiter:'Weiter → Kostenübersicht',
+    aiCostTitle:'Kostenübersicht',aiCostTextLbl:'Textgenerierung (GPT-4o)',aiCostImgLbl:'Bildgenerierung (DALL-E 3)',
+    aiCostTotalLbl:'Gesamt (geschätzt)',aiCostNote:'💡 Von deinem OpenAI-Guthaben abgezogen.\nBudget setzen → platform.openai.com',
+    aiCostGenBtn:'✨ Jetzt generieren',aiCostCancelBtn:'Abbrechen',aiCostMonthPre:'Diesen Monat bisher:',
+    aiCostRez:'Rezepte',aiCostImgPer:'Bilder/Rezept',aiCostToken:'Token',aiCostBilderX:'Bilder ×',
     sTheme:'🎨 THEMA',sLang:'🌐 SPRACHE',sData:'📁 IMPORT & EXPORT',
     sImpLbl:'Importieren',sImpSub:'Bilder, KI-Scan, Backup',
     sExpLbl:'Exportieren',sExpSub:'E-Book, Blätterbuch, JSON',
@@ -2851,7 +2971,7 @@ const LANGS={
     sc3T:'Review & import',sc3D:'Check the result, then add to recipe book.',
     scanDropLbl:'Select recipe photo or PDF',apiKeyLbl:'Claude API Key',
     apiHint:'Stored locally only.',scanBtn:'✨ Scan',
-    scanPhSub:'Photo, screenshot, scan or PDF · JPG · PNG · PDF',
+    scanModeTitle:'⚙️ Choose scan quality',scanDataSec:'🔒 Data security: All recipes are stored locally in the browser. During AI scan, the image or PDF is transmitted encrypted to Anthropic — no file stays on a server. Select folder: Chrome/Edge ask once for permission → click "Allow" → all images in the folder are loaded. System files are ignored.',smcFastLbl:'Fast',smcFastDesc:'Common dishes',smcStdLbl:'Standard',smcStdDesc:'Complex recipes',smcProfiLbl:'Pro',smcProfiDesc:'Max. accuracy',    scanPhSub:'Photo, screenshot, scan or PDF · JPG · PNG · PDF',
     pdfReading:'⏳ Reading PDF …',pdfOk:'✅ PDF text extracted',pdfErr:'❌ PDF error: ',
     bakTitle:'📥 Load recipe collection',
     bakDesc:'Did you back up your recipes before, want to transfer them to a new device, or did someone share their collection with you? Just select the file — all recipes will be added to your book automatically.',
@@ -2869,6 +2989,15 @@ const LANGS={
     expFlipT:'Flipbook (HTML)',expFlipD:'Interactive flipbook as HTML file — works offline in any browser.',expFlipBtn:'📥 Create flipbook',flipProg:'Creating …',flipDone:'✅ Flipbook created!',
     expPdfT:'PDF Book',expPdfD:'All recipes as a printable PDF with cover page.',expPdfBtn:'📥 Create PDF book',expPdfProg:'⏳ Creating PDF…',expPdfNone:'⚠️ No recipes available',expPdfRecs:'Recipes',
     expJsonT:'Backup (JSON)',expJsonD:'Save all recipes & menu as a JSON file.',expJsonSafe:'🔒 No API keys included — safe to share',expJsonBtn:'💾 Create backup',
+    expAiT:'AI Creative Book',expAiD:'AI generates a personal cookbook with images.',expAiBtn:'✨ Create AI cookbook',
+    aiBookTitle:'✨ AI Creative Book · Select recipes',aiBookSelAll:'Select all',aiBookDeselAll:'Deselect all',aiBookGewählt:'selected',
+    aiBookQualLbl:'Choose quality:',aiBookQFastName:'⚡ Quick',aiBookQFastSub:'(text only, 0 images)',
+    aiBookQStdName:'✨ Standard',aiBookQStdSub:'(3 images/recipe)',
+    aiBookQPremName:'🏆 Premium',aiBookQPremSub:'(HD images, portrait format)',aiBookWeiter:'Next → Cost overview',
+    aiCostTitle:'Cost overview',aiCostTextLbl:'Text generation (GPT-4o)',aiCostImgLbl:'Image generation (DALL-E 3)',
+    aiCostTotalLbl:'Total (estimated)',aiCostNote:'💡 Deducted from your OpenAI balance.\nSet budget → platform.openai.com',
+    aiCostGenBtn:'✨ Generate now',aiCostCancelBtn:'Cancel',aiCostMonthPre:'This month so far:',
+    aiCostRez:'recipes',aiCostImgPer:'images/recipe',aiCostToken:'tokens',aiCostBilderX:'images ×',
     sTheme:'🎨 THEME',sLang:'🌐 LANGUAGE',sData:'📁 IMPORT & EXPORT',
     sImpLbl:'Import',sImpSub:'Images, AI scan, backup',
     sExpLbl:'Export',sExpSub:'E-Book, flipbook, JSON',
@@ -2982,7 +3111,7 @@ const LANGS={
     sc3T:'Проверить и добавить',sc3D:'Проверьте результат, затем добавьте в книгу.',
     scanDropLbl:'Выбрать фото или PDF рецепта',apiKeyLbl:'Ключ API Claude',
     apiHint:'Хранится только локально.',scanBtn:'✨ Сканировать',
-    scanPhSub:'Фото, скриншот, скан или PDF · JPG · PNG · PDF',
+    scanModeTitle:'⚙️ Выберите качество сканирования',scanDataSec:'🔒 Безопасность данных: Все рецепты хранятся локально в браузере. При КИ-сканировании изображение или PDF передаётся в Anthropic в зашифрованном виде — никакой файл не остаётся на сервере. Выбор папки: Chrome/Edge один раз запрашивают разрешение → нажмите «Разрешить» → все изображения в папке загружаются. Системные файлы игнорируются.',smcFastLbl:'Быстро',smcFastDesc:'Популярные блюда',smcStdLbl:'Стандарт',smcStdDesc:'Сложные рецепты',smcProfiLbl:'Профи',smcProfiDesc:'Макс. точность',    scanPhSub:'Фото, скриншот, скан или PDF · JPG · PNG · PDF',
     pdfReading:'⏳ Читаем PDF …',pdfOk:'✅ Текст PDF извлечён',pdfErr:'❌ Ошибка PDF: ',
     bakTitle:'📥 Загрузить коллекцию рецептов',
     bakDesc:'Вы делали резервную копию рецептов, хотите перенести их на новое устройство или кто-то поделился с вами своей коллекцией? Просто выберите файл — все рецепты автоматически добавятся в вашу книгу.',
@@ -3000,6 +3129,15 @@ const LANGS={
     expFlipT:'Листалка (HTML)',expFlipD:'Интерактивная листалка как HTML-файл — работает офлайн.',expFlipBtn:'📥 Создать листалку',flipProg:'Создание …',flipDone:'✅ Листалка создана!',
     expPdfT:'PDF-книга',expPdfD:'Все рецепты как PDF для печати с обложкой.',expPdfBtn:'📥 Создать PDF-книгу',expPdfProg:'⏳ Создаю PDF …',expPdfNone:'⚠️ Нет рецептов',expPdfRecs:'Рецептов',
     expJsonT:'Резервная копия (JSON)',expJsonD:'Сохранить все рецепты и меню как JSON-файл.',expJsonSafe:'🔒 API-ключи не включены — безопасно для передачи',expJsonBtn:'💾 Создать резервную копию',
+    expAiT:'КИ-Кулинарная книга',expAiD:'ИИ создаёт персональную книгу с иллюстрациями.',expAiBtn:'✨ Создать КИ-книгу',
+    aiBookTitle:'✨ КИ-Книга · Выбрать рецепты',aiBookSelAll:'Выбрать все',aiBookDeselAll:'Снять выбор',aiBookGewählt:'выбрано',
+    aiBookQualLbl:'Качество:',aiBookQFastName:'⚡ Быстро',aiBookQFastSub:'(только текст, 0 фото)',
+    aiBookQStdName:'✨ Стандарт',aiBookQStdSub:'(3 фото/рецепт)',
+    aiBookQPremName:'🏆 Премиум',aiBookQPremSub:'(HD-фото, вертикальный)',aiBookWeiter:'Далее → Обзор цен',
+    aiCostTitle:'Обзор расходов',aiCostTextLbl:'Генерация текста (GPT-4o)',aiCostImgLbl:'Генерация изображений (DALL-E 3)',
+    aiCostTotalLbl:'Итого (ориентировочно)',aiCostNote:'💡 Спишется с вашего баланса OpenAI.\nУстановить бюджет → platform.openai.com',
+    aiCostGenBtn:'✨ Создать сейчас',aiCostCancelBtn:'Отмена',aiCostMonthPre:'В этом месяце:',
+    aiCostRez:'рецепта',aiCostImgPer:'фото/рецепт',aiCostToken:'токенов',aiCostBilderX:'фото ×',
     sTheme:'🎨 ТЕМА',sLang:'🌐 ЯЗЫК',sData:'📁 ИМПОРТ & ЭКСПОРТ',
     sImpLbl:'Импорт',sImpSub:'Фото, ИИ-скан, резерв',
     sExpLbl:'Экспорт',sExpSub:'Эл. книга, листалка, JSON',
@@ -3113,7 +3251,7 @@ const LANGS={
     sc3T:'检查并导入',sc3D:'检查结果，然后直接导入食谱书。',
     scanDropLbl:'选择食谱照片或PDF',apiKeyLbl:'Claude API密钥',
     apiHint:'仅本地存储。',scanBtn:'✨ 扫描',
-    scanPhSub:'照片、截图、扫描或PDF · JPG · PNG · PDF',
+    scanModeTitle:'⚙️ 选择扫描质量',scanDataSec:'🔒 数据安全：所有食谱存储在浏览器本地。KI扫描时，图片或PDF加密传输至Anthropic — 没有文件留在服务器上。选择文件夹：Chrome/Edge会一次性请求权限 → 点击"允许" → 文件夹中所有图片将被加载。系统文件会被忽略。',smcFastLbl:'快速',smcFastDesc:'常见菜肴',smcStdLbl:'标准',smcStdDesc:'复杂食谱',smcProfiLbl:'专业',smcProfiDesc:'最高精度',    scanPhSub:'照片、截图、扫描或PDF · JPG · PNG · PDF',
     pdfReading:'⏳ 正在读取PDF …',pdfOk:'✅ PDF文字已提取',pdfErr:'❌ PDF错误：',
     bakTitle:'📥 加载食谱集',
     bakDesc:'曾经备份过食谱，想把它们转移到新设备，或者有人与你分享了他们的食谱集？只需选择文件，所有食谱将自动添加到你的食谱书中。',
@@ -3131,6 +3269,15 @@ const LANGS={
     expFlipT:'翻页书（HTML）',expFlipD:'交互式翻页书，离线在任何浏览器中使用。',expFlipBtn:'📥 创建翻页书',flipProg:'正在创建 …',flipDone:'✅ 翻页书已创建！',
     expPdfT:'PDF书籍',expPdfD:'所有食谱导出为带封面的可打印PDF。',expPdfBtn:'📥 创建PDF书籍',expPdfProg:'⏳ 正在创建PDF…',expPdfNone:'⚠️ 暂无食谱',expPdfRecs:'食谱',
     expJsonT:'数据备份（JSON）',expJsonD:'将所有食谱和菜单保存为JSON文件。',expJsonSafe:'🔒 不含API密钥 — 可安全共享',expJsonBtn:'💾 创建备份',
+    expAiT:'AI创意食谱书',expAiD:'AI生成带图片的个人食谱书。',expAiBtn:'✨ 创建AI食谱书',
+    aiBookTitle:'✨ AI创意书 · 选择食谱',aiBookSelAll:'全选',aiBookDeselAll:'取消全选',aiBookGewählt:'已选',
+    aiBookQualLbl:'选择质量：',aiBookQFastName:'⚡ 快速',aiBookQFastSub:'（仅文字，0张图片）',
+    aiBookQStdName:'✨ 标准',aiBookQStdSub:'（3张图片/食谱）',
+    aiBookQPremName:'🏆 高级',aiBookQPremSub:'（HD图片，竖版）',aiBookWeiter:'下一步 → 费用概览',
+    aiCostTitle:'费用概览',aiCostTextLbl:'文字生成 (GPT-4o)',aiCostImgLbl:'图像生成 (DALL-E 3)',
+    aiCostTotalLbl:'合计（估算）',aiCostNote:'💡 从您的OpenAI余额中扣除。\n设置预算 → platform.openai.com',
+    aiCostGenBtn:'✨ 立即生成',aiCostCancelBtn:'取消',aiCostMonthPre:'本月迄今：',
+    aiCostRez:'食谱',aiCostImgPer:'图片/食谱',aiCostToken:'词元',aiCostBilderX:'图片 ×',
     sTheme:'🎨 主题',sLang:'🌐 语言',sData:'📁 导入 & 导出',
     sImpLbl:'导入',sImpSub:'图片、AI扫描、备份',
     sExpLbl:'导出',sExpSub:'电子书、翻页书、JSON',
@@ -3244,7 +3391,7 @@ const LANGS={
     sc3T:'Revisar y guardar',sc3D:'Controlar resultado y aceptar.',
     scanDropLbl:'Seleccionar foto o PDF de receta',apiKeyLbl:'Clave API de Claude',
     apiHint:'Solo guardado localmente.',scanBtn:'✨ Escanear',
-    scanPhSub:'Foto, captura, escaneo o PDF · JPG · PNG · PDF',
+    scanModeTitle:'⚙️ Elegir calidad de escaneo',scanDataSec:'🔒 Seguridad de datos: Todas las recetas se almacenan localmente en el navegador. Durante el escaneo IA, la imagen o PDF se transmite cifrada a Anthropic — ningún archivo queda en un servidor. Seleccionar carpeta: Chrome/Edge solicitan permiso una vez → hacer clic en "Permitir" → se cargan todas las imágenes de la carpeta. Los archivos del sistema se ignoran.',smcFastLbl:'Rápido',smcFastDesc:'Platos conocidos',smcStdLbl:'Estándar',smcStdDesc:'Recetas complejas',smcProfiLbl:'Pro',smcProfiDesc:'Máx. precisión',    scanPhSub:'Foto, captura, escaneo o PDF · JPG · PNG · PDF',
     pdfReading:'⏳ Leyendo PDF …',pdfOk:'✅ Texto PDF extraído',pdfErr:'❌ Error PDF: ',
     bakTitle:'📥 Cargar colección de recetas',
     bakDesc:'¿Hiciste una copia de seguridad antes, quieres transferir tus recetas a un nuevo dispositivo o alguien compartió su colección contigo? Selecciona el archivo y todas las recetas se añadirán automáticamente a tu libro.',
@@ -3262,6 +3409,15 @@ const LANGS={
     expFlipT:'Libro interactivo (HTML)',expFlipD:'Libro interactivo como HTML — sin conexión en cualquier navegador.',expFlipBtn:'📥 Crear libro',flipProg:'Creando …',flipDone:'✅ Libro creado!',
     expPdfT:'Libro PDF',expPdfD:'Todas las recetas como PDF imprimible con portada.',expPdfBtn:'📥 Crear libro PDF',expPdfProg:'⏳ Creando PDF…',expPdfNone:'⚠️ No hay recetas',expPdfRecs:'Recetas',
     expJsonT:'Copia de seguridad (JSON)',expJsonD:'Guardar todas las recetas y menús como JSON.',expJsonSafe:'🔒 Sin claves API — seguro para compartir',expJsonBtn:'💾 Crear copia de seguridad',
+    expAiT:'Libro IA creativo',expAiD:'La IA genera un libro de cocina personal con imágenes.',expAiBtn:'✨ Crear libro IA',
+    aiBookTitle:'✨ Libro IA · Elegir recetas',aiBookSelAll:'Seleccionar todas',aiBookDeselAll:'Deseleccionar',aiBookGewählt:'seleccionadas',
+    aiBookQualLbl:'Elegir calidad:',aiBookQFastName:'⚡ Rápido',aiBookQFastSub:'(solo texto, 0 imágenes)',
+    aiBookQStdName:'✨ Estándar',aiBookQStdSub:'(3 imágenes/receta)',
+    aiBookQPremName:'🏆 Premium',aiBookQPremSub:'(imágenes HD, vertical)',aiBookWeiter:'Siguiente → Resumen de costes',
+    aiCostTitle:'Resumen de costes',aiCostTextLbl:'Generación de texto (GPT-4o)',aiCostImgLbl:'Generación de imágenes (DALL-E 3)',
+    aiCostTotalLbl:'Total (estimado)',aiCostNote:'💡 Deducido de tu saldo de OpenAI.\nEstablecer presupuesto → platform.openai.com',
+    aiCostGenBtn:'✨ Generar ahora',aiCostCancelBtn:'Cancelar',aiCostMonthPre:'Este mes hasta ahora:',
+    aiCostRez:'recetas',aiCostImgPer:'imágenes/receta',aiCostToken:'tokens',aiCostBilderX:'imágenes ×',
     sTheme:'🎨 TEMA',sLang:'🌐 IDIOMA',sData:'📁 IMPORTAR & EXPORTAR',
     sImpLbl:'Importar',sImpSub:'Imágenes, Scan IA, Copia',
     sExpLbl:'Exportar',sExpSub:'E-Book, Libro, JSON',
@@ -3406,7 +3562,7 @@ const LANGS={
     apiKeyLbl:'Clé API Claude',
     apiHint:'Enregistré localement.',
     scanBtn:'✨ Scanner',
-    scanPhSub:'Photo, capture, scan ou PDF · JPG · PNG · PDF',
+    scanModeTitle:'⚙️ Choisir la qualité de scan',scanDataSec:'🔒 Sécurité des données : Toutes les recettes sont stockées localement dans le navigateur. Lors du scan IA, l\'image ou le PDF est transmis chiffré à Anthropic — aucun fichier ne reste sur un serveur. Sélectionner un dossier : Chrome/Edge demandent une fois l\'autorisation → cliquer sur « Autoriser » → toutes les images du dossier sont chargées. Les fichiers système sont ignorés.',smcFastLbl:'Rapide',smcFastDesc:'Plats courants',smcStdLbl:'Standard',smcStdDesc:'Recettes complexes',smcProfiLbl:'Pro',smcProfiDesc:'Précision max.',    scanPhSub:'Photo, capture, scan ou PDF · JPG · PNG · PDF',
     pdfReading:'⏳ Lecture du PDF …',pdfOk:'✅ Texte PDF extrait',pdfErr:'❌ Erreur PDF : ',
     bakTitle:'📥 Charger une collection de recettes',
     bakDesc:'Vous avez sauvegardé vos recettes auparavant, souhaitez les transférer sur un nouvel appareil ou quelqu\'un a partagé sa collection avec vous ? Sélectionnez simplement le fichier — toutes les recettes seront automatiquement ajoutées à votre livre.',
@@ -3435,6 +3591,15 @@ const LANGS={
     expJsonD:'Sauvegarder en JSON.',
     expJsonSafe:'🔒 Sans clés API — sûr à partager',
     expJsonBtn:'💾 Créer une sauvegarde',
+    expAiT:'Livre IA créatif',expAiD:"L'IA génère un livre de cuisine personnel avec images.",expAiBtn:'✨ Créer livre IA',
+    aiBookTitle:'✨ Livre IA · Choisir des recettes',aiBookSelAll:'Tout sélectionner',aiBookDeselAll:'Tout désélectionner',aiBookGewählt:'sélectionnées',
+    aiBookQualLbl:'Choisir la qualité :',aiBookQFastName:'⚡ Rapide',aiBookQFastSub:'(texte seul, 0 image)',
+    aiBookQStdName:'✨ Standard',aiBookQStdSub:'(3 images/recette)',
+    aiBookQPremName:'🏆 Premium',aiBookQPremSub:'(images HD, portrait)',aiBookWeiter:'Suivant → Aperçu des coûts',
+    aiCostTitle:'Aperçu des coûts',aiCostTextLbl:'Génération de texte (GPT-4o)',aiCostImgLbl:"Génération d'images (DALL-E 3)",
+    aiCostTotalLbl:'Total (estimé)',aiCostNote:'💡 Déduit de votre solde OpenAI.\nDéfinir un budget → platform.openai.com',
+    aiCostGenBtn:'✨ Générer maintenant',aiCostCancelBtn:'Annuler',aiCostMonthPre:'Ce mois-ci :',
+    aiCostRez:'recettes',aiCostImgPer:'images/recette',aiCostToken:'tokens',aiCostBilderX:'images ×',
     sTheme:'🎨 THEME',
     sLang:'🌐 LANGUE',
     sData:'📁 IMPORT EXPORT',
@@ -3646,7 +3811,7 @@ const LANGS={
     apiKeyLbl:'Chiave API Claude',
     apiHint:'Salvato localmente.',
     scanBtn:'✨ Scansiona',
-    scanPhSub:'Foto, schermata, scansione o PDF · JPG · PNG · PDF',
+    scanModeTitle:'⚙️ Scegli la qualità di scansione',scanDataSec:'🔒 Sicurezza dati: Tutte le ricette vengono memorizzate localmente nel browser. Durante la scansione IA, l\'immagine o il PDF viene trasmesso cifrato ad Anthropic — nessun file rimane su un server. Seleziona cartella: Chrome/Edge chiedono il permesso una volta → clicca su "Consenti" → vengono caricate tutte le immagini nella cartella. I file di sistema vengono ignorati.',smcFastLbl:'Veloce',smcFastDesc:'Piatti comuni',smcStdLbl:'Standard',smcStdDesc:'Ricette complesse',smcProfiLbl:'Pro',smcProfiDesc:'Precisione max.',    scanPhSub:'Foto, schermata, scansione o PDF · JPG · PNG · PDF',
     pdfReading:'⏳ Lettura PDF …',pdfOk:'✅ Testo PDF estratto',pdfErr:'❌ Errore PDF: ',
     bakTitle:'📥 Carica la tua collezione di ricette',
     bakDesc:'Hai già salvato le tue ricette, vuoi trasferirle su un nuovo dispositivo o qualcuno ha condiviso la sua collezione con te? Seleziona il file e tutte le ricette verranno aggiunte automaticamente al tuo libro.',
@@ -3675,6 +3840,15 @@ const LANGS={
     expJsonD:'Salva come JSON.',
     expJsonSafe:'🔒 Nessuna chiave API — sicuro da condividere',
     expJsonBtn:'💾 Crea backup',
+    expAiT:'Libro IA creativo',expAiD:"L'IA genera un libro di cucina personale con immagini.",expAiBtn:'✨ Crea libro IA',
+    aiBookTitle:'✨ Libro IA · Scegli ricette',aiBookSelAll:'Seleziona tutto',aiBookDeselAll:'Deseleziona tutto',aiBookGewählt:'selezionate',
+    aiBookQualLbl:'Scegli qualità:',aiBookQFastName:'⚡ Veloce',aiBookQFastSub:'(solo testo, 0 immagini)',
+    aiBookQStdName:'✨ Standard',aiBookQStdSub:'(3 immagini/ricetta)',
+    aiBookQPremName:'🏆 Premium',aiBookQPremSub:'(immagini HD, verticale)',aiBookWeiter:'Avanti → Panoramica costi',
+    aiCostTitle:'Panoramica costi',aiCostTextLbl:'Generazione testo (GPT-4o)',aiCostImgLbl:'Generazione immagini (DALL-E 3)',
+    aiCostTotalLbl:'Totale (stimato)',aiCostNote:'💡 Detratto dal tuo credito OpenAI.\nImposta budget → platform.openai.com',
+    aiCostGenBtn:'✨ Genera ora',aiCostCancelBtn:'Annulla',aiCostMonthPre:'Questo mese finora:',
+    aiCostRez:'ricette',aiCostImgPer:'immagini/ricetta',aiCostToken:'token',aiCostBilderX:'immagini ×',
     sTheme:'🎨 TEMA',
     sLang:'🌐 LINGUA',
     sData:'📁 IMPORTA ESPORTA',
@@ -3886,7 +4060,7 @@ const LANGS={
     apiKeyLbl:'Chave API Claude',
     apiHint:'Guardado localmente.',
     scanBtn:'✨ Digitalizar',
-    scanPhSub:'Foto, captura, digitalização ou PDF · JPG · PNG · PDF',
+    scanModeTitle:'⚙️ Escolher qualidade de digitalização',scanDataSec:'🔒 Segurança de dados: Todas as receitas são armazenadas localmente no navegador. Durante a digitalização IA, a imagem ou PDF é transmitido cifrado para a Anthropic — nenhum ficheiro fica num servidor. Selecionar pasta: Chrome/Edge pedem permissão uma vez → clicar em "Permitir" → todas as imagens da pasta são carregadas. Os ficheiros do sistema são ignorados.',smcFastLbl:'Rápido',smcFastDesc:'Pratos conhecidos',smcStdLbl:'Padrão',smcStdDesc:'Receitas complexas',smcProfiLbl:'Pro',smcProfiDesc:'Precisão máx.',    scanPhSub:'Foto, captura, digitalização ou PDF · JPG · PNG · PDF',
     pdfReading:'⏳ A ler PDF …',pdfOk:'✅ Texto PDF extraído',pdfErr:'❌ Erro PDF: ',
     bakTitle:'📥 Carregar coleção de receitas',
     bakDesc:'Já fez uma cópia de segurança das suas receitas, quer transferi-las para um novo dispositivo ou alguém partilhou a sua coleção consigo? Selecione o ficheiro e todas as receitas serão adicionadas automaticamente ao seu livro.',
@@ -3915,6 +4089,15 @@ const LANGS={
     expJsonD:'Guardar como JSON.',
     expJsonSafe:'🔒 Sem chaves API — seguro para partilhar',
     expJsonBtn:'💾 Criar cópia de segurança',
+    expAiT:'Livro IA criativo',expAiD:'A IA gera um livro de culinária pessoal com imagens.',expAiBtn:'✨ Criar livro IA',
+    aiBookTitle:'✨ Livro IA · Escolher receitas',aiBookSelAll:'Selecionar tudo',aiBookDeselAll:'Desmarcar tudo',aiBookGewählt:'selecionadas',
+    aiBookQualLbl:'Escolher qualidade:',aiBookQFastName:'⚡ Rápido',aiBookQFastSub:'(só texto, 0 imagens)',
+    aiBookQStdName:'✨ Standard',aiBookQStdSub:'(3 imagens/receita)',
+    aiBookQPremName:'🏆 Premium',aiBookQPremSub:'(imagens HD, retrato)',aiBookWeiter:'Seguinte → Resumo de custos',
+    aiCostTitle:'Resumo de custos',aiCostTextLbl:'Geração de texto (GPT-4o)',aiCostImgLbl:'Geração de imagens (DALL-E 3)',
+    aiCostTotalLbl:'Total (estimado)',aiCostNote:'💡 Debitado do seu saldo OpenAI.\nDefinir orçamento → platform.openai.com',
+    aiCostGenBtn:'✨ Gerar agora',aiCostCancelBtn:'Cancelar',aiCostMonthPre:'Este mês até agora:',
+    aiCostRez:'receitas',aiCostImgPer:'imagens/receita',aiCostToken:'tokens',aiCostBilderX:'imagens ×',
     sTheme:'🎨 TEMA',
     sLang:'🌐 IDIOMA',
     sData:'📁 IMPORTAR EXPORTAR',
@@ -4446,15 +4629,20 @@ function applyLang(code){
     'scanInfoTitle','scanInfoCol1Hdr','scanInfoCol2Hdr',
     'webInfoTitle','webInfoDesc','webInfoHint',
     'txtListHdr','scanPhSub',
-    'txtTitleEl','txtDescEl','txtReadyLblEl','txtIntroEl','txtDropLblEl','txtDropSubEl','txtScanBtnLbl','txtResetBtn','txtPasteBtnLbl','txtSaveLblEl',
+    'txtTitle','txtDesc','txtReadyLblEl','txtIntroEl','txtDropLblEl','txtDropSubEl','txtScanBtnLbl','txtResetBtn','txtPasteBtnLbl','txtSaveLblEl',
     'txtSc1T','txtSc1D','txtWebLbl','txtSc2T','txtSc3T',
     'sc1T','sc1D','sc2T','sc2D','sc3T','sc3D','scanDropLbl','apiKeyLbl','apiHint','scanBtn',
+    'scanModeTitle','scanDataSec','smcFastLbl','smcFastDesc','smcStdLbl','smcStdDesc','smcProfiLbl','smcProfiDesc',
     'scanOpenLink','scanReadyLbl','scanChangeLbl','scanBtnLbl','pasteBtnLbl',
     'cropTitle','cpCenter','cpTop','cpBottom','cpLeft','cpRight',
     'bakTitle','bakDesc','bakBtn','bakHint',
     'sBvScreenTitle','sBvLbl','sBvSub',
     'expTitle','expPdfT','expPdfD','expPdfBtn','expFlipT','expFlipD','expFlipBtn',
     'expJsonT','expJsonD','expJsonSafe','expJsonBtn',
+    'expAiT','expAiD','expAiBtn',
+    'aiBookTitle','aiBookSelAll','aiBookDeselAll','aiBookGewählt',
+    'aiBookQualLbl','aiBookQFastName','aiBookQFastSub','aiBookQStdName','aiBookQStdSub','aiBookQPremName','aiBookQPremSub','aiBookWeiter',
+    'aiCostTitle','aiCostTextLbl','aiCostImgLbl','aiCostTotalLbl','aiCostGenBtn','aiCostCancelBtn',
     'sTheme','sLang','sData','sImpLbl','sImpSub','sExpLbl','sExpSub',
     'sInfo','sStore','sClear','sClearSub',
     'sManualHead','sManualLbl','sManualSub','manOvTitle','manPdfLbl',
@@ -4575,6 +4763,8 @@ function navTo(n){
   const _fovClose=[
     {id:'importOv',   fn:function(){closeImport();}},
     {id:'exportOv',   fn:function(){closeExport();}},
+    {id:'aiCostOv',   fn:function(){closeAiCost();}},
+    {id:'aiBookOv',   fn:function(){closeAiBook();}},
     {id:'apikeyOv',   fn:function(){closeApiKeyOv();}},
     {id:'langOv',     fn:function(){closeLang();}},
     {id:'helpOv',     fn:function(){closeHelpOv();}},
@@ -4673,6 +4863,172 @@ function openImport(){
 function closeImport(){document.getElementById('importOv').style.display='none';}
 function openExport(){document.getElementById('exportOv').style.display='flex';}
 function closeExport(){document.getElementById('exportOv').style.display='none';}
+
+// ═══════════════════════════════════════════════════════
+// KI-KREATIVBUCH – REZEPTE WÄHLEN
+// ═══════════════════════════════════════════════════════
+let _aiBookSel=new Set();
+
+function openAiBook(){
+  const ov=document.getElementById('aiBookOv');
+  ov.style.display='flex';
+  _aiBookSel.clear();
+  const named=R.filter(r=>r.name&&!r.blank);
+  named.forEach(r=>_aiBookSel.add(r.id));
+  _renderAiBookList(named);
+  document.getElementById('aiBookTitle').textContent=T('aiBookTitle');
+  document.getElementById('aiBookQualLblEl').textContent=T('aiBookQualLbl');
+  document.getElementById('aibqFastName').textContent=T('aiBookQFastName');
+  document.getElementById('aibqFastSub').textContent=T('aiBookQFastSub');
+  document.getElementById('aibqStdName').textContent=T('aiBookQStdName');
+  document.getElementById('aibqStdSub').textContent=T('aiBookQStdSub');
+  document.getElementById('aibqPremName').textContent=T('aiBookQPremName');
+  document.getElementById('aibqPremSub').textContent=T('aiBookQPremSub');
+  document.getElementById('aiBookWeiterBtn').textContent=T('aiBookWeiter');
+  const stdRadio=document.querySelector('input[name=aibq][value=standard]');
+  if(stdRadio)stdRadio.checked=true;
+}
+
+function closeAiBook(){
+  document.getElementById('aiBookOv').style.display='none';
+}
+
+function _renderAiBookList(named){
+  const list=document.getElementById('aiBookList');
+  list.innerHTML=named.length?named.map(r=>{
+    const on=_aiBookSel.has(r.id);
+    return`<div class="aibr" onclick="aiBookToggleRec(this,${r.id})" data-rid="${r.id}">
+      <div class="aibr-cb${on?' on':''}">${on?'✓':''}</div>
+      <div class="aibr-name">${h(r.name)}</div>
+    </div>`;
+  }).join(''):'';
+  _aiBookUpdateCount(named.length);
+}
+
+function aiBookToggleRec(el,rid){
+  if(_aiBookSel.has(rid))_aiBookSel.delete(rid);
+  else _aiBookSel.add(rid);
+  const on=_aiBookSel.has(rid);
+  const cb=el.querySelector('.aibr-cb');
+  cb.className='aibr-cb'+(on?' on':'');
+  cb.textContent=on?'✓':'';
+  const named=R.filter(r=>r.name&&!r.blank);
+  _aiBookUpdateCount(named.length);
+}
+
+function aiBookToggleAll(){
+  const named=R.filter(r=>r.name&&!r.blank);
+  const allSel=named.length>0&&named.every(r=>_aiBookSel.has(r.id));
+  if(allSel){_aiBookSel.clear();}
+  else{named.forEach(r=>_aiBookSel.add(r.id));}
+  document.getElementById('aiBookList').querySelectorAll('.aibr').forEach(el=>{
+    const rid=+el.dataset.rid;
+    const on=_aiBookSel.has(rid);
+    const cb=el.querySelector('.aibr-cb');
+    cb.className='aibr-cb'+(on?' on':'');
+    cb.textContent=on?'✓':'';
+  });
+  _aiBookUpdateCount(named.length);
+}
+
+function _aiBookUpdateCount(total){
+  const cnt=_aiBookSel.size;
+  document.getElementById('aiBookCnt').textContent=`${cnt} / ${total} ${T('aiBookGewählt')}`;
+  document.getElementById('aiBookWeiterBtn').disabled=cnt===0;
+  const named=R.filter(r=>r.name&&!r.blank);
+  const allSel=named.length>0&&named.every(r=>_aiBookSel.has(r.id));
+  document.getElementById('aiBookSelAllBtn').textContent=allSel?T('aiBookDeselAll'):T('aiBookSelAll');
+}
+
+function aiBookWeiter(){
+  if(_aiBookSel.size===0)return;
+  const qual=document.querySelector('input[name=aibq]:checked')?.value||'standard';
+  window._aiBookParams={ids:[..._aiBookSel],qual};
+  openAiCost();
+}
+
+// ── KOSTENÜBERSICHT (Schritt 3) ──────────────────────────────
+var _AICOST_TEXT_PER_REC=0.0133;   // GPT-4o ~1800 tokens/Rezept in USD
+var _AICOST_IMG_STD=0.040;         // DALL-E 3 Standard (1024×1024) in USD
+var _AICOST_IMG_HD =0.080;         // DALL-E 3 HD (1792×1024) in USD
+var _AICOST_IMGS_QUAL={fast:0,standard:3,premium:5};
+var _AICOST_MONTH_KEY='aiBookMonthSpend9m';
+
+function _aiCostMonthKey(){var d=new Date();return d.getFullYear()+'-'+(d.getMonth()+1);}
+function _aiCostGetMonth(){
+  try{var s=JSON.parse(localStorage.getItem(_AICOST_MONTH_KEY)||'{}'),mk=_aiCostMonthKey();return s[mk]||{usd:0,count:0};}
+  catch(e){return {usd:0,count:0};}
+}
+function _aiCostAddMonth(usd){
+  try{
+    var s=JSON.parse(localStorage.getItem(_AICOST_MONTH_KEY)||'{}'),mk=_aiCostMonthKey();
+    if(!s[mk])s[mk]={usd:0,count:0};
+    s[mk].usd+=usd;s[mk].count++;
+    localStorage.setItem(_AICOST_MONTH_KEY,JSON.stringify(s));
+  }catch(e){}
+}
+function _aiCostFmt(usd){
+  var s=usd.toFixed(2);
+  var CL=window.CL||'de';
+  return '$'+(CL==='de'||CL==='fr'||CL==='it'||CL==='es'||CL==='pt'?s.replace('.',','):s);
+}
+
+function openAiCost(){
+  const p=window._aiBookParams;if(!p)return;
+  const n=p.ids.length,qual=p.qual;
+  const imgs=_AICOST_IMGS_QUAL[qual]||0;
+  const totalImgs=n*imgs;
+  const imgCostPer=qual==='premium'?_AICOST_IMG_HD:_AICOST_IMG_STD;
+  const textUsd=n*_AICOST_TEXT_PER_REC;
+  const imgUsd=totalImgs*imgCostPer;
+  const totalUsd=textUsd+imgUsd;
+
+  const qualEl={fast:document.getElementById('aibqFastName'),standard:document.getElementById('aibqStdName'),premium:document.getElementById('aibqPremName')};
+  const qualName=(qualEl[qual]&&qualEl[qual].textContent)||qual;
+
+  document.getElementById('aiCostSummary').textContent=
+    n+' '+T('aiCostRez')+' · '+qualName+' · '+imgs+' '+T('aiCostImgPer');
+
+  document.getElementById('aiCostTextSub').textContent=
+    n+' × ~1.800 '+T('aiCostToken');
+  document.getElementById('aiCostTextAmt').textContent=_aiCostFmt(textUsd);
+
+  const imgRow=document.getElementById('aiCostImgRow');
+  if(imgs===0){imgRow.style.display='none';}
+  else{
+    imgRow.style.display='';
+    document.getElementById('aiCostImgSub').textContent=
+      totalImgs+' '+T('aiCostBilderX')+' '+_aiCostFmt(imgCostPer);
+    document.getElementById('aiCostImgAmt').textContent=_aiCostFmt(imgUsd);
+  }
+
+  document.getElementById('aiCostTotalAmt').textContent=_aiCostFmt(totalUsd);
+
+  const note=T('aiCostNote')||'';
+  document.getElementById('aiCostNoteEl').innerHTML=note.replace(/\n/g,'<br>');
+
+  const ms=_aiCostGetMonth();
+  const ml=document.getElementById('aiCostMonthLine');
+  if(ms.count>0){
+    ml.textContent=T('aiCostMonthPre')+' '+_aiCostFmt(ms.usd)+' · '+ms.count+' Zines';
+    ml.style.display='';
+  } else {ml.style.display='none';}
+
+  window._aiBookCostUsd=totalUsd;
+  document.getElementById('aiCostOv').style.display='flex';
+}
+
+function closeAiCost(){
+  document.getElementById('aiCostOv').style.display='none';
+}
+
+function aiCostDoGenerate(){
+  if(window._aiBookCostUsd)_aiCostAddMonth(window._aiBookCostUsd);
+  closeAiCost();
+  closeAiBook();
+  // Schritt 4: eigentliche Generierung folgt
+}
+
 function switchFovTab(ovId,tab,el){
   const ov=document.getElementById(ovId);
   ov.querySelectorAll('.fovtab').forEach(t=>t.classList.remove('on'));
@@ -5854,7 +6210,7 @@ function setUpSt(msg,type){
   el.textContent=msg;el.className='upst '+type;el.style.display='block';
   setTimeout(()=>el.style.display='none',5000);
 }
-const _APP_VER='9.2';
+const _APP_VER='9.5';
 const _APP_UPDATE_URL='https://lausiklauskn-png.github.io/Mein-Rezeptbuch/index.html';
 async function checkAppUpdate(){
   const st=document.getElementById('updateStatus');
@@ -5902,17 +6258,21 @@ function dlBlob(blob,fname){
   a.href=u;a.download=fname;document.body.appendChild(a);a.click();
   setTimeout(()=>{document.body.removeChild(a);URL.revokeObjectURL(u);},600);
 }
-let _donateTimer=null;
+let _donateTimer=null,_donateOpenTime=0;
+const _DONATE_MIN_MS=5000,_DONATE_AUTO_MS=20000;
 function toggleDonate(){
   const panel=document.getElementById('sDonatePanel');
   const arr=document.getElementById('sDonateArr');
   if(!panel)return;
   const isOpen=panel.style.display==='block';
   if(isOpen){
+    if(Date.now()-_donateOpenTime<_DONATE_MIN_MS)return;
     panel.style.display='none';
     if(arr)arr.style.transform='';
     clearTimeout(_donateTimer);
+    panel.removeEventListener('pointerdown',_resetDonateTimer);
   }else{
+    _donateOpenTime=Date.now();
     panel.style.display='block';
     if(arr)arr.style.transform='rotate(90deg)';
     _resetDonateTimer();
@@ -5928,7 +6288,7 @@ function closeDonate(){
 }
 function _resetDonateTimer(){
   clearTimeout(_donateTimer);
-  _donateTimer=setTimeout(closeDonate,10000);
+  _donateTimer=setTimeout(closeDonate,_DONATE_AUTO_MS);
 }
 function clearAll(){
   if(!confirm(T('clearConfirm')))return;
@@ -7281,6 +7641,7 @@ function render(){
     if(!grp.length)html+=`<div class="empty-state"><div class="empty-state__icon">🍽️</div><h3 class="empty-state__title">${T('noRecipes')}</h3></div>`;
   }
   c.innerHTML=html;renderCatNav();badge();restoreTranslPanels();setupTouchDrag();
+  const cw=c.offsetWidth;if(cw>=50){const h=Math.round(cw*4/3);const drkCats=new Set(['drk']);if(typeof FD!=='undefined'&&FD){FD.forEach(f=>{if(/getr|drink|bever|bevande|boisson|bebida|напит/i.test(f.name))drkCats.add('fld_'+f.id);});}document.querySelectorAll('.rcard').forEach(card=>{if(!drkCats.has(card.dataset.cat))return;const wrap=card.querySelector('.rcard-img-wrap');const img=card.querySelector('.rcard-img');if(wrap)wrap.style.setProperty('height',h+'px','important');if(img)img.style.setProperty('height',h+'px','important');});}
 }
 function rndDiv(cat,grp){
   const filled=grp.filter(r=>r.name).length,name=cat[CL]||cat.de;
@@ -7390,7 +7751,7 @@ function rndCard(r){
   const stars=[1,2,3,4,5].map(n=>`<span class="star ${n<=rat.stars?'on':''}" onclick="setStars(${r.id},${n})" title="${n} Stern${n!==1?'e':''}">★</span>`).join('');
   const imps=(rat.imps||[]).map((t,i)=>`<li class="imp-li"><span class="impbull">→</span><span class="imptxt">${h(t)}</span><button class="xbtn" onclick="delImp(${r.id},${i})" title="${T('ttlDelImp')}">✕</button></li>`).join('')
     ||`<li style="padding:3px 0;color:#c4aa7a;font-size:.76rem;font-style:italic">…</li>`;
-  return`<div class="rcard ${isBlank?'blank':''}" id="c${r.id}"
+  return`<div class="rcard ${isBlank?'blank':''}" id="c${r.id}" data-cat="${r.cat}"
     draggable="true"
     ondragstart="cardDragStart(event,${r.id})"
     ondragend="cardDragEnd(${r.id})"
@@ -8368,13 +8729,76 @@ function _initTooltips(){
     if(Math.abs(dx)<55||Math.abs(dx)<Math.abs(dy)*1.5)return;
     doImportSwipe(dx);
   },{passive:true});
+  let mx=0,my=0,mDown=false,mInBody=false;
+  document.addEventListener('mousedown',function(e){
+    const fb=document.querySelector('#importOv .fov-body');
+    mInBody=!!(fb&&(fb===e.target||fb.contains(e.target)));
+    mx=e.clientX;my=e.clientY;mDown=mInBody;
+  });
+  document.addEventListener('mouseup',function(e){
+    if(!mDown||!mInBody)return;
+    const dx=e.clientX-mx,dy=e.clientY-my;
+    mDown=false;mInBody=false;
+    if(Math.abs(dx)<55||Math.abs(dx)<Math.abs(dy)*1.5)return;
+    doImportSwipe(dx);
+  });
+})();
+
+// ── MEIN-MENÜ: Tab-Swipe ──────────────────────────────────
+(function(){
+  const TAB_ORDER=['tl','sh','ck','al'];
+  const TAB_EL={tl:'mvTabTl',sh:'mvTabSh',ck:'mvTabCk',al:'mvTabAl'};
+  function doMVSwipe(dx){
+    const ov=document.getElementById('mv');
+    if(!ov||ov.style.display==='none')return;
+    const active=ov.querySelector('.mv-pane.on');
+    if(!active)return;
+    const cur=active.id.replace('mv-','');
+    const idx=TAB_ORDER.indexOf(cur);
+    if(idx<0)return;
+    const next=dx<0?idx+1:idx-1;
+    if(next<0||next>=TAB_ORDER.length)return;
+    const tab=TAB_ORDER[next];
+    const el=document.getElementById(TAB_EL[tab]);
+    if(el)switchMVTab(tab,el);
+  }
+  let tx=0,ty=0,locked=false,inBody=false;
+  document.addEventListener('touchstart',function(e){
+    const fb=document.querySelector('#mv .mv-body');
+    inBody=!!(fb&&(fb===e.target||fb.contains(e.target)));
+    tx=e.touches[0].clientX;ty=e.touches[0].clientY;locked=false;
+  },{passive:true});
+  document.addEventListener('touchmove',function(e){
+    if(!inBody||locked)return;
+    const dx=e.touches[0].clientX-tx,dy=e.touches[0].clientY-ty;
+    if(Math.abs(dy)>Math.abs(dx)*1.2)locked=true;
+  },{passive:true});
+  document.addEventListener('touchend',function(e){
+    if(!inBody||locked)return;
+    const dx=e.changedTouches[0].clientX-tx,dy=e.changedTouches[0].clientY-ty;
+    if(Math.abs(dx)<55||Math.abs(dx)<Math.abs(dy)*1.5)return;
+    doMVSwipe(dx);
+  },{passive:true});
+  let mx=0,my=0,mDown=false,mInBody=false;
+  document.addEventListener('mousedown',function(e){
+    const fb=document.querySelector('#mv .mv-body');
+    mInBody=!!(fb&&(fb===e.target||fb.contains(e.target)));
+    mx=e.clientX;my=e.clientY;mDown=mInBody;
+  });
+  document.addEventListener('mouseup',function(e){
+    if(!mDown||!mInBody)return;
+    const dx=e.clientX-mx,dy=e.clientY-my;
+    mDown=false;mInBody=false;
+    if(Math.abs(dx)<55||Math.abs(dx)<Math.abs(dy)*1.5)return;
+    doMVSwipe(dx);
+  });
 })();
 
 // ── SWIPE-NAVIGATION ──────────────────────────────────
 (function(){
   const SC_ORDER=['recipes','folders','menu','backup','settings'];
   // IDs von Overlays/Modals — bei offenen Panels kein Seitenwechsel
-  const MODAL_IDS=['mv','importOv','exportOv','apikeyOv','courseSheet','spellModal',
+  const MODAL_IDS=['mv','importOv','exportOv','aiBookOv','aiCostOv','apikeyOv','courseSheet','spellModal',
     'aip','aslBg','ob-wizard-bg','ob-helper-bg','ob-settings-bg','ob-scan-ov',
     'manualOv','bvaultModal'];
   function anyModalOpen(){
@@ -8478,6 +8902,8 @@ boot();
     {id:'bvaultModal',    close:function(){var e=document.getElementById('bvaultModal');if(e)e.style.display='none';}},
     {id:'importOv',       close:function(){closeImport();}},
     {id:'exportOv',       close:function(){closeExport();}},
+    {id:'aiCostOv',       close:function(){closeAiCost();}},
+    {id:'aiBookOv',       close:function(){closeAiBook();}},
     {id:'apikeyOv',       close:function(){closeApiKeyOv();}},
     {id:'courseSheet',    close:function(){closeCSheet();}},
     {id:'folderSheet',    close:function(){closeFolderSheet();}},
@@ -10666,6 +11092,36 @@ function applyUpdate(){
   const b = document.getElementById('updBanner');
   if(b && b._worker) b._worker.postMessage({type:'SKIP_WAITING'});
 }
+(function(){
+  const _a=['mr','app','26'].join(''),_b=['f3a8','e1d9'].join('');
+  const _u=m=>'https://api.count'+'api.xyz/'+m+'/'+_a+'/'+_b;
+  window.addEventListener('appinstalled',()=>{fetch(_u('hit')).catch(()=>{});});
+  let _tc=0,_tt=null;
+  window._iTap=function(){
+    clearTimeout(_tt);_tc++;
+    _tt=setTimeout(()=>{_tc=0;},1500);
+    if(_tc>=5){
+      _tc=0;
+      fetch(_u('get')).then(r=>r.json())
+        .then(d=>_iShow(d.value??'?')).catch(()=>_iShow('–'));
+    }
+  };
+  function _iShow(n){
+    let el=document.getElementById('_iStat');
+    if(!el){
+      el=document.createElement('div');el.id='_iStat';
+      el.style.cssText='position:fixed;bottom:90px;left:50%;transform:translateX(-50%);'
+        +'background:#1e1b2e;color:#fff;padding:12px 26px;border-radius:12px;'
+        +'font-size:.85rem;font-weight:700;z-index:9999;pointer-events:none;'
+        +'opacity:0;transition:opacity .3s';
+      document.body.appendChild(el);
+    }
+    el.textContent='📲 '+n+' Installation'+(n===1?'':'en');
+    el.style.opacity='1';
+    clearTimeout(el._t);
+    el._t=setTimeout(()=>{el.style.opacity='0';},3000);
+  }
+})();
 </script>
 <script>/* qrcode-generator by kazuhikoarase – MIT License */
 var qrcode=function(){var t=function(t,r){var e=t,n=g[r],o=null,i=0,a=null,u=[],f={},c=function(t,r){o=function(t){for(var r=new Array(t),e=0;e<t;e+=1){r[e]=new Array(t);for(var n=0;n<t;n+=1)r[e][n]=null}return r}(i=4*e+17),l(0,0),l(i-7,0),l(0,i-7),s(),h(),d(t,r),e>=7&&v(t),null==a&&(a=p(e,n,u)),w(a,r)},l=function(t,r){for(var e=-1;e<=7;e+=1)if(!(t+e<=-1||i<=t+e))for(var n=-1;n<=7;n+=1)r+n<=-1||i<=r+n||(o[t+e][r+n]=0<=e&&e<=6&&(0==n||6==n)||0<=n&&n<=6&&(0==e||6==e)||2<=e&&e<=4&&2<=n&&n<=4)},h=function(){for(var t=8;t<i-8;t+=1)null==o[t][6]&&(o[t][6]=t%2==0);for(var r=8;r<i-8;r+=1)null==o[6][r]&&(o[6][r]=r%2==0)},s=function(){for(var t=B.getPatternPosition(e),r=0;r<t.length;r+=1)for(var n=0;n<t.length;n+=1){var i=t[r],a=t[n];if(null==o[i][a])for(var u=-2;u<=2;u+=1)for(var f=-2;f<=2;f+=1)o[i+u][a+f]=-2==u||2==u||-2==f||2==f||0==u&&0==f}},v=function(t){for(var r=B.getBCHTypeNumber(e),n=0;n<18;n+=1){var a=!t&&1==(r>>n&1);o[Math.floor(n/3)][n%3+i-8-3]=a}for(n=0;n<18;n+=1){a=!t&&1==(r>>n&1);o[n%3+i-8-3][Math.floor(n/3)]=a}},d=function(t,r){for(var e=n<<3|r,a=B.getBCHTypeInfo(e),u=0;u<15;u+=1){var f=!t&&1==(a>>u&1);u<6?o[u][8]=f:u<8?o[u+1][8]=f:o[i-15+u][8]=f}for(u=0;u<15;u+=1){f=!t&&1==(a>>u&1);u<8?o[8][i-u-1]=f:u<9?o[8][15-u-1+1]=f:o[8][15-u-1]=f}o[i-8][8]=!t},w=function(t,r){for(var e=-1,n=i-1,a=7,u=0,f=B.getMaskFunction(r),c=i-1;c>0;c-=2)for(6==c&&(c-=1);;){for(var g=0;g<2;g+=1)if(null==o[n][c-g]){var l=!1;u<t.length&&(l=1==(t[u]>>>a&1)),f(n,c-g)&&(l=!l),o[n][c-g]=l,-1==(a-=1)&&(u+=1,a=7)}if((n+=e)<0||i<=n){n-=e,e=-e;break}}},p=function(t,r,e){for(var n=A.getRSBlocks(t,r),o=b(),i=0;i<e.length;i+=1){var a=e[i];o.put(a.getMode(),4),o.put(a.getLength(),B.getLengthInBits(a.getMode(),t)),a.write(o)}var u=0;for(i=0;i<n.length;i+=1)u+=n[i].dataCount;if(o.getLengthInBits()>8*u)throw"code length overflow. ("+o.getLengthInBits()+">"+8*u+")";for(o.getLengthInBits()+4<=8*u&&o.put(0,4);o.getLengthInBits()%8!=0;)o.putBit(!1);for(;!(o.getLengthInBits()>=8*u||(o.put(236,8),o.getLengthInBits()>=8*u));)o.put(17,8);return function(t,r){for(var e=0,n=0,o=0,i=new Array(r.length),a=new Array(r.length),u=0;u<r.length;u+=1){var f=r[u].dataCount,c=r[u].totalCount-f;n=Math.max(n,f),o=Math.max(o,c),i[u]=new Array(f);for(var g=0;g<i[u].length;g+=1)i[u][g]=255&t.getBuffer()[g+e];e+=f;var l=B.getErrorCorrectPolynomial(c),h=k(i[u],l.getLength()-1).mod(l);for(a[u]=new Array(l.getLength()-1),g=0;g<a[u].length;g+=1){var s=g+h.getLength()-a[u].length;a[u][g]=s>=0?h.getAt(s):0}}var v=0;for(g=0;g<r.length;g+=1)v+=r[g].totalCount;var d=new Array(v),w=0;for(g=0;g<n;g+=1)for(u=0;u<r.length;u+=1)g<i[u].length&&(d[w]=i[u][g],w+=1);for(g=0;g<o;g+=1)for(u=0;u<r.length;u+=1)g<a[u].length&&(d[w]=a[u][g],w+=1);return d}(o,n)};f.addData=function(t,r){var e=null;switch(r=r||"Byte"){case"Numeric":e=M(t);break;case"Alphanumeric":e=x(t);break;case"Byte":e=m(t);break;case"Kanji":e=L(t);break;default:throw"mode:"+r}u.push(e),a=null},f.isDark=function(t,r){if(t<0||i<=t||r<0||i<=r)throw t+","+r;return o[t][r]},f.getModuleCount=function(){return i},f.make=function(){if(e<1){for(var t=1;t<40;t++){for(var r=A.getRSBlocks(t,n),o=b(),i=0;i<u.length;i++){var a=u[i];o.put(a.getMode(),4),o.put(a.getLength(),B.getLengthInBits(a.getMode(),t)),a.write(o)}var g=0;for(i=0;i<r.length;i++)g+=r[i].dataCount;if(o.getLengthInBits()<=8*g)break}e=t}c(!1,function(){for(var t=0,r=0,e=0;e<8;e+=1){c(!0,e);var n=B.getLostPoint(f);(0==e||t>n)&&(t=n,r=e)}return r}())},f.createTableTag=function(t,r){t=t||2;var e="";e+='<table style="',e+=" border-width: 0px; border-style: none;",e+=" border-collapse: collapse;",e+=" padding: 0px; margin: "+(r=void 0===r?4*t:r)+"px;",e+='">',e+="<tbody>";for(var n=0;n<f.getModuleCount();n+=1){e+="<tr>";for(var o=0;o<f.getModuleCount();o+=1)e+='<td style="',e+=" border-width: 0px; border-style: none;",e+=" border-collapse: collapse;",e+=" padding: 0px; margin: 0px;",e+=" width: "+t+"px;",e+=" height: "+t+"px;",e+=" background-color: ",e+=f.isDark(n,o)?"#000000":"#ffffff",e+=";",e+='"/>';e+="</tr>"}return e+="</tbody>",e+="</table>"},f.createSvgTag=function(t,r,e,n){var o={};"object"==typeof arguments[0]&&(t=(o=arguments[0]).cellSize,r=o.margin,e=o.alt,n=o.title),t=t||2,r=void 0===r?4*t:r,(e="string"==typeof e?{text:e}:e||{}).text=e.text||null,e.id=e.text?e.id||"qrcode-description":null,(n="string"==typeof n?{text:n}:n||{}).text=n.text||null,n.id=n.text?n.id||"qrcode-title":null;var i,a,u,c,g=f.getModuleCount()*t+2*r,l="";for(c="l"+t+",0 0,"+t+" -"+t+",0 0,-"+t+"z ",l+='<svg version="1.1" xmlns="http://www.w3.org/2000/svg"',l+=o.scalable?"":' width="'+g+'px" height="'+g+'px"',l+=' viewBox="0 0 '+g+" "+g+'" ',l+=' preserveAspectRatio="xMinYMin meet"',l+=n.text||e.text?' role="img" aria-labelledby="'+y([n.id,e.id].join(" ").trim())+'"':"",l+=">",l+=n.text?'<title id="'+y(n.id)+'">'+y(n.text)+"</title>":"",l+=e.text?'<description id="'+y(e.id)+'">'+y(e.text)+"</description>":"",l+='<rect width="100%" height="100%" fill="white" cx="0" cy="0"/>',l+='<path d="',a=0;a<f.getModuleCount();a+=1)for(u=a*t+r,i=0;i<f.getModuleCount();i+=1)f.isDark(a,i)&&(l+="M"+(i*t+r)+","+u+c);return l+='" stroke="transparent" fill="black"/>',l+="</svg>"},f.createDataURL=function(t,r){t=t||2,r=void 0===r?4*t:r;var e=f.getModuleCount()*t+2*r,n=r,o=e-r;return I(e,e,function(r,e){if(n<=r&&r<o&&n<=e&&e<o){var i=Math.floor((r-n)/t),a=Math.floor((e-n)/t);return f.isDark(a,i)?0:1}return 1})},f.createImgTag=function(t,r,e){t=t||2,r=void 0===r?4*t:r;var n=f.getModuleCount()*t+2*r,o="";return o+="<img",o+=' src="',o+=f.createDataURL(t,r),o+='"',o+=' width="',o+=n,o+='"',o+=' height="',o+=n,o+='"',e&&(o+=' alt="',o+=y(e),o+='"'),o+="/>"};var y=function(t){for(var r="",e=0;e<t.length;e+=1){var n=t.charAt(e);switch(n){case"<":r+="&lt;";break;case">":r+="&gt;";break;case"&":r+="&amp;";break;case'"':r+="&quot;";break;default:r+=n}}return r};return f.createASCII=function(t,r){if((t=t||1)<2)return function(t){t=void 0===t?2:t;var r,e,n,o,i,a=1*f.getModuleCount()+2*t,u=t,c=a-t,g={"██":"█","█ ":"▀"," █":"▄","  ":" "},l={"██":"▀","█ ":"▀"," █":" ","  ":" "},h="";for(r=0;r<a;r+=2){for(n=Math.floor((r-u)/1),o=Math.floor((r+1-u)/1),e=0;e<a;e+=1)i="█",u<=e&&e<c&&u<=r&&r<c&&f.isDark(n,Math.floor((e-u)/1))&&(i=" "),u<=e&&e<c&&u<=r+1&&r+1<c&&f.isDark(o,Math.floor((e-u)/1))?i+=" ":i+="█",h+=t<1&&r+1>=c?l[i]:g[i];h+="\n"}return a%2&&t>0?h.substring(0,h.length-a-1)+Array(a+1).join("▀"):h.substring(0,h.length-1)}(r);t-=1,r=void 0===r?2*t:r;var e,n,o,i,a=f.getModuleCount()*t+2*r,u=r,c=a-r,g=Array(t+1).join("██"),l=Array(t+1).join("  "),h="",s="";for(e=0;e<a;e+=1){for(o=Math.floor((e-u)/t),s="",n=0;n<a;n+=1)i=1,u<=n&&n<c&&u<=e&&e<c&&f.isDark(o,Math.floor((n-u)/t))&&(i=0),s+=i?g:l;for(o=0;o<t;o+=1)h+=s+"\n"}return h.substring(0,h.length-1)},f.renderTo2dContext=function(t,r){r=r||2;for(var e=f.getModuleCount(),n=0;n<e;n++)for(var o=0;o<e;o++)t.fillStyle=f.isDark(n,o)?"black":"white",t.fillRect(o*r,n*r,r,r)},f};t.stringToBytes=(t.stringToBytesFuncs={default:function(t){for(var r=[],e=0;e<t.length;e+=1){var n=t.charCodeAt(e);r.push(255&n)}return r}}).default,t.createStringToBytes=function(t,r){var e=function(){for(var e=S(t),n=function(){var t=e.read();if(-1==t)throw"eof";return t},o=0,i={};;){var a=e.read();if(-1==a)break;var u=n(),f=n()<<8|n();i[String.fromCharCode(a<<8|u)]=f,o+=1}if(o!=r)throw o+" != "+r;return i}(),n="?".charCodeAt(0);return function(t){for(var r=[],o=0;o<t.length;o+=1){var i=t.charCodeAt(o);if(i<128)r.push(i);else{var a=e[t.charAt(o)];"number"==typeof a?(255&a)==a?r.push(a):(r.push(a>>>8),r.push(255&a)):r.push(n)}}return r}};var r,e,n,o,i,a=1,u=2,f=4,c=8,g={L:1,M:0,Q:3,H:2},l=0,h=1,s=2,v=3,d=4,w=5,p=6,y=7,B=(r=[[],[6,18],[6,22],[6,26],[6,30],[6,34],[6,22,38],[6,24,42],[6,26,46],[6,28,50],[6,30,54],[6,32,58],[6,34,62],[6,26,46,66],[6,26,48,70],[6,26,50,74],[6,30,54,78],[6,30,56,82],[6,30,58,86],[6,34,62,90],[6,28,50,72,94],[6,26,50,74,98],[6,30,54,78,102],[6,28,54,80,106],[6,32,58,84,110],[6,30,58,86,114],[6,34,62,90,118],[6,26,50,74,98,122],[6,30,54,78,102,126],[6,26,52,78,104,130],[6,30,56,82,108,134],[6,34,60,86,112,138],[6,30,58,86,114,142],[6,34,62,90,118,146],[6,30,54,78,102,126,150],[6,24,50,76,102,128,154],[6,28,54,80,106,132,158],[6,32,58,84,110,136,162],[6,26,54,82,110,138,166],[6,30,58,86,114,142,170]],e=1335,n=7973,i=function(t){for(var r=0;0!=t;)r+=1,t>>>=1;return r},(o={}).getBCHTypeInfo=function(t){for(var r=t<<10;i(r)-i(e)>=0;)r^=e<<i(r)-i(e);return 21522^(t<<10|r)},o.getBCHTypeNumber=function(t){for(var r=t<<12;i(r)-i(n)>=0;)r^=n<<i(r)-i(n);return t<<12|r},o.getPatternPosition=function(t){return r[t-1]},o.getMaskFunction=function(t){switch(t){case l:return function(t,r){return(t+r)%2==0};case h:return function(t,r){return t%2==0};case s:return function(t,r){return r%3==0};case v:return function(t,r){return(t+r)%3==0};case d:return function(t,r){return(Math.floor(t/2)+Math.floor(r/3))%2==0};case w:return function(t,r){return t*r%2+t*r%3==0};case p:return function(t,r){return(t*r%2+t*r%3)%2==0};case y:return function(t,r){return(t*r%3+(t+r)%2)%2==0};default:throw"bad maskPattern:"+t}},o.getErrorCorrectPolynomial=function(t){for(var r=k([1],0),e=0;e<t;e+=1)r=r.multiply(k([1,C.gexp(e)],0));return r},o.getLengthInBits=function(t,r){if(1<=r&&r<10)switch(t){case a:return 10;case u:return 9;case f:case c:return 8;default:throw"mode:"+t}else if(r<27)switch(t){case a:return 12;case u:return 11;case f:return 16;case c:return 10;default:throw"mode:"+t}else{if(!(r<41))throw"type:"+r;switch(t){case a:return 14;case u:return 13;case f:return 16;case c:return 12;default:throw"mode:"+t}}},o.getLostPoint=function(t){for(var r=t.getModuleCount(),e=0,n=0;n<r;n+=1)for(var o=0;o<r;o+=1){for(var i=0,a=t.isDark(n,o),u=-1;u<=1;u+=1)if(!(n+u<0||r<=n+u))for(var f=-1;f<=1;f+=1)o+f<0||r<=o+f||0==u&&0==f||a==t.isDark(n+u,o+f)&&(i+=1);i>5&&(e+=3+i-5)}for(n=0;n<r-1;n+=1)for(o=0;o<r-1;o+=1){var c=0;t.isDark(n,o)&&(c+=1),t.isDark(n+1,o)&&(c+=1),t.isDark(n,o+1)&&(c+=1),t.isDark(n+1,o+1)&&(c+=1),0!=c&&4!=c||(e+=3)}for(n=0;n<r;n+=1)for(o=0;o<r-6;o+=1)t.isDark(n,o)&&!t.isDark(n,o+1)&&t.isDark(n,o+2)&&t.isDark(n,o+3)&&t.isDark(n,o+4)&&!t.isDark(n,o+5)&&t.isDark(n,o+6)&&(e+=40);for(o=0;o<r;o+=1)for(n=0;n<r-6;n+=1)t.isDark(n,o)&&!t.isDark(n+1,o)&&t.isDark(n+2,o)&&t.isDark(n+3,o)&&t.isDark(n+4,o)&&!t.isDark(n+5,o)&&t.isDark(n+6,o)&&(e+=40);var g=0;for(o=0;o<r;o+=1)for(n=0;n<r;n+=1)t.isDark(n,o)&&(g+=1);return e+=Math.abs(100*g/r/r-50)/5*10},o),C=function(){for(var t=new Array(256),r=new Array(256),e=0;e<8;e+=1)t[e]=1<<e;for(e=8;e<256;e+=1)t[e]=t[e-4]^t[e-5]^t[e-6]^t[e-8];for(e=0;e<255;e+=1)r[t[e]]=e;var n={glog:function(t){if(t<1)throw"glog("+t+")";return r[t]},gexp:function(r){for(;r<0;)r+=255;for(;r>=256;)r-=255;return t[r]}};return n}();function k(t,r){if(void 0===t.length)throw t.length+"/"+r;var e=function(){for(var e=0;e<t.length&&0==t[e];)e+=1;for(var n=new Array(t.length-e+r),o=0;o<t.length-e;o+=1)n[o]=t[o+e];return n}(),n={getAt:function(t){return e[t]},getLength:function(){return e.length},multiply:function(t){for(var r=new Array(n.getLength()+t.getLength()-1),e=0;e<n.getLength();e+=1)for(var o=0;o<t.getLength();o+=1)r[e+o]^=C.gexp(C.glog(n.getAt(e))+C.glog(t.getAt(o)));return k(r,0)},mod:function(t){if(n.getLength()-t.getLength()<0)return n;for(var r=C.glog(n.getAt(0))-C.glog(t.getAt(0)),e=new Array(n.getLength()),o=0;o<n.getLength();o+=1)e[o]=n.getAt(o);for(o=0;o<t.getLength();o+=1)e[o]^=C.gexp(C.glog(t.getAt(o))+r);return k(e,0).mod(t)}};return n}var A=function(){var t=[[1,26,19],[1,26,16],[1,26,13],[1,26,9],[1,44,34],[1,44,28],[1,44,22],[1,44,16],[1,70,55],[1,70,44],[2,35,17],[2,35,13],[1,100,80],[2,50,32],[2,50,24],[4,25,9],[1,134,108],[2,67,43],[2,33,15,2,34,16],[2,33,11,2,34,12],[2,86,68],[4,43,27],[4,43,19],[4,43,15],[2,98,78],[4,49,31],[2,32,14,4,33,15],[4,39,13,1,40,14],[2,121,97],[2,60,38,2,61,39],[4,40,18,2,41,19],[4,40,14,2,41,15],[2,146,116],[3,58,36,2,59,37],[4,36,16,4,37,17],[4,36,12,4,37,13],[2,86,68,2,87,69],[4,69,43,1,70,44],[6,43,19,2,44,20],[6,43,15,2,44,16],[4,101,81],[1,80,50,4,81,51],[4,50,22,4,51,23],[3,36,12,8,37,13],[2,116,92,2,117,93],[6,58,36,2,59,37],[4,46,20,6,47,21],[7,42,14,4,43,15],[4,133,107],[8,59,37,1,60,38],[8,44,20,4,45,21],[12,33,11,4,34,12],[3,145,115,1,146,116],[4,64,40,5,65,41],[11,36,16,5,37,17],[11,36,12,5,37,13],[5,109,87,1,110,88],[5,65,41,5,66,42],[5,54,24,7,55,25],[11,36,12,7,37,13],[5,122,98,1,123,99],[7,73,45,3,74,46],[15,43,19,2,44,20],[3,45,15,13,46,16],[1,135,107,5,136,108],[10,74,46,1,75,47],[1,50,22,15,51,23],[2,42,14,17,43,15],[5,150,120,1,151,121],[9,69,43,4,70,44],[17,50,22,1,51,23],[2,42,14,19,43,15],[3,141,113,4,142,114],[3,70,44,11,71,45],[17,47,21,4,48,22],[9,39,13,16,40,14],[3,135,107,5,136,108],[3,67,41,13,68,42],[15,54,24,5,55,25],[15,43,15,10,44,16],[4,144,116,4,145,117],[17,68,42],[17,50,22,6,51,23],[19,46,16,6,47,17],[2,139,111,7,140,112],[17,74,46],[7,54,24,16,55,25],[34,37,13],[4,151,121,5,152,122],[4,75,47,14,76,48],[11,54,24,14,55,25],[16,45,15,14,46,16],[6,147,117,4,148,118],[6,73,45,14,74,46],[11,54,24,16,55,25],[30,46,16,2,47,17],[8,132,106,4,133,107],[8,75,47,13,76,48],[7,54,24,22,55,25],[22,45,15,13,46,16],[10,142,114,2,143,115],[19,74,46,4,75,47],[28,50,22,6,51,23],[33,46,16,4,47,17],[8,152,122,4,153,123],[22,73,45,3,74,46],[8,53,23,26,54,24],[12,45,15,28,46,16],[3,147,117,10,148,118],[3,73,45,23,74,46],[4,54,24,31,55,25],[11,45,15,31,46,16],[7,146,116,7,147,117],[21,73,45,7,74,46],[1,53,23,37,54,24],[19,45,15,26,46,16],[5,145,115,10,146,116],[19,75,47,10,76,48],[15,54,24,25,55,25],[23,45,15,25,46,16],[13,145,115,3,146,116],[2,74,46,29,75,47],[42,54,24,1,55,25],[23,45,15,28,46,16],[17,145,115],[10,74,46,23,75,47],[10,54,24,35,55,25],[19,45,15,35,46,16],[17,145,115,1,146,116],[14,74,46,21,75,47],[29,54,24,19,55,25],[11,45,15,46,46,16],[13,145,115,6,146,116],[14,74,46,23,75,47],[44,54,24,7,55,25],[59,46,16,1,47,17],[12,151,121,7,152,122],[12,75,47,26,76,48],[39,54,24,14,55,25],[22,45,15,41,46,16],[6,151,121,14,152,122],[6,75,47,34,76,48],[46,54,24,10,55,25],[2,45,15,64,46,16],[17,152,122,4,153,123],[29,74,46,14,75,47],[49,54,24,10,55,25],[24,45,15,46,46,16],[4,152,122,18,153,123],[13,74,46,32,75,47],[48,54,24,14,55,25],[42,45,15,32,46,16],[20,147,117,4,148,118],[40,75,47,7,76,48],[43,54,24,22,55,25],[10,45,15,67,46,16],[19,148,118,6,149,119],[18,75,47,31,76,48],[34,54,24,34,55,25],[20,45,15,61,46,16]],r=function(t,r){var e={};return e.totalCount=t,e.dataCount=r,e},e={};return e.getRSBlocks=function(e,n){var o=function(r,e){switch(e){case g.L:return t[4*(r-1)+0];case g.M:return t[4*(r-1)+1];case g.Q:return t[4*(r-1)+2];case g.H:return t[4*(r-1)+3];default:return}}(e,n);if(void 0===o)throw"bad rs block @ typeNumber:"+e+"/errorCorrectionLevel:"+n;for(var i=o.length/3,a=[],u=0;u<i;u+=1)for(var f=o[3*u+0],c=o[3*u+1],l=o[3*u+2],h=0;h<f;h+=1)a.push(r(c,l));return a},e}(),b=function(){var t=[],r=0,e={getBuffer:function(){return t},getAt:function(r){var e=Math.floor(r/8);return 1==(t[e]>>>7-r%8&1)},put:function(t,r){for(var n=0;n<r;n+=1)e.putBit(1==(t>>>r-n-1&1))},getLengthInBits:function(){return r},putBit:function(e){var n=Math.floor(r/8);t.length<=n&&t.push(0),e&&(t[n]|=128>>>r%8),r+=1}};return e},M=function(t){var r=a,e=t,n={getMode:function(){return r},getLength:function(t){return e.length},write:function(t){for(var r=e,n=0;n+2<r.length;)t.put(o(r.substring(n,n+3)),10),n+=3;n<r.length&&(r.length-n==1?t.put(o(r.substring(n,n+1)),4):r.length-n==2&&t.put(o(r.substring(n,n+2)),7))}},o=function(t){for(var r=0,e=0;e<t.length;e+=1)r=10*r+i(t.charAt(e));return r},i=function(t){if("0"<=t&&t<="9")return t.charCodeAt(0)-"0".charCodeAt(0);throw"illegal char :"+t};return n},x=function(t){var r=u,e=t,n={getMode:function(){return r},getLength:function(t){return e.length},write:function(t){for(var r=e,n=0;n+1<r.length;)t.put(45*o(r.charAt(n))+o(r.charAt(n+1)),11),n+=2;n<r.length&&t.put(o(r.charAt(n)),6)}},o=function(t){if("0"<=t&&t<="9")return t.charCodeAt(0)-"0".charCodeAt(0);if("A"<=t&&t<="Z")return t.charCodeAt(0)-"A".charCodeAt(0)+10;switch(t){case" ":return 36;case"$":return 37;case"%":return 38;case"*":return 39;case"+":return 40;case"-":return 41;case".":return 42;case"/":return 43;case":":return 44;default:throw"illegal char :"+t}};return n},m=function(r){var e=f,n=t.stringToBytes(r),o={getMode:function(){return e},getLength:function(t){return n.length},write:function(t){for(var r=0;r<n.length;r+=1)t.put(n[r],8)}};return o},L=function(r){var e=c,n=t.stringToBytesFuncs.SJIS;if(!n)throw"sjis not supported.";!function(){var t=n("友");if(2!=t.length||38726!=(t[0]<<8|t[1]))throw"sjis not supported."}();var o=n(r),i={getMode:function(){return e},getLength:function(t){return~~(o.length/2)},write:function(t){for(var r=o,e=0;e+1<r.length;){var n=(255&r[e])<<8|255&r[e+1];if(33088<=n&&n<=40956)n-=33088;else{if(!(57408<=n&&n<=60351))throw"illegal char at "+(e+1)+"/"+n;n-=49472}n=192*(n>>>8&255)+(255&n),t.put(n,13),e+=2}if(e<r.length)throw"illegal char at "+(e+1)}};return i},D=function(){var t=[],r={writeByte:function(r){t.push(255&r)},writeShort:function(t){r.writeByte(t),r.writeByte(t>>>8)},writeBytes:function(t,e,n){e=e||0,n=n||t.length;for(var o=0;o<n;o+=1)r.writeByte(t[o+e])},writeString:function(t){for(var e=0;e<t.length;e+=1)r.writeByte(t.charCodeAt(e))},toByteArray:function(){return t},toString:function(){var r="";r+="[";for(var e=0;e<t.length;e+=1)e>0&&(r+=","),r+=t[e];return r+="]"}};return r},S=function(t){var r=t,e=0,n=0,o=0,i={read:function(){for(;o<8;){if(e>=r.length){if(0==o)return-1;throw"unexpected end of file./"+o}var t=r.charAt(e);if(e+=1,"="==t)return o=0,-1;t.match(/^\s$/)||(n=n<<6|a(t.charCodeAt(0)),o+=6)}var i=n>>>o-8&255;return o-=8,i}},a=function(t){if(65<=t&&t<=90)return t-65;if(97<=t&&t<=122)return t-97+26;if(48<=t&&t<=57)return t-48+52;if(43==t)return 62;if(47==t)return 63;throw"c:"+t};return i},I=function(t,r,e){for(var n=function(t,r){var e=t,n=r,o=new Array(t*r),i={setPixel:function(t,r,n){o[r*e+t]=n},write:function(t){t.writeString("GIF87a"),t.writeShort(e),t.writeShort(n),t.writeByte(128),t.writeByte(0),t.writeByte(0),t.writeByte(0),t.writeByte(0),t.writeByte(0),t.writeByte(255),t.writeByte(255),t.writeByte(255),t.writeString(","),t.writeShort(0),t.writeShort(0),t.writeShort(e),t.writeShort(n),t.writeByte(0);var r=a(2);t.writeByte(2);for(var o=0;r.length-o>255;)t.writeByte(255),t.writeBytes(r,o,255),o+=255;t.writeByte(r.length-o),t.writeBytes(r,o,r.length-o),t.writeByte(0),t.writeString(";")}},a=function(t){for(var r=1<<t,e=1+(1<<t),n=t+1,i=u(),a=0;a<r;a+=1)i.add(String.fromCharCode(a));i.add(String.fromCharCode(r)),i.add(String.fromCharCode(e));var f,c,g,l=D(),h=(f=l,c=0,g=0,{write:function(t,r){if(t>>>r!=0)throw"length over";for(;c+r>=8;)f.writeByte(255&(t<<c|g)),r-=8-c,t>>>=8-c,g=0,c=0;g|=t<<c,c+=r},flush:function(){c>0&&f.writeByte(g)}});h.write(r,n);var s=0,v=String.fromCharCode(o[s]);for(s+=1;s<o.length;){var d=String.fromCharCode(o[s]);s+=1,i.contains(v+d)?v+=d:(h.write(i.indexOf(v),n),i.size()<4095&&(i.size()==1<<n&&(n+=1),i.add(v+d)),v=d)}return h.write(i.indexOf(v),n),h.write(e,n),h.flush(),l.toByteArray()},u=function(){var t={},r=0,e={add:function(n){if(e.contains(n))throw"dup key:"+n;t[n]=r,r+=1},size:function(){return r},indexOf:function(r){return t[r]},contains:function(r){return void 0!==t[r]}};return e};return i}(t,r),o=0;o<r;o+=1)for(var i=0;i<t;i+=1)n.setPixel(i,o,e(i,o));var a=D();n.write(a);for(var u=function(){var t=0,r=0,e=0,n="",o={},i=function(t){n+=String.fromCharCode(a(63&t))},a=function(t){if(t<0);else{if(t<26)return 65+t;if(t<52)return t-26+97;if(t<62)return t-52+48;if(62==t)return 43;if(63==t)return 47}throw"n:"+t};return o.writeByte=function(n){for(t=t<<8|255&n,r+=8,e+=1;r>=6;)i(t>>>r-6),r-=6},o.flush=function(){if(r>0&&(i(t<<6-r),t=0,r=0),e%3!=0)for(var o=3-e%3,a=0;a<o;a+=1)n+="="},o.toString=function(){return n},o}(),f=a.toByteArray(),c=0;c<f.length;c+=1)u.writeByte(f[c]);return u.flush(),"data:image/gif;base64,"+u};return t}();qrcode.stringToBytesFuncs["UTF-8"]=function(t){return function(t){for(var r=[],e=0;e<t.length;e++){var n=t.charCodeAt(e);n<128?r.push(n):n<2048?r.push(192|n>>6,128|63&n):n<55296||n>=57344?r.push(224|n>>12,128|n>>6&63,128|63&n):(e++,n=65536+((1023&n)<<10|1023&t.charCodeAt(e)),r.push(240|n>>18,128|n>>12&63,128|n>>6&63,128|63&n))}return r}(t)},function(t){"function"==typeof define&&define.amd?define([],t):"object"==typeof exports&&(module.exports=t())}(function(){return qrcode});
