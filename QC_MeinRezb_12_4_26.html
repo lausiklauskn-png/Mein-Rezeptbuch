@@ -595,6 +595,23 @@ body.nav-collapsed{padding-bottom:calc(16px + var(--sb))}
 #aiBookFoot{padding:10px 13px;padding-bottom:calc(10px + var(--sb));border-top:1px solid var(--sand2);background:var(--parch);flex-shrink:0}
 #aiBookWeiterBtn{width:100%;padding:13px;border:none;border-radius:9px;background:linear-gradient(135deg,#5500bb,#8833dd);color:#fff;font-size:.86rem;font-weight:700;cursor:pointer;letter-spacing:.01em}
 #aiBookWeiterBtn:disabled{opacity:.45;cursor:default}
+/* aiCostOv */
+#aiCostOv .fov-hdr{background:linear-gradient(90deg,#5500bb,#8833dd,#bb55ff)}
+#aiCostOv .fov-body{padding:16px 14px 0;overflow-y:auto}
+.aico-summary{font-size:.77rem;color:var(--br3);margin-bottom:15px}
+.aico-row{display:grid;grid-template-columns:1fr auto;gap:2px 10px;margin-bottom:13px}
+.aico-lbl{font-size:.84rem;font-weight:600;color:var(--ink);grid-column:1}
+.aico-sub{font-size:.73rem;color:var(--br3);grid-column:1}
+.aico-amt{font-size:.86rem;font-weight:700;color:var(--ink);grid-column:2;grid-row:1/3;display:flex;align-items:center;white-space:nowrap}
+.aico-divider{border:none;border-top:1.5px solid var(--sand2);margin:4px 0 12px}
+.aico-total{display:flex;justify-content:space-between;align-items:center;margin-bottom:16px}
+.aico-total-lbl{font-size:.88rem;font-weight:700;color:var(--ink)}
+.aico-total-amt{font-size:1.12rem;font-weight:800;color:var(--ink)}
+.aico-note{font-size:.71rem;color:var(--br3);background:var(--sand);border-radius:8px;padding:10px 12px;margin-bottom:12px;line-height:1.6}
+.aico-month{font-size:.73rem;color:var(--br3);text-align:center;margin-bottom:14px}
+.aico-foot{display:flex;gap:9px;padding:12px 0 calc(14px + var(--sb))}
+.aico-cancel{flex:1;padding:12px;border:1.5px solid var(--sand2);border-radius:9px;background:var(--sand);color:var(--ink);font-size:.84rem;font-weight:600;cursor:pointer}
+.aico-gen{flex:2;padding:12px;border:none;border-radius:9px;background:linear-gradient(135deg,#5500bb,#8833dd);color:#fff;font-size:.86rem;font-weight:700;cursor:pointer;letter-spacing:.01em}
 
 /* folders */
 .fld-top{padding:10px 12px 8px;background:var(--parch);border-bottom:1px solid var(--sand2)}
@@ -2508,6 +2525,38 @@ Vielen Dank für deine Unterstützung.</div>
 </div>
 
 
+<div class="fov" id="aiCostOv" style="display:none">
+  <div class="fov-hdr" onclick="closeAiCost()">
+    <button class="fov-back" onclick="event.stopPropagation();closeAiCost()" title="Zurück">←</button>
+    <div class="fov-title" id="aiCostTitle">Kostenübersicht</div>
+  </div>
+  <div class="fov-body">
+    <div class="aico-summary" id="aiCostSummary"></div>
+    <div class="aico-row">
+      <span class="aico-lbl" id="aiCostTextLbl">Textgenerierung (GPT-4o)</span>
+      <span class="aico-sub" id="aiCostTextSub"></span>
+      <span class="aico-amt" id="aiCostTextAmt"></span>
+    </div>
+    <div class="aico-row" id="aiCostImgRow">
+      <span class="aico-lbl" id="aiCostImgLbl">Bildgenerierung (DALL-E 3)</span>
+      <span class="aico-sub" id="aiCostImgSub"></span>
+      <span class="aico-amt" id="aiCostImgAmt"></span>
+    </div>
+    <hr class="aico-divider">
+    <div class="aico-total">
+      <span class="aico-total-lbl" id="aiCostTotalLbl">Gesamt (geschätzt)</span>
+      <span class="aico-total-amt" id="aiCostTotalAmt"></span>
+    </div>
+    <div class="aico-note" id="aiCostNoteEl"></div>
+    <div class="aico-month" id="aiCostMonthLine" style="display:none"></div>
+    <div class="aico-foot">
+      <button class="aico-cancel" onclick="closeAiCost()" id="aiCostCancelBtn">Abbrechen</button>
+      <button class="aico-gen" onclick="aiCostDoGenerate()" id="aiCostGenBtn">✨ Jetzt generieren</button>
+    </div>
+  </div>
+</div>
+
+
 <div class="fov" id="langOv" style="display:none">
   <div class="fov-hdr" onclick="closeLang()">
     <button class="fov-back" onclick="event.stopPropagation();closeLang()" title="Sprache wählen – Zurück">←</button>
@@ -2739,6 +2788,10 @@ const LANGS={
     aiBookQualLbl:'Qualität wählen:',aiBookQFastName:'⚡ Schnell',aiBookQFastSub:'(nur Text, 0 Bilder)',
     aiBookQStdName:'✨ Standard',aiBookQStdSub:'(3 Bilder/Rezept)',
     aiBookQPremName:'🏆 Premium',aiBookQPremSub:'(HD-Bilder, Hochformat)',aiBookWeiter:'Weiter → Kostenübersicht',
+    aiCostTitle:'Kostenübersicht',aiCostTextLbl:'Textgenerierung (GPT-4o)',aiCostImgLbl:'Bildgenerierung (DALL-E 3)',
+    aiCostTotalLbl:'Gesamt (geschätzt)',aiCostNote:'💡 Von deinem OpenAI-Guthaben abgezogen.\nBudget setzen → platform.openai.com',
+    aiCostGenBtn:'✨ Jetzt generieren',aiCostCancelBtn:'Abbrechen',aiCostMonthPre:'Diesen Monat bisher:',
+    aiCostRez:'Rezepte',aiCostImgPer:'Bilder/Rezept',aiCostToken:'Token',aiCostBilderX:'Bilder ×',
     sTheme:'🎨 THEMA',sLang:'🌐 SPRACHE',sData:'📁 IMPORT & EXPORT',
     sImpLbl:'Importieren',sImpSub:'Bilder, KI-Scan, Backup',
     sExpLbl:'Exportieren',sExpSub:'E-Book, Blätterbuch, JSON',
@@ -2869,6 +2922,10 @@ const LANGS={
     aiBookQualLbl:'Choose quality:',aiBookQFastName:'⚡ Quick',aiBookQFastSub:'(text only, 0 images)',
     aiBookQStdName:'✨ Standard',aiBookQStdSub:'(3 images/recipe)',
     aiBookQPremName:'🏆 Premium',aiBookQPremSub:'(HD images, portrait format)',aiBookWeiter:'Next → Cost overview',
+    aiCostTitle:'Cost overview',aiCostTextLbl:'Text generation (GPT-4o)',aiCostImgLbl:'Image generation (DALL-E 3)',
+    aiCostTotalLbl:'Total (estimated)',aiCostNote:'💡 Deducted from your OpenAI balance.\nSet budget → platform.openai.com',
+    aiCostGenBtn:'✨ Generate now',aiCostCancelBtn:'Cancel',aiCostMonthPre:'This month so far:',
+    aiCostRez:'recipes',aiCostImgPer:'images/recipe',aiCostToken:'tokens',aiCostBilderX:'images ×',
     sTheme:'🎨 THEME',sLang:'🌐 LANGUAGE',sData:'📁 IMPORT & EXPORT',
     sImpLbl:'Import',sImpSub:'Images, AI scan, backup',
     sExpLbl:'Export',sExpSub:'E-Book, flipbook, JSON',
@@ -2999,6 +3056,10 @@ const LANGS={
     aiBookQualLbl:'Качество:',aiBookQFastName:'⚡ Быстро',aiBookQFastSub:'(только текст, 0 фото)',
     aiBookQStdName:'✨ Стандарт',aiBookQStdSub:'(3 фото/рецепт)',
     aiBookQPremName:'🏆 Премиум',aiBookQPremSub:'(HD-фото, вертикальный)',aiBookWeiter:'Далее → Обзор цен',
+    aiCostTitle:'Обзор расходов',aiCostTextLbl:'Генерация текста (GPT-4o)',aiCostImgLbl:'Генерация изображений (DALL-E 3)',
+    aiCostTotalLbl:'Итого (ориентировочно)',aiCostNote:'💡 Спишется с вашего баланса OpenAI.\nУстановить бюджет → platform.openai.com',
+    aiCostGenBtn:'✨ Создать сейчас',aiCostCancelBtn:'Отмена',aiCostMonthPre:'В этом месяце:',
+    aiCostRez:'рецепта',aiCostImgPer:'фото/рецепт',aiCostToken:'токенов',aiCostBilderX:'фото ×',
     sTheme:'🎨 ТЕМА',sLang:'🌐 ЯЗЫК',sData:'📁 ИМПОРТ & ЭКСПОРТ',
     sImpLbl:'Импорт',sImpSub:'Фото, ИИ-скан, резерв',
     sExpLbl:'Экспорт',sExpSub:'Эл. книга, листалка, JSON',
@@ -3129,6 +3190,10 @@ const LANGS={
     aiBookQualLbl:'选择质量：',aiBookQFastName:'⚡ 快速',aiBookQFastSub:'（仅文字，0张图片）',
     aiBookQStdName:'✨ 标准',aiBookQStdSub:'（3张图片/食谱）',
     aiBookQPremName:'🏆 高级',aiBookQPremSub:'（HD图片，竖版）',aiBookWeiter:'下一步 → 费用概览',
+    aiCostTitle:'费用概览',aiCostTextLbl:'文字生成 (GPT-4o)',aiCostImgLbl:'图像生成 (DALL-E 3)',
+    aiCostTotalLbl:'合计（估算）',aiCostNote:'💡 从您的OpenAI余额中扣除。\n设置预算 → platform.openai.com',
+    aiCostGenBtn:'✨ 立即生成',aiCostCancelBtn:'取消',aiCostMonthPre:'本月迄今：',
+    aiCostRez:'食谱',aiCostImgPer:'图片/食谱',aiCostToken:'词元',aiCostBilderX:'图片 ×',
     sTheme:'🎨 主题',sLang:'🌐 语言',sData:'📁 导入 & 导出',
     sImpLbl:'导入',sImpSub:'图片、AI扫描、备份',
     sExpLbl:'导出',sExpSub:'电子书、翻页书、JSON',
@@ -3259,6 +3324,10 @@ const LANGS={
     aiBookQualLbl:'Elegir calidad:',aiBookQFastName:'⚡ Rápido',aiBookQFastSub:'(solo texto, 0 imágenes)',
     aiBookQStdName:'✨ Estándar',aiBookQStdSub:'(3 imágenes/receta)',
     aiBookQPremName:'🏆 Premium',aiBookQPremSub:'(imágenes HD, vertical)',aiBookWeiter:'Siguiente → Resumen de costes',
+    aiCostTitle:'Resumen de costes',aiCostTextLbl:'Generación de texto (GPT-4o)',aiCostImgLbl:'Generación de imágenes (DALL-E 3)',
+    aiCostTotalLbl:'Total (estimado)',aiCostNote:'💡 Deducido de tu saldo de OpenAI.\nEstablecer presupuesto → platform.openai.com',
+    aiCostGenBtn:'✨ Generar ahora',aiCostCancelBtn:'Cancelar',aiCostMonthPre:'Este mes hasta ahora:',
+    aiCostRez:'recetas',aiCostImgPer:'imágenes/receta',aiCostToken:'tokens',aiCostBilderX:'imágenes ×',
     sTheme:'🎨 TEMA',sLang:'🌐 IDIOMA',sData:'📁 IMPORTAR & EXPORTAR',
     sImpLbl:'Importar',sImpSub:'Imágenes, Scan IA, Copia',
     sExpLbl:'Exportar',sExpSub:'E-Book, Libro, JSON',
@@ -3431,6 +3500,10 @@ const LANGS={
     aiBookQualLbl:'Choisir la qualité :',aiBookQFastName:'⚡ Rapide',aiBookQFastSub:'(texte seul, 0 image)',
     aiBookQStdName:'✨ Standard',aiBookQStdSub:'(3 images/recette)',
     aiBookQPremName:'🏆 Premium',aiBookQPremSub:'(images HD, portrait)',aiBookWeiter:'Suivant → Aperçu des coûts',
+    aiCostTitle:'Aperçu des coûts',aiCostTextLbl:'Génération de texte (GPT-4o)',aiCostImgLbl:"Génération d'images (DALL-E 3)",
+    aiCostTotalLbl:'Total (estimé)',aiCostNote:'💡 Déduit de votre solde OpenAI.\nDéfinir un budget → platform.openai.com',
+    aiCostGenBtn:'✨ Générer maintenant',aiCostCancelBtn:'Annuler',aiCostMonthPre:'Ce mois-ci :',
+    aiCostRez:'recettes',aiCostImgPer:'images/recette',aiCostToken:'tokens',aiCostBilderX:'images ×',
     sTheme:'🎨 THEME',
     sLang:'🌐 LANGUE',
     sData:'📁 IMPORT EXPORT',
@@ -3670,6 +3743,10 @@ const LANGS={
     aiBookQualLbl:'Scegli qualità:',aiBookQFastName:'⚡ Veloce',aiBookQFastSub:'(solo testo, 0 immagini)',
     aiBookQStdName:'✨ Standard',aiBookQStdSub:'(3 immagini/ricetta)',
     aiBookQPremName:'🏆 Premium',aiBookQPremSub:'(immagini HD, verticale)',aiBookWeiter:'Avanti → Panoramica costi',
+    aiCostTitle:'Panoramica costi',aiCostTextLbl:'Generazione testo (GPT-4o)',aiCostImgLbl:'Generazione immagini (DALL-E 3)',
+    aiCostTotalLbl:'Totale (stimato)',aiCostNote:'💡 Detratto dal tuo credito OpenAI.\nImposta budget → platform.openai.com',
+    aiCostGenBtn:'✨ Genera ora',aiCostCancelBtn:'Annulla',aiCostMonthPre:'Questo mese finora:',
+    aiCostRez:'ricette',aiCostImgPer:'immagini/ricetta',aiCostToken:'token',aiCostBilderX:'immagini ×',
     sTheme:'🎨 TEMA',
     sLang:'🌐 LINGUA',
     sData:'📁 IMPORTA ESPORTA',
@@ -3909,6 +3986,10 @@ const LANGS={
     aiBookQualLbl:'Escolher qualidade:',aiBookQFastName:'⚡ Rápido',aiBookQFastSub:'(só texto, 0 imagens)',
     aiBookQStdName:'✨ Standard',aiBookQStdSub:'(3 imagens/receita)',
     aiBookQPremName:'🏆 Premium',aiBookQPremSub:'(imagens HD, retrato)',aiBookWeiter:'Seguinte → Resumo de custos',
+    aiCostTitle:'Resumo de custos',aiCostTextLbl:'Geração de texto (GPT-4o)',aiCostImgLbl:'Geração de imagens (DALL-E 3)',
+    aiCostTotalLbl:'Total (estimado)',aiCostNote:'💡 Debitado do seu saldo OpenAI.\nDefinir orçamento → platform.openai.com',
+    aiCostGenBtn:'✨ Gerar agora',aiCostCancelBtn:'Cancelar',aiCostMonthPre:'Este mês até agora:',
+    aiCostRez:'receitas',aiCostImgPer:'imagens/receita',aiCostToken:'tokens',aiCostBilderX:'imagens ×',
     sTheme:'🎨 TEMA',
     sLang:'🌐 IDIOMA',
     sData:'📁 IMPORTAR EXPORTAR',
@@ -4446,6 +4527,7 @@ function applyLang(code){
     'expAiT','expAiD','expAiBtn',
     'aiBookTitle','aiBookSelAll','aiBookDeselAll','aiBookGewählt',
     'aiBookQualLbl','aiBookQFastName','aiBookQFastSub','aiBookQStdName','aiBookQStdSub','aiBookQPremName','aiBookQPremSub','aiBookWeiter',
+    'aiCostTitle','aiCostTextLbl','aiCostImgLbl','aiCostTotalLbl','aiCostGenBtn','aiCostCancelBtn',
     'sTheme','sLang','sData','sImpLbl','sImpSub','sExpLbl','sExpSub',
     'sInfo','sStore','sClear','sClearSub',
     'sManualHead','sManualLbl','sManualSub','manOvTitle','manPdfLbl',
@@ -4566,6 +4648,7 @@ function navTo(n){
   const _fovClose=[
     {id:'importOv',   fn:function(){closeImport();}},
     {id:'exportOv',   fn:function(){closeExport();}},
+    {id:'aiCostOv',   fn:function(){closeAiCost();}},
     {id:'aiBookOv',   fn:function(){closeAiBook();}},
     {id:'apikeyOv',   fn:function(){closeApiKeyOv();}},
     {id:'langOv',     fn:function(){closeLang();}},
@@ -4742,8 +4825,90 @@ function _aiBookUpdateCount(total){
 function aiBookWeiter(){
   if(_aiBookSel.size===0)return;
   const qual=document.querySelector('input[name=aibq]:checked')?.value||'standard';
-  // Schritt 3: Kostenübersicht – folgt im nächsten Schritt
   window._aiBookParams={ids:[..._aiBookSel],qual};
+  openAiCost();
+}
+
+// ── KOSTENÜBERSICHT (Schritt 3) ──────────────────────────────
+var _AICOST_TEXT_PER_REC=0.0133;   // GPT-4o ~1800 tokens/Rezept in USD
+var _AICOST_IMG_STD=0.040;         // DALL-E 3 Standard (1024×1024) in USD
+var _AICOST_IMG_HD =0.080;         // DALL-E 3 HD (1792×1024) in USD
+var _AICOST_IMGS_QUAL={fast:0,standard:3,premium:5};
+var _AICOST_MONTH_KEY='aiBookMonthSpend9m';
+
+function _aiCostMonthKey(){var d=new Date();return d.getFullYear()+'-'+(d.getMonth()+1);}
+function _aiCostGetMonth(){
+  try{var s=JSON.parse(localStorage.getItem(_AICOST_MONTH_KEY)||'{}'),mk=_aiCostMonthKey();return s[mk]||{usd:0,count:0};}
+  catch(e){return {usd:0,count:0};}
+}
+function _aiCostAddMonth(usd){
+  try{
+    var s=JSON.parse(localStorage.getItem(_AICOST_MONTH_KEY)||'{}'),mk=_aiCostMonthKey();
+    if(!s[mk])s[mk]={usd:0,count:0};
+    s[mk].usd+=usd;s[mk].count++;
+    localStorage.setItem(_AICOST_MONTH_KEY,JSON.stringify(s));
+  }catch(e){}
+}
+function _aiCostFmt(usd){
+  var s=usd.toFixed(2);
+  var CL=window.CL||'de';
+  return '$'+(CL==='de'||CL==='fr'||CL==='it'||CL==='es'||CL==='pt'?s.replace('.',','):s);
+}
+
+function openAiCost(){
+  const p=window._aiBookParams;if(!p)return;
+  const n=p.ids.length,qual=p.qual;
+  const imgs=_AICOST_IMGS_QUAL[qual]||0;
+  const totalImgs=n*imgs;
+  const imgCostPer=qual==='premium'?_AICOST_IMG_HD:_AICOST_IMG_STD;
+  const textUsd=n*_AICOST_TEXT_PER_REC;
+  const imgUsd=totalImgs*imgCostPer;
+  const totalUsd=textUsd+imgUsd;
+
+  const qualEl={fast:document.getElementById('aibqFastName'),standard:document.getElementById('aibqStdName'),premium:document.getElementById('aibqPremName')};
+  const qualName=(qualEl[qual]&&qualEl[qual].textContent)||qual;
+
+  document.getElementById('aiCostSummary').textContent=
+    n+' '+T('aiCostRez')+' · '+qualName+' · '+imgs+' '+T('aiCostImgPer');
+
+  document.getElementById('aiCostTextSub').textContent=
+    n+' × ~1.800 '+T('aiCostToken');
+  document.getElementById('aiCostTextAmt').textContent=_aiCostFmt(textUsd);
+
+  const imgRow=document.getElementById('aiCostImgRow');
+  if(imgs===0){imgRow.style.display='none';}
+  else{
+    imgRow.style.display='';
+    document.getElementById('aiCostImgSub').textContent=
+      totalImgs+' '+T('aiCostBilderX')+' '+_aiCostFmt(imgCostPer);
+    document.getElementById('aiCostImgAmt').textContent=_aiCostFmt(imgUsd);
+  }
+
+  document.getElementById('aiCostTotalAmt').textContent=_aiCostFmt(totalUsd);
+
+  const note=T('aiCostNote')||'';
+  document.getElementById('aiCostNoteEl').innerHTML=note.replace(/\n/g,'<br>');
+
+  const ms=_aiCostGetMonth();
+  const ml=document.getElementById('aiCostMonthLine');
+  if(ms.count>0){
+    ml.textContent=T('aiCostMonthPre')+' '+_aiCostFmt(ms.usd)+' · '+ms.count+' Zines';
+    ml.style.display='';
+  } else {ml.style.display='none';}
+
+  window._aiBookCostUsd=totalUsd;
+  document.getElementById('aiCostOv').style.display='flex';
+}
+
+function closeAiCost(){
+  document.getElementById('aiCostOv').style.display='none';
+}
+
+function aiCostDoGenerate(){
+  if(window._aiBookCostUsd)_aiCostAddMonth(window._aiBookCostUsd);
+  closeAiCost();
+  closeAiBook();
+  // Schritt 4: eigentliche Generierung folgt
 }
 
 function switchFovTab(ovId,tab,el){
@@ -8368,7 +8533,7 @@ function _initTooltips(){
 (function(){
   const SC_ORDER=['recipes','folders','menu','backup','settings'];
   // IDs von Overlays/Modals — bei offenen Panels kein Seitenwechsel
-  const MODAL_IDS=['mv','importOv','exportOv','aiBookOv','apikeyOv','courseSheet','spellModal',
+  const MODAL_IDS=['mv','importOv','exportOv','aiBookOv','aiCostOv','apikeyOv','courseSheet','spellModal',
     'aip','aslBg','ob-wizard-bg','ob-helper-bg','ob-settings-bg','ob-scan-ov',
     'manualOv','bvaultModal'];
   function anyModalOpen(){
@@ -8472,6 +8637,7 @@ boot();
     {id:'bvaultModal',    close:function(){var e=document.getElementById('bvaultModal');if(e)e.style.display='none';}},
     {id:'importOv',       close:function(){closeImport();}},
     {id:'exportOv',       close:function(){closeExport();}},
+    {id:'aiCostOv',       close:function(){closeAiCost();}},
     {id:'aiBookOv',       close:function(){closeAiBook();}},
     {id:'apikeyOv',       close:function(){closeApiKeyOv();}},
     {id:'courseSheet',    close:function(){closeCSheet();}},
