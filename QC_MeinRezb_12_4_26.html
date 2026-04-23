@@ -1495,6 +1495,25 @@ button:active{transform:scale(0.97)}
 .srch-act-btn.add{background:var(--rust);color:#fff}
 @media(max-width:380px){.srch-act-btn{padding:0 6px;font-size:.6rem}}
 
+/* ── KI-Zine ──────────────────────────────────────────── */
+.zine-mode-ov{position:fixed;inset:0;background:rgba(0,0,0,.58);z-index:920;display:flex;align-items:center;justify-content:center}
+.zine-mode-card{background:var(--parch);border-radius:16px;padding:20px 18px;max-width:320px;width:90%;margin:0 auto;box-shadow:0 8px 32px rgba(0,0,0,.24)}
+.zine-mode-title{font-size:1.05rem;font-weight:700;color:var(--ink);margin-bottom:3px;font-family:Georgia,serif}
+.zine-mode-meta{font-size:.78rem;color:var(--br3);margin-bottom:10px}
+.zine-cost-box{background:var(--sand2);border-radius:8px;padding:9px 12px;font-size:.78rem;color:var(--br3);margin-bottom:14px;line-height:1.65}
+.zine-mode-btn{padding:11px 8px;border:1.5px solid var(--teal);border-radius:10px;background:var(--teals);color:var(--teal);font-size:.88rem;font-weight:700;cursor:pointer;text-align:center;line-height:1.5;transition:background .15s,color .15s}
+.zine-mode-btn:hover{background:var(--teal);color:#fff}
+.zine-cancel-btn{width:100%;padding:9px;background:var(--sand);border:1px solid var(--sand2);border-radius:8px;font-size:.84rem;color:var(--br3);cursor:pointer}
+.zine-pages{display:flex;flex-direction:column;gap:16px;padding:12px}
+.zine-page-lbl{font-size:.72rem;font-weight:700;color:var(--teal);margin-bottom:5px;text-transform:uppercase;letter-spacing:.05em}
+.zine-page{border-radius:10px;overflow:hidden;border:1px solid var(--sand2);background:var(--sand);min-height:110px;display:flex;align-items:center;justify-content:center}
+.zine-page img{width:100%;display:block}
+.zine-loading{padding:32px 16px;text-align:center;font-size:.85rem;color:var(--br3)}
+.zine-err{padding:20px 16px;text-align:center;font-size:.8rem;color:var(--rust)}
+.zine-pulse{animation:zpulse 1.4s ease-in-out infinite;display:inline-block}
+@keyframes zpulse{0%,100%{opacity:.35}50%{opacity:1}}
+.zine-save-btn{margin-top:6px;width:100%;padding:9px;background:var(--teals);border:1.5px solid var(--teal);border-radius:8px;font-size:.82rem;color:var(--teal);cursor:pointer;font-weight:700;transition:background .15s,color .15s}
+.zine-save-btn:hover{background:var(--teal);color:#fff}
 
 </style>
 <link rel="apple-touch-icon" href="data:image/png;base64,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">
@@ -1862,6 +1881,12 @@ button:active{transform:scale(0.97)}
           <div class="sett-sub" id="sApiKeySub">Zugangscode verwalten</div></div>
         <div class="sett-arr">›</div>
       </div>
+      <div class="sett-row" onclick="openImport();switchFovTab('importOv','imggen',document.getElementById('impTabImgGen'))">
+        <div class="sett-ico">🎨</div>
+        <div class="sett-body"><div class="sett-lbl" id="sImgGenLbl">DALL-E Bildschlüssel</div>
+          <div class="sett-sub" id="sImgGenSub">OpenAI-Key für KI-Bilder</div></div>
+        <div class="sett-arr">›</div>
+      </div>
     </div>
     <div class="sett-sec" id="a11ySec">
       <div class="sett-head" id="sA11yHead">♿ BARRIEREFREIHEIT</div>
@@ -1987,6 +2012,7 @@ Vielen Dank für deine Unterstützung.</div>
     <div class="fovtab" onclick="switchFovTab('importOv','scan',this)" id="impTabScan" title="Rezept per KI-Scan erkennen">📄 KI-Scan</div>
     <div class="fovtab" onclick="switchFovTab('importOv','txt',this)" id="impTabTxt" title="Rezepttext eingeben">📝 Text</div>
     <div class="fovtab" onclick="switchFovTab('importOv','json',this)" id="impTabJson" title="Gespeicherte Rezeptsammlung laden">📥 Rezept laden</div>
+    <div class="fovtab" onclick="switchFovTab('importOv','imggen',this)" id="impTabImgGen" title="KI-Bild für Rezept erzeugen">🎨 KI-Bild</div>
   </div>
   <div class="fov-body">
     <div class="fov-pane on" id="imp-img">
@@ -2246,6 +2272,50 @@ Vielen Dank für deine Unterstützung.</div>
 
       </div>
     </div>
+
+    <div class="fov-pane" id="imp-imggen">
+      <div id="imggenSetup">
+        <div style="background:var(--teals);border-radius:10px;padding:12px 14px;margin-bottom:14px;border:1.5px solid var(--teal)">
+          <div style="font-size:.94rem;font-weight:700;color:var(--teal);font-family:Georgia,serif;margin-bottom:6px" id="imggenSetupTitleEl">🎨 KI-Bildgenerierung einrichten</div>
+          <div style="font-size:.76rem;color:#1e4a45;line-height:1.55" id="imggenSetupDescEl">Erzeugt automatisch ein appetitliches Foto für jedes Rezept — mit OpenAI DALL·E 3. Du brauchst dafür einen eigenen OpenAI API-Schlüssel.</div>
+        </div>
+        <div class="paste-box" style="margin-bottom:12px">
+          <div class="paste-box-label">🔑 <span id="imggenKeyLblEl">OpenAI API-Schlüssel</span></div>
+          <div class="paste-row">
+            <input class="scan-key-in" id="imggenKeyIn" type="password"
+              placeholder="sk-…"
+              oninput="onImgGenKeyInput(this.value)"
+              onkeydown="if(event.key==='Enter')saveAndActivateImgGen()"/>
+            <button class="paste-btn" onclick="pasteImgGenKey()" id="imggenPasteBtn" title="Schlüssel aus Zwischenablage einfügen">📋 Einfügen</button>
+          </div>
+          <button class="scan-key-btn" id="imggenSaveBtn" onclick="saveAndActivateImgGen()" disabled title="OpenAI-Schlüssel speichern und aktivieren">🚀 <span id="imggenSaveBtnLbl">Speichern & aktivieren</span></button>
+          <div class="scan-key-note">🔒 <span id="imggenHintEl">Bleibt nur auf deinem Gerät — wird niemals weitergegeben</span></div>
+        </div>
+        <div style="background:var(--sand2);border-radius:8px;padding:10px 12px;font-size:.74rem;color:var(--br3);line-height:1.65" id="imggenHowToEl">
+          <strong>So erhältst du deinen Schlüssel:</strong><br>
+          1. <a href="https://platform.openai.com/api-keys" target="_blank" rel="noopener" style="color:var(--teal)">platform.openai.com/api-keys</a> → „Create new secret key"<br>
+          2. Schlüssel kopieren (beginnt mit <code style="background:rgba(0,0,0,.07);padding:1px 4px;border-radius:3px;font-size:.68rem">sk-…</code>)<br>
+          3. Hier einfügen &amp; speichern<br>
+          <br>💡 Ein Bild kostet ~0,04 $ · Abrechnung direkt bei OpenAI
+        </div>
+      </div>
+
+      <div id="imggenMain" style="display:none">
+        <div class="scan-ready-bar">
+          <div class="scan-ready-ico">🎨</div>
+          <div class="scan-ready-txt">
+            <div class="scan-ready-lbl" id="imggenReadyLbl">KI-Bild aktiv</div>
+            <div class="scan-ready-sub" id="imggenReadySub">Schlüssel gespeichert</div>
+          </div>
+          <button class="scan-key-change" onclick="showImgGenSetup()" id="imggenChangeLbl" title="Schlüssel ändern">ändern</button>
+        </div>
+        <div style="background:var(--teals);border-radius:10px;padding:14px;border:1.5px solid var(--teal);margin-top:12px">
+          <div style="font-size:.88rem;font-weight:700;color:var(--teal);margin-bottom:6px" id="imggenReadyTitleEl">✅ Bereit zur Bildgenerierung</div>
+          <div style="font-size:.76rem;color:#1e4a45;line-height:1.55" id="imggenReadyDescEl">Du kannst jetzt in jedem Rezept auf das 🎨-Symbol tippen, um automatisch ein KI-generiertes Bild zu erstellen.</div>
+        </div>
+      </div>
+    </div>
+
     <div class="fov-pane" id="imp-json">
       <div style="background:var(--teals);border-radius:10px;padding:12px 14px;margin-bottom:14px;border:1.5px solid var(--teal)">
         <div style="font-size:.94rem;font-weight:700;color:var(--teal);font-family:Georgia,serif;margin-bottom:4px" id="bakTitle">📥 Rezeptsammlung laden</div>
@@ -2742,7 +2812,7 @@ const LANGS={
     mvTitle:'Mein Menü',mvTabTl:'🗓️ Ablauf',mvTabSh:'🛒 Einkaufen',mvTabCk:'👩‍🍳 Kochen',mvTabAl:'📋 Gesamt',
     mvPrint:'🖨️ Drucken / PDF',mvClose:'Schließen',
     bnRec:'Rezepte',bnFld:'Ordner',bnMen:'Menü',bnSet:'Einst.',bnBv:'Tresor',
-    impTitle:'📥 Importieren',impTabImg:'🖼️ Bilder',impTabWeb:'🌐 Web',impTabScan:'📄 KI-Scan',impTabTxt:'📝 Text',impTabJson:'📥 Rezept laden',
+    impTitle:'📥 Importieren',impTabImg:'🖼️ Bilder',impTabWeb:'🌐 Web',impTabScan:'📄 KI-Scan',impTabTxt:'📝 Text',impTabJson:'📥 Rezept laden',impTabImgGen:'🎨 KI-Bild',
     imgDropLbl:'Bilder auswählen oder hierher ziehen',
     imgInfoTitle:'🖼️ Bilder zu Rezepten hinzufügen',
     imgInfoDesc:'Wähle ein oder mehrere Fotos aus oder ziehe sie direkt hierher. Weise danach jedem Bild ein Rezept zu — das Foto wird dann automatisch dem gewählten Rezept zugeordnet.',
@@ -2859,6 +2929,12 @@ const LANGS={
     ,txtSc3T:'Code hier einfügen — fertig!'
     ,sKiZugang:'🔑 KI-ZUGANGSCODE'
     ,sApiKeySub:'Zugangscode verwalten'
+    ,sImgGenLbl:'DALL-E Bildschlüssel'
+    ,sImgGenSub:'OpenAI-Key für KI-Bilder'
+    ,zineBtnTitle:'KI-Zine erstellen'
+    ,freeFotoBtnTitle:'Gratis KI-Foto erzeugen'
+    ,freeFotoLoading:'KI-Foto wird generiert…'
+    ,freeFotoDone:'Foto erfolgreich erstellt!'
     ,apiKeyOvTitle:'🔑 Was ist ein API-Key?'
     ,apiKeyHelpTtl:'Fragen und Hilfe zum API-Key'
     ,sManualHead:'📚 HANDBUCH'
@@ -2876,7 +2952,7 @@ const LANGS={
     mvTitle:'My Menu',mvTabTl:'🗓️ Overview',mvTabSh:'🛒 Shopping',mvTabCk:'👩‍🍳 Cooking',mvTabAl:'📋 Total',
     mvPrint:'🖨️ Print / PDF',mvClose:'Close',
     bnRec:'Recipes',bnFld:'Folders',bnMen:'Planner',bnSet:'Settings',bnBv:'Vault',
-    impTitle:'📥 Import',impTabImg:'🖼️ Images',impTabWeb:'🌐 Web',impTabScan:'📄 AI Scan',impTabTxt:'📝 Text',impTabJson:'📥 Load recipes',
+    impTitle:'📥 Import',impTabImg:'🖼️ Images',impTabWeb:'🌐 Web',impTabScan:'📄 AI Scan',impTabTxt:'📝 Text',impTabJson:'📥 Load recipes',impTabImgGen:'🎨 AI Image',
     imgDropLbl:'Select images or drag here',
     imgInfoTitle:'🖼️ Add images to recipes',
     imgInfoDesc:'Select one or more photos or drag them here. Then assign each image to a recipe — the photo will be automatically linked to the chosen recipe.',
@@ -2993,6 +3069,12 @@ const LANGS={
     ,txtSc3T:'Paste code here — done!'
     ,sKiZugang:'🔑 AI ACCESS CODE'
     ,sApiKeySub:'Manage access code'
+    ,sImgGenLbl:'DALL-E Image Key'
+    ,sImgGenSub:'OpenAI key for AI images'
+    ,zineBtnTitle:'Create AI Zine'
+    ,freeFotoBtnTitle:'Free AI photo'
+    ,freeFotoLoading:'Generating AI photo…'
+    ,freeFotoDone:'Photo created!'
     ,apiKeyOvTitle:'🔑 What is an API Key?'
     ,apiKeyHelpTtl:'Questions & help about the API Key'
     ,sManualHead:'📚 MANUAL'
@@ -3010,7 +3092,7 @@ const LANGS={
     mvTitle:'Моё меню',mvTabTl:'🗓️ Обзор',mvTabSh:'🛒 Покупки',mvTabCk:'👩‍🍳 Готовка',mvTabAl:'📋 Итого',
     mvPrint:'🖨️ Печать / PDF',mvClose:'Закрыть',
     bnRec:'Рецепты',bnFld:'Папки',bnMen:'Планир.',bnSet:'Настр.',bnBv:'Архив',
-    impTitle:'📥 Импорт',impTabImg:'🖼️ Фото',impTabWeb:'🌐 Интернет',impTabScan:'📄 ИИ-скан',impTabTxt:'📝 Текст',impTabJson:'📥 Загрузить',
+    impTitle:'📥 Импорт',impTabImg:'🖼️ Фото',impTabWeb:'🌐 Интернет',impTabScan:'📄 ИИ-скан',impTabTxt:'📝 Текст',impTabJson:'📥 Загрузить',impTabImgGen:'🎨 ИИ-Фото',
     imgDropLbl:'Выбрать фото или перетащить',
     imgInfoTitle:'🖼️ Добавить фото к рецептам',
     imgInfoDesc:'Выберите одно или несколько фото или перетащите их сюда. Затем назначьте каждому фото рецепт — фотография будет автоматически привязана к выбранному рецепту.',
@@ -3127,6 +3209,12 @@ const LANGS={
     ,txtSc3T:'Вставьте код сюда — готово!'
     ,sKiZugang:'🔑 КОД ДОСТУПА ИИ'
     ,sApiKeySub:'Управление кодом доступа'
+    ,sImgGenLbl:'DALL-E ключ'
+    ,sImgGenSub:'OpenAI-ключ для изображений'
+    ,zineBtnTitle:'Создать ИИ-Zine'
+    ,freeFotoBtnTitle:'Бесплатное ИИ-фото'
+    ,freeFotoLoading:'Генерация фото…'
+    ,freeFotoDone:'Фото создано!'
     ,apiKeyOvTitle:'🔑 Что такое API-ключ?'
     ,apiKeyHelpTtl:'Вопросы и помощь по API-ключу'
     ,sManualHead:'📚 РУКОВОДСТВО'
@@ -3144,7 +3232,7 @@ const LANGS={
     mvTitle:'我的菜单',mvTabTl:'🗓️ 概览',mvTabSh:'🛒 购物',mvTabCk:'👩‍🍳 烹饪',mvTabAl:'📋 汇总',
     mvPrint:'🖨️ 打印 / PDF',mvClose:'关闭',
     bnRec:'食谱',bnFld:'文件夹',bnMen:'菜单计划',bnSet:'设置',bnBv:'备份',
-    impTitle:'📥 导入',impTabImg:'🖼️ 图片',impTabWeb:'🌐 网络',impTabScan:'📄 AI扫描',impTabTxt:'📝 文本',impTabJson:'📥 加载食谱',
+    impTitle:'📥 导入',impTabImg:'🖼️ 图片',impTabWeb:'🌐 网络',impTabScan:'📄 AI扫描',impTabTxt:'📝 文本',impTabJson:'📥 加载食谱',impTabImgGen:'🎨 AI图片',
     imgDropLbl:'选择或拖拽图片至此',
     imgInfoTitle:'🖼️ 为食谱添加图片',
     imgInfoDesc:'选择一张或多张照片，或直接拖放至此。然后为每张图片指定一个食谱——照片将自动关联到所选食谱。',
@@ -3261,6 +3349,12 @@ const LANGS={
     ,txtSc3T:'在此粘贴代码 — 完成！'
     ,sKiZugang:'🔑 AI访问码'
     ,sApiKeySub:'管理访问码'
+    ,sImgGenLbl:'DALL-E 图片密钥'
+    ,sImgGenSub:'用于AI图片的OpenAI密钥'
+    ,zineBtnTitle:'创建AI Zine'
+    ,freeFotoBtnTitle:'免费AI照片'
+    ,freeFotoLoading:'正在生成AI照片…'
+    ,freeFotoDone:'照片已创建！'
     ,apiKeyOvTitle:'🔑 什么是API密钥？'
     ,apiKeyHelpTtl:'关于API密钥的问题与帮助'
     ,sManualHead:'📚 手册'
@@ -3278,7 +3372,7 @@ const LANGS={
     mvTitle:'Mi menú',mvTabTl:'🗓️ Orden',mvTabSh:'🛒 Comprar',mvTabCk:'👩‍🍳 Cocinar',mvTabAl:'📋 Total',
     mvPrint:'🖨️ Imprimir / PDF',mvClose:'Cerrar',
     bnRec:'Recetas',bnFld:'Carpetas',bnMen:'Planif.',bnSet:'Ajustes',bnBv:'Bóveda',
-    impTitle:'📥 Importar',impTabImg:'🖼️ Imágenes',impTabWeb:'🌐 Web',impTabScan:'📄 Scan IA',impTabTxt:'📝 Texto',impTabJson:'📥 Cargar recetas',
+    impTitle:'📥 Importar',impTabImg:'🖼️ Imágenes',impTabWeb:'🌐 Web',impTabScan:'📄 Scan IA',impTabTxt:'📝 Texto',impTabJson:'📥 Cargar recetas',impTabImgGen:'🎨 IA Imagen',
     imgDropLbl:'Seleccionar imágenes o arrastrar aquí',
     imgInfoTitle:'🖼️ Añadir imágenes a recetas',
     imgInfoDesc:'Selecciona una o varias fotos o arrástralas aquí. Luego asigna cada imagen a una receta — la foto se vinculará automáticamente a la receta elegida.',
@@ -3393,6 +3487,12 @@ const LANGS={
     ,txtSc3T:'¡Pega el código aquí — listo!'
     ,sKiZugang:'🔑 CÓDIGO DE ACCESO IA'
     ,sApiKeySub:'Gestionar código de acceso'
+    ,sImgGenLbl:'Clave DALL-E'
+    ,sImgGenSub:'Clave OpenAI para imágenes IA'
+    ,zineBtnTitle:'Crear Zine IA'
+    ,freeFotoBtnTitle:'Foto IA gratis'
+    ,freeFotoLoading:'Generando foto IA…'
+    ,freeFotoDone:'¡Foto creada!'
     ,apiKeyOvTitle:'🔑 ¿Qué es un API Key?'
     ,apiKeyHelpTtl:'Preguntas y ayuda sobre el API Key'
     ,sManualHead:'📚 MANUAL'
@@ -3438,7 +3538,7 @@ const LANGS={
     impTabWeb:'🌐 Web',
     impTabScan:'📄 Scan IA',
     impTabTxt:'📝 Texte',
-    impTabJson:'📥 Charger recettes',
+    impTabJson:'📥 Charger recettes',impTabImgGen:'🎨 IA Image',
     imgDropLbl:'Sélectionner des images',
     imgInfoTitle:'🖼️ Ajouter des images aux recettes',
     imgInfoDesc:'Sélectionnez une ou plusieurs photos ou faites-les glisser ici. Associez ensuite chaque image à une recette — la photo sera automatiquement liée à la recette choisie.',
@@ -3636,6 +3736,12 @@ const LANGS={
     ,txtSc3T:'Collez le code ici — c\'est fait !'
     ,sKiZugang:'🔑 CODE D\'ACCÈS IA'
     ,sApiKeySub:'Gérer le code d\'accès'
+    ,sImgGenLbl:'Clé DALL-E'
+    ,sImgGenSub:'Clé OpenAI pour images IA'
+    ,zineBtnTitle:'Créer Zine IA'
+    ,freeFotoBtnTitle:'Photo IA gratuite'
+    ,freeFotoLoading:'Génération photo IA…'
+    ,freeFotoDone:'Photo créée !'
     ,apiKeyOvTitle:'🔑 Qu\'est-ce qu\'une clé API ?'
     ,apiKeyHelpTtl:'Questions et aide sur la clé API'
     ,sManualHead:'📚 MANUEL'
@@ -3681,7 +3787,7 @@ const LANGS={
     impTabWeb:'🌐 Web',
     impTabScan:'📄 Scan IA',
     impTabTxt:'📝 Testo',
-    impTabJson:'📥 Carica ricette',
+    impTabJson:'📥 Carica ricette',impTabImgGen:'🎨 IA Immagine',
     imgDropLbl:'Seleziona immagini',
     imgInfoTitle:'🖼️ Aggiungi immagini alle ricette',
     imgInfoDesc:'Seleziona una o più foto o trascinale qui. Poi assegna ogni immagine a una ricetta — la foto verrà collegata automaticamente alla ricetta scelta.',
@@ -3879,6 +3985,12 @@ const LANGS={
     ,txtSc3T:'Incolla il codice qui — fatto!'
     ,sKiZugang:'🔑 CODICE DI ACCESSO IA'
     ,sApiKeySub:'Gestire il codice di accesso'
+    ,sImgGenLbl:'Chiave DALL-E'
+    ,sImgGenSub:'Chiave OpenAI per immagini IA'
+    ,zineBtnTitle:'Crea Zine IA'
+    ,freeFotoBtnTitle:'Foto IA gratuita'
+    ,freeFotoLoading:'Generazione foto IA…'
+    ,freeFotoDone:'Foto creata!'
     ,apiKeyOvTitle:'🔑 Cos\'è una chiave API?'
     ,apiKeyHelpTtl:'Domande e aiuto sulla chiave API'
     ,sManualHead:'📚 MANUALE'
@@ -3924,7 +4036,7 @@ const LANGS={
     impTabWeb:'🌐 Web',
     impTabScan:'📄 Scan IA',
     impTabTxt:'📝 Texto',
-    impTabJson:'📥 Carregar receitas',
+    impTabJson:'📥 Carregar receitas',impTabImgGen:'🎨 IA Imagem',
     imgDropLbl:'Selecionar imagens',
     imgInfoTitle:'🖼️ Adicionar imagens às receitas',
     imgInfoDesc:'Selecione uma ou mais fotos ou arraste-as para aqui. De seguida, associe cada imagem a uma receita — a foto será automaticamente ligada à receita escolhida.',
@@ -4117,6 +4229,12 @@ const LANGS={
     ,txtSaveKey:'Guardar e começar'
     ,sKiZugang:'🔑 CÓDIGO DE ACESSO IA'
     ,sApiKeySub:'Gerir código de acesso'
+    ,sImgGenLbl:'Chave DALL-E'
+    ,sImgGenSub:'Chave OpenAI para imagens IA'
+    ,zineBtnTitle:'Criar Zine IA'
+    ,freeFotoBtnTitle:'Foto IA gratuita'
+    ,freeFotoLoading:'A gerar foto IA…'
+    ,freeFotoDone:'Foto criada!'
     ,apiKeyOvTitle:'🔑 O que é uma chave API?'
     ,apiKeyHelpTtl:'Perguntas e ajuda sobre a chave API'
     ,sManualHead:'📚 MANUAL'
@@ -4673,6 +4791,9 @@ function updateSettings(){
   var _skh=document.getElementById('sKiHelpBtn');if(_skh)_skh.title=T('apiKeyHelpTtl');
   var _sal=document.getElementById('sApiKeyLbl');if(_sal)_sal.textContent=T('apiKeyLbl');
   var _sas=document.getElementById('sApiKeySub');if(_sas)_sas.textContent=T('sApiKeySub');
+  var _sigl=document.getElementById('sImgGenLbl');if(_sigl)_sigl.textContent=T('sImgGenLbl');
+  var _sigs=document.getElementById('sImgGenSub');if(_sigs)_sigs.textContent=T('sImgGenSub');
+  var _igtab=document.getElementById('impTabImgGen');if(_igtab)_igtab.textContent=T('impTabImgGen');
   applyA11y();
 }
 
@@ -4916,6 +5037,7 @@ function switchFovTab(ovId,tab,el){
   document.getElementById('imp-'+tab)?.classList.add('on');
   if(tab==='scan')initScanPane();
   if(tab==='txt')initTxtPane();
+  if(tab==='imggen')initImgGenPane();
 }
 
 // ═══════════════════════════════════════════════════════
@@ -5332,6 +5454,84 @@ function selectScanModel(key){
 
 // ── SCAN: KEY MANAGEMENT ──────────────────────────────
 function getSavedKey(){return localStorage.getItem('claudeKey9m')||'';}
+
+// ── IMGGEN: KEY MANAGEMENT ────────────────────────────
+const OPENAI_IMG_KEY_LS='openaiImgKey9m';
+function getOpenAiImgKey(){return localStorage.getItem(OPENAI_IMG_KEY_LS)||'';}
+function saveOpenAiImgKey(key){if(key)localStorage.setItem(OPENAI_IMG_KEY_LS,key.trim());else localStorage.removeItem(OPENAI_IMG_KEY_LS);}
+
+async function validateOpenAiImgKey(key){
+  const resp=await fetch('https://api.openai.com/v1/models',{
+    headers:{'Authorization':'Bearer '+key,'Content-Type':'application/json'}
+  });
+  if(!resp.ok){
+    const e=await resp.json().catch(()=>({}));
+    if(resp.status===401)throw new Error('auth');
+    if(resp.status===429)throw new Error('ratelimit');
+    if(resp.status===402)throw new Error('billing');
+    throw new Error(e.error?.message||'HTTP '+resp.status);
+  }
+  return true;
+}
+
+function onImgGenKeyInput(v){
+  const btn=document.getElementById('imggenSaveBtn');
+  if(btn)btn.disabled=v.trim().length<20;
+  const inp=document.getElementById('imggenKeyIn');
+  if(inp)inp.style.borderColor=v.trim().startsWith('sk-')&&v.length>20?'var(--grn)':'var(--sand2)';
+}
+
+async function pasteImgGenKey(){
+  try{
+    const txt=await navigator.clipboard.readText();
+    const inp=document.getElementById('imggenKeyIn');
+    if(inp){inp.value=txt.trim();onImgGenKeyInput(txt.trim());inp.focus();}
+    if(txt.trim().startsWith('sk-'))toast('✅ Zugangscode eingefügt!');
+  }catch(e){
+    const inp=document.getElementById('imggenKeyIn');
+    if(inp){inp.focus();inp.select();}
+    toast('📋 Strg+V / Cmd+V zum Einfügen');
+  }
+}
+
+async function saveAndActivateImgGen(){
+  const v=document.getElementById('imggenKeyIn')?.value?.trim()||'';
+  if(!v)return;
+  const btn=document.getElementById('imggenSaveBtn');
+  const lbl=document.getElementById('imggenSaveBtnLbl');
+  if(btn)btn.disabled=true;
+  if(lbl)lbl.textContent='⏳ Prüfen…';
+  try{
+    await validateOpenAiImgKey(v);
+    saveOpenAiImgKey(v);
+    toast('✅ OpenAI-Schlüssel gespeichert!');
+    switchToImgGenMain();
+  }catch(e){
+    const msgs={auth:'❌ Ungültiger Key — bitte vollständig kopieren (beginnt mit sk-)',ratelimit:'⏳ Zu viele Anfragen — bitte kurz warten',billing:'💳 Kein Guthaben — bitte auf platform.openai.com/settings/billing aufladen'};
+    toast(msgs[e.message]||'❌ '+e.message);
+    if(btn)btn.disabled=false;
+    if(lbl)lbl.textContent='Speichern & aktivieren';
+  }
+}
+
+function switchToImgGenMain(){
+  document.getElementById('imggenSetup').style.display='none';
+  document.getElementById('imggenMain').style.display='block';
+  const key=getOpenAiImgKey();
+  const sub=document.getElementById('imggenReadySub');
+  if(sub&&key)sub.textContent=key.slice(0,7)+'…'+key.slice(-4);
+}
+
+function showImgGenSetup(){
+  document.getElementById('imggenSetup').style.display='block';
+  document.getElementById('imggenMain').style.display='none';
+  setTimeout(()=>{const inp=document.getElementById('imggenKeyIn');if(inp){inp.value='';inp.focus();}},100);
+}
+
+function initImgGenPane(){
+  if(getOpenAiImgKey()){switchToImgGenMain();}
+  else{document.getElementById('imggenSetup').style.display='block';document.getElementById('imggenMain').style.display='none';}
+}
 
 function onApiKeyInput(v){
   const btn=document.getElementById('scanSaveBtn');
@@ -7583,7 +7783,7 @@ function rndCard(r){
         <div class="chint">${r.shut?'▼ aufklappen':'▲ einklappen'}</div>
       </div>`}
     </div>
-    ${r.name&&!r.img?`<button class="imgbar" style="${r.shut?'display:none':''}" onclick="pickImgForCard(${r.id})">🖼️ ${T('addImg')}</button>`:r.img?`<div style="display:${r.shut?'none':'flex'};border-bottom:1px solid var(--sand2)"><button class="imgbar" style="flex:1" onclick="pickImgForCard(${r.id})">🖼️ ${T('addImg')}</button><button class="imgbar" style="flex:1;border-left:1px solid var(--sand2)" onclick="openCrop(${r.id})">✂️ ${T('cropBtn')}</button></div>`:''}
+    ${r.name?(()=>{const d=r.shut?'none':'flex';const crop=r.img?`<button class="imgbar" style="flex:1;border-left:1px solid var(--sand2)" onclick="openCrop(${r.id})">✂️ ${T('cropBtn')}</button>`:'';const free=`<button class="imgbar" onclick="generateFreePhoto(${r.id})" title="${T('freeFotoBtnTitle')}" style="padding:7px 11px;border-left:1px solid var(--sand2)">📸</button>`;const zine=getOpenAiImgKey()?`<button class="imgbar" onclick="openZineDialog(${r.id})" title="${T('zineBtnTitle')}" style="padding:7px 11px;border-left:1px solid var(--sand2)">🎨</button>`:'';return`<div style="display:${d};border-bottom:1px solid var(--sand2)"><button class="imgbar" style="flex:1" onclick="pickImgForCard(${r.id})">🖼️ ${T('addImg')}</button>${crop}${free}${zine}</div>`;})():''}
     ${r.name&&!isBlank?'':''}
     <div class="rbody ${r.shut?'shut':''}">
       ${isBlank?`<div style="padding:7px 11px;background:var(--teals);font-size:.72rem;color:#1e4a45;display:flex;gap:5px;border-bottom:1px solid var(--sand2)"><span>✏️</span>${T('blankHint')}</div>`:''}
@@ -8496,8 +8696,8 @@ function _initTooltips(){
 
 // ── IMPORT-OVERLAY: Tab-Swipe ─────────────────────────
 (function(){
-  const TAB_ORDER=['img','web','scan','txt','json'];
-  const TAB_EL={img:'impTabImg',web:'impTabWeb',scan:'impTabScan',txt:'impTabTxt',json:'impTabJson'};
+  const TAB_ORDER=['img','web','scan','txt','json','imggen'];
+  const TAB_EL={img:'impTabImg',web:'impTabWeb',scan:'impTabScan',txt:'impTabTxt',json:'impTabJson',imggen:'impTabImgGen'};
   function doImportSwipe(dx){
     const ov=document.getElementById('importOv');
     if(!ov||ov.style.display==='none')return;
@@ -11213,7 +11413,265 @@ function helpAction(type){
     }
   }, 150);
 }
+
+// ═══════════════════════════════════════════════════════
+// GRATIS KI-FOTO (Pollinations.ai – kein Key nötig)
+// ═══════════════════════════════════════════════════════
+const _POLL_BASE='https://image.pollinations.ai/prompt/';
+
+async function generateFreePhoto(rid){
+  const r=R.find(x=>x.id===rid);
+  if(!r||!r.name)return;
+  const btn=document.querySelector(`[onclick="generateFreePhoto(${rid})"]`);
+  if(btn){btn.disabled=true;btn.textContent='⏳';}
+  toast('⏳ '+T('freeFotoLoading'));
+  try{
+    const prompt=encodeURIComponent(
+      r.name+', food photography, professional, appetizing, natural lighting, close-up, restaurant quality'
+    );
+    const url=_POLL_BASE+prompt+'?width=512&height=768&model=flux&nologo=true&seed='+Date.now();
+    const resp=await fetch(url);
+    if(!resp.ok)throw new Error('HTTP '+resp.status);
+    const blob=await resp.blob();
+    const dataUrl=await new Promise(res=>{const fr=new FileReader();fr.onload=()=>res(fr.result);fr.readAsDataURL(blob);});
+    r.img=dataUrl;
+    r.imgCrop={x:50,y:50,scale:1};
+    save();
+    render();
+    toast('✅ '+T('freeFotoDone'));
+    setTimeout(()=>openCrop(rid),300);
+  }catch(e){
+    toast('❌ '+e.message);
+  }finally{
+    if(btn){btn.disabled=false;btn.textContent='📸';}
+  }
+}
+
+// ═══════════════════════════════════════════════════════
+// KI-ZINE
+// ═══════════════════════════════════════════════════════
+
+let _zineRid=null;
+let _zineB64s=[null,null,null];
+const _ZINE_IMG_URL='https://api.openai.com/v1/images/generations';
+
+// ── Prompts ───────────────────────────────────────────
+function buildZinePrompts(r){
+  const name=r.name||'Rezept';
+  const ings=(r.ings||[]).slice(0,8).map(i=>[i.amt,i.unit,i.name].filter(Boolean).join(' ')).filter(Boolean).join(', ')||'verschiedene Zutaten';
+  const stepsArr=(r.steps||[]).slice(0,6);
+  const steps=stepsArr.map((s,i)=>`${i+1}. ${((s.text||s)||'').slice(0,90)}`).join(' | ')||'Zubereitung folgen';
+  const srv=r.servings||4;
+  const base='Professional full-page food magazine layout, A4 portrait format, vivid appetizing colors, modern German food magazine style, no watermarks, no borders.';
+  return[
+    `${base} COVER PAGE for recipe "${name}". Top half: large realistic hero food photo of the dish. Bottom half: bold headline "${name}", one-line German tagline, small ingredient icons/photos for: ${ings}, badge "Für ${srv} Personen". German text only. Magazine quality.`,
+    `${base} STEP-BY-STEP cooking guide page. Headline "Step-by-Step". Recipe: "${name}". ${stepsArr.length||4} numbered step cards, each with a small food photo and brief German text: ${steps}. Bottom: prep time, cook time, portion badge. Clean instructional magazine layout. German text only.`,
+    `${base} HEALTH & TIPS info page. Headline "Gesundheit & Tipps". Recipe: "${name}". Circular nutrition pie chart (protein, carbs, fat, vitamins). Three health benefit icons with German text. Two serving variation suggestions. One highlighted pro-tip box. Footer sustainability note. Colorful infographic style. German text only.`
+  ];
+}
+
+// ── Hilfsfunktionen Viewer ────────────────────────────
+function _zineShowImg(idx,dataUrl,final){
+  const img=document.getElementById('zineImg'+idx);
+  const load=document.getElementById('zineLoad'+idx);
+  if(img){img.src=dataUrl;img.style.display='block';}
+  if(load&&final)load.style.display='none';
+  if(final){
+    const save=document.getElementById('zineSave'+idx);
+    if(save)save.style.display='block';
+  }
+}
+function _zineSetLoading(idx,on){
+  const load=document.getElementById('zineLoad'+idx);
+  const img=document.getElementById('zineImg'+idx);
+  const err=document.getElementById('zineErr'+idx);
+  if(load)load.style.display=on?'block':'none';
+  if(img&&on)img.style.display='none';
+  if(err)err.style.display='none';
+}
+function _zineSetError(idx,msg){
+  const load=document.getElementById('zineLoad'+idx);
+  const err=document.getElementById('zineErr'+idx);
+  if(load)load.style.display='none';
+  if(err){err.style.display='block';err.textContent='❌ '+msg;}
+}
+
+// ── API: Sofort (kein Streaming) ──────────────────────
+async function _zineGenInstant(prompt){
+  const resp=await fetch(_ZINE_IMG_URL,{
+    method:'POST',
+    headers:{'Authorization':'Bearer '+getOpenAiImgKey(),'Content-Type':'application/json'},
+    body:JSON.stringify({model:'gpt-image-1',prompt,n:1,size:'1024x1536',quality:'standard',output_format:'jpeg'})
+  });
+  if(!resp.ok){const e=await resp.json().catch(()=>({}));throw new Error(e.error?.message||'HTTP '+resp.status);}
+  const data=await resp.json();
+  return data.data?.[0]?.b64_json||null;
+}
+
+// ── API: Live-Aufbau (SSE Streaming) ─────────────────
+async function _zineGenStream(prompt,idx){
+  const resp=await fetch(_ZINE_IMG_URL,{
+    method:'POST',
+    headers:{'Authorization':'Bearer '+getOpenAiImgKey(),'Content-Type':'application/json'},
+    body:JSON.stringify({model:'gpt-image-1',prompt,n:1,size:'1024x1536',quality:'standard',output_format:'jpeg',stream:true,partial_images:3})
+  });
+  if(!resp.ok){const e=await resp.json().catch(()=>({}));throw new Error(e.error?.message||'HTTP '+resp.status);}
+  const reader=resp.body.getReader();
+  const dec=new TextDecoder();
+  let buf='',finalB64=null;
+  while(true){
+    const{done,value}=await reader.read();
+    if(done)break;
+    buf+=dec.decode(value,{stream:true});
+    const lines=buf.split('\n');
+    buf=lines.pop();
+    for(const line of lines){
+      if(!line.startsWith('data: '))continue;
+      const raw=line.slice(6).trim();
+      if(raw==='[DONE]')continue;
+      try{
+        const ev=JSON.parse(raw);
+        if(ev.b64_json){
+          const isFinal=ev.type==='image';
+          _zineShowImg(idx,'data:image/jpeg;base64,'+ev.b64_json,isFinal);
+          if(isFinal)finalB64=ev.b64_json;
+        }
+      }catch(e){}
+    }
+  }
+  return finalB64;
+}
+
+// ── Start ─────────────────────────────────────────────
+async function startZine(mode){
+  closeZineDialog();
+  const r=R.find(x=>x.id===_zineRid);
+  if(!r)return;
+  openZine(r.name);
+  const prompts=buildZinePrompts(r);
+  _zineB64s=[null,null,null];
+  for(let i=0;i<3;i++)_zineSetLoading(i,true);
+
+  if(mode==='stream'){
+    // Seite für Seite mit Streaming
+    for(let i=0;i<3;i++){
+      try{
+        const b64=await _zineGenStream(prompts[i],i);
+        _zineB64s[i]=b64;
+        _zineSetLoading(i,false);
+      }catch(e){_zineSetError(i,e.message);}
+    }
+  }else{
+    // Sofort: alle 3 parallel
+    const jobs=prompts.map((p,i)=>
+      _zineGenInstant(p).then(b64=>{
+        _zineB64s[i]=b64;
+        _zineShowImg(i,'data:image/jpeg;base64,'+b64,true);
+        _zineSetLoading(i,false);
+      }).catch(e=>_zineSetError(i,e.message))
+    );
+    await Promise.allSettled(jobs);
+  }
+}
+
+// ── Dialog-Steuerung ──────────────────────────────────
+function openZineDialog(rid){
+  _zineRid=rid;
+  document.getElementById('zineModeDialog').style.display='flex';
+}
+function closeZineDialog(){
+  document.getElementById('zineModeDialog').style.display='none';
+}
+
+// ── Viewer-Steuerung ──────────────────────────────────
+function openZine(name){
+  const ov=document.getElementById('zineOv');
+  const ttl=document.getElementById('zineTitleEl');
+  if(ttl)ttl.textContent='✨ '+name;
+  // Reset aller Seiten
+  for(let i=0;i<3;i++){
+    _zineSetLoading(i,false);
+    const img=document.getElementById('zineImg'+i);
+    const err=document.getElementById('zineErr'+i);
+    const save=document.getElementById('zineSave'+i);
+    if(img){img.src='';img.style.display='none';}
+    if(err)err.style.display='none';
+    if(save)save.style.display='none';
+  }
+  ov.style.display='flex';
+}
+function closeZine(){
+  document.getElementById('zineOv').style.display='none';
+}
+
+// ── Seite als Rezeptbild speichern ────────────────────
+function saveZinePage(idx){
+  const b64=_zineB64s[idx];
+  const r=R.find(x=>x.id===_zineRid);
+  if(!b64||!r)return;
+  r.img='data:image/jpeg;base64,'+b64;
+  r.imgCrop={x:50,y:50,scale:1};
+  save();
+  render();
+  toast('✅ Bild als Rezeptbild gespeichert!');
+  setTimeout(()=>closeZine(),400);
+}
 </script>
+
+<!-- ── KI-Zine: Modus-Auswahl ──────────────────────────── -->
+<div id="zineModeDialog" class="zine-mode-ov" style="display:none" onclick="if(event.target===this)closeZineDialog()">
+  <div class="zine-mode-card">
+    <div class="zine-mode-title" id="zineModeTitle">✨ KI-Zine erstellen</div>
+    <div class="zine-mode-meta" id="zineModeMeta">📄 3 Seiten · 3 Bilder · ~30 Sek.</div>
+    <div class="zine-cost-box">
+      <span id="zineCostLbl">Geschätzte Kosten: <strong>~0,17 $</strong></span><br>
+      <span id="zineCostNote">Von deinem OpenAI-Guthaben</span>
+    </div>
+    <div style="display:flex;gap:8px;margin-top:4px">
+      <button class="zine-cancel-btn" onclick="closeZineDialog()" id="zineCancelBtn" style="flex:1">Abbrechen</button>
+      <button class="zine-mode-btn" onclick="startZine('stream')" id="zineBtnCreate" style="flex:2;margin:0;padding:11px 8px">✨ <span id="zineBtnCreateLbl">Jetzt erstellen</span></button>
+    </div>
+  </div>
+</div>
+
+<!-- ── KI-Zine: Viewer ─────────────────────────────────── -->
+<div class="fov" id="zineOv" style="display:none">
+  <div class="fov-hdr">
+    <button class="fov-back" onclick="closeZine()" title="Zurück">←</button>
+    <div class="fov-title" id="zineTitleEl">✨ KI-Zine</div>
+  </div>
+  <div class="fov-body">
+    <div class="zine-pages">
+      <div>
+        <div class="zine-page-lbl" id="zinePageLbl0">📰 Seite 1 · Cover</div>
+        <div class="zine-page" id="zinePage0">
+          <div class="zine-loading" id="zineLoad0"><span class="zine-pulse" id="zineLoadTxt0">⏳ Seite 1 wird erstellt…</span></div>
+          <img id="zineImg0" src="" alt="" style="display:none"/>
+          <div class="zine-err" id="zineErr0" style="display:none"></div>
+        </div>
+        <button class="zine-save-btn" id="zineSave0" style="display:none" onclick="saveZinePage(0)" title="Dieses Bild als Rezeptbild speichern">🖼️ Als Rezeptbild speichern</button>
+      </div>
+      <div>
+        <div class="zine-page-lbl" id="zinePageLbl1">📋 Seite 2 · Schritt für Schritt</div>
+        <div class="zine-page" id="zinePage1">
+          <div class="zine-loading" id="zineLoad1"><span class="zine-pulse" id="zineLoadTxt1">⏳ Seite 2 wird erstellt…</span></div>
+          <img id="zineImg1" src="" alt="" style="display:none"/>
+          <div class="zine-err" id="zineErr1" style="display:none"></div>
+        </div>
+        <button class="zine-save-btn" id="zineSave1" style="display:none" onclick="saveZinePage(1)" title="Dieses Bild als Rezeptbild speichern">🖼️ Als Rezeptbild speichern</button>
+      </div>
+      <div>
+        <div class="zine-page-lbl" id="zinePageLbl2">💚 Seite 3 · Gesundheit & Tipps</div>
+        <div class="zine-page" id="zinePage2">
+          <div class="zine-loading" id="zineLoad2"><span class="zine-pulse" id="zineLoadTxt2">⏳ Seite 3 wird erstellt…</span></div>
+          <img id="zineImg2" src="" alt="" style="display:none"/>
+          <div class="zine-err" id="zineErr2" style="display:none"></div>
+        </div>
+        <button class="zine-save-btn" id="zineSave2" style="display:none" onclick="saveZinePage(2)" title="Dieses Bild als Rezeptbild speichern">🖼️ Als Rezeptbild speichern</button>
+      </div>
+    </div>
+  </div>
+</div>
 
 </body>
 </html>
