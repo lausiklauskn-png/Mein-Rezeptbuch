@@ -4592,8 +4592,8 @@ function _idbSetImg(rid,dataUrl){return _idbSet('img_'+rid,dataUrl);}
 function _idbGetImg(rid){return _idbGet('img_'+rid);}
 
 // ── OpenAI-Schlüssel ──────────────────────────────────────────────────────────
-function getSavedOpenAiKey(){return localStorage.getItem('openaiKey9m')||'';}
-function setSavedOpenAiKey(k){if(k)localStorage.setItem('openaiKey9m',k);else localStorage.removeItem('openaiKey9m');}
+function getSavedOpenAiKey(){return localStorage.getItem('openaiImgKey9m')||localStorage.getItem('openaiKey9m')||'';}
+function setSavedOpenAiKey(k){if(k){localStorage.setItem('openaiImgKey9m',k);localStorage.setItem('openaiKey9m',k);}else{localStorage.removeItem('openaiImgKey9m');localStorage.removeItem('openaiKey9m');}}
 
 // ── DALL-E-3 Prompt-Builder ───────────────────────────────────────────────────
 function _buildDallePrompt(recipe){
@@ -5790,8 +5790,8 @@ function getSavedKey(){return localStorage.getItem('claudeKey9m')||'';}
 
 // ── IMGGEN: KEY MANAGEMENT ────────────────────────────
 const OPENAI_IMG_KEY_LS='openaiImgKey9m';
-function getOpenAiImgKey(){return localStorage.getItem(OPENAI_IMG_KEY_LS)||'';}
-function saveOpenAiImgKey(key){if(key)localStorage.setItem(OPENAI_IMG_KEY_LS,key.trim());else localStorage.removeItem(OPENAI_IMG_KEY_LS);}
+function getOpenAiImgKey(){return localStorage.getItem(OPENAI_IMG_KEY_LS)||localStorage.getItem('openaiKey9m')||'';}
+function saveOpenAiImgKey(key){if(key){localStorage.setItem(OPENAI_IMG_KEY_LS,key.trim());localStorage.setItem('openaiKey9m',key.trim());}else{localStorage.removeItem(OPENAI_IMG_KEY_LS);localStorage.removeItem('openaiKey9m');}}
 
 async function validateOpenAiImgKey(key){
   const resp=await fetch('https://api.openai.com/v1/models',{
