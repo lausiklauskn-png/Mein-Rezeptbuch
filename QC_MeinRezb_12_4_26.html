@@ -2447,9 +2447,25 @@ Vielen Dank für deine Unterstützung.</div>
           </div>
           <button class="scan-key-change" onclick="showImgGenSetup()" id="imggenChangeLbl" title="Schlüssel ändern">ändern</button>
         </div>
-        <div style="background:var(--teals);border-radius:10px;padding:14px;border:1.5px solid var(--teal);margin-top:12px">
-          <div style="font-size:.88rem;font-weight:700;color:var(--teal);margin-bottom:6px" id="imggenReadyTitleEl">✅ Bereit zur Bildgenerierung</div>
-          <div style="font-size:.76rem;color:#1e4a45;line-height:1.55" id="imggenReadyDescEl">Du kannst jetzt in jedem Rezept auf das 🎨-Symbol tippen, um automatisch ein KI-generiertes Bild zu erstellen.</div>
+        <!-- Rezept-Selektor -->
+        <div style="margin-top:12px">
+          <div style="font-size:.76rem;font-weight:700;color:var(--ink);margin-bottom:7px">Rezepte auswählen:</div>
+          <div class="bsel-quick" style="padding:0 0 8px 0">
+            <button class="bsel-qchip" onclick="igQuick('noBild')">📷 Ohne Bild</button>
+            <button class="bsel-qchip" onclick="igQuick('all')">☰ Alle</button>
+            <button class="bsel-qchip" id="igFolderBtn" onclick="igQuick('folder')">📁 Ordner</button>
+          </div>
+          <div class="bsel-fld-row" id="igFldRow" style="display:none;padding:0 0 8px 0"></div>
+          <div id="igList" style="max-height:190px;overflow-y:auto;border:1px solid var(--sand2);border-radius:10px;margin-bottom:8px"></div>
+          <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px">
+            <span id="igSelCount" style="font-size:.74rem;color:var(--br3)">0 Rezepte ausgewählt</span>
+            <span style="font-size:.68rem;color:var(--br3)">⚠️ Ersetzt vorhandene Bilder</span>
+          </div>
+          <button class="scan-key-btn" id="igGenBtn" onclick="startImgGen()" disabled>🎨 Bilder generieren</button>
+          <div id="igProgWrap" style="display:none;margin-top:10px">
+            <div class="sb-prog" style="margin-bottom:5px"><div class="sb-fill" id="igFill" style="width:0%"></div></div>
+            <div id="igProgLbl" style="font-size:.73rem;color:var(--br3)"></div>
+          </div>
         </div>
       </div>
     </div>
@@ -4605,8 +4621,9 @@ function setSavedOpenAiKey(k){if(k){localStorage.setItem('openaiImgKey9m',k);loc
 // ── DALL-E-3 Prompt-Builder ───────────────────────────────────────────────────
 function _buildDallePrompt(recipe){
   const name=recipe.name||'dish';
-  const ings=(recipe.ings||[]).slice(0,4).map(i=>i.name).filter(Boolean).join(', ');
-  return `Food photography: a beautifully plated "${name}"${ings?', with '+ings:''}. Natural light, appetizing, rustic wooden or marble surface, no text, no labels.`;
+  const ings=(recipe.ings||[]).slice(0,5).map(i=>i.name).filter(Boolean).join(', ');
+  const stepHints=(recipe.steps||[]).slice(0,2).map(s=>(s.txt||'').slice(0,80)).filter(Boolean).join('; ');
+  return `Food photography: a beautifully plated "${name}"${ings?', featuring '+ings:''}${stepHints?'. Preparation: '+stepHints:''}. Natural light, appetizing, rustic wooden or marble surface, no text, no labels.`;
 }
 
 // ── DALL-E-3 genFn (für _runImgQueue) ────────────────────────────────────────
@@ -4632,6 +4649,105 @@ async function runDalleImgBatch(rids,onProgress){
   if(!rids||!rids.length)return{ok:0,fail:0,total:0};
   return _runImgQueue(rids,_dalleGenImg,onProgress,{useIdb:true});
 }
+// KI-Bild-Tab: direkt in r.img (sofort sichtbar in Rezeptkarten)
+async function runImgGenBatch(rids,onProgress){
+  if(!rids||!rids.length)return{ok:0,fail:0,total:0};
+  return _runImgQueue(rids,_dalleGenImg,onProgress,{useIdb:false});
+}
+
+// ── KI-BILD-TAB REZEPT-SELEKTOR ───────────────────────────────────────────────
+(function(){
+  var _igSel=new Set();
+  var _igFldOpen=false;
+
+  function _igRender(){
+    var eligible=(window.R||[]).filter(function(r){return r.name&&!r.blank;});
+    var html=eligible.map(function(r){
+      var sel=_igSel.has(r.id);
+      return '<div class="bsel-item'+(sel?' on':'')+'" data-id="'+r.id+'" onclick="igToggle('+r.id+')">'
+        +'<div class="bsel-cb"></div>'
+        +'<div class="bsel-name">'+(typeof h==='function'?h(r.name):r.name)+'</div>'
+        +(r.img?'<div style="font-size:.62rem;color:var(--br3)">📷</div>':'')
+        +'</div>';
+    }).join('');
+    var el=document.getElementById('igList');
+    if(el)el.innerHTML=html||'<div style="padding:16px;text-align:center;color:var(--br3);font-size:.8rem">Keine Rezepte vorhanden</div>';
+    _igUpdateBtn();
+  }
+
+  function _igUpdateBtn(){
+    var n=_igSel.size;
+    var cnt=document.getElementById('igSelCount');
+    var btn=document.getElementById('igGenBtn');
+    var cost=(n*0.04).toFixed(2).replace('.',',');
+    if(cnt)cnt.textContent=n+' Rezept'+(n===1?'':'e')+' ausgewählt · ~'+cost+' $';
+    if(btn)btn.disabled=(n===0);
+  }
+
+  function _igRenderFolderRow(){
+    var row=document.getElementById('igFldRow');
+    var fd=window.FD||[];
+    if(!_igFldOpen||fd.length===0){if(row)row.style.display='none';return;}
+    if(row){
+      row.style.display='flex';
+      row.innerHTML=fd.map(function(f){
+        return '<button class="bsel-fchip" onclick="igFldPick(\''+f.id+'\')">'+
+          (f.ico||'📁')+' '+(f.name||'Ordner')+'</button>';
+      }).join('');
+    }
+  }
+
+  window.igToggle=function(id){
+    if(_igSel.has(id))_igSel.delete(id);else _igSel.add(id);
+    var item=document.querySelector('#igList .bsel-item[data-id="'+id+'"]');
+    if(item)item.classList.toggle('on',_igSel.has(id));
+    _igUpdateBtn();
+  };
+  window.igQuick=function(type){
+    var eligible=(window.R||[]).filter(function(r){return r.name&&!r.blank;});
+    if(type==='noBild'){_igSel=new Set(eligible.filter(function(r){return!r.img;}).map(function(r){return r.id;}));}
+    else if(type==='all'){_igSel=new Set(eligible.map(function(r){return r.id;}));}
+    else if(type==='folder'){_igFldOpen=!_igFldOpen;_igRenderFolderRow();return;}
+    _igRender();
+  };
+  window.igFldPick=function(fid){
+    var eligible=(window.R||[]).filter(function(r){return r.name&&!r.blank;});
+    _igSel=new Set(eligible.filter(function(r){return r.folder===String(fid);}).map(function(r){return r.id;}));
+    _igFldOpen=false;
+    var row=document.getElementById('igFldRow');if(row)row.style.display='none';
+    _igRender();
+  };
+  window.initImgGenSel=function(){
+    _igSel=new Set();_igFldOpen=false;
+    var row=document.getElementById('igFldRow');if(row)row.style.display='none';
+    var fb=document.getElementById('igFolderBtn');
+    if(fb)fb.disabled=(window.FD||[]).length===0;
+    _igRender();
+  };
+  window.startImgGen=async function(){
+    var rids=[..._igSel];
+    if(!rids.length)return;
+    var btn=document.getElementById('igGenBtn');
+    var wrap=document.getElementById('igProgWrap');
+    var fill=document.getElementById('igFill');
+    var lbl=document.getElementById('igProgLbl');
+    if(btn){btn.disabled=true;btn.textContent='⏳ Generiere …';}
+    if(wrap)wrap.style.display='block';
+    if(fill)fill.style.width='0%';
+    var res=await runImgGenBatch(rids,function(p){
+      if(fill)fill.style.width=Math.round(p.done/p.total*100)+'%';
+      var r=(window.R||[]).find(function(x){return x.id===p.rid;});
+      if(lbl)lbl.textContent=p.done+'/'+p.total+(r?' — '+(r.name||''):'')+(p.fail?' · '+p.fail+' Fehler':'');
+    });
+    if(fill)fill.style.width='100%';
+    if(lbl)lbl.textContent='✅ '+res.ok+' Bild'+(res.ok===1?'':'er')+' generiert'+(res.fail?' · '+res.fail+' Fehler':'');
+    if(btn){btn.disabled=false;btn.textContent='🎨 Bilder generieren';}
+    toast('✅ '+res.ok+' KI-Bild'+(res.ok===1?'':'er')+' erstellt');
+    if(typeof render==='function')render();
+    _igSel=new Set();
+    _igRender();
+  };
+})();
 
 // ── DALL-E-3-UI (Bilder-Tab) ─────────────────────────────────────────────────
 function initDalleSection(){
@@ -5869,6 +5985,7 @@ function switchToImgGenMain(){
   const key=getOpenAiImgKey();
   const sub=document.getElementById('imggenReadySub');
   if(sub&&key)sub.textContent=key.slice(0,7)+'…'+key.slice(-4);
+  if(window.initImgGenSel)window.initImgGenSel();
 }
 
 function showImgGenSetup(){
