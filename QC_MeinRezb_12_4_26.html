@@ -2121,6 +2121,25 @@ Vielen Dank für deine Unterstützung.</div>
       <div id="pimgGrid" class="pimg-grid"></div>
       <div id="noPendMsg" class="no-pend" style="display:none">Noch keine Bilder ausgewählt.</div>
       <button class="bigbtn grn" id="assignBtn" style="display:none" onclick="assignAllImgs()" title="Bildzuordnungen speichern">✅ Zuordnung speichern</button>
+
+      <!-- ── DALL-E 3 Bereich ── -->
+      <div style="margin-top:20px;border-top:1.5px solid var(--sand2);padding-top:14px">
+        <div style="font-size:.84rem;font-weight:700;color:var(--ink);margin-bottom:4px">🤖 Fotos per KI generieren</div>
+        <div style="font-size:.74rem;color:var(--br3);line-height:1.5;margin-bottom:10px">Erstellt Rezeptfotos mit DALL-E 3 (OpenAI) für alle Rezepte ohne Bild. Bilder werden sofort komprimiert und sicher im Browser gespeichert.</div>
+        <div class="paste-box" style="margin-bottom:10px">
+          <div class="paste-box-label">🔑 OpenAI API-Schlüssel (sk-…)</div>
+          <div style="display:flex;gap:7px;align-items:center">
+            <input class="scan-key-in" id="oaiKeyIn" type="password" placeholder="sk-…" oninput="onOaiKeyInput(this.value)" style="flex:1"/>
+            <button onclick="pasteOaiKey()" style="background:var(--teals);border:1.5px solid var(--teal);color:var(--teal);border-radius:8px;padding:9px 11px;font-size:.82rem;cursor:pointer" title="Aus Zwischenablage einfügen">📋</button>
+          </div>
+        </div>
+        <div id="dalleInfo" style="font-size:.74rem;color:var(--br3);margin-bottom:8px"></div>
+        <button class="scan-key-btn" id="dalleBtn" onclick="startDalleGen()" disabled>🎨 KI-Fotos generieren</button>
+        <div id="dalleProgWrap" style="display:none;margin-top:10px">
+          <div class="sb-prog" style="margin-bottom:5px"><div class="sb-fill" id="dalleFill" style="width:0%"></div></div>
+          <div id="dalleProgLbl" style="font-size:.73rem;color:var(--br3)"></div>
+        </div>
+      </div>
     </div>
     <div class="fov-pane" id="imp-scan">
 
@@ -4499,6 +4518,160 @@ function resizeImage(dataUrl,maxW,quality){
   });
 }
 
+// ── Stufe-1-Komprimierung: PNG/beliebig → JPEG 82%, max 1024px ───────────────
+// Wird nach jedem neu gespeicherten Bild aufgerufen (Upload, Scan, Karte).
+// DALL-E-3-PNGs (~800 KB) schrumpfen so auf ~120 KB (85% kleiner).
+function _compressImgStage1(dataUrl){
+  return new Promise(resolve=>{
+    const img=new Image();
+    img.onload=()=>{
+      const MAX=1024;
+      const scale=Math.min(1,MAX/Math.max(img.width,img.height));
+      const w=Math.round(img.width*scale),h=Math.round(img.height*scale);
+      const c=document.createElement('canvas');
+      c.width=w;c.height=h;
+      c.getContext('2d').drawImage(img,0,0,w,h);
+      resolve(c.toDataURL('image/jpeg',0.82));
+    };
+    img.onerror=()=>resolve(dataUrl);
+    img.src=dataUrl;
+  });
+}
+
+// ── Sequenzieller Bildgenerator-Queue ────────────────────────────────────────
+// Nie alle Bilder gleichzeitig generieren – immer nur 1 Rezept aktiv im RAM.
+// rids      : Array von Rezept-IDs in Verarbeitungsreihenfolge
+// genFn     : async (rid, recipe) → dataUrl  (z.B. DALL-E-3-API-Call)
+// onProgress: ({done, total, ok, fail, rid}) → void
+// opts.useIdb: true → Stufe 3: Bild in IDB statt r.img (RAM frei halten)
+async function _runImgQueue(rids, genFn, onProgress, opts){
+  const total=rids.length;
+  const useIdb=opts?.useIdb===true;
+  let done=0,ok=0,fail=0;
+  for(const rid of rids){
+    const r=R.find(r=>r.id===rid);
+    if(r){
+      try{
+        let raw=await genFn(rid,r);             // 1. Bild generieren (ein Call)
+        let comp=await _compressImgStage1(raw); // 2. Stufe-1-Komprimierung
+        raw=null;                               // 3. Rohbild aus RAM löschen
+        if(useIdb){
+          await _idbSet('img_'+rid,comp);       // Stufe 3: in IDB sichern
+          comp=null;                            // komprimiertes Bild aus RAM
+          // r.img bleibt leer → erst beim PDF-Bau laden
+        }else{
+          r.img=comp;comp=null;
+        }
+        sv();                                   // 4. Ins Dokument schreiben
+        ok++;
+      }catch(err){
+        fail++;
+        console.warn('_runImgQueue rid='+rid,err);
+      }
+    }
+    done++;
+    if(onProgress) onProgress({done,total,ok,fail,rid});
+  }
+  return{ok,fail,total};
+}
+
+// ── Bildcache-Zugriff (Stufe 3 / IndexedDB) ──────────────────────────────────
+function _idbSetImg(rid,dataUrl){return _idbSet('img_'+rid,dataUrl);}
+function _idbGetImg(rid){return _idbGet('img_'+rid);}
+
+// ── OpenAI-Schlüssel ──────────────────────────────────────────────────────────
+function getSavedOpenAiKey(){return localStorage.getItem('openaiKey9m')||'';}
+function setSavedOpenAiKey(k){if(k)localStorage.setItem('openaiKey9m',k);else localStorage.removeItem('openaiKey9m');}
+
+// ── DALL-E-3 Prompt-Builder ───────────────────────────────────────────────────
+function _buildDallePrompt(recipe){
+  const name=recipe.name||'dish';
+  const ings=(recipe.ings||[]).slice(0,4).map(i=>i.name).filter(Boolean).join(', ');
+  return `Food photography: a beautifully plated "${name}"${ings?', with '+ings:''}. Natural light, appetizing, rustic wooden or marble surface, no text, no labels.`;
+}
+
+// ── DALL-E-3 genFn (für _runImgQueue) ────────────────────────────────────────
+async function _dalleGenImg(rid,recipe){
+  const key=getSavedOpenAiKey();
+  if(!key)throw new Error('Kein OpenAI-Schlüssel');
+  const resp=await fetch('https://api.openai.com/v1/images/generations',{
+    method:'POST',
+    headers:{'Content-Type':'application/json','Authorization':'Bearer '+key},
+    body:JSON.stringify({model:'dall-e-3',prompt:_buildDallePrompt(recipe),n:1,size:'1024x1024',response_format:'b64_json'})
+  });
+  if(!resp.ok){const e=await resp.json().catch(()=>({}));throw new Error(e.error?.message||'HTTP '+resp.status);}
+  const data=await resp.json();
+  const b64=data.data?.[0]?.b64_json;
+  if(!b64)throw new Error('Kein Bild erhalten');
+  return 'data:image/png;base64,'+b64;
+}
+
+// ── DALL-E-3 Batch-Wrapper (Stufe 1 + 3 kombiniert) ──────────────────────────
+// Generiert Bilder sequenziell – je 1 Rezept aktiv, Rohbild + komprimiertes
+// Bild direkt in IDB, nie mehr als 1 Bild gleichzeitig im RAM.
+async function runDalleImgBatch(rids,onProgress){
+  if(!rids||!rids.length)return{ok:0,fail:0,total:0};
+  return _runImgQueue(rids,_dalleGenImg,onProgress,{useIdb:true});
+}
+
+// ── DALL-E-3-UI (Bilder-Tab) ─────────────────────────────────────────────────
+function initDalleSection(){
+  const inp=document.getElementById('oaiKeyIn');
+  if(!inp)return;
+  const saved=getSavedOpenAiKey();
+  if(saved)inp.value=saved;
+  onOaiKeyInput(inp.value);
+  _updateDalleInfo();
+}
+function _updateDalleInfo(){
+  const el=document.getElementById('dalleInfo');
+  if(!el)return;
+  const n=R.filter(r=>r.name&&!r.img&&!r.blank).length;
+  el.textContent=n?`${n} Rezept${n===1?'':'e'} ohne Foto — werden alle generiert`:'✅ Alle Rezepte haben bereits ein Foto';
+}
+function onOaiKeyInput(v){
+  const ok=v.trim().startsWith('sk-')&&v.trim().length>20;
+  const btn=document.getElementById('dalleBtn');
+  if(btn)btn.disabled=!ok;
+  const inp=document.getElementById('oaiKeyIn');
+  if(inp)inp.style.borderColor=ok?'var(--grn)':'var(--sand2)';
+}
+async function pasteOaiKey(){
+  try{
+    const txt=await navigator.clipboard.readText();
+    const inp=document.getElementById('oaiKeyIn');
+    if(inp){inp.value=txt.trim();onOaiKeyInput(txt.trim());}
+    if(txt.trim().startsWith('sk-'))toast('✅ OpenAI-Schlüssel eingefügt!');
+  }catch(e){
+    const inp=document.getElementById('oaiKeyIn');
+    if(inp){inp.focus();inp.select();}
+    toast('📋 Strg+V / Cmd+V zum Einfügen');
+  }
+}
+async function startDalleGen(){
+  const v=(document.getElementById('oaiKeyIn')?.value||'').trim();
+  if(!v.startsWith('sk-')){toast('⚠️ Bitte gültigen OpenAI-Schlüssel eingeben');return;}
+  setSavedOpenAiKey(v);
+  const rids=R.filter(r=>r.name&&!r.img&&!r.blank).map(r=>r.id);
+  if(!rids.length){toast('ℹ️ Alle Rezepte haben bereits ein Foto');return;}
+  const btn=document.getElementById('dalleBtn');
+  const wrap=document.getElementById('dalleProgWrap');
+  const fill=document.getElementById('dalleFill');
+  const lbl=document.getElementById('dalleProgLbl');
+  if(btn){btn.disabled=true;btn.textContent='⏳ Generiere …';}
+  if(wrap)wrap.style.display='block';
+  if(fill)fill.style.width='0%';
+  if(lbl)lbl.textContent='Starte …';
+  const res=await runDalleImgBatch(rids,(p)=>{
+    if(fill)fill.style.width=Math.round(p.done/p.total*100)+'%';
+    if(lbl)lbl.textContent=`${p.done} / ${p.total}${p.fail?' · '+p.fail+' Fehler':''}`;
+  });
+  if(fill)fill.style.width='100%';
+  if(lbl)lbl.textContent=`✅ ${res.ok} Foto${res.ok===1?'':'s'} generiert${res.fail?' · '+res.fail+' Fehler':''}`;
+  if(btn){btn.disabled=false;btn.textContent='🎨 KI-Fotos generieren';}
+  _updateDalleInfo();
+}
+
 // ── Undo-System (Rezept-Editor, max. 10 Schritte) ────────
 var _undoStack={};
 var _lastEditRid=null;
@@ -5005,6 +5178,7 @@ function openImport(){
   document.getElementById('importOv').style.display='flex';
   initScanPane();
   initTxtPane();
+  initDalleSection();
 }
 function closeImport(){document.getElementById('importOv').style.display='none';}
 function openExport(){document.getElementById('exportOv').style.display='flex';}
@@ -5184,6 +5358,7 @@ function switchFovTab(ovId,tab,el){
   if(tab==='scan')initScanPane();
   if(tab==='txt')initTxtPane();
   if(tab==='imggen')initImgGenPane();
+  if(tab==='img')initDalleSection();
 }
 
 // ═══════════════════════════════════════════════════════
@@ -5196,7 +5371,7 @@ function handleImgSel(e){
   files.forEach(f=>{
     const fr=new FileReader();
     fr.onload=async ev=>{
-      const compressed=await resizeImage(ev.target.result,800,0.75);
+      const compressed=await _compressImgStage1(ev.target.result);
       pendImgs.push({name:f.name,dataUrl:compressed,rid:named[0]?.id||null});
       if(++done===files.length)renderPendImgs();
     };fr.readAsDataURL(f);
@@ -5798,10 +5973,10 @@ function loadScanFile(file){
   fr.onload=async ev=>{
     const orig=ev.target.result;
     // 1200px für KI-Erkennung (mehr Detail = bessere Texterkennung)
-    // 800px/0.75 für Rezeptbild-Speicher (~80KB statt mehrerer MB)
+    // Stufe-1-Komprimierung für Speicher: max 1024px, JPEG 82%
     [scanData,scanDataStore]=await Promise.all([
       resizeImage(orig,1200,0.90),
-      resizeImage(orig,800,0.75)
+      _compressImgStage1(orig)
     ]);
     const prev=document.getElementById('scanPrev');
     const ph=document.getElementById('scanPhotoContent');
@@ -5859,7 +6034,7 @@ async function runBatchScan(files){
         storeData='';
       }else{
         // 1200px für API-Erkennung, 800px für Rezeptbild-Speicher
-        [apiData,storeData]=await Promise.all([resizeImage(origData,1200,0.90),resizeImage(origData,800,0.75)]);
+        [apiData,storeData]=await Promise.all([resizeImage(origData,1200,0.90),_compressImgStage1(origData)]);
         b64=apiData.split(',')[1];mime=apiData.split(';')[0].split(':')[1]||'image/jpeg';
         contentBlock={type:'image',source:{type:'base64',media_type:mime,data:b64}};
       }
@@ -6466,9 +6641,15 @@ function coverGridHtml(imgs,cellH,gap,radius,borderColor){
 // ═══════════════════════════════════════════════════════
 function exportPDF(){
   const pr=document.getElementById('pdfProg');pr.className='exp-prog on';pr.textContent=T('expPdfProg')||'⏳ Erstelle PDF …';
-  setTimeout(()=>{
+  setTimeout(async()=>{
     try{
       const named=R.filter(r=>r.name);if(!named.length){pr.textContent=T('expPdfNone')||'⚠️ Keine Rezepte';return;}
+      // Stufe 3: IDB-Bilder für Rezepte ohne r.img Bild für Bild vorladen
+      const _idbImgBuf={};
+      for(const r of named){
+        if(!r.img){const cached=await _idbGetImg(r.id);if(cached)_idbImgBuf[r.id]=cached;}
+      }
+      const _ri=(r)=>r.img||_idbImgBuf[r.id]||'';
       const bookName=(LANGS[CL]&&LANGS[CL].appTitle)||'Mein Rezeptbuch';
       const dt=new Date().toLocaleDateString(CL==='zh'?'zh-CN':CL==='ru'?'ru-RU':CL==='en'?'en-GB':'de-DE',{day:'numeric',month:'long',year:'numeric'});
 
@@ -6477,8 +6658,10 @@ function exportPDF(){
       const titleHtml=titleWords.length>=2?`${h(titleWords[0])}<br/>${h(titleWords.slice(1).join(' '))}`:h(bookName);
       const makeImgCell=(r2)=>{
         if(!r2)return`<td style="width:50%;height:4.5cm;background:#ede5d8;border-radius:6pt;padding:3pt"></td>`;
+        const imgSrc=_ri(r2);
+        if(!imgSrc)return`<td style="width:50%;height:4.5cm;background:#ede5d8;border-radius:6pt;padding:3pt"></td>`;
         const cr=r2.imgCrop||{x:50,y:50,scale:1};
-        return`<td style="width:50%;padding:3pt"><img src="${r2.img}" alt="" style="width:100%;height:4.5cm;object-fit:cover;object-position:${cr.x}% ${cr.y}%;display:block;border-radius:5pt;-webkit-print-color-adjust:exact;print-color-adjust:exact"/></td>`;
+        return`<td style="width:50%;padding:3pt"><img src="${imgSrc}" alt="" style="width:100%;height:4.5cm;object-fit:cover;object-position:${cr.x}% ${cr.y}%;display:block;border-radius:5pt;-webkit-print-color-adjust:exact;print-color-adjust:exact"/></td>`;
       };
       const coverImgs=getCoverImgs(4);
       const covGrid=`<table style="width:10cm;border-collapse:collapse;margin:0 auto 1cm"><tr>${makeImgCell(coverImgs[0])}${makeImgCell(coverImgs[1])}</tr><tr>${makeImgCell(coverImgs[2])}${makeImgCell(coverImgs[3])}</tr></table>`;
@@ -6531,7 +6714,8 @@ img.rphoto{width:100%;height:155pt;object-fit:cover;display:block;border-radius:
         }).join('');
       }
       // Helper: build one recipe page div
-      function pdfRecipePage(r,printName,ingList,trIngs,stepList,trSteps,cc,factor,extraCat){
+      function pdfRecipePage(r,printName,ingList,trIngs,stepList,trSteps,cc,factor,extraCat,imgSrc){
+        imgSrc=imgSrc??_ri(r);
         const flavorChips=(r.flavors||[]).map(f=>`<span class="fl" style="background:${cc}18;color:${cc};border:1pt solid ${cc}44">${h(f)}</span>`).join('');
         const catTxt=extraCat||catName(r.cat);
         const srv=r.servings?`${r.servings} ${T('srvBase')||'Portionen'}`:'';
@@ -6540,10 +6724,10 @@ img.rphoto{width:100%;height:155pt;object-fit:cover;display:block;border-radius:
         const stepsHtml=stepList.length?pdfSteps(stepList,trSteps,cc):'';
         const cr=r.imgCrop||{x:50,y:50};
         let mainBlock='';
-        if(r.img&&ingsHtml){
-          mainBlock=`<p class="sec" style="color:${cc};border-bottom-color:${cc}44">${T('sIngr').replace(/\P{L}/gu,'').trim()||'Zutaten'}</p><table class="layout"><tr><td class="photo"><img class="rphoto" src="${r.img}" style="object-position:${cr.x}% ${cr.y}%"/></td><td class="ingcol">${ingsHtml}</td></tr></table>`;
-        }else if(r.img){
-          mainBlock=`<div style="text-align:center;margin-bottom:8pt"><img src="${r.img}" style="height:140pt;max-width:100%;object-fit:cover;border-radius:4pt;-webkit-print-color-adjust:exact;print-color-adjust:exact" /></div>`;
+        if(imgSrc&&ingsHtml){
+          mainBlock=`<p class="sec" style="color:${cc};border-bottom-color:${cc}44">${T('sIngr').replace(/\P{L}/gu,'').trim()||'Zutaten'}</p><table class="layout"><tr><td class="photo"><img class="rphoto" src="${imgSrc}" style="object-position:${cr.x}% ${cr.y}%"/></td><td class="ingcol">${ingsHtml}</td></tr></table>`;
+        }else if(imgSrc){
+          mainBlock=`<div style="text-align:center;margin-bottom:8pt"><img src="${imgSrc}" style="height:140pt;max-width:100%;object-fit:cover;border-radius:4pt;-webkit-print-color-adjust:exact;print-color-adjust:exact" /></div>`;
         }else if(ingsHtml){
           mainBlock=`<p class="sec" style="color:${cc};border-bottom-color:${cc}44">${T('sIngr').replace(/\P{L}/gu,'').trim()||'Zutaten'}</p>${ingsHtml}`;
         }
@@ -7941,7 +8125,7 @@ function pickImgForCard(rid){
     const fr=new FileReader();
     fr.onload=async ev=>{
       const r=R.find(r=>r.id===rid);if(!r)return;
-      r.img=await resizeImage(ev.target.result,800,0.75);
+      r.img=await _compressImgStage1(ev.target.result);
       r.imgCrop={x:50,y:50,scale:1};
       sv();render();
       setTimeout(()=>openCrop(rid),120);
