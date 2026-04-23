@@ -5406,15 +5406,7 @@ function assignAllImgs(){
   });
   sv();render();pendImgs=[];renderPendImgs();
   if(!ok){toast('⚠️ Kein Rezept ausgewählt');return;}
-  // Close import overlay, then open crop editor for each assigned image
   closeImport();
-  if(assigned.length===1){
-    setTimeout(()=>openCrop(assigned[0]),260);
-  }else{
-    // Queue: show each crop editor one after the other
-    cropQueue=[...assigned];
-    setTimeout(()=>nextCropInQueue(),260);
-  }
 }
 // Drag&drop (file dropzone)
 window.addEventListener('DOMContentLoaded',()=>{
@@ -6451,12 +6443,7 @@ function acceptScan(){
   window._scanRec=null;
   const newRid=(empty?empty.id:nr.id);
   closeImport();
-  // Open crop editor so user can frame the dish right away
-  if(scanDataStore){
-    setTimeout(()=>openCrop(newRid),260);
-  }else{
-    toast('✅ '+h(nr.name));
-  }
+  toast('✅ '+h(nr.name));
 }
 
 // ═══════════════════════════════════════════════════════
@@ -8189,7 +8176,6 @@ function pickImgForCard(rid){
       r.img=await _compressImgStage1(ev.target.result);
       r.imgCrop={x:50,y:50,scale:1};
       sv();render();
-      setTimeout(()=>openCrop(rid),120);
     };
     fr.readAsDataURL(f);
   };inp.click();
@@ -8455,7 +8441,7 @@ function rndCard(r){
     ondragover="cardDragOver(event,${r.id})"
     ondragleave="cardDragLeave(${r.id})"
     ondrop="cardDrop(event,${r.id})">
-    ${r.img?(()=>{const cr=r.imgCrop||{x:50,y:50,scale:1};return`<div class="rcard-img-wrap" onclick="event.stopPropagation();openCrop(${r.id})" title="${T('cropTitle')}"><img class="rcard-img" src="${r.img}" alt="${h(r.name)}" loading="lazy" style="transform:scale(${cr.scale});transform-origin:${cr.x}% ${cr.y}%"/><div class="crop-hint"><div class="crop-hint-lbl">${T('cropHint')}</div></div></div>`;})():''}
+    ${r.img?(()=>{const cr=r.imgCrop||{x:50,y:50,scale:1};return`<div class="rcard-img-wrap"><img class="rcard-img" src="${r.img}" alt="${h(r.name)}" loading="lazy" style="transform:scale(${cr.scale});transform-origin:${cr.x}% ${cr.y}%"/></div>`;})():''}
     <div class="rcard-hd" onclick="${isBlank?'openInlineEdit('+r.id+')':'togCard('+r.id+')'}">
       <div class="stripe" style="background:${cc}"></div>
       <div class="rcard-hd-content">
@@ -8464,7 +8450,6 @@ function rndCard(r){
         <div class="rmeta">${tot?`${tot} ${T('sIngr')} · ${dispTime?fmtPrepTime(dispTime):(r.steps||[]).length+' '+T('sSteps')}`:isBlank?`${catIco(r.cat)} ${catName(r.cat)}`:''}</div>
         ${r.name?`<div class="rcard-acts" onclick="event.stopPropagation()">
           ${r.name?`<button class="ra ren" onclick="event.stopPropagation();startRename(${r.id})" title="${T('ttlRename')}">✏️</button>`:''}
-          ${r.name?`<button class="ra imgr" onclick="pickImgForCard(${r.id})" title="${T('addImg')}">🖼️</button>`:''}
           ${r.name?`<button class="ra ${inMenu?'gld':'out'}" onclick="event.stopPropagation();${inMenu?`removeFromMenu(${r.id})`:`openCSheet(${r.id})`}" title="${inMenu?T('inMenuRm'):T('addToMenu')}">${inMenu?mSlot.ico+' ✓':T('addToMenu')}</button>`:''}
           ${r.name?`<button class="ra ren" onclick="event.stopPropagation();spellCheckCard(${r.id})" title="${T('ttlSpell')}" style="background:var(--golds);border-color:var(--gold);color:var(--gold)">✨</button>`:''}
           ${r.name?`<button class="ra ren" onclick="event.stopPropagation();shareRecipeQR(${r.id})" title="${T('shareTtl')}" style="background:var(--teals);border-color:var(--teal);color:var(--teal)">📤</button>`:''}
@@ -8480,7 +8465,7 @@ function rndCard(r){
         <div class="chint">${r.shut?'▼ aufklappen':'▲ einklappen'}</div>
       </div>`}
     </div>
-    ${r.name?(()=>{const d=r.shut?'none':'flex';const crop=r.img?`<button class="imgbar" style="flex:1;border-left:1px solid var(--sand2)" onclick="openCrop(${r.id})">✂️ ${T('cropBtn')}</button>`:'';const free=`<button class="imgbar" onclick="generateFreePhoto(${r.id})" title="${T('freeFotoBtnTitle')}" style="padding:7px 11px;border-left:1px solid var(--sand2)">📸</button>`;const zine=getOpenAiImgKey()?`<button class="imgbar" onclick="openZineDialog(${r.id})" title="${T('zineBtnTitle')}" style="padding:7px 11px;border-left:1px solid var(--sand2)">🎨</button>`:'';return`<div style="display:${d};border-bottom:1px solid var(--sand2)"><button class="imgbar" style="flex:1" onclick="pickImgForCard(${r.id})">🖼️ ${T('addImg')}</button>${crop}${free}${zine}</div>`;})():''}
+    ${r.name?(()=>{const d=r.shut?'none':'flex';const free=`<button class="imgbar" style="flex:1" onclick="generateFreePhoto(${r.id})" title="${T('freeFotoBtnTitle')}">📸</button>`;const zine=getOpenAiImgKey()?`<button class="imgbar" onclick="openZineDialog(${r.id})" title="${T('zineBtnTitle')}" style="padding:7px 11px;border-left:1px solid var(--sand2)">🎨</button>`:'';return`<div style="display:${d};border-bottom:1px solid var(--sand2)">${free}${zine}</div>`;})():''}
     ${r.name&&!isBlank?'':''}
     <div class="rbody ${r.shut?'shut':''}">
       ${isBlank?`<div style="padding:7px 11px;background:var(--teals);font-size:.72rem;color:#1e4a45;display:flex;gap:5px;border-bottom:1px solid var(--sand2)"><span>✏️</span>${T('blankHint')}</div>`:''}
@@ -12139,7 +12124,6 @@ async function generateFreePhoto(rid){
     save();
     render();
     toast('✅ '+T('freeFotoDone'));
-    setTimeout(()=>openCrop(rid),300);
   }catch(e){
     toast('❌ '+e.message);
   }finally{
