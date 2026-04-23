@@ -5406,7 +5406,15 @@ function assignAllImgs(){
   });
   sv();render();pendImgs=[];renderPendImgs();
   if(!ok){toast('⚠️ Kein Rezept ausgewählt');return;}
+  // Close import overlay, then open crop editor for each assigned image
   closeImport();
+  if(assigned.length===1){
+    setTimeout(()=>openCrop(assigned[0]),260);
+  }else{
+    // Queue: show each crop editor one after the other
+    cropQueue=[...assigned];
+    setTimeout(()=>nextCropInQueue(),260);
+  }
 }
 // Drag&drop (file dropzone)
 window.addEventListener('DOMContentLoaded',()=>{
@@ -6443,7 +6451,12 @@ function acceptScan(){
   window._scanRec=null;
   const newRid=(empty?empty.id:nr.id);
   closeImport();
-  toast('✅ '+h(nr.name));
+  // Open crop editor so user can frame the dish right away
+  if(scanDataStore){
+    setTimeout(()=>openCrop(newRid),260);
+  }else{
+    toast('✅ '+h(nr.name));
+  }
 }
 
 // ═══════════════════════════════════════════════════════
@@ -8176,6 +8189,7 @@ function pickImgForCard(rid){
       r.img=await _compressImgStage1(ev.target.result);
       r.imgCrop={x:50,y:50,scale:1};
       sv();render();
+      setTimeout(()=>openCrop(rid),120);
     };
     fr.readAsDataURL(f);
   };inp.click();
@@ -12125,6 +12139,7 @@ async function generateFreePhoto(rid){
     save();
     render();
     toast('✅ '+T('freeFotoDone'));
+    setTimeout(()=>openCrop(rid),300);
   }catch(e){
     toast('❌ '+e.message);
   }finally{
