@@ -4745,8 +4745,14 @@ async function runImgGenBatch(rids,onProgress){
     var row=document.getElementById('igFldRow');if(row)row.style.display='none';
     var fb=document.getElementById('igFolderBtn');
     if(fb)fb.disabled=(window.FD||[]).length===0;
-    // Auto: recipes without images; fall back to all if all have images
     var eligible=(window.R||[]).filter(function(r){return r.name&&!r.blank;});
+    if(!eligible.length){
+      // R noch nicht geladen – warten und erneut versuchen
+      var el=document.getElementById('igList');
+      if(el)el.innerHTML='<div style="padding:16px;text-align:center;color:var(--br3);font-size:.8rem">⏳ Lade Rezepte …</div>';
+      setTimeout(window.initImgGenSel,400);
+      return;
+    }
     var withoutImg=eligible.filter(function(r){return!r.img;});
     igQuick(withoutImg.length>0?'noBild':'all');
   };
@@ -5361,6 +5367,7 @@ function openImport(){
   initScanPane();
   initTxtPane();
   initDalleSection();
+  initImgGenPane();
 }
 function closeImport(){document.getElementById('importOv').style.display='none';}
 function openExport(){document.getElementById('exportOv').style.display='flex';}
