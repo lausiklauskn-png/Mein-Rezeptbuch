@@ -7276,7 +7276,7 @@ function _kbPreview(){
 function _kbPdf(){
   const html=_kbLastHtml||_kbBuildHtml();
   if(!html){toast('⚠️ Keine Daten');return;}
-  const printHtml=html.replace('</script></body>',';setTimeout(()=>window.print(),600);</script></body>');
+  const printHtml=html.replace('<\/script><\/body>',';setTimeout(()=>window.print(),600);<\/script><\/body>');
   const u=URL.createObjectURL(new Blob([printHtml],{type:'text/html'}));
   window.open(u,'_blank');
   setTimeout(()=>URL.revokeObjectURL(u),120000);
