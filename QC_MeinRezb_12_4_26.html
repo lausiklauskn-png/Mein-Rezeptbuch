@@ -4767,17 +4767,17 @@ async function exportImgJson(){
     if(btn)btn.disabled=false;
     return;
   }
-  const json=JSON.stringify(result,null,2);
+  const json=JSON.stringify(result);
   const blob=new Blob([json],{type:'application/json'});
   const file=new File([blob],'rezeptbilder.json',{type:'application/json'});
   const count=result.length;
-  if(navigator.canShare&&navigator.canShare({files:[file]})){
+  if(navigator.share){
     try{
       await navigator.share({files:[file],title:'KI-Rezeptbilder'});
       if(lbl)lbl.textContent='✅ '+count+' Bild'+(count===1?'':'er')+' geteilt';
     }catch(e){
-      if(e.name!=='AbortError')dlBlob(blob,'rezeptbilder.json');
-      if(lbl)lbl.textContent=e.name==='AbortError'?'ℹ️ Abgebrochen':'✅ '+count+' Bild'+(count===1?'':'er')+' gespeichert';
+      if(e.name==='AbortError'){if(lbl)lbl.textContent='ℹ️ Abgebrochen';}
+      else{dlBlob(blob,'rezeptbilder.json');if(lbl)lbl.textContent='✅ '+count+' Bild'+(count===1?'':'er')+' gespeichert';}
     }
   }else{
     dlBlob(blob,'rezeptbilder.json');
@@ -4786,6 +4786,7 @@ async function exportImgJson(){
   if(btn)btn.disabled=false;
 }
 
+var _sbFile=null;
 async function shareFullBook(){
   const btn=document.getElementById('expShareBtn');
   const prog=document.getElementById('expShareProg');
@@ -4801,26 +4802,32 @@ async function shareFullBook(){
   }
   const dt=new Date().toISOString().slice(0,16).replace('T','-').replace(':','h');
   const fname='mein-rezeptbuch-'+dt+'.json';
-  const data=JSON.stringify({version:9,exported:new Date().toISOString(),recipes:full,menu:MS,folders:FD},null,2);
+  const data=JSON.stringify({version:9,exported:new Date().toISOString(),recipes:full,menu:MS,folders:FD});
   const blob=new Blob([data],{type:'application/json'});
   const file=new File([blob],fname,{type:'application/json'});
-  if(navigator.canShare&&navigator.canShare({files:[file]})){
+  _sbFile=file;
+  if(navigator.share){
     try{
       await navigator.share({files:[file],title:'Mein Rezeptbuch'});
       if(prog)prog.textContent='✅ '+full.length+' Rezepte geteilt';
+      if(btn)btn.disabled=false;
+      return;
     }catch(e){
-      if(e.name!=='AbortError'){
-        dlBlob(blob,fname);
-        if(prog)prog.innerHTML='📥 Datei heruntergeladen: <strong>'+fname+'</strong><br><span style="color:var(--ink)">Öffne die Downloads-App → Datei antippen → Teilen wählen</span>';
-      }else{
+      if(e.name==='AbortError'){
         if(prog)prog.textContent='ℹ️ Abgebrochen';
+        if(btn)btn.disabled=false;
+        return;
       }
     }
-  }else{
-    dlBlob(blob,fname);
-    if(prog)prog.innerHTML='📥 Datei heruntergeladen: <strong>'+fname+'</strong><br><span style="color:var(--ink)">Öffne die Downloads-App → Datei antippen → Teilen wählen</span>';
   }
+  dlBlob(blob,fname);
+  if(prog)prog.innerHTML='📥 <strong>'+fname+'</strong> gespeichert.<br><button onclick="retryShareBook()" style="margin-top:7px;padding:9px 0;width:100%;background:var(--teal);color:#fff;border:none;border-radius:9px;font-size:.82rem;font-weight:700;cursor:pointer">📤 Quick Share starten</button>';
   if(btn)btn.disabled=false;
+}
+async function retryShareBook(){
+  if(!_sbFile){toast('Bitte zuerst „Teilen / Sichern" antippen.');return;}
+  try{await navigator.share({files:[_sbFile],title:'Mein Rezeptbuch'});}
+  catch(e){if(e.name!=='AbortError')toast('Gerät unterstützt kein Datei-Teilen — Datei liegt im Downloads-Ordner');}
 }
 
 // ── Undo-System (Rezept-Editor, max. 10 Schritte) ────────
