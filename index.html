@@ -875,6 +875,15 @@ body.nav-collapsed{padding-bottom:calc(16px + var(--sb))}
 .kb-result-btns{display:flex;flex-direction:column;gap:7px;margin-bottom:11px}
 .kb-result-row{display:flex;gap:7px}
 .kb-result-tip{font-size:.67rem;color:var(--br3);line-height:1.5;border-top:1px solid var(--sand2);padding-top:9px}
+#kbSelOv .fov-hdr{background:linear-gradient(90deg,#6b35a8,#9b42c8)}
+#kbSelOv .fov-body{padding:0;overflow:hidden;display:flex;flex-direction:column}
+#kbSelTopBar{display:flex;align-items:center;justify-content:space-between;padding:8px 11px;background:var(--parch);border-bottom:1px solid var(--sand2);flex-shrink:0}
+#kbSelAllBtn{font-size:.75rem;padding:5px 11px;border-radius:20px;border:1.5px solid var(--br3);background:var(--sand);color:var(--ink);cursor:pointer;font-weight:600}
+#kbSelCnt{font-size:.72rem;color:var(--br3)}
+#kbSelList{flex:1;overflow-y:auto;-webkit-overflow-scrolling:touch}
+#kbSelFoot{padding:10px 13px;padding-bottom:calc(10px + var(--sb));border-top:1px solid var(--sand2);background:var(--parch);flex-shrink:0}
+#kbSelWeiterBtn{width:100%;padding:13px;border:none;border-radius:9px;background:linear-gradient(135deg,#6b35a8,#9b42c8);color:#fff;font-size:.86rem;font-weight:700;cursor:pointer;letter-spacing:.01em}
+#kbSelWeiterBtn:disabled{opacity:.45;cursor:default}
 .scan-upgrade-hint{background:var(--golds);border:1.5px solid var(--gold);border-radius:8px;padding:8px 10px;font-size:.7rem;color:#7a5800;display:flex;align-items:center;gap:8px;margin:6px 0;flex-wrap:wrap}
 .scan-upgrade-btn{background:var(--gold);color:#fff;border:none;border-radius:6px;padding:5px 11px;font-size:.69rem;font-weight:700;cursor:pointer;margin-left:auto;white-space:nowrap}
 .scan-upgrade-btn:active{opacity:.8}
@@ -2773,6 +2782,24 @@ Vielen Dank für deine Unterstützung.</div>
   <div class="kb-lb-cap" id="kbLbCap"></div>
   <div class="kb-lb-counter" id="kbLbCounter"></div>
 </div>
+<div class="fov" id="kbSelOv" style="display:none">
+  <div class="fov-hdr" onclick="closeKbSel()">
+    <button class="fov-back" onclick="event.stopPropagation();closeKbSel()" title="Zurück">←</button>
+    <div class="fov-title">✨ Kreativbuch · Rezepte wählen</div>
+  </div>
+  <div class="fov-body">
+    <div id="kbSelTopBar">
+      <button id="kbSelAllBtn" onclick="kbSelToggleAll()">Alle wählen</button>
+      <span id="kbSelCnt">0 / 0</span>
+    </div>
+    <div id="kbSelList"></div>
+    <div id="kbSelFoot">
+      <button id="kbSelWeiterBtn" onclick="kbSelWeiter()" disabled>Weiter → Kostenübersicht</button>
+    </div>
+  </div>
+</div>
+
+
 <div class="fov" id="kbCostOv" style="display:none">
   <div class="fov-hdr" onclick="closeKbCostOv()">
     <button class="fov-back" onclick="event.stopPropagation();closeKbCostOv()" title="Zurück">←</button>
@@ -5157,6 +5184,7 @@ function navTo(n){
     {id:'importOv',   fn:function(){closeImport();}},
     {id:'exportOv',   fn:function(){closeExport();}},
     {id:'kbLightbox', fn:function(){closeKbLightbox();}},
+    {id:'kbSelOv',    fn:function(){closeKbSel();}},
     {id:'kbCostOv',   fn:function(){closeKbCostOv();}},
     {id:'kbProgOv',   fn:function(){document.getElementById('kbProgOv').style.display='none';}},
     {id:'aiBookOv',   fn:function(){closeAiBook();}},
@@ -5282,6 +5310,66 @@ function openAiBook(){
 
 function closeAiBook(){
   document.getElementById('aiBookOv').style.display='none';
+}
+
+let _kbSelSet=new Set();
+
+function openKbSel(){
+  const named=R.filter(r=>r.name&&!r.blank);
+  if(!named.length){toast(T('expPdfNone')||'⚠️ Keine Rezepte vorhanden');return;}
+  _kbSelSet.clear();
+  named.forEach(r=>_kbSelSet.add(r.id));
+  document.getElementById('kbSelList').innerHTML=named.map(r=>
+    `<div class="aibr" onclick="kbSelToggleRec(this,${r.id})" data-rid="${r.id}"><div class="aibr-cb on">✓</div><div class="aibr-name">${h(r.name)}</div></div>`
+  ).join('');
+  _kbSelUpdateCount(named.length);
+  document.getElementById('kbSelOv').style.display='flex';
+}
+
+function closeKbSel(){
+  document.getElementById('kbSelOv').style.display='none';
+}
+
+function kbSelToggleRec(el,rid){
+  if(_kbSelSet.has(rid))_kbSelSet.delete(rid);
+  else _kbSelSet.add(rid);
+  const on=_kbSelSet.has(rid);
+  const cb=el.querySelector('.aibr-cb');
+  cb.className='aibr-cb'+(on?' on':'');
+  cb.textContent=on?'✓':'';
+  _kbSelUpdateCount(R.filter(r=>r.name&&!r.blank).length);
+}
+
+function kbSelToggleAll(){
+  const named=R.filter(r=>r.name&&!r.blank);
+  const allSel=named.length>0&&named.every(r=>_kbSelSet.has(r.id));
+  if(allSel)_kbSelSet.clear();
+  else named.forEach(r=>_kbSelSet.add(r.id));
+  document.getElementById('kbSelList').querySelectorAll('.aibr').forEach(el=>{
+    const rid=+el.dataset.rid;
+    const on=_kbSelSet.has(rid);
+    const cb=el.querySelector('.aibr-cb');
+    cb.className='aibr-cb'+(on?' on':'');
+    cb.textContent=on?'✓':'';
+  });
+  _kbSelUpdateCount(named.length);
+}
+
+function _kbSelUpdateCount(total){
+  const cnt=_kbSelSet.size;
+  document.getElementById('kbSelCnt').textContent=`${cnt} / ${total} ${T('aiBookGewählt')}`;
+  document.getElementById('kbSelWeiterBtn').disabled=cnt===0;
+  const named=R.filter(r=>r.name&&!r.blank);
+  const allSel=named.length>0&&named.every(r=>_kbSelSet.has(r.id));
+  document.getElementById('kbSelAllBtn').textContent=allSel?T('aiBookDeselAll'):T('aiBookSelAll');
+}
+
+function kbSelWeiter(){
+  if(_kbSelSet.size===0)return;
+  closeKbSel();
+  const sel=R.filter(r=>_kbSelSet.has(r.id)&&r.name);
+  const est=sel.length*(550*_KB_PRICE_IN+350*_KB_PRICE_OUT);
+  _kbShowCostOv(sel.length,est);
 }
 
 function _renderAiBookList(named){
@@ -7151,11 +7239,7 @@ const _KB_EX_CAP=['Cover & Zutaten','Step-by-Step','Gesundheit & Öko'];
 function startKreativbuch(){
   const key = getSavedKey();
   if(!key){ openApiKeyOv(); return; }
-  const named = R.filter(r=>r.name);
-  if(!named.length){ toast(T('expPdfNone')||'⚠️ Keine Rezepte vorhanden'); return; }
-  // Estimate: avg 550 input + 350 output tokens per recipe
-  const est = named.length * (550*_KB_PRICE_IN + 350*_KB_PRICE_OUT);
-  _kbShowCostOv(named.length, est);
+  openKbSel();
 }
 
 function _kbShowCostOv(n, est){
@@ -7203,7 +7287,7 @@ function closeKbCostOv(){
 
 async function _kbRun(){
   const key = getSavedKey();
-  const named = R.filter(r=>r.name);
+  const named = R.filter(r=>r.name&&(_kbSelSet.size===0||_kbSelSet.has(r.id)));
   if(!named.length||!key) return;
   _kbAbort = false;
   _kbAiData = [];
@@ -9675,7 +9759,7 @@ function _initTooltips(){
 (function(){
   const SC_ORDER=['recipes','folders','menu','backup','settings'];
   // IDs von Overlays/Modals — bei offenen Panels kein Seitenwechsel
-  const MODAL_IDS=['mv','importOv','exportOv','kbLightbox','kbCostOv','kbProgOv','aiBookOv','apikeyOv','courseSheet','spellModal',
+  const MODAL_IDS=['mv','importOv','exportOv','kbLightbox','kbSelOv','kbCostOv','kbProgOv','aiBookOv','apikeyOv','courseSheet','spellModal',
     'aip','aslBg','ob-wizard-bg','ob-helper-bg','ob-settings-bg','ob-scan-ov',
     'manualOv','bvaultModal','bselOv'];
   function anyModalOpen(){
@@ -9780,6 +9864,7 @@ boot();
     {id:'importOv',       close:function(){closeImport();}},
     {id:'exportOv',       close:function(){closeExport();}},
     {id:'kbLightbox',     close:function(){closeKbLightbox();}},
+    {id:'kbSelOv',        close:function(){closeKbSel();}},
     {id:'kbCostOv',       close:function(){closeKbCostOv();}},
     {id:'kbProgOv',       close:function(){document.getElementById('kbProgOv').style.display='none';}},
     {id:'aiBookOv',       close:function(){closeAiBook();}},
