@@ -585,6 +585,7 @@ body.nav-collapsed{padding-bottom:calc(16px + var(--sb))}
 .aibr-cb{width:20px;height:20px;border-radius:5px;border:2px solid var(--br3);display:flex;align-items:center;justify-content:center;flex-shrink:0;font-size:.75rem;color:transparent;transition:background .1s,border-color .1s}
 .aibr-cb.on{background:#8833dd;border-color:#8833dd;color:#fff}
 .aibr-name{font-size:.82rem;flex:1;color:var(--ink);line-height:1.3}
+.aib-grp-hdr{padding:5px 11px 4px;font-size:.65rem;font-weight:700;color:var(--br3);background:var(--sand2);display:flex;align-items:center;gap:5px;letter-spacing:.04em;position:sticky;top:0;z-index:1}
 #aiBookFoot{padding:10px 13px;padding-bottom:calc(10px + var(--sb));border-top:1px solid var(--sand2);background:var(--parch);flex-shrink:0}
 #aiBookWeiterBtn{width:100%;padding:13px;border:none;border-radius:9px;background:linear-gradient(135deg,#5500bb,#8833dd);color:#fff;font-size:.86rem;font-weight:700;cursor:pointer;letter-spacing:.01em}
 #aiBookWeiterBtn:disabled{opacity:.45;cursor:default}
@@ -5302,14 +5303,40 @@ function closeAiBook(){
 
 let _kbSelSet=new Set();
 
+function _buildBookGroups(){
+  const all=R.filter(r=>r.name&&!r.blank);
+  const groups=[];
+  const inFolder=new Set(all.filter(r=>r.folder).map(r=>r.id));
+  CATS.filter(c=>c.id!=='all').forEach(c=>{
+    const recs=all.filter(r=>r.cat===c.id&&!inFolder.has(r.id));
+    if(recs.length)groups.push({label:c[CL]||c.de,ico:c.ico,recs});
+  });
+  FD.forEach(f=>{
+    const recs=all.filter(r=>r.folder===String(f.id));
+    if(recs.length)groups.push({label:f.name,ico:f.ico,recs});
+  });
+  const assigned=new Set(groups.flatMap(g=>g.recs.map(r=>r.id)));
+  const rest=all.filter(r=>!assigned.has(r.id));
+  if(rest.length)groups.push({label:'Sonstiges',ico:'📝',recs:rest});
+  return groups;
+}
+
+function _renderGroupedList(listEl,selSet,toggleFn){
+  const groups=_buildBookGroups();
+  listEl.innerHTML=groups.map(g=>
+    `<div class="aib-grp-hdr">${g.ico} ${h(g.label)}</div>`+
+    g.recs.map(r=>{const on=selSet.has(r.id);
+      return`<div class="aibr" onclick="${toggleFn}(this,${r.id})" data-rid="${r.id}"><div class="aibr-cb${on?' on':''}">${on?'✓':''}</div><div class="aibr-name">${h(r.name)}</div></div>`;
+    }).join('')
+  ).join('');
+}
+
 function openKbSel(){
   const named=R.filter(r=>r.name&&!r.blank);
   if(!named.length){toast(T('expPdfNone')||'⚠️ Keine Rezepte vorhanden');return;}
   _kbSelSet.clear();
   named.forEach(r=>_kbSelSet.add(r.id));
-  document.getElementById('kbSelList').innerHTML=named.map(r=>
-    `<div class="aibr" onclick="kbSelToggleRec(this,${r.id})" data-rid="${r.id}"><div class="aibr-cb on">✓</div><div class="aibr-name">${h(r.name)}</div></div>`
-  ).join('');
+  _renderGroupedList(document.getElementById('kbSelList'),_kbSelSet,'kbSelToggleRec');
   _kbSelUpdateCount(named.length);
   document.getElementById('kbSelOv').style.display='flex';
 }
@@ -5362,13 +5389,8 @@ function kbSelWeiter(){
 
 function _renderAiBookList(named){
   const list=document.getElementById('aiBookList');
-  list.innerHTML=named.length?named.map(r=>{
-    const on=_aiBookSel.has(r.id);
-    return`<div class="aibr" onclick="aiBookToggleRec(this,${r.id})" data-rid="${r.id}">
-      <div class="aibr-cb${on?' on':''}">${on?'✓':''}</div>
-      <div class="aibr-name">${h(r.name)}</div>
-    </div>`;
-  }).join(''):'';
+  if(!named.length){list.innerHTML='';_aiBookUpdateCount(0);return;}
+  _renderGroupedList(list,_aiBookSel,'aiBookToggleRec');
   _aiBookUpdateCount(named.length);
 }
 
