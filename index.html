@@ -2406,6 +2406,29 @@ Vielen Dank für deine Unterstützung.</div>
       </div>
 
       <div id="imggenMain" style="display:none">
+        <div style="background:var(--teals);border-radius:10px;padding:12px 14px;margin-bottom:14px;border:1.5px solid var(--teal)">
+          <div style="font-size:.94rem;font-weight:700;color:var(--teal);font-family:Georgia,serif;margin-bottom:6px" id="imggenInfoTitle">🎨 KI-Bilder für deine Rezepte</div>
+          <div style="display:flex;gap:12px">
+            <div style="flex:1">
+              <div id="imggenInfoCol1Hdr" style="font-size:.66rem;font-weight:700;color:var(--teal);text-transform:uppercase;letter-spacing:.06em;margin-bottom:4px">Was erzeugt wird</div>
+              <ul id="imggenInfoCol1Items" style="margin:0;padding-left:15px;font-size:.73rem;color:#1e4a45;line-height:1.75">
+                <li>Appetitliches Rezeptfoto</li>
+                <li>Passend zum Gericht</li>
+                <li>KI-generiert mit DALL·E 3</li>
+                <li>Sofort im Rezept gespeichert</li>
+              </ul>
+            </div>
+            <div style="flex:1">
+              <div id="imggenInfoCol2Hdr" style="font-size:.66rem;font-weight:700;color:var(--teal);text-transform:uppercase;letter-spacing:.06em;margin-bottom:4px">Was du brauchst</div>
+              <ul id="imggenInfoCol2Items" style="margin:0;padding-left:15px;font-size:.73rem;color:#1e4a45;line-height:1.75">
+                <li>OpenAI API-Schlüssel</li>
+                <li>Ca. 0,04 € pro Bild</li>
+                <li>Abrechnung direkt bei OpenAI</li>
+                <li>Bilder exportierbar als JSON</li>
+              </ul>
+            </div>
+          </div>
+        </div>
         <div class="scan-ready-bar">
           <div class="scan-ready-ico">🎨</div>
           <div class="scan-ready-txt">
@@ -2995,6 +3018,11 @@ const LANGS={
     webInfoHint:'💡 Funktioniert ohne KI-Schlüssel bei den meisten großen Kochseiten (Chefkoch, Allrecipes, BBC Good Food, Lecker.de u.v.m.). Für unbekannte Seiten wird ein KI-Schlüssel benötigt.',
     txtListHdr:'Mögliche Texteingaben',
     txtListItems:'<li>Kopierter Text von Webseiten oder Apps</li><li>Rezepte aus Nachrichten, E-Mails &amp; Notizen</li><li>Selbst getippte oder diktierte Rezepte</li><li>Textdateien (.txt) per Drag &amp; Drop</li><li>PDF-Dateien per Drag &amp; Drop (Text wird extrahiert)</li>',
+    imggenInfoTitle:'🎨 KI-Bilder für deine Rezepte',
+    imggenInfoCol1Hdr:'Was erzeugt wird',
+    imggenInfoCol1Items:'<li>Appetitliches Rezeptfoto</li><li>Passend zum Gericht</li><li>KI-generiert mit DALL·E 3</li><li>Sofort im Rezept gespeichert</li>',
+    imggenInfoCol2Hdr:'Was du brauchst',
+    imggenInfoCol2Items:'<li>OpenAI API-Schlüssel</li><li>Ca. 0,04 € pro Bild</li><li>Abrechnung direkt bei OpenAI</li><li>Bilder exportierbar als JSON</li>',
     sc1T:'Rezept-Foto auswählen',sc1D:'Foto aus Galerie, Kamera oder Ordner.',
     sc2T:'KI liest das Rezept (Internet nötig)',sc2D:'Claude erkennt Zutaten, Mengen & Schritte.',
     sc3T:'Prüfen & übernehmen',sc3D:'Ergebnis kontrollieren, dann übernehmen.',
@@ -3136,6 +3164,11 @@ const LANGS={
     webInfoHint:'💡 Works without an AI key for most major cooking sites (Allrecipes, BBC Good Food, etc.). An AI key is required for unknown sites.',
     txtListHdr:'Possible text inputs',
     txtListItems:'<li>Copied text from websites or apps</li><li>Recipes from messages, emails &amp; notes</li><li>Manually typed or dictated recipes</li><li>Text files (.txt) by drag &amp; drop</li><li>PDF files by drag &amp; drop (text is extracted)</li>',
+    imggenInfoTitle:'🎨 AI Images for Your Recipes',
+    imggenInfoCol1Hdr:'What gets created',
+    imggenInfoCol1Items:'<li>Appetising recipe photo</li><li>Matching the dish</li><li>AI-generated with DALL·E 3</li><li>Saved directly to the recipe</li>',
+    imggenInfoCol2Hdr:'What you need',
+    imggenInfoCol2Items:'<li>OpenAI API key</li><li>Approx. €0.04 per image</li><li>Billed directly by OpenAI</li><li>Images exportable as JSON</li>',
     sc1T:'Select recipe photo',sc1D:'Photo of a recipe from gallery, camera or folder.',
     sc2T:'AI reads the recipe (internet required)',sc2D:'Claude recognizes ingredients, quantities & steps.',
     sc3T:'Review & import',sc3D:'Check the result, then add to recipe book.',
@@ -3277,6 +3310,11 @@ const LANGS={
     webInfoHint:'💡 Работает без ключа ИИ для большинства крупных кулинарных сайтов. Для неизвестных сайтов требуется ключ ИИ.',
     txtListHdr:'Возможные источники текста',
     txtListItems:'<li>Скопированный текст с сайтов или приложений</li><li>Рецепты из сообщений, писем и заметок</li><li>Вручную введённые или продиктованные рецепты</li><li>Текстовые файлы (.txt) перетаскиванием</li><li>PDF-файлы перетаскиванием (текст извлекается)</li>',
+    imggenInfoTitle:'🎨 ИИ-фото для ваших рецептов',
+    imggenInfoCol1Hdr:'Что создаётся',
+    imggenInfoCol1Items:'<li>Аппетитное фото рецепта</li><li>Соответствует блюду</li><li>Генерируется с DALL·E 3</li><li>Сохраняется прямо в рецепте</li>',
+    imggenInfoCol2Hdr:'Что нужно',
+    imggenInfoCol2Items:'<li>API-ключ OpenAI</li><li>Ок. 0,04 € за изображение</li><li>Оплата напрямую через OpenAI</li><li>Экспорт изображений в JSON</li>',
     sc1T:'Выбрать фото рецепта',sc1D:'Фото рукописного или печатного рецепта.',
     sc2T:'ИИ читает рецепт (нужен интернет)',sc2D:'Claude распознаёт ингредиенты и шаги.',
     sc3T:'Проверить и добавить',sc3D:'Проверьте результат, затем добавьте в книгу.',
@@ -3417,6 +3455,11 @@ const LANGS={
     webInfoHint:'💡 大多数主要烹饪网站无需AI密钥即可使用。对于未知网站，需要AI密钥。',
     txtListHdr:'可用文字输入方式',
     txtListItems:'<li>从网站或应用复制的文字</li><li>来自消息、邮件和笔记的食谱</li><li>手动输入或口述的食谱</li><li>拖放文本文件（.txt）</li><li>拖放PDF文件（提取文字）</li>',
+    imggenInfoTitle:'🎨 为您的食谱生成AI图片',
+    imggenInfoCol1Hdr:'生成内容',
+    imggenInfoCol1Items:'<li>精美的食谱照片</li><li>与菜肴相匹配</li><li>DALL·E 3 AI生成</li><li>直接保存到食谱中</li>',
+    imggenInfoCol2Hdr:'所需条件',
+    imggenInfoCol2Items:'<li>OpenAI API密钥</li><li>每张图片约0.04€</li><li>直接通过OpenAI计费</li><li>图片可导出为JSON</li>',
     sc1T:'选择食谱照片',sc1D:'从相册、相机或文件夹选择食谱照片。',
     sc2T:'AI识别食谱（需要网络）',sc2D:'Claude自动识别食材、用量和步骤。',
     sc3T:'检查并导入',sc3D:'检查结果，然后直接导入食谱书。',
@@ -3557,6 +3600,11 @@ const LANGS={
     webInfoHint:'💡 Funciona sin clave IA en la mayoría de los grandes sitios de cocina. Para sitios desconocidos se necesita una clave IA.',
     txtListHdr:'Entradas de texto posibles',
     txtListItems:'<li>Texto copiado de webs o apps</li><li>Recetas de mensajes, correos y notas</li><li>Recetas escritas o dictadas</li><li>Archivos de texto (.txt) por arrastrar</li><li>Archivos PDF por arrastrar (se extrae el texto)</li>',
+    imggenInfoTitle:'🎨 Imágenes IA para tus recetas',
+    imggenInfoCol1Hdr:'Qué se crea',
+    imggenInfoCol1Items:'<li>Foto apetitosa de la receta</li><li>Acorde al plato</li><li>Generada con DALL·E 3</li><li>Guardada directamente en la receta</li>',
+    imggenInfoCol2Hdr:'Lo que necesitas',
+    imggenInfoCol2Items:'<li>Clave API de OpenAI</li><li>Aprox. 0,04 € por imagen</li><li>Facturado por OpenAI</li><li>Imágenes exportables en JSON</li>',
     sc1T:'Seleccionar foto de receta',sc1D:'Foto de galería, cámara o carpeta.',
     sc2T:'La IA lee la receta (Internet necesario)',sc2D:'Claude reconoce ingredientes, cantidades y pasos.',
     sc3T:'Revisar y guardar',sc3D:'Controlar resultado y aceptar.',
@@ -3723,6 +3771,11 @@ const LANGS={
     webInfoHint:'💡 Fonctionne sans clé IA sur la plupart des grands sites de cuisine. Une clé IA est nécessaire pour les sites inconnus.',
     txtListHdr:'Sources de texte possibles',
     txtListItems:'<li>Texte copié depuis des sites ou applis</li><li>Recettes de messages, e-mails et notes</li><li>Recettes tapées ou dictées</li><li>Fichiers texte (.txt) par glisser-déposer</li><li>Fichiers PDF par glisser-déposer (texte extrait)</li>',
+    imggenInfoTitle:'🎨 Images IA pour vos recettes',
+    imggenInfoCol1Hdr:'Ce qui est créé',
+    imggenInfoCol1Items:'<li>Photo appétissante de la recette</li><li>Adaptée au plat</li><li>Générée avec DALL·E 3</li><li>Sauvegardée directement dans la recette</li>',
+    imggenInfoCol2Hdr:'Ce dont vous avez besoin',
+    imggenInfoCol2Items:'<li>Clé API OpenAI</li><li>Env. 0,04 € par image</li><li>Facturé directement par OpenAI</li><li>Images exportables en JSON</li>',
     sc1T:'Sélectionner photo',
     sc1D:'Photo de galerie ou caméra.',
     sc2T:'IA lit la recette',
@@ -3973,6 +4026,11 @@ const LANGS={
     webInfoHint:'💡 Funziona senza chiave IA per la maggior parte dei grandi siti di cucina. Per siti sconosciuti è necessaria una chiave IA.',
     txtListHdr:'Fonti di testo possibili',
     txtListItems:'<li>Testo copiato da siti web o app</li><li>Ricette da messaggi, e-mail e note</li><li>Ricette digitate o dettate</li><li>File di testo (.txt) trascinati</li><li>File PDF trascinati (testo estratto)</li>',
+    imggenInfoTitle:'🎨 Immagini IA per le tue ricette',
+    imggenInfoCol1Hdr:'Cosa viene creato',
+    imggenInfoCol1Items:'<li>Foto appetitosa della ricetta</li><li>Adatta al piatto</li><li>Generata con DALL·E 3</li><li>Salvata direttamente nella ricetta</li>',
+    imggenInfoCol2Hdr:'Di cosa hai bisogno',
+    imggenInfoCol2Items:'<li>Chiave API OpenAI</li><li>Circa 0,04 € per immagine</li><li>Fatturato direttamente da OpenAI</li><li>Immagini esportabili in JSON</li>',
     sc1T:'Seleziona foto ricetta',
     sc1D:'Foto da galleria o fotocamera.',
     sc2T:'IA legge la ricetta',
@@ -4222,6 +4280,11 @@ const LANGS={
     webInfoHint:'💡 Funciona sem chave de IA na maioria dos grandes sites de culinária. Para sites desconhecidos é necessária uma chave de IA.',
     txtListHdr:'Fontes de texto possíveis',
     txtListItems:'<li>Texto copiado de sites ou apps</li><li>Receitas de mensagens, e-mails e notas</li><li>Receitas digitadas ou ditadas</li><li>Ficheiros de texto (.txt) por arrastar</li><li>Ficheiros PDF por arrastar (texto extraído)</li>',
+    imggenInfoTitle:'🎨 Imagens IA para as suas receitas',
+    imggenInfoCol1Hdr:'O que é criado',
+    imggenInfoCol1Items:'<li>Foto apetitosa da receita</li><li>Adequada ao prato</li><li>Gerada com DALL·E 3</li><li>Guardada diretamente na receita</li>',
+    imggenInfoCol2Hdr:'O que precisa',
+    imggenInfoCol2Items:'<li>Chave API OpenAI</li><li>Aprox. 0,04 € por imagem</li><li>Faturado diretamente pela OpenAI</li><li>Imagens exportáveis em JSON</li>',
     sc1T:'Selecionar foto receita',
     sc1D:'Foto de galeria ou câmara.',
     sc2T:'IA lê a receita',
@@ -5042,6 +5105,7 @@ function applyLang(code){
     'impTitle','impTabImg','impTabWeb','impTabScan','impTabTxt','impTabJson','imgDropLbl',
     'imgInfoTitle','imgInfoDesc',
     'scanInfoTitle','scanInfoCol1Hdr','scanInfoCol2Hdr',
+    'imggenInfoTitle','imggenInfoCol1Hdr','imggenInfoCol2Hdr',
     'webInfoTitle','webInfoDesc','webInfoHint',
     'txtListHdr','scanPhSub',
     'txtTitle','txtDesc','txtReadyLblEl','txtIntroEl','txtDropLblEl','txtDropSubEl','txtScanBtnLbl','txtResetBtn','txtPasteBtnLbl','txtSaveLblEl',
@@ -5070,7 +5134,7 @@ function applyLang(code){
     'hlpShareBtn','hlpExportBtn','hlpImportBtn','hlpCacheBtn','hlpResetBtn'];
   ids.forEach(id=>{const el=document.getElementById(id);if(el&&L[id]!==undefined)el.textContent=L[id];});
   // HTML-Keys (Listen): innerHTML statt textContent
-  ['scanInfoCol1Items','scanInfoCol2Items','txtListItems'].forEach(id=>{const el=document.getElementById(id);if(el&&L[id]!==undefined)el.innerHTML=L[id];});
+  ['scanInfoCol1Items','scanInfoCol2Items','txtListItems','imggenInfoCol1Items','imggenInfoCol2Items'].forEach(id=>{const el=document.getElementById(id);if(el&&L[id]!==undefined)el.innerHTML=L[id];});
   const phs={srchIn:'searchPH',newName:'lName',newFlavor:'lFlavor',fldNameIn:'fldNameLbl'};
   for(const[id,k]of Object.entries(phs)){const el=document.getElementById(id);if(el)el.placeholder=L[k]||'';}
   const logo=document.getElementById('appLogo');
