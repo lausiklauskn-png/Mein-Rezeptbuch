@@ -2158,7 +2158,7 @@ Vielen Dank für deine Unterstützung.</div>
             1. <a href="https://platform.openai.com/api-keys" target="_blank" rel="noopener" style="color:var(--teal)">platform.openai.com/api-keys</a> → „Create new secret key"<br>
             2. Schlüssel kopieren (beginnt mit <code style="background:rgba(0,0,0,.07);padding:1px 4px;border-radius:3px;font-size:.68rem">sk-…</code>)<br>
             3. Hier einfügen &amp; speichern<br>
-            <br>💡 Ein Bild kostet ~0,04 $ · Abrechnung direkt bei OpenAI
+            <br>💡 Ein Bild kostet ~0,04 € · Abrechnung direkt bei OpenAI
           </div>
         </div>
         <!-- Ready-View (Key gespeichert) -->
@@ -2173,9 +2173,11 @@ Vielen Dank für deine Unterstützung.</div>
           </div>
           <div id="dalleInfo" style="font-size:.74rem;color:var(--br3);margin:10px 0 8px"></div>
           <button class="scan-key-btn" id="dalleBtn" onclick="startDalleGen()">🎨 KI-Fotos generieren</button>
+          <button class="scan-key-btn" id="dalleStopBtn" onclick="stopDalleGen()" style="display:none;background:#c0392b;margin-top:6px">⏹ Generierung stoppen</button>
           <div id="dalleProgWrap" style="display:none;margin-top:10px">
             <div class="sb-prog" style="margin-bottom:5px"><div class="sb-fill" id="dalleFill" style="width:0%"></div></div>
             <div id="dalleProgLbl" style="font-size:.73rem;color:var(--br3)"></div>
+            <div id="dalleCostLbl" style="font-size:.73rem;color:var(--teal);margin-top:4px;font-weight:600"></div>
           </div>
         </div>
       </div>
@@ -2446,7 +2448,7 @@ Vielen Dank für deine Unterstützung.</div>
           1. <a href="https://platform.openai.com/api-keys" target="_blank" rel="noopener" style="color:var(--teal)">platform.openai.com/api-keys</a> → „Create new secret key"<br>
           2. Schlüssel kopieren (beginnt mit <code style="background:rgba(0,0,0,.07);padding:1px 4px;border-radius:3px;font-size:.68rem">sk-…</code>)<br>
           3. Hier einfügen &amp; speichern<br>
-          <br>💡 Ein Bild kostet ~0,04 $ · Abrechnung direkt bei OpenAI
+          <br>💡 Ein Bild kostet ~0,04 € · Abrechnung direkt bei OpenAI
         </div>
       </div>
 
@@ -2465,11 +2467,14 @@ Vielen Dank für deine Unterstützung.</div>
           <span>Vorhandene Bilder ersetzen</span>
         </label>
         <button class="scan-key-btn" id="igGenBtn" onclick="startImgGen()">🎨 KI-Bilder generieren</button>
+        <button class="scan-key-btn" id="igStopBtn" onclick="stopImgGen()" style="display:none;background:#c0392b;margin-top:6px">⏹ Generierung stoppen</button>
         <div id="igProgWrap" style="display:none;margin-top:12px">
           <div style="background:var(--sand2);border-radius:8px;height:10px;overflow:hidden;margin-bottom:7px">
             <div id="igFill" style="width:0%;height:100%;background:linear-gradient(90deg,var(--teal),var(--grn));border-radius:8px;transition:width .4s ease"></div>
           </div>
           <div id="igProgLbl" style="font-size:.78rem;color:var(--ink);text-align:center;font-weight:600"></div>
+          <div id="igCostLbl" style="font-size:.74rem;color:var(--teal);margin-top:5px;text-align:center;font-weight:600"></div>
+          <button class="scan-key-btn" id="igSaveBtn" onclick="closeImport()" style="display:none;background:var(--grn);margin-top:10px">✅ Bilder im Rezeptbuch – schließen</button>
         </div>
       </div>
     </div>
@@ -2818,7 +2823,7 @@ Vielen Dank für deine Unterstützung.</div>
     <div class="kb-bar-wrap">
       <div class="kb-bar-pct" id="kbBarPct">0 %</div>
       <div class="kb-bar-bg"><div class="kb-bar-fill" id="kbBarFill" style="width:0%"></div></div>
-      <div class="kb-live-cost" id="kbLiveCost">Echte Kosten bisher: $0,000</div>
+      <div class="kb-live-cost" id="kbLiveCost">Echte Kosten bisher: €0,000</div>
     </div>
   </div>
 </div>
@@ -4586,11 +4591,13 @@ function _compressImgStage1(dataUrl){
 // genFn     : async (rid, recipe) → dataUrl  (z.B. DALL-E-3-API-Call)
 // onProgress: ({done, total, ok, fail, rid}) → void
 // opts.useIdb: true → Stufe 3: Bild in IDB statt r.img (RAM frei halten)
+var _imgGenAborted=false;
 async function _runImgQueue(rids, genFn, onProgress, opts){
   const total=rids.length;
   const useIdb=opts?.useIdb===true;
   let done=0,ok=0,fail=0;
   for(const rid of rids){
+    if(_imgGenAborted) break;
     const r=R.find(r=>r.id===rid);
     if(r){
       try{
@@ -4614,7 +4621,7 @@ async function _runImgQueue(rids, genFn, onProgress, opts){
     done++;
     if(onProgress) onProgress({done,total,ok,fail,rid});
   }
-  return{ok,fail,total};
+  return{ok,fail,total,aborted:_imgGenAborted};
 }
 
 // ── Bildcache-Zugriff (Stufe 3 / IndexedDB) ──────────────────────────────────
@@ -4668,33 +4675,46 @@ function updateImgGenInfo(){
       el.innerHTML='<span style="color:var(--grn)">✅ Alle Rezepte haben bereits ein KI-Foto</span>';
     }else{
       var cost=(eligible.length*0.04).toFixed(2).replace('.',',');
-      el.textContent=eligible.length+' Rezept'+(eligible.length===1?'':'e')+(replaceAll?' werden neu generiert':' ohne Foto')+' · ~'+cost+' $';
+      el.textContent=eligible.length+' Rezept'+(eligible.length===1?'':'e')+(replaceAll?' werden neu generiert':' ohne Foto')+' · ~'+cost+' €';
     }
   }
   if(btn)btn.disabled=(!eligible.length);
 }
+function stopImgGen(){_imgGenAborted=true;}
 async function startImgGen(){
+  _imgGenAborted=false;
   var replaceAll=!!(document.getElementById('imggenReplaceAll')&&document.getElementById('imggenReplaceAll').checked);
   var rids=(window.R||[]).filter(function(r){return r.name&&!r.blank&&(replaceAll||!r.img);}).map(function(r){return r.id;});
   if(!rids.length){toast('ℹ️ Keine Rezepte zum Generieren');return;}
   var btn=document.getElementById('igGenBtn');
+  var stopBtn=document.getElementById('igStopBtn');
   var wrap=document.getElementById('igProgWrap');
   var fill=document.getElementById('igFill');
   var lbl=document.getElementById('igProgLbl');
-  if(btn){btn.disabled=true;btn.textContent='⏳ Generiere …';}
+  var costLbl=document.getElementById('igCostLbl');
+  var saveBtn=document.getElementById('igSaveBtn');
+  if(btn){btn.style.display='none';}
+  if(stopBtn){stopBtn.style.display='flex';}
+  if(saveBtn){saveBtn.style.display='none';}
   if(wrap)wrap.style.display='block';
   if(fill)fill.style.width='0%';
-  if(lbl)lbl.textContent='0 % — starte …';
+  if(lbl)lbl.textContent='Starte …';
+  if(costLbl){costLbl.textContent='Kosten bisher: 0,00 €';costLbl.style.display='block';}
   var res=await _runImgQueue(rids,_dalleGenImg,function(p){
     var pct=Math.round(p.done/p.total*100);
     if(fill)fill.style.width=pct+'%';
     var r=(window.R||[]).find(function(x){return x.id===p.rid;});
-    if(lbl)lbl.textContent=pct+' % — '+p.done+'/'+p.total+(r?' · '+(r.name||''):'')+(p.fail?' · '+p.fail+' ✗':'');
+    if(lbl)lbl.textContent=p.done+' / '+p.total+(r?' · '+(r.name||''):'')+(p.fail?' · '+p.fail+' ✗':'');
+    if(costLbl)costLbl.textContent='Kosten bisher: ~'+(p.ok*0.04).toFixed(2).replace('.',',')+' €';
   },{useIdb:false});
   if(fill)fill.style.width='100%';
-  if(lbl)lbl.textContent='✅ '+res.ok+' Bild'+(res.ok===1?'':'er')+' generiert'+(res.fail?' · '+res.fail+' Fehler':'');
-  if(btn){btn.disabled=false;btn.textContent='🎨 KI-Bilder generieren';}
-  toast('✅ '+res.ok+' KI-Bild'+(res.ok===1?'':'er')+' erstellt');
+  var stopTxt=res.aborted?' · gestoppt':'';
+  if(lbl)lbl.textContent=(res.aborted?'⏹':'✅')+' '+res.ok+' Bild'+(res.ok===1?'':'er')+' gespeichert'+(res.fail?' · '+res.fail+' Fehler':'')+stopTxt;
+  if(costLbl)costLbl.textContent='Gesamt: ~'+(res.ok*0.04).toFixed(2).replace('.',',')+' €';
+  if(stopBtn){stopBtn.style.display='none';}
+  if(btn){btn.style.display='flex';}
+  if(saveBtn&&res.ok>0){saveBtn.style.display='flex';}
+  if(res.ok>0){toast('✅ '+res.ok+' KI-Bild'+(res.ok===1?'':'er')+' im Rezeptbuch gespeichert');}
   if(typeof render==='function')render();
   updateImgGenInfo();
 }
@@ -4755,26 +4775,37 @@ async function pasteOaiKey(){
     toast('📋 Strg+V / Cmd+V zum Einfügen');
   }
 }
+function stopDalleGen(){_imgGenAborted=true;}
 async function startDalleGen(){
+  _imgGenAborted=false;
   const v=getSavedOpenAiKey();
   if(!v){toast('⚠️ Bitte zuerst den OpenAI-Schlüssel speichern');showDalleSetup();return;}
   const rids=R.filter(r=>r.name&&!r.img&&!r.blank).map(r=>r.id);
   if(!rids.length){toast('ℹ️ Alle Rezepte haben bereits ein Foto');return;}
   const btn=document.getElementById('dalleBtn');
+  const stopBtn=document.getElementById('dalleStopBtn');
   const wrap=document.getElementById('dalleProgWrap');
   const fill=document.getElementById('dalleFill');
   const lbl=document.getElementById('dalleProgLbl');
-  if(btn){btn.disabled=true;btn.textContent='⏳ Generiere …';}
+  const costLbl=document.getElementById('dalleCostLbl');
+  if(btn){btn.style.display='none';}
+  if(stopBtn){stopBtn.style.display='flex';}
   if(wrap)wrap.style.display='block';
   if(fill)fill.style.width='0%';
   if(lbl)lbl.textContent='Starte …';
+  if(costLbl){costLbl.textContent='Kosten bisher: 0,00 €';costLbl.style.display='block';}
   const res=await runDalleImgBatch(rids,(p)=>{
     if(fill)fill.style.width=Math.round(p.done/p.total*100)+'%';
     if(lbl)lbl.textContent=`${p.done} / ${p.total}${p.fail?' · '+p.fail+' Fehler':''}`;
+    if(costLbl)costLbl.textContent='Kosten bisher: ~'+(p.ok*0.04).toFixed(2).replace('.',',')+' €';
   });
   if(fill)fill.style.width='100%';
-  if(lbl)lbl.textContent=`✅ ${res.ok} Foto${res.ok===1?'':'s'} generiert${res.fail?' · '+res.fail+' Fehler':''}`;
-  if(btn){btn.disabled=false;btn.textContent='🎨 KI-Fotos generieren';}
+  const stopTxt=res.aborted?' · gestoppt':'';
+  if(lbl)lbl.textContent=`${res.aborted?'⏹':'✅'} ${res.ok} Foto${res.ok===1?'':'s'} gespeichert${res.fail?' · '+res.fail+' Fehler':''}${stopTxt}`;
+  if(costLbl)costLbl.textContent='Gesamt: ~'+(res.ok*0.04).toFixed(2).replace('.',',')+' €';
+  if(stopBtn){stopBtn.style.display='none';}
+  if(btn){btn.style.display='flex';}
+  if(res.ok>0)toast(`✅ ${res.ok} KI-Foto${res.ok===1?'':'s'} gespeichert`);
   _updateDalleInfo();
 }
 
@@ -7450,7 +7481,7 @@ function _kbSetBar(done,total,cost){
   const c=document.getElementById('kbLiveCost');
   if(f)f.style.width=pct+'%';
   if(p)p.textContent=pct+' %';
-  if(c)c.textContent='Echte Kosten bisher: $'+cost.toFixed(4).replace('.',',');
+  if(c)c.textContent='Echte Kosten bisher: €'+cost.toFixed(4).replace('.',',');
 }
 function _kbAnimBar(targetDone,total){
   clearInterval(_kbFillTimer);
