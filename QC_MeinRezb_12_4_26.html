@@ -593,7 +593,7 @@ body.nav-collapsed{padding-bottom:calc(16px + var(--sb))}
 #aiBookStep2{flex:1;overflow-y:auto;-webkit-overflow-scrolling:touch;display:flex;flex-direction:column;gap:0}
 .aibk2-sect{padding:12px 13px;border-bottom:1px solid var(--sand2)}
 .aibk2-lbl{font-size:.7rem;font-weight:700;color:var(--br3);margin-bottom:7px;text-transform:uppercase;letter-spacing:.04em}
-.aibk2-prompt{font-size:.72rem;color:var(--ink);background:var(--sand);border-radius:7px;padding:10px 12px;white-space:pre-wrap;word-break:break-word;max-height:140px;overflow-y:auto;line-height:1.55;border:1px solid var(--sand2)}
+.aibk2-prompt{font-size:.72rem;color:var(--ink);background:var(--sand);border-radius:7px;padding:10px 12px;white-space:pre-wrap;word-break:break-word;min-height:100px;max-height:220px;overflow-y:auto;line-height:1.55;border:1px solid var(--sand2);resize:vertical;width:100%;box-sizing:border-box;font-family:monospace}
 .aibk2-btns{display:flex;gap:7px;margin-top:9px;flex-wrap:wrap}
 .aibk2-btn{flex:1;min-width:0;padding:9px 8px;border:none;border-radius:8px;font-size:.74rem;font-weight:700;cursor:pointer;white-space:nowrap}
 .aibk2-btn.cp{background:#f0e8ff;color:#6600cc;border:1.5px solid #8833dd}
@@ -2728,13 +2728,13 @@ Vielen Dank für deine Unterstützung.</div>
         <div class="kb-design-grid" id="aiBookStyleGrid"></div>
         <div id="aiBookCustomSect" style="display:none" class="aibk2-custom">
           <textarea class="aibk2-ta" id="aiBookCustomTa" rows="3"
-            oninput="document.getElementById('aiBookPromptBox').textContent=_kbBuildCpPrompt()"></textarea>
+            oninput="document.getElementById('aiBookPromptBox').value=_kbBuildCpPrompt()"></textarea>
         </div>
       </div>
       <!-- Prompt preview + actions -->
       <div class="aibk2-sect">
         <div class="aibk2-lbl" id="aiBookPromptLbl">1. Prompt kopieren</div>
-        <div class="aibk2-prompt" id="aiBookPromptBox"></div>
+        <textarea class="aibk2-prompt" id="aiBookPromptBox"></textarea>
         <div class="aibk2-btns">
           <button class="aibk2-btn cp" onclick="_kbCpCopy()" id="aiBookCopyBtn">📋 Kopieren</button>
           <button class="aibk2-btn claude" onclick="_kbCpOpen('https://claude.ai/new')" id="aiBookClaudeBtn">✨ Claude</button>
@@ -3038,7 +3038,7 @@ const LANGS={
     expAiT:'KI-Kreativbuch',expAiD:'Prompt erstellen → in Claude/ChatGPT einfügen → JSON zurück → Buch herunterladen. Kein API-Key nötig.',expAiBtn:'📖✨ KI-Kreativbuch erstellen',
     aiBookTitle:'✨ KI-Kreativbuch · Rezepte wählen',aiBookSelAll:'Alle wählen',aiBookDeselAll:'Alle abwählen',aiBookGewählt:'gewählt',
     aiBookWeiter:'→ Prompt erstellen',aiBookStep2Title:'✨ KI-Kreativbuch · Prompt',
-    aiBookBack:'← Rezepte ändern',aiBookPromptLbl:'1. Prompt kopieren',aiBookCopyBtn:'📋 Kopieren',
+    aiBookBack:'← Rezepte ändern',aiBookPromptLbl:'1. Prompt kopieren oder selber schreiben',aiBookCopyBtn:'📋 Kopieren',
     aiBookClaudeBtn:'✨ Claude',aiBookGptBtn:'🤖 ChatGPT',
     aiBookPasteLbl:'2. Antwort einfügen (JSON)',aiBookTaPh:'JSON hier einfügen …',
     aiBookGenBtn:'📖 Kreativbuch erstellen',aiBookCopied:'✓ Kopiert!',
@@ -3184,7 +3184,7 @@ const LANGS={
     expAiT:'AI Creative Book',expAiD:'Build prompt → paste into Claude/ChatGPT → paste JSON back → download book. No API key needed.',expAiBtn:'📖✨ Create AI cookbook',
     aiBookTitle:'✨ AI Creative Book · Select recipes',aiBookSelAll:'Select all',aiBookDeselAll:'Deselect all',aiBookGewählt:'selected',
     aiBookWeiter:'→ Build prompt',aiBookStep2Title:'✨ AI Creative Book · Prompt',
-    aiBookBack:'← Change recipes',aiBookPromptLbl:'1. Copy prompt',aiBookCopyBtn:'📋 Copy',
+    aiBookBack:'← Change recipes',aiBookPromptLbl:'1. Copy or edit prompt',aiBookCopyBtn:'📋 Copy',
     aiBookClaudeBtn:'✨ Claude',aiBookGptBtn:'🤖 ChatGPT',
     aiBookPasteLbl:'2. Paste answer (JSON)',aiBookTaPh:'Paste JSON here …',
     aiBookGenBtn:'📖 Create book',aiBookCopied:'✓ Copied!',
@@ -3329,7 +3329,7 @@ const LANGS={
     expAiT:'КИ-Кулинарная книга',expAiD:'Создать промпт → вставить в Claude/ChatGPT → вставить JSON → скачать книгу. Без API-ключа.',expAiBtn:'📖✨ Создать КИ-книгу',
     aiBookTitle:'✨ КИ-Книга · Выбрать рецепты',aiBookSelAll:'Выбрать все',aiBookDeselAll:'Снять выбор',aiBookGewählt:'выбрано',
     aiBookWeiter:'→ Создать промпт',aiBookStep2Title:'✨ КИ-Книга · Промпт',
-    aiBookBack:'← Изменить рецепты',aiBookPromptLbl:'1. Скопировать промпт',aiBookCopyBtn:'📋 Копировать',
+    aiBookBack:'← Изменить рецепты',aiBookPromptLbl:'1. Скопировать или написать промпт',aiBookCopyBtn:'📋 Копировать',
     aiBookClaudeBtn:'✨ Claude',aiBookGptBtn:'🤖 ChatGPT',
     aiBookPasteLbl:'2. Вставить ответ (JSON)',aiBookTaPh:'Вставьте JSON здесь …',
     aiBookGenBtn:'📖 Создать книгу',aiBookCopied:'✓ Скопировано!',
@@ -3474,7 +3474,7 @@ const LANGS={
     expAiT:'AI创意食谱书',expAiD:'生成提示词 → 粘贴到 Claude/ChatGPT → 粘贴 JSON → 下载书籍。无需 API 密钥。',expAiBtn:'📖✨ 创建AI食谱书',
     aiBookTitle:'✨ AI创意书 · 选择食谱',aiBookSelAll:'全选',aiBookDeselAll:'取消全选',aiBookGewählt:'已选',
     aiBookWeiter:'→ 生成提示词',aiBookStep2Title:'✨ AI创意书 · 提示词',
-    aiBookBack:'← 修改食谱',aiBookPromptLbl:'1. 复制提示词',aiBookCopyBtn:'📋 复制',
+    aiBookBack:'← 修改食谱',aiBookPromptLbl:'1. 复制或编辑提示词',aiBookCopyBtn:'📋 复制',
     aiBookClaudeBtn:'✨ Claude',aiBookGptBtn:'🤖 ChatGPT',
     aiBookPasteLbl:'2. 粘贴回答（JSON）',aiBookTaPh:'在此粘贴 JSON …',
     aiBookGenBtn:'📖 创建书籍',aiBookCopied:'✓ 已复制！',
@@ -3619,7 +3619,7 @@ const LANGS={
     expAiT:'Libro IA creativo',expAiD:'Crear prompt → pegar en Claude/ChatGPT → pegar JSON → descargar libro. Sin clave API.',expAiBtn:'📖✨ Crear libro IA',
     aiBookTitle:'✨ Libro IA · Elegir recetas',aiBookSelAll:'Seleccionar todas',aiBookDeselAll:'Deseleccionar',aiBookGewählt:'seleccionadas',
     aiBookWeiter:'→ Crear prompt',aiBookStep2Title:'✨ Libro IA · Prompt',
-    aiBookBack:'← Cambiar recetas',aiBookPromptLbl:'1. Copiar prompt',aiBookCopyBtn:'📋 Copiar',
+    aiBookBack:'← Cambiar recetas',aiBookPromptLbl:'1. Copiar o editar prompt',aiBookCopyBtn:'📋 Copiar',
     aiBookClaudeBtn:'✨ Claude',aiBookGptBtn:'🤖 ChatGPT',
     aiBookPasteLbl:'2. Pegar respuesta (JSON)',aiBookTaPh:'Pegar JSON aquí …',
     aiBookGenBtn:'📖 Crear libro',aiBookCopied:'✓ ¡Copiado!',
@@ -3806,7 +3806,7 @@ const LANGS={
     expAiT:'Livre IA créatif',expAiD:'Créer prompt → coller dans Claude/ChatGPT → coller JSON → télécharger. Sans clé API.',expAiBtn:'📖✨ Créer livre IA',
     aiBookTitle:'✨ Livre IA · Choisir des recettes',aiBookSelAll:'Tout sélectionner',aiBookDeselAll:'Tout désélectionner',aiBookGewählt:'sélectionnées',
     aiBookWeiter:'→ Créer le prompt',aiBookStep2Title:'✨ Livre IA · Prompt',
-    aiBookBack:'← Changer les recettes',aiBookPromptLbl:'1. Copier le prompt',aiBookCopyBtn:'📋 Copier',
+    aiBookBack:'← Changer les recettes',aiBookPromptLbl:'1. Copier ou modifier le prompt',aiBookCopyBtn:'📋 Copier',
     aiBookClaudeBtn:'✨ Claude',aiBookGptBtn:'🤖 ChatGPT',
     aiBookPasteLbl:'2. Coller la réponse (JSON)',aiBookTaPh:'Coller JSON ici …',
     aiBookGenBtn:'📖 Créer le livre',aiBookCopied:'✓ Copié !',
@@ -4061,7 +4061,7 @@ const LANGS={
     expAiT:'Libro IA creativo',expAiD:'Creare prompt → incollare in Claude/ChatGPT → incollare JSON → scaricare. Senza chiave API.',expAiBtn:'📖✨ Crea libro IA',
     aiBookTitle:'✨ Libro IA · Scegli ricette',aiBookSelAll:'Seleziona tutto',aiBookDeselAll:'Deseleziona tutto',aiBookGewählt:'selezionate',
     aiBookWeiter:'→ Crea prompt',aiBookStep2Title:'✨ Libro IA · Prompt',
-    aiBookBack:'← Cambia ricette',aiBookPromptLbl:'1. Copia prompt',aiBookCopyBtn:'📋 Copia',
+    aiBookBack:'← Cambia ricette',aiBookPromptLbl:'1. Copia o modifica prompt',aiBookCopyBtn:'📋 Copia',
     aiBookClaudeBtn:'✨ Claude',aiBookGptBtn:'🤖 ChatGPT',
     aiBookPasteLbl:'2. Incolla risposta (JSON)',aiBookTaPh:'Incolla JSON qui …',
     aiBookGenBtn:'📖 Crea libro',aiBookCopied:'✓ Copiato!',
@@ -4315,7 +4315,7 @@ const LANGS={
     expAiT:'Livro IA criativo',expAiD:'Criar prompt → colar no Claude/ChatGPT → colar JSON → descarregar. Sem chave API.',expAiBtn:'📖✨ Criar livro IA',
     aiBookTitle:'✨ Livro IA · Escolher receitas',aiBookSelAll:'Selecionar tudo',aiBookDeselAll:'Desmarcar tudo',aiBookGewählt:'selecionadas',
     aiBookWeiter:'→ Criar prompt',aiBookStep2Title:'✨ Livro IA · Prompt',
-    aiBookBack:'← Alterar receitas',aiBookPromptLbl:'1. Copiar prompt',aiBookCopyBtn:'📋 Copiar',
+    aiBookBack:'← Alterar receitas',aiBookPromptLbl:'1. Copiar ou editar prompt',aiBookCopyBtn:'📋 Copiar',
     aiBookClaudeBtn:'✨ Claude',aiBookGptBtn:'🤖 ChatGPT',
     aiBookPasteLbl:'2. Colar resposta (JSON)',aiBookTaPh:'Colar JSON aqui …',
     aiBookGenBtn:'📖 Criar livro',aiBookCopied:'✓ Copiado!',
@@ -5543,7 +5543,7 @@ function _kbCpPickStyle(key){
   if(cs)cs.style.display=key==='custom'?'':'none';
   const ta=document.getElementById('aiBookCustomTa');
   if(ta&&!ta.placeholder)ta.placeholder=T('aiBookCustomPh');
-  document.getElementById('aiBookPromptBox').textContent=_kbBuildCpPrompt();
+  document.getElementById('aiBookPromptBox').value=_kbBuildCpPrompt();
 }
 
 function _kbRenderStyleChips(){
@@ -5573,7 +5573,7 @@ function aiBookWeiter(){
   if(cs)cs.style.display=_kbCpStyle==='custom'?'':'none';
   const cta=document.getElementById('aiBookCustomTa');
   if(cta)cta.placeholder=T('aiBookCustomPh');
-  document.getElementById('aiBookPromptBox').textContent=_kbBuildCpPrompt();
+  document.getElementById('aiBookPromptBox').value=_kbBuildCpPrompt();
 }
 
 function _kbCpBack(){
@@ -5611,7 +5611,7 @@ function _kbBuildCpPrompt(){
 }
 
 function _kbCpCopy(){
-  const txt=document.getElementById('aiBookPromptBox')?.textContent||'';
+  const txt=document.getElementById('aiBookPromptBox')?.value||'';
   if(navigator.clipboard){navigator.clipboard.writeText(txt).then(()=>{
     const btn=document.getElementById('aiBookCopyBtn');
     if(btn){const orig=btn.textContent;btn.textContent=T('aiBookCopied');setTimeout(()=>btn.textContent=orig,2000);}
