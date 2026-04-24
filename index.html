@@ -596,33 +596,22 @@ body.nav-collapsed{padding-bottom:calc(16px + var(--sb))}
 .aibr-cb{width:20px;height:20px;border-radius:5px;border:2px solid var(--br3);display:flex;align-items:center;justify-content:center;flex-shrink:0;font-size:.75rem;color:transparent;transition:background .1s,border-color .1s}
 .aibr-cb.on{background:#8833dd;border-color:#8833dd;color:#fff}
 .aibr-name{font-size:.82rem;flex:1;color:var(--ink);line-height:1.3}
-#aiBookQualSect{padding:10px 13px;border-top:1px solid var(--sand2);background:var(--parch);flex-shrink:0}
-#aiBookQualLblEl{font-size:.7rem;font-weight:700;color:var(--br3);margin-bottom:6px;text-transform:uppercase;letter-spacing:.04em}
-.aibq-row{display:flex;align-items:center;gap:9px;padding:8px 0;border-bottom:1px solid var(--sand2);cursor:pointer}
-.aibq-row:last-child{border-bottom:none}
-.aibq-row input[type=radio]{accent-color:#8833dd;width:17px;height:17px;cursor:pointer;flex-shrink:0}
-.aibq-name{font-size:.83rem;font-weight:600;color:var(--ink)}
-.aibq-sub{font-size:.68rem;color:var(--br3);margin-left:2px}
 #aiBookFoot{padding:10px 13px;padding-bottom:calc(10px + var(--sb));border-top:1px solid var(--sand2);background:var(--parch);flex-shrink:0}
 #aiBookWeiterBtn{width:100%;padding:13px;border:none;border-radius:9px;background:linear-gradient(135deg,#5500bb,#8833dd);color:#fff;font-size:.86rem;font-weight:700;cursor:pointer;letter-spacing:.01em}
 #aiBookWeiterBtn:disabled{opacity:.45;cursor:default}
-/* aiCostOv */
-#aiCostOv .fov-hdr{background:linear-gradient(90deg,#5500bb,#8833dd,#bb55ff)}
-#aiCostOv .fov-body{padding:16px 14px 0;overflow-y:auto}
-.aico-summary{font-size:.77rem;color:var(--br3);margin-bottom:15px}
-.aico-row{display:grid;grid-template-columns:1fr auto;gap:2px 10px;margin-bottom:13px}
-.aico-lbl{font-size:.84rem;font-weight:600;color:var(--ink);grid-column:1}
-.aico-sub{font-size:.73rem;color:var(--br3);grid-column:1}
-.aico-amt{font-size:.86rem;font-weight:700;color:var(--ink);grid-column:2;grid-row:1/3;display:flex;align-items:center;white-space:nowrap}
-.aico-divider{border:none;border-top:1.5px solid var(--sand2);margin:4px 0 12px}
-.aico-total{display:flex;justify-content:space-between;align-items:center;margin-bottom:16px}
-.aico-total-lbl{font-size:.88rem;font-weight:700;color:var(--ink)}
-.aico-total-amt{font-size:1.12rem;font-weight:800;color:var(--ink)}
-.aico-note{font-size:.71rem;color:var(--br3);background:var(--sand);border-radius:8px;padding:10px 12px;margin-bottom:12px;line-height:1.6}
-.aico-month{font-size:.73rem;color:var(--br3);text-align:center;margin-bottom:14px}
-.aico-foot{display:flex;gap:9px;padding:12px 0 calc(14px + var(--sb))}
-.aico-cancel{flex:1;padding:12px;border:1.5px solid var(--sand2);border-radius:9px;background:var(--sand);color:var(--ink);font-size:.84rem;font-weight:600;cursor:pointer}
-.aico-gen{flex:2;padding:12px;border:none;border-radius:9px;background:linear-gradient(135deg,#5500bb,#8833dd);color:#fff;font-size:.86rem;font-weight:700;cursor:pointer;letter-spacing:.01em}
+/* aiBook step 2 – prompt + paste */
+#aiBookStep2{flex:1;overflow-y:auto;-webkit-overflow-scrolling:touch;display:flex;flex-direction:column;gap:0}
+.aibk2-sect{padding:12px 13px;border-bottom:1px solid var(--sand2)}
+.aibk2-lbl{font-size:.7rem;font-weight:700;color:var(--br3);margin-bottom:7px;text-transform:uppercase;letter-spacing:.04em}
+.aibk2-prompt{font-size:.72rem;color:var(--ink);background:var(--sand);border-radius:7px;padding:10px 12px;white-space:pre-wrap;word-break:break-word;max-height:140px;overflow-y:auto;line-height:1.55;border:1px solid var(--sand2)}
+.aibk2-btns{display:flex;gap:7px;margin-top:9px;flex-wrap:wrap}
+.aibk2-btn{flex:1;min-width:0;padding:9px 8px;border:none;border-radius:8px;font-size:.74rem;font-weight:700;cursor:pointer;white-space:nowrap}
+.aibk2-btn.cp{background:#f0e8ff;color:#6600cc;border:1.5px solid #8833dd}
+.aibk2-btn.claude{background:linear-gradient(135deg,#5500bb,#8833dd);color:#fff}
+.aibk2-btn.gpt{background:linear-gradient(135deg,#00875a,#10a37f);color:#fff}
+.aibk2-ta{width:100%;min-height:90px;border:1.5px solid var(--sand2);border-radius:8px;padding:9px 11px;font-size:.77rem;resize:vertical;font-family:monospace;background:var(--parch);color:var(--ink)}
+.aibk2-gen{width:100%;padding:13px;border:none;border-radius:9px;background:linear-gradient(135deg,#5500bb,#8833dd);color:#fff;font-size:.86rem;font-weight:700;cursor:pointer;margin-top:9px}
+.aibk2-back{background:none;border:none;color:var(--br3);font-size:.76rem;cursor:pointer;padding:6px 0;display:block;margin-bottom:4px}
 
 /* folders */
 .fld-top{padding:10px 12px 8px;background:var(--parch);border-bottom:1px solid var(--sand2)}
@@ -2707,7 +2696,7 @@ Vielen Dank für deine Unterstützung.</div>
       <div class="exp-ico">✨</div>
       <div>
         <div class="exp-title" id="expAiT">KI-Kreativbuch</div>
-        <div class="exp-desc" id="expAiD">Die KI generiert ein persönliches Kochbuch mit Bildern — Rezepte wählen & Qualität festlegen.</div>
+        <div class="exp-desc" id="expAiD">Prompt erstellen → in Claude/ChatGPT einfügen → JSON zurück → Buch herunterladen. Kein API-Key nötig.</div>
         <button class="exp-btn pur" onclick="openAiBook()" id="expAiBtn">✨ KI-Kreativbuch erstellen</button>
       </div>
     </div>
@@ -2730,63 +2719,34 @@ Vielen Dank für deine Unterstützung.</div>
     <div class="fov-title" id="aiBookTitle">✨ KI-Kreativbuch · Rezepte wählen</div>
   </div>
   <div class="fov-body">
-    <div id="aiBookTopBar">
-      <button id="aiBookSelAllBtn" onclick="aiBookToggleAll()">Alle wählen</button>
-      <span id="aiBookCnt">0 / 0</span>
+    <!-- Step 1: recipe list -->
+    <div id="aiBookStep1" style="flex:1;overflow:hidden;display:flex;flex-direction:column">
+      <div id="aiBookTopBar">
+        <button id="aiBookSelAllBtn" onclick="aiBookToggleAll()">Alle wählen</button>
+        <span id="aiBookCnt">0 / 0</span>
+      </div>
+      <div id="aiBookList" style="flex:1;overflow-y:auto;-webkit-overflow-scrolling:touch"></div>
     </div>
-    <div id="aiBookList"></div>
-    <div id="aiBookQualSect">
-      <div id="aiBookQualLblEl">Qualität wählen:</div>
-      <label class="aibq-row">
-        <input type="radio" name="aibq" value="fast">
-        <span class="aibq-name" id="aibqFastName">⚡ Schnell</span>
-        <span class="aibq-sub" id="aibqFastSub">(nur Text, 0 Bilder)</span>
-      </label>
-      <label class="aibq-row">
-        <input type="radio" name="aibq" value="standard" checked>
-        <span class="aibq-name" id="aibqStdName">✨ Standard</span>
-        <span class="aibq-sub" id="aibqStdSub">(3 Bilder/Rezept)</span>
-      </label>
-      <label class="aibq-row">
-        <input type="radio" name="aibq" value="premium">
-        <span class="aibq-name" id="aibqPremName">🏆 Premium</span>
-        <span class="aibq-sub" id="aibqPremSub">(HD-Bilder, Hochformat)</span>
-      </label>
+    <!-- Step 2: prompt + paste -->
+    <div id="aiBookStep2" style="display:none">
+      <div class="aibk2-sect">
+        <button class="aibk2-back" onclick="_kbCpBack()" id="aiBookBackBtn">← Rezepte ändern</button>
+        <div class="aibk2-lbl" id="aiBookPromptLbl">1. Prompt kopieren</div>
+        <div class="aibk2-prompt" id="aiBookPromptBox"></div>
+        <div class="aibk2-btns">
+          <button class="aibk2-btn cp" onclick="_kbCpCopy()" id="aiBookCopyBtn">📋 Kopieren</button>
+          <button class="aibk2-btn claude" onclick="_kbCpOpen('https://claude.ai/new')" id="aiBookClaudeBtn">✨ Claude</button>
+          <button class="aibk2-btn gpt" onclick="_kbCpOpen('https://chatgpt.com/')" id="aiBookGptBtn">🤖 ChatGPT</button>
+        </div>
+      </div>
+      <div class="aibk2-sect">
+        <div class="aibk2-lbl" id="aiBookPasteLbl">2. Antwort einfügen (JSON)</div>
+        <textarea class="aibk2-ta" id="aiBookTa" placeholder="JSON …"></textarea>
+        <button class="aibk2-gen" onclick="_kbCpGenerate()" id="aiBookGenBtn">📖 Kreativbuch erstellen</button>
+      </div>
     </div>
     <div id="aiBookFoot">
-      <button id="aiBookWeiterBtn" onclick="aiBookWeiter()" disabled>Weiter → Kostenübersicht</button>
-    </div>
-  </div>
-</div>
-
-
-<div class="fov" id="aiCostOv" style="display:none">
-  <div class="fov-hdr" onclick="closeAiCost()">
-    <button class="fov-back" onclick="event.stopPropagation();closeAiCost()" title="Zurück">←</button>
-    <div class="fov-title" id="aiCostTitle">Kostenübersicht</div>
-  </div>
-  <div class="fov-body">
-    <div class="aico-summary" id="aiCostSummary"></div>
-    <div class="aico-row">
-      <span class="aico-lbl" id="aiCostTextLbl">Textgenerierung (gpt-4o-mini)</span>
-      <span class="aico-sub" id="aiCostTextSub"></span>
-      <span class="aico-amt" id="aiCostTextAmt"></span>
-    </div>
-    <div class="aico-row" id="aiCostImgRow">
-      <span class="aico-lbl" id="aiCostImgLbl">Bildgenerierung (DALL-E 3)</span>
-      <span class="aico-sub" id="aiCostImgSub"></span>
-      <span class="aico-amt" id="aiCostImgAmt"></span>
-    </div>
-    <hr class="aico-divider">
-    <div class="aico-total">
-      <span class="aico-total-lbl" id="aiCostTotalLbl">Gesamt (geschätzt)</span>
-      <span class="aico-total-amt" id="aiCostTotalAmt"></span>
-    </div>
-    <div class="aico-note" id="aiCostNoteEl"></div>
-    <div class="aico-month" id="aiCostMonthLine" style="display:none"></div>
-    <div class="aico-foot">
-      <button class="aico-cancel" onclick="closeAiCost()" id="aiCostCancelBtn">Abbrechen</button>
-      <button class="aico-gen" onclick="aiCostDoGenerate()" id="aiCostGenBtn">✨ Jetzt generieren</button>
+      <button id="aiBookWeiterBtn" onclick="aiBookWeiter()" disabled>→ Prompt erstellen</button>
     </div>
   </div>
 </div>
@@ -3049,15 +3009,14 @@ const LANGS={
     expKbT:'Kreativbuch (Claude)',expKbD:'Claude schreibt für jedes Rezept eine persönliche Beschreibung — fertiges Blätterbuch mit Charakter.',expKbSafe:'🔑 Anthropic API-Schlüssel · wird verbraucht',expKbBtn:'✨ Kreativbuch erstellen',
     expPdfT:'PDF-Buch',expPdfD:'Alle Rezepte als druckfertiges PDF mit Deckblatt.',expPdfBtn:'📥 PDF-Buch erstellen',expPdfProg:'⏳ Erstelle PDF …',expPdfNone:'⚠️ Keine Rezepte vorhanden',expPdfRecs:'Rezepte',expPdfPart:'Teil',expPdfChunkInfo:'Dein Buch wird in',expPdfChunkSplit:'aufgeteilt',
     expJsonT:'Datensicherung (JSON)',expJsonD:'Alle Rezepte & Menüpläne als JSON sichern.',expJsonSafe:'🔒 Enthält keine API-Keys — sicher teilbar',expJsonBtn:'💾 Backup erstellen',
-    expAiT:'KI-Kreativbuch',expAiD:'Die KI generiert ein persönliches Kochbuch mit Bildern.',expAiBtn:'✨ KI-Kreativbuch erstellen',
+    expAiT:'KI-Kreativbuch',expAiD:'Prompt erstellen → in Claude/ChatGPT einfügen → JSON zurück → Buch herunterladen. Kein API-Key nötig.',expAiBtn:'✨ KI-Kreativbuch erstellen',
     aiBookTitle:'✨ KI-Kreativbuch · Rezepte wählen',aiBookSelAll:'Alle wählen',aiBookDeselAll:'Alle abwählen',aiBookGewählt:'gewählt',
-    aiBookQualLbl:'Qualität wählen:',aiBookQFastName:'⚡ Schnell',aiBookQFastSub:'(nur Text, 0 Bilder)',
-    aiBookQStdName:'✨ Standard',aiBookQStdSub:'(3 Bilder/Rezept)',
-    aiBookQPremName:'🏆 Premium',aiBookQPremSub:'(HD-Bilder, Hochformat)',aiBookWeiter:'Weiter → Kostenübersicht',
-    aiCostTitle:'Kostenübersicht',aiCostTextLbl:'Textgenerierung (gpt-4o-mini)',aiCostImgLbl:'Bildgenerierung (DALL-E 3)',
-    aiCostTotalLbl:'Gesamt (geschätzt)',aiCostNote:'💡 Von deinem OpenAI-Guthaben abgezogen.\nBudget setzen → platform.openai.com',
-    aiCostGenBtn:'✨ Jetzt generieren',aiCostCancelBtn:'Abbrechen',aiCostMonthPre:'Diesen Monat bisher:',
-    aiCostRez:'Rezepte',aiCostImgPer:'Bilder/Rezept',aiCostToken:'Token',aiCostBilderX:'Bilder ×',
+    aiBookWeiter:'→ Prompt erstellen',aiBookStep2Title:'✨ KI-Kreativbuch · Prompt',
+    aiBookBack:'← Rezepte ändern',aiBookPromptLbl:'1. Prompt kopieren',aiBookCopyBtn:'📋 Kopieren',
+    aiBookClaudeBtn:'✨ Claude',aiBookGptBtn:'🤖 ChatGPT',
+    aiBookPasteLbl:'2. Antwort einfügen (JSON)',aiBookTaPh:'JSON hier einfügen …',
+    aiBookGenBtn:'📖 Kreativbuch erstellen',aiBookCopied:'✓ Kopiert!',
+    aiBookDone:'Kreativbuch erstellt & heruntergeladen!',aiBookErrEmpty:'⚠️ Bitte zuerst JSON einfügen.',aiBookErrJson:'⚠️ Ungültiges JSON – bitte prüfen.',
     sTheme:'🎨 THEMA',sLang:'🌐 SPRACHE',sData:'📁 IMPORT & EXPORT',
     sImpLbl:'Importieren',sImpSub:'Bilder, KI-Scan, Backup',
     sExpLbl:'Exportieren',sExpSub:'E-Book, Blätterbuch, JSON',
@@ -3190,15 +3149,14 @@ const LANGS={
     expKbT:'Creative Book (Claude)',expKbD:'Claude writes a personal description for every recipe — ready as an interactive flipbook.',expKbSafe:'🔑 Anthropic API key · tokens consumed',expKbBtn:'✨ Create Creative Book',
     expPdfT:'PDF Book',expPdfD:'All recipes as a printable PDF with cover page.',expPdfBtn:'📥 Create PDF book',expPdfProg:'⏳ Creating PDF…',expPdfNone:'⚠️ No recipes available',expPdfRecs:'Recipes',expPdfPart:'Part',expPdfChunkInfo:'Your book will be split into',expPdfChunkSplit:'parts',
     expJsonT:'Backup (JSON)',expJsonD:'Save all recipes & menu as a JSON file.',expJsonSafe:'🔒 No API keys included — safe to share',expJsonBtn:'💾 Create backup',
-    expAiT:'AI Creative Book',expAiD:'AI generates a personal cookbook with images.',expAiBtn:'✨ Create AI cookbook',
+    expAiT:'AI Creative Book',expAiD:'Build prompt → paste into Claude/ChatGPT → paste JSON back → download book. No API key needed.',expAiBtn:'✨ Create AI cookbook',
     aiBookTitle:'✨ AI Creative Book · Select recipes',aiBookSelAll:'Select all',aiBookDeselAll:'Deselect all',aiBookGewählt:'selected',
-    aiBookQualLbl:'Choose quality:',aiBookQFastName:'⚡ Quick',aiBookQFastSub:'(text only, 0 images)',
-    aiBookQStdName:'✨ Standard',aiBookQStdSub:'(3 images/recipe)',
-    aiBookQPremName:'🏆 Premium',aiBookQPremSub:'(HD images, portrait format)',aiBookWeiter:'Next → Cost overview',
-    aiCostTitle:'Cost overview',aiCostTextLbl:'Text generation (gpt-4o-mini)',aiCostImgLbl:'Image generation (DALL-E 3)',
-    aiCostTotalLbl:'Total (estimated)',aiCostNote:'💡 Deducted from your OpenAI balance.\nSet budget → platform.openai.com',
-    aiCostGenBtn:'✨ Generate now',aiCostCancelBtn:'Cancel',aiCostMonthPre:'This month so far:',
-    aiCostRez:'recipes',aiCostImgPer:'images/recipe',aiCostToken:'tokens',aiCostBilderX:'images ×',
+    aiBookWeiter:'→ Build prompt',aiBookStep2Title:'✨ AI Creative Book · Prompt',
+    aiBookBack:'← Change recipes',aiBookPromptLbl:'1. Copy prompt',aiBookCopyBtn:'📋 Copy',
+    aiBookClaudeBtn:'✨ Claude',aiBookGptBtn:'🤖 ChatGPT',
+    aiBookPasteLbl:'2. Paste answer (JSON)',aiBookTaPh:'Paste JSON here …',
+    aiBookGenBtn:'📖 Create book',aiBookCopied:'✓ Copied!',
+    aiBookDone:'Creative book created & downloaded!',aiBookErrEmpty:'⚠️ Please paste JSON first.',aiBookErrJson:'⚠️ Invalid JSON – please check.',
     sTheme:'🎨 THEME',sLang:'🌐 LANGUAGE',sData:'📁 IMPORT & EXPORT',
     sImpLbl:'Import',sImpSub:'Images, AI scan, backup',
     sExpLbl:'Export',sExpSub:'E-Book, flipbook, JSON',
@@ -3330,15 +3288,14 @@ const LANGS={
     expFlipT:'Листалка (HTML)',expFlipD:'Интерактивная листалка как HTML-файл — работает офлайн.',expFlipBtn:'📥 Создать листалку',flipProg:'Создание …',flipDone:'✅ Листалка создана!',
     expPdfT:'PDF-книга',expPdfD:'Все рецепты как PDF для печати с обложкой.',expPdfBtn:'📥 Создать PDF-книгу',expPdfProg:'⏳ Создаю PDF …',expPdfNone:'⚠️ Нет рецептов',expPdfRecs:'Рецептов',expPdfPart:'Часть',expPdfChunkInfo:'Книга будет разделена на',expPdfChunkSplit:'части',
     expJsonT:'Резервная копия (JSON)',expJsonD:'Сохранить все рецепты и меню как JSON-файл.',expJsonSafe:'🔒 API-ключи не включены — безопасно для передачи',expJsonBtn:'💾 Создать резервную копию',
-    expAiT:'КИ-Кулинарная книга',expAiD:'ИИ создаёт персональную книгу с иллюстрациями.',expAiBtn:'✨ Создать КИ-книгу',
+    expAiT:'КИ-Кулинарная книга',expAiD:'Создать промпт → вставить в Claude/ChatGPT → вставить JSON → скачать книгу. Без API-ключа.',expAiBtn:'✨ Создать КИ-книгу',
     aiBookTitle:'✨ КИ-Книга · Выбрать рецепты',aiBookSelAll:'Выбрать все',aiBookDeselAll:'Снять выбор',aiBookGewählt:'выбрано',
-    aiBookQualLbl:'Качество:',aiBookQFastName:'⚡ Быстро',aiBookQFastSub:'(только текст, 0 фото)',
-    aiBookQStdName:'✨ Стандарт',aiBookQStdSub:'(3 фото/рецепт)',
-    aiBookQPremName:'🏆 Премиум',aiBookQPremSub:'(HD-фото, вертикальный)',aiBookWeiter:'Далее → Обзор цен',
-    aiCostTitle:'Обзор расходов',aiCostTextLbl:'Генерация текста (GPT-4o)',aiCostImgLbl:'Генерация изображений (DALL-E 3)',
-    aiCostTotalLbl:'Итого (ориентировочно)',aiCostNote:'💡 Спишется с вашего баланса OpenAI.\nУстановить бюджет → platform.openai.com',
-    aiCostGenBtn:'✨ Создать сейчас',aiCostCancelBtn:'Отмена',aiCostMonthPre:'В этом месяце:',
-    aiCostRez:'рецепта',aiCostImgPer:'фото/рецепт',aiCostToken:'токенов',aiCostBilderX:'фото ×',
+    aiBookWeiter:'→ Создать промпт',aiBookStep2Title:'✨ КИ-Книга · Промпт',
+    aiBookBack:'← Изменить рецепты',aiBookPromptLbl:'1. Скопировать промпт',aiBookCopyBtn:'📋 Копировать',
+    aiBookClaudeBtn:'✨ Claude',aiBookGptBtn:'🤖 ChatGPT',
+    aiBookPasteLbl:'2. Вставить ответ (JSON)',aiBookTaPh:'Вставьте JSON здесь …',
+    aiBookGenBtn:'📖 Создать книгу',aiBookCopied:'✓ Скопировано!',
+    aiBookDone:'Книга создана и скачана!',aiBookErrEmpty:'⚠️ Сначала вставьте JSON.',aiBookErrJson:'⚠️ Неверный JSON – проверьте.',
     sTheme:'🎨 ТЕМА',sLang:'🌐 ЯЗЫК',sData:'📁 ИМПОРТ & ЭКСПОРТ',
     sImpLbl:'Импорт',sImpSub:'Фото, ИИ-скан, резерв',
     sExpLbl:'Экспорт',sExpSub:'Эл. книга, листалка, JSON',
@@ -3470,15 +3427,14 @@ const LANGS={
     expFlipT:'翻页书（HTML）',expFlipD:'交互式翻页书，离线在任何浏览器中使用。',expFlipBtn:'📥 创建翻页书',flipProg:'正在创建 …',flipDone:'✅ 翻页书已创建！',
     expPdfT:'PDF书籍',expPdfD:'所有食谱导出为带封面的可打印PDF。',expPdfBtn:'📥 创建PDF书籍',expPdfProg:'⏳ 正在创建PDF…',expPdfNone:'⚠️ 暂无食谱',expPdfRecs:'食谱',expPdfPart:'部分',expPdfChunkInfo:'书籍将分为',expPdfChunkSplit:'个部分',
     expJsonT:'数据备份（JSON）',expJsonD:'将所有食谱和菜单保存为JSON文件。',expJsonSafe:'🔒 不含API密钥 — 可安全共享',expJsonBtn:'💾 创建备份',
-    expAiT:'AI创意食谱书',expAiD:'AI生成带图片的个人食谱书。',expAiBtn:'✨ 创建AI食谱书',
+    expAiT:'AI创意食谱书',expAiD:'生成提示词 → 粘贴到 Claude/ChatGPT → 粘贴 JSON → 下载书籍。无需 API 密钥。',expAiBtn:'✨ 创建AI食谱书',
     aiBookTitle:'✨ AI创意书 · 选择食谱',aiBookSelAll:'全选',aiBookDeselAll:'取消全选',aiBookGewählt:'已选',
-    aiBookQualLbl:'选择质量：',aiBookQFastName:'⚡ 快速',aiBookQFastSub:'（仅文字，0张图片）',
-    aiBookQStdName:'✨ 标准',aiBookQStdSub:'（3张图片/食谱）',
-    aiBookQPremName:'🏆 高级',aiBookQPremSub:'（HD图片，竖版）',aiBookWeiter:'下一步 → 费用概览',
-    aiCostTitle:'费用概览',aiCostTextLbl:'文字生成 (GPT-4o)',aiCostImgLbl:'图像生成 (DALL-E 3)',
-    aiCostTotalLbl:'合计（估算）',aiCostNote:'💡 从您的OpenAI余额中扣除。\n设置预算 → platform.openai.com',
-    aiCostGenBtn:'✨ 立即生成',aiCostCancelBtn:'取消',aiCostMonthPre:'本月迄今：',
-    aiCostRez:'食谱',aiCostImgPer:'图片/食谱',aiCostToken:'词元',aiCostBilderX:'图片 ×',
+    aiBookWeiter:'→ 生成提示词',aiBookStep2Title:'✨ AI创意书 · 提示词',
+    aiBookBack:'← 修改食谱',aiBookPromptLbl:'1. 复制提示词',aiBookCopyBtn:'📋 复制',
+    aiBookClaudeBtn:'✨ Claude',aiBookGptBtn:'🤖 ChatGPT',
+    aiBookPasteLbl:'2. 粘贴回答（JSON）',aiBookTaPh:'在此粘贴 JSON …',
+    aiBookGenBtn:'📖 创建书籍',aiBookCopied:'✓ 已复制！',
+    aiBookDone:'创意书已创建并下载！',aiBookErrEmpty:'⚠️ 请先粘贴 JSON。',aiBookErrJson:'⚠️ JSON 无效，请检查。',
     sTheme:'🎨 主题',sLang:'🌐 语言',sData:'📁 导入 & 导出',
     sImpLbl:'导入',sImpSub:'图片、AI扫描、备份',
     sExpLbl:'导出',sExpSub:'电子书、翻页书、JSON',
@@ -3610,15 +3566,14 @@ const LANGS={
     expFlipT:'Libro interactivo (HTML)',expFlipD:'Libro interactivo como HTML — sin conexión en cualquier navegador.',expFlipBtn:'📥 Crear libro',flipProg:'Creando …',flipDone:'✅ Libro creado!',
     expPdfT:'Libro PDF',expPdfD:'Todas las recetas como PDF imprimible con portada.',expPdfBtn:'📥 Crear libro PDF',expPdfProg:'⏳ Creando PDF…',expPdfNone:'⚠️ No hay recetas',expPdfRecs:'Recetas',expPdfPart:'Parte',expPdfChunkInfo:'Tu libro se dividirá en',expPdfChunkSplit:'partes',
     expJsonT:'Copia de seguridad (JSON)',expJsonD:'Guardar todas las recetas y menús como JSON.',expJsonSafe:'🔒 Sin claves API — seguro para compartir',expJsonBtn:'💾 Crear copia de seguridad',
-    expAiT:'Libro IA creativo',expAiD:'La IA genera un libro de cocina personal con imágenes.',expAiBtn:'✨ Crear libro IA',
+    expAiT:'Libro IA creativo',expAiD:'Crear prompt → pegar en Claude/ChatGPT → pegar JSON → descargar libro. Sin clave API.',expAiBtn:'✨ Crear libro IA',
     aiBookTitle:'✨ Libro IA · Elegir recetas',aiBookSelAll:'Seleccionar todas',aiBookDeselAll:'Deseleccionar',aiBookGewählt:'seleccionadas',
-    aiBookQualLbl:'Elegir calidad:',aiBookQFastName:'⚡ Rápido',aiBookQFastSub:'(solo texto, 0 imágenes)',
-    aiBookQStdName:'✨ Estándar',aiBookQStdSub:'(3 imágenes/receta)',
-    aiBookQPremName:'🏆 Premium',aiBookQPremSub:'(imágenes HD, vertical)',aiBookWeiter:'Siguiente → Resumen de costes',
-    aiCostTitle:'Resumen de costes',aiCostTextLbl:'Generación de texto (GPT-4o)',aiCostImgLbl:'Generación de imágenes (DALL-E 3)',
-    aiCostTotalLbl:'Total (estimado)',aiCostNote:'💡 Deducido de tu saldo de OpenAI.\nEstablecer presupuesto → platform.openai.com',
-    aiCostGenBtn:'✨ Generar ahora',aiCostCancelBtn:'Cancelar',aiCostMonthPre:'Este mes hasta ahora:',
-    aiCostRez:'recetas',aiCostImgPer:'imágenes/receta',aiCostToken:'tokens',aiCostBilderX:'imágenes ×',
+    aiBookWeiter:'→ Crear prompt',aiBookStep2Title:'✨ Libro IA · Prompt',
+    aiBookBack:'← Cambiar recetas',aiBookPromptLbl:'1. Copiar prompt',aiBookCopyBtn:'📋 Copiar',
+    aiBookClaudeBtn:'✨ Claude',aiBookGptBtn:'🤖 ChatGPT',
+    aiBookPasteLbl:'2. Pegar respuesta (JSON)',aiBookTaPh:'Pegar JSON aquí …',
+    aiBookGenBtn:'📖 Crear libro',aiBookCopied:'✓ ¡Copiado!',
+    aiBookDone:'¡Libro creado y descargado!',aiBookErrEmpty:'⚠️ Por favor pega el JSON primero.',aiBookErrJson:'⚠️ JSON no válido – comprueba.',
     sTheme:'🎨 TEMA',sLang:'🌐 IDIOMA',sData:'📁 IMPORTAR & EXPORTAR',
     sImpLbl:'Importar',sImpSub:'Imágenes, Scan IA, Copia',
     sExpLbl:'Exportar',sExpSub:'E-Book, Libro, JSON',
@@ -3792,15 +3747,15 @@ const LANGS={
     expJsonD:'Sauvegarder en JSON.',
     expJsonSafe:'🔒 Sans clés API — sûr à partager',
     expJsonBtn:'💾 Créer une sauvegarde',
-    expAiT:'Livre IA créatif',expAiD:"L'IA génère un livre de cuisine personnel avec images.",expAiBtn:'✨ Créer livre IA',
+    expAiT:'Livre IA créatif',expAiD:'Créer prompt → coller dans Claude/ChatGPT → coller JSON → télécharger. Sans clé API.',expAiBtn:'✨ Créer livre IA',
     aiBookTitle:'✨ Livre IA · Choisir des recettes',aiBookSelAll:'Tout sélectionner',aiBookDeselAll:'Tout désélectionner',aiBookGewählt:'sélectionnées',
-    aiBookQualLbl:'Choisir la qualité :',aiBookQFastName:'⚡ Rapide',aiBookQFastSub:'(texte seul, 0 image)',
-    aiBookQStdName:'✨ Standard',aiBookQStdSub:'(3 images/recette)',
-    aiBookQPremName:'🏆 Premium',aiBookQPremSub:'(images HD, portrait)',aiBookWeiter:'Suivant → Aperçu des coûts',
-    aiCostTitle:'Aperçu des coûts',aiCostTextLbl:'Génération de texte (GPT-4o)',aiCostImgLbl:"Génération d'images (DALL-E 3)",
-    aiCostTotalLbl:'Total (estimé)',aiCostNote:'💡 Déduit de votre solde OpenAI.\nDéfinir un budget → platform.openai.com',
-    aiCostGenBtn:'✨ Générer maintenant',aiCostCancelBtn:'Annuler',aiCostMonthPre:'Ce mois-ci :',
-    aiCostRez:'recettes',aiCostImgPer:'images/recette',aiCostToken:'tokens',aiCostBilderX:'images ×',
+    aiBookWeiter:'→ Créer le prompt',aiBookStep2Title:'✨ Livre IA · Prompt',
+    aiBookBack:'← Changer les recettes',aiBookPromptLbl:'1. Copier le prompt',aiBookCopyBtn:'📋 Copier',
+    aiBookClaudeBtn:'✨ Claude',aiBookGptBtn:'🤖 ChatGPT',
+    aiBookPasteLbl:'2. Coller la réponse (JSON)',aiBookTaPh:'Coller JSON ici …',
+    aiBookGenBtn:'📖 Créer le livre',aiBookCopied:'✓ Copié !',
+    aiBookDone:'Livre créé et téléchargé !',aiBookErrEmpty:'⚠️ Veuillez coller le JSON d\'abord.',aiBookErrJson:'⚠️ JSON invalide – vérifiez.',
+
     sTheme:'🎨 THEME',
     sLang:'🌐 LANGUE',
     sData:'📁 IMPORT EXPORT',
@@ -4041,15 +3996,14 @@ const LANGS={
     expJsonD:'Salva come JSON.',
     expJsonSafe:'🔒 Nessuna chiave API — sicuro da condividere',
     expJsonBtn:'💾 Crea backup',
-    expAiT:'Libro IA creativo',expAiD:"L'IA genera un libro di cucina personale con immagini.",expAiBtn:'✨ Crea libro IA',
+    expAiT:'Libro IA creativo',expAiD:'Creare prompt → incollare in Claude/ChatGPT → incollare JSON → scaricare. Senza chiave API.',expAiBtn:'✨ Crea libro IA',
     aiBookTitle:'✨ Libro IA · Scegli ricette',aiBookSelAll:'Seleziona tutto',aiBookDeselAll:'Deseleziona tutto',aiBookGewählt:'selezionate',
-    aiBookQualLbl:'Scegli qualità:',aiBookQFastName:'⚡ Veloce',aiBookQFastSub:'(solo testo, 0 immagini)',
-    aiBookQStdName:'✨ Standard',aiBookQStdSub:'(3 immagini/ricetta)',
-    aiBookQPremName:'🏆 Premium',aiBookQPremSub:'(immagini HD, verticale)',aiBookWeiter:'Avanti → Panoramica costi',
-    aiCostTitle:'Panoramica costi',aiCostTextLbl:'Generazione testo (GPT-4o)',aiCostImgLbl:'Generazione immagini (DALL-E 3)',
-    aiCostTotalLbl:'Totale (stimato)',aiCostNote:'💡 Detratto dal tuo credito OpenAI.\nImposta budget → platform.openai.com',
-    aiCostGenBtn:'✨ Genera ora',aiCostCancelBtn:'Annulla',aiCostMonthPre:'Questo mese finora:',
-    aiCostRez:'ricette',aiCostImgPer:'immagini/ricetta',aiCostToken:'token',aiCostBilderX:'immagini ×',
+    aiBookWeiter:'→ Crea prompt',aiBookStep2Title:'✨ Libro IA · Prompt',
+    aiBookBack:'← Cambia ricette',aiBookPromptLbl:'1. Copia prompt',aiBookCopyBtn:'📋 Copia',
+    aiBookClaudeBtn:'✨ Claude',aiBookGptBtn:'🤖 ChatGPT',
+    aiBookPasteLbl:'2. Incolla risposta (JSON)',aiBookTaPh:'Incolla JSON qui …',
+    aiBookGenBtn:'📖 Crea libro',aiBookCopied:'✓ Copiato!',
+    aiBookDone:'Libro creato e scaricato!',aiBookErrEmpty:'⚠️ Per favore incolla il JSON prima.',aiBookErrJson:'⚠️ JSON non valido – controlla.',
     sTheme:'🎨 TEMA',
     sLang:'🌐 LINGUA',
     sData:'📁 IMPORTA ESPORTA',
@@ -4290,15 +4244,14 @@ const LANGS={
     expJsonD:'Guardar como JSON.',
     expJsonSafe:'🔒 Sem chaves API — seguro para partilhar',
     expJsonBtn:'💾 Criar cópia de segurança',
-    expAiT:'Livro IA criativo',expAiD:'A IA gera um livro de culinária pessoal com imagens.',expAiBtn:'✨ Criar livro IA',
+    expAiT:'Livro IA criativo',expAiD:'Criar prompt → colar no Claude/ChatGPT → colar JSON → descarregar. Sem chave API.',expAiBtn:'✨ Criar livro IA',
     aiBookTitle:'✨ Livro IA · Escolher receitas',aiBookSelAll:'Selecionar tudo',aiBookDeselAll:'Desmarcar tudo',aiBookGewählt:'selecionadas',
-    aiBookQualLbl:'Escolher qualidade:',aiBookQFastName:'⚡ Rápido',aiBookQFastSub:'(só texto, 0 imagens)',
-    aiBookQStdName:'✨ Standard',aiBookQStdSub:'(3 imagens/receita)',
-    aiBookQPremName:'🏆 Premium',aiBookQPremSub:'(imagens HD, retrato)',aiBookWeiter:'Seguinte → Resumo de custos',
-    aiCostTitle:'Resumo de custos',aiCostTextLbl:'Geração de texto (GPT-4o)',aiCostImgLbl:'Geração de imagens (DALL-E 3)',
-    aiCostTotalLbl:'Total (estimado)',aiCostNote:'💡 Debitado do seu saldo OpenAI.\nDefinir orçamento → platform.openai.com',
-    aiCostGenBtn:'✨ Gerar agora',aiCostCancelBtn:'Cancelar',aiCostMonthPre:'Este mês até agora:',
-    aiCostRez:'receitas',aiCostImgPer:'imagens/receita',aiCostToken:'tokens',aiCostBilderX:'imagens ×',
+    aiBookWeiter:'→ Criar prompt',aiBookStep2Title:'✨ Livro IA · Prompt',
+    aiBookBack:'← Alterar receitas',aiBookPromptLbl:'1. Copiar prompt',aiBookCopyBtn:'📋 Copiar',
+    aiBookClaudeBtn:'✨ Claude',aiBookGptBtn:'🤖 ChatGPT',
+    aiBookPasteLbl:'2. Colar resposta (JSON)',aiBookTaPh:'Colar JSON aqui …',
+    aiBookGenBtn:'📖 Criar livro',aiBookCopied:'✓ Copiado!',
+    aiBookDone:'Livro criado e descarregado!',aiBookErrEmpty:'⚠️ Por favor cole o JSON primeiro.',aiBookErrJson:'⚠️ JSON inválido – verifique.',
     sTheme:'🎨 TEMA',
     sLang:'🌐 IDIOMA',
     sData:'📁 IMPORTAR EXPORTAR',
@@ -5060,9 +5013,7 @@ function applyLang(code){
     'expKbT','expKbD','expKbSafe','expKbBtn',
     'expJsonT','expJsonD','expJsonSafe','expJsonBtn',
     'expAiT','expAiD','expAiBtn',
-    'aiBookTitle','aiBookSelAll','aiBookDeselAll','aiBookGewählt',
-    'aiBookQualLbl','aiBookQFastName','aiBookQFastSub','aiBookQStdName','aiBookQStdSub','aiBookQPremName','aiBookQPremSub','aiBookWeiter',
-    'aiCostTitle','aiCostTextLbl','aiCostImgLbl','aiCostTotalLbl','aiCostGenBtn','aiCostCancelBtn',
+    'aiBookTitle','aiBookSelAll','aiBookDeselAll','aiBookGewählt','aiBookWeiter',
     'sTheme','sLang','sData','sImpLbl','sImpSub','sExpLbl','sExpSub',
     'sInfo','sStore','sClear','sClearSub',
     'sManualHead','sManualLbl','sManualSub','manOvTitle','manPdfLbl',
@@ -5186,7 +5137,6 @@ function navTo(n){
     {id:'kbLightbox', fn:function(){closeKbLightbox();}},
     {id:'kbCostOv',   fn:function(){closeKbCostOv();}},
     {id:'kbProgOv',   fn:function(){document.getElementById('kbProgOv').style.display='none';}},
-    {id:'aiCostOv',   fn:function(){closeAiCost();}},
     {id:'aiBookOv',   fn:function(){closeAiBook();}},
     {id:'apikeyOv',   fn:function(){closeApiKeyOv();}},
     {id:'langOv',     fn:function(){closeLang();}},
@@ -5302,16 +5252,10 @@ function openAiBook(){
   named.forEach(r=>_aiBookSel.add(r.id));
   _renderAiBookList(named);
   document.getElementById('aiBookTitle').textContent=T('aiBookTitle');
-  document.getElementById('aiBookQualLblEl').textContent=T('aiBookQualLbl');
-  document.getElementById('aibqFastName').textContent=T('aiBookQFastName');
-  document.getElementById('aibqFastSub').textContent=T('aiBookQFastSub');
-  document.getElementById('aibqStdName').textContent=T('aiBookQStdName');
-  document.getElementById('aibqStdSub').textContent=T('aiBookQStdSub');
-  document.getElementById('aibqPremName').textContent=T('aiBookQPremName');
-  document.getElementById('aibqPremSub').textContent=T('aiBookQPremSub');
   document.getElementById('aiBookWeiterBtn').textContent=T('aiBookWeiter');
-  const stdRadio=document.querySelector('input[name=aibq][value=standard]');
-  if(stdRadio)stdRadio.checked=true;
+  document.getElementById('aiBookStep1').style.display='flex';
+  document.getElementById('aiBookStep2').style.display='none';
+  document.getElementById('aiBookFoot').style.display='';
 }
 
 function closeAiBook(){
@@ -5367,264 +5311,114 @@ function _aiBookUpdateCount(total){
 
 function aiBookWeiter(){
   if(_aiBookSel.size===0)return;
-  const qual=document.querySelector('input[name=aibq]:checked')?.value||'standard';
-  window._aiBookParams={ids:[..._aiBookSel],qual};
-  openAiCost();
+  // Switch to step 2
+  document.getElementById('aiBookStep1').style.display='none';
+  document.getElementById('aiBookStep2').style.display='flex';
+  document.getElementById('aiBookFoot').style.display='none';
+  document.getElementById('aiBookTitle').textContent=T('aiBookStep2Title');
+  // Apply i18n labels
+  const backBtn=document.getElementById('aiBookBackBtn');if(backBtn)backBtn.textContent=T('aiBookBack');
+  const pl=document.getElementById('aiBookPromptLbl');if(pl)pl.textContent=T('aiBookPromptLbl');
+  const cpBtn=document.getElementById('aiBookCopyBtn');if(cpBtn)cpBtn.textContent=T('aiBookCopyBtn');
+  const cBtn=document.getElementById('aiBookClaudeBtn');if(cBtn)cBtn.textContent=T('aiBookClaudeBtn');
+  const gBtn=document.getElementById('aiBookGptBtn');if(gBtn)gBtn.textContent=T('aiBookGptBtn');
+  const paLbl=document.getElementById('aiBookPasteLbl');if(paLbl)paLbl.textContent=T('aiBookPasteLbl');
+  const ta=document.getElementById('aiBookTa');if(ta)ta.placeholder=T('aiBookTaPh');
+  const genBtn=document.getElementById('aiBookGenBtn');if(genBtn)genBtn.textContent=T('aiBookGenBtn');
+  // Build prompt
+  document.getElementById('aiBookPromptBox').textContent=_kbBuildCpPrompt();
 }
 
-// ── KOSTENÜBERSICHT (Schritt 3) ──────────────────────────────
-var _AICOST_TEXT_PER_REC=0.0002;   // gpt-4o-mini ~400 tokens/Rezept in USD
-var _AICOST_IMG_STD=0.040;         // DALL-E 3 Standard (1024×1024) in USD
-var _AICOST_IMG_HD =0.080;         // DALL-E 3 HD (1792×1024) in USD
-var _AICOST_IMGS_QUAL={fast:0,standard:3,premium:5};
-var _AICOST_MONTH_KEY='aiBookMonthSpend9m';
-
-function _aiCostMonthKey(){var d=new Date();return d.getFullYear()+'-'+(d.getMonth()+1);}
-function _aiCostGetMonth(){
-  try{var s=JSON.parse(localStorage.getItem(_AICOST_MONTH_KEY)||'{}'),mk=_aiCostMonthKey();return s[mk]||{usd:0,count:0};}
-  catch(e){return {usd:0,count:0};}
-}
-function _aiCostAddMonth(usd){
-  try{
-    var s=JSON.parse(localStorage.getItem(_AICOST_MONTH_KEY)||'{}'),mk=_aiCostMonthKey();
-    if(!s[mk])s[mk]={usd:0,count:0};
-    s[mk].usd+=usd;s[mk].count++;
-    localStorage.setItem(_AICOST_MONTH_KEY,JSON.stringify(s));
-  }catch(e){}
-}
-function _aiCostFmt(usd){
-  var s=usd.toFixed(2);
-  var CL=window.CL||'de';
-  return '$'+(CL==='de'||CL==='fr'||CL==='it'||CL==='es'||CL==='pt'?s.replace('.',','):s);
+function _kbCpBack(){
+  document.getElementById('aiBookStep1').style.display='flex';
+  document.getElementById('aiBookStep2').style.display='none';
+  document.getElementById('aiBookFoot').style.display='';
+  document.getElementById('aiBookTitle').textContent=T('aiBookTitle');
+  document.getElementById('aiBookWeiterBtn').textContent=T('aiBookWeiter');
 }
 
-function openAiCost(){
-  const p=window._aiBookParams;if(!p)return;
-  const n=p.ids.length,qual=p.qual;
-  const imgs=_AICOST_IMGS_QUAL[qual]||0;
-  const totalImgs=n*imgs;
-  const imgCostPer=qual==='premium'?_AICOST_IMG_HD:_AICOST_IMG_STD;
-  const textUsd=n*_AICOST_TEXT_PER_REC;
-  const imgUsd=totalImgs*imgCostPer;
-  const totalUsd=textUsd+imgUsd;
+function _kbBuildCpPrompt(){
+  const ids=[..._aiBookSel];
+  const recs=R.filter(r=>ids.includes(r.id)&&r.name);
+  if(!recs.length)return'';
+  const recLines=recs.map((r,i)=>{
+    const ings=(r.ings||[]).slice(0,6).map(g=>`${g.amt||g.amount||''} ${g.unit||''} ${g.name||''}`.trim()).filter(Boolean).join(', ');
+    return`${i+1}. ${r.name}`+(ings?' ('+ings+')':'');
+  }).join('\n');
+  const prompts={
+    de:`Schreibe für die folgenden Rezepte kurze Texte für ein persönliches Kochbuch.\n\nRezepte:\n${recLines}\n\nAntworte NUR mit diesem JSON (kein Text davor oder danach):\n{"kreativbuch":[\n  {"name":"Rezeptname","intro":"Warmherzige Einleitung (60-80 Wörter)","tip":"1 Küchentipp","serve":"Serviervorschlag (1 Satz)"},\n  ...\n]}`,
+    en:`Write short texts for the following recipes for a personal cookbook.\n\nRecipes:\n${recLines}\n\nReply ONLY with this JSON (no text before or after):\n{"kreativbuch":[\n  {"name":"Recipe name","intro":"Warm introduction (60-80 words)","tip":"1 cooking tip","serve":"Serving suggestion (1 sentence)"},\n  ...\n]}`,
+    ru:`Напиши короткие тексты для следующих рецептов для личной кулинарной книги.\n\nРецепты:\n${recLines}\n\nОтвечай ТОЛЬКО этим JSON (без текста до или после):\n{"kreativbuch":[\n  {"name":"Название рецепта","intro":"Тёплое введение (60-80 слов)","tip":"1 кулинарный совет","serve":"Предложение подачи (1 предложение)"},\n  ...\n]}`,
+    zh:`为以下食谱写一本私人食谱书的短文。\n\n食谱：\n${recLines}\n\n仅用以下JSON回复（前后不加任何文字）：\n{"kreativbuch":[\n  {"name":"食谱名称","intro":"温馨介绍（60-80字）","tip":"1个烹饪技巧","serve":"上菜建议（1句话）"},\n  ...\n]}`,
+    es:`Escribe textos cortos para las siguientes recetas para un libro de cocina personal.\n\nRecetas:\n${recLines}\n\nResponde SOLO con este JSON (sin texto antes ni después):\n{"kreativbuch":[\n  {"name":"Nombre receta","intro":"Introducción cálida (60-80 palabras)","tip":"1 consejo de cocina","serve":"Sugerencia de servicio (1 frase)"},\n  ...\n]}`,
+    fr:`Écris de courts textes pour les recettes suivantes pour un livre de cuisine personnel.\n\nRecettes:\n${recLines}\n\nRéponds UNIQUEMENT avec ce JSON (sans texte avant ou après):\n{"kreativbuch":[\n  {"name":"Nom recette","intro":"Introduction chaleureuse (60-80 mots)","tip":"1 conseil de cuisine","serve":"Suggestion de service (1 phrase)"},\n  ...\n]}`,
+    it:`Scrivi brevi testi per le seguenti ricette per un libro di cucina personale.\n\nRicette:\n${recLines}\n\nRispondi SOLO con questo JSON (senza testo prima o dopo):\n{"kreativbuch":[\n  {"name":"Nome ricetta","intro":"Introduzione calorosa (60-80 parole)","tip":"1 consiglio di cucina","serve":"Suggerimento servizio (1 frase)"},\n  ...\n]}`,
+    pt:`Escreve textos curtos para as seguintes receitas para um livro de culinária pessoal.\n\nReceitas:\n${recLines}\n\nResponde APENAS com este JSON (sem texto antes ou depois):\n{"kreativbuch":[\n  {"name":"Nome receita","intro":"Introdução calorosa (60-80 palavras)","tip":"1 dica de culinária","serve":"Sugestão de servir (1 frase)"},\n  ...\n]}`
+  };
+  return prompts[CL]||prompts.de;
+}
 
-  const qualEl={fast:document.getElementById('aibqFastName'),standard:document.getElementById('aibqStdName'),premium:document.getElementById('aibqPremName')};
-  const qualName=(qualEl[qual]&&qualEl[qual].textContent)||qual;
-
-  document.getElementById('aiCostSummary').textContent=
-    n+' '+T('aiCostRez')+' · '+qualName+' · '+imgs+' '+T('aiCostImgPer');
-
-  document.getElementById('aiCostTextSub').textContent=
-    n+' × ~400 '+T('aiCostToken');
-  document.getElementById('aiCostTextAmt').textContent=_aiCostFmt(textUsd);
-
-  const imgRow=document.getElementById('aiCostImgRow');
-  if(imgs===0){imgRow.style.display='none';}
-  else{
-    imgRow.style.display='';
-    document.getElementById('aiCostImgSub').textContent=
-      totalImgs+' '+T('aiCostBilderX')+' '+_aiCostFmt(imgCostPer);
-    document.getElementById('aiCostImgAmt').textContent=_aiCostFmt(imgUsd);
+function _kbCpCopy(){
+  const txt=document.getElementById('aiBookPromptBox')?.textContent||'';
+  if(navigator.clipboard){navigator.clipboard.writeText(txt).then(()=>{
+    const btn=document.getElementById('aiBookCopyBtn');
+    if(btn){const orig=btn.textContent;btn.textContent=T('aiBookCopied');setTimeout(()=>btn.textContent=orig,2000);}
+  });}else{
+    const ta=document.createElement('textarea');ta.value=txt;document.body.appendChild(ta);ta.select();document.execCommand('copy');document.body.removeChild(ta);
+    toast(T('aiBookCopied'));
   }
-
-  document.getElementById('aiCostTotalAmt').textContent=_aiCostFmt(totalUsd);
-
-  const note=T('aiCostNote')||'';
-  document.getElementById('aiCostNoteEl').innerHTML=note.replace(/\n/g,'<br>');
-
-  const ms=_aiCostGetMonth();
-  const ml=document.getElementById('aiCostMonthLine');
-  if(ms.count>0){
-    ml.textContent=T('aiCostMonthPre')+' '+_aiCostFmt(ms.usd)+' · '+ms.count+' Zines';
-    ml.style.display='';
-  } else {ml.style.display='none';}
-
-  window._aiBookCostUsd=totalUsd;
-  document.getElementById('aiCostOv').style.display='flex';
 }
 
-function closeAiCost(){
-  document.getElementById('aiCostOv').style.display='none';
+function _kbCpOpen(url){
+  _kbCpCopy();
+  window.open(url,'_blank','noopener');
 }
 
-function aiCostDoGenerate(){
-  closeAiCost();
-  closeAiBook();
-  closeExport();
-  _aiBookRun();
-}
-
-function _kbErrHint(msg){
-  const m=msg||'';
-  if(/billing hard limit|hard limit has been reached/i.test(m))
-    return'Monatliches Ausgabenlimit erreicht → <a href="https://platform.openai.com/settings/billing" target="_blank" style="color:#c0392b">Limit erhöhen</a>';
-  if(/exceeded.*quota|insufficient.*quota|quota.*exceeded/i.test(m))
-    return'Guthaben aufgebraucht → <a href="https://platform.openai.com/settings/billing" target="_blank" style="color:#c0392b">Guthaben aufladen</a>';
-  if(/invalid.*api.*key|incorrect.*api.*key|no api key/i.test(m))
-    return'Ungültiger API-Key – bitte in den Einstellungen prüfen';
-  if(/account.*not active|account.*deactivated/i.test(m))
-    return'Konto nicht aktiv → <a href="https://platform.openai.com/settings/billing" target="_blank" style="color:#c0392b">Zahlung hinterlegen</a>';
-  if(/rate.*limit/i.test(m))
-    return'Rate-Limit – bitte kurz warten und erneut versuchen';
-  if(/model.*not.*found|model.*does not exist/i.test(m))
-    return'Modell nicht verfügbar für diesen API-Key';
-  if(/content.*policy|safety/i.test(m))
-    return'Bild abgelehnt (Inhaltsrichtlinien)';
-  return h(m);
-}
-async function _aiBookRun(){
-  const p=window._aiBookParams;
-  if(!p||!p.ids.length)return;
-  const key=getSavedOpenAiKey();
-  if(!key){
-    toast('⚠️ OpenAI API-Key fehlt – bitte im Einstellungen-Tab unter KI-Bild hinterlegen.');
-    return;
-  }
-  const qual=p.qual;
-  const imgCnt=_AICOST_IMGS_QUAL[qual]||0;
-  const imgHd=(qual==='premium');
-  const imgPrice=imgHd?_AICOST_IMG_HD:_AICOST_IMG_STD;
-  const recs=R.filter(r=>p.ids.includes(r.id));
-  if(!recs.length)return;
-
-  _kbAbort=false;
-  const list=document.getElementById('kbProgList');
-  list.innerHTML='';
-  recs.forEach((r,i)=>{
-    const d=document.createElement('div');
-    d.className='kb-prog-item';d.id='kbri'+i;
-    d.innerHTML=`<div class="kb-prog-name" id="kbrn${i}">○ ${h(r.name)}</div><div class="kb-prog-sub" id="kbrs${i}"></div>`;
-    list.appendChild(d);
-  });
-  document.getElementById('kbProgTitle').textContent='✨ KI generiert dein Kreativbuch …';
-  document.getElementById('kbProgOv').style.display='flex';
-  _kbSetBar(0,recs.length,0);
-
-  let totalCost=0;
-  const aiResults=[];
-
-  for(let i=0;i<recs.length;i++){
-    if(_kbAbort)break;
-    const r=recs[i];
-    const nameEl=document.getElementById('kbrn'+i);
-    const subEl=document.getElementById('kbrs'+i);
-    nameEl.textContent='⏳ '+r.name;
-    subEl.innerHTML='<span>⏳ Text wird generiert …</span>';
-    _kbSetBar(i,recs.length,totalCost);
-
-    let txt='';
-    let txtErr='';
-    try{
-      const ings=(r.ings||[]).slice(0,10).map(g=>`${g.amt||g.amount||''} ${g.unit||''} ${g.name||''}`.trim()).filter(Boolean).join(', ');
-      const resp=await fetch('https://api.openai.com/v1/chat/completions',{
-        method:'POST',
-        headers:{'Content-Type':'application/json','Authorization':'Bearer '+key},
-        body:JSON.stringify({model:'gpt-4o-mini',messages:[{role:'user',content:`Schreibe eine warmherzige Einleitung (ca. 100-120 Wörter) für das Rezept "${r.name}"${ings?'. Hauptzutaten: '+ings:''}. Auf Deutsch, persönlich, wie in einem Familienkochbuch. Nur den Text, keine Überschrift.`}],max_tokens:220,temperature:0.8})
-      });
-      if(!resp.ok){const e=await resp.json().catch(()=>({}));throw new Error(e.error?.message||'HTTP '+resp.status);}
-      txt=(await resp.json()).choices[0].message.content.trim();
-      totalCost+=_AICOST_TEXT_PER_REC;
-      subEl.innerHTML='<span>✅ Text generiert</span>';
-    }catch(err){
-      if(_kbAbort)break;
-      txtErr=err.message||'Fehler';
-      subEl.innerHTML=`<span style="color:#c0392b">⚠️ Text: ${_kbErrHint(txtErr)}</span>`;
-    }
-    _kbSetBar(i,recs.length,totalCost);
-
-    const imgUrls=[];
-    const imgErrs=[];
-    if(imgCnt>0&&!_kbAbort){
-      const imgStatus=Array(imgCnt).fill('⏳');
-      const renderImgs=()=>{
-        const t=txt?'<span>✅ Text</span> · ':(txtErr?'<span style="color:#c0392b">⚠️ Text</span> · ':'');
-        const chips=imgStatus.map((s,j)=>{
-          if(s==='❌'&&imgErrs[j])return`<div style="color:#c0392b;font-size:.67rem;margin-top:2px">❌ Bild ${j+1}: ${_kbErrHint(imgErrs[j])}</div>`;
-          return`<span style="margin-right:5px">${s} Bild ${j+1}/${imgCnt}</span>`;
-        }).join('');
-        subEl.innerHTML=`<span>${t}</span>${chips}`;
-      };
-      renderImgs();
-      const _zinePs=buildZinePrompts(r);
-      for(let j=0;j<imgCnt;j++){
-        if(_kbAbort)break;
-        _kbAnimBar(i+(j+1)/imgCnt,recs.length);
-        const _ac=new AbortController();
-        const _reqTout=setTimeout(()=>_ac.abort(),90000);
-        try{
-          const resp=await fetch('https://api.openai.com/v1/images/generations',{
-            signal:_ac.signal,
-            method:'POST',
-            headers:{'Content-Type':'application/json','Authorization':'Bearer '+key},
-            body:JSON.stringify({model:'dall-e-3',prompt:_zinePs[j%_zinePs.length],n:1,size:'1024x1792',quality:imgHd?'hd':'standard',response_format:'b64_json'})
-          });
-          clearTimeout(_reqTout);
-          if(!resp.ok){const e=await resp.json().catch(()=>({}));throw new Error(e.error?.message||'HTTP '+resp.status);}
-          // Promise.race: b64_json-Body kann ~2MB sein – separater Timeout für Body-Download
-          const data=await Promise.race([
-            resp.json(),
-            new Promise((_,rej)=>setTimeout(()=>rej(new Error('__BODY_TIMEOUT__')),90000))
-          ]);
-          const b64=data.data[0].b64_json;
-          if(!b64)throw new Error('Kein Bild erhalten');
-          imgUrls.push('data:image/png;base64,'+b64);
-          imgStatus[j]='✅';
-          totalCost+=imgPrice;
-        }catch(err){
-          clearTimeout(_reqTout);
-          if(_kbAbort)break;
-          imgStatus[j]='❌';
-          imgErrs[j]=err.message==='__BODY_TIMEOUT__'?'Timeout (Bild-Download >90s)':
-            err.name==='AbortError'?'Timeout (Verbindung >90s)':
-            _kbErrHint(err.message||'Fehler');
-        }
-        _kbStopAnimBar();
-        renderImgs();
-        _kbSetBar(i+(j+1)/imgCnt,recs.length,totalCost);
-      }
-    }
-    aiResults.push({r,txt,imgUrls});
-    nameEl.textContent='✅ '+r.name;
-    _kbSetBar(i+1,recs.length,totalCost);
-  }
-  if(_kbAbort)return;
-
-  _aiCostAddMonth(totalCost);
-
+function _kbCpGenerate(){
+  let raw=document.getElementById('aiBookTa')?.value?.trim()||'';
+  if(!raw){toast(T('aiBookErrEmpty'));return;}
+  raw=raw.replace(/^```[a-z]*\s*/i,'').replace(/\s*```$/,'').trim();
+  const jsonMatch=raw.match(/(\{[\s\S]*\})/);
+  if(jsonMatch)raw=jsonMatch[0];
+  let data;
+  try{data=JSON.parse(raw);}catch(e){toast(T('aiBookErrJson'));return;}
+  const items=data.kreativbuch||data.recipes||data;
+  if(!Array.isArray(items)||!items.length){toast(T('aiBookErrJson'));return;}
+  // Build book HTML
+  const ids=[..._aiBookSel];
+  const recs=R.filter(r=>ids.includes(r.id)&&r.name);
   const date=new Date().toLocaleDateString('de-DE',{day:'2-digit',month:'2-digit',year:'numeric'});
   const dt=new Date().toISOString().slice(0,10);
-  const pages=aiResults.map(({r,txt,imgUrls})=>{
+  const pages=recs.map((r,i)=>{
+    const ai=items.find(x=>x.name&&x.name.trim().toLowerCase()===r.name.trim().toLowerCase())||items[i]||{};
     const ings=(r.ings||[]).map(g=>`<li>${h((g.amt||g.amount||'')+(g.unit?' '+g.unit:'')+(g.name?' '+g.name:''))}</li>`).join('');
     const steps=(r.steps||[]).map(s=>`<li>${h(s.txt||s.text||String(s))}</li>`).join('');
-    const imgs=imgUrls.map(u=>`<img src="${h(u)}" class="kb-img" alt="${h(r.name)}">`).join('');
-    return`<section class="kb-page"><h2 class="kb-title">${h(r.name)}</h2>${txt?`<p class="kb-intro">${h(txt)}</p>`:''}${imgs?`<div class="kb-imgs">${imgs}</div>`:''}${ings?`<div class="kb-s"><h3>Zutaten</h3><ul>${ings}</ul></div>`:''}${steps?`<div class="kb-s"><h3>Zubereitung</h3><ol>${steps}</ol></div>`:''}</section>`;
+    const photo=(r.img||r.photo||'');
+    const imgTag=photo?`<img src="${h(photo)}" class="kb-img" alt="${h(r.name)}">`:'';
+    const intro=ai.intro?`<p class="kb-intro">${h(ai.intro)}</p>`:'';
+    const tips=[ai.tip&&`<div class="kb-tip kb-tip-cook">${h(ai.tip)}</div>`,ai.serve&&`<div class="kb-tip kb-tip-srv">${h(ai.serve)}</div>`].filter(Boolean).join('');
+    return`<section class="kb-page">${imgTag}<h2 class="kb-title">${h(r.name)}</h2>${intro}${tips}${ings?`<div class="kb-s"><h3>Zutaten</h3><ul>${ings}</ul></div>`:''}${steps?`<div class="kb-s"><h3>Zubereitung</h3><ol>${steps}</ol></div>`:''}</section>`;
   }).join('\n');
-  const imgAspect='2/3';
   const bookHtml=`<!DOCTYPE html>
-<html lang="de"><head><meta charset="UTF-8"><title>✨ KI-Kreativbuch</title>
+<html lang="${CL||'de'}"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>✨ KI-Kreativbuch</title>
 <style>*{box-sizing:border-box}body{margin:0;font-family:Georgia,serif;background:#faf6f0;color:#2a1808}
-.kb-cover{min-height:50vh;background:linear-gradient(135deg,#5500bb,#8833dd,#bb55ff);color:#fff;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:40px 24px}
+.kb-cover{min-height:46vh;background:linear-gradient(135deg,#5500bb,#8833dd,#bb55ff);color:#fff;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:40px 24px}
 .kb-cover h1{font-size:clamp(2rem,5vw,3.5rem);margin:0 0 12px;font-style:italic}.kb-cover p{opacity:.85;margin:4px 0}
-.kb-page{max-width:800px;margin:0 auto;padding:40px 24px 60px;border-bottom:2px solid #ede0cc}
+.kb-page{max-width:760px;margin:0 auto;padding:40px 24px 60px;border-bottom:2px solid #ede0cc}
+.kb-img{width:100%;max-height:320px;object-fit:cover;border-radius:12px;margin-bottom:20px;box-shadow:0 4px 20px rgba(0,0,0,.15)}
 .kb-title{font-size:clamp(1.6rem,3vw,2.2rem);color:#4a1a00;font-style:italic;margin:0 0 16px}
-.kb-intro{font-size:1rem;line-height:1.8;color:#3a2010;background:#fff8f0;border-left:4px solid #8833dd;padding:14px 18px;border-radius:4px;margin:0 0 20px}
-.kb-imgs{display:flex;flex-wrap:wrap;gap:10px;margin:16px 0}.kb-img{width:calc(33.33% - 8px);min-width:180px;border-radius:12px;box-shadow:0 4px 16px rgba(0,0,0,.15);object-fit:cover;aspect-ratio:${imgAspect}}
+.kb-intro{font-size:.97rem;line-height:1.8;color:#3a2010;background:#fff8f0;border-left:4px solid #8833dd;padding:14px 18px;border-radius:4px;margin:0 0 16px}
+.kb-tip{font-size:.82rem;line-height:1.55;padding:9px 13px;border-radius:0 8px 8px 0;border-left:3px solid;margin-bottom:8px}
+.kb-tip-cook{background:#e8f5f3;border-color:#3a8a76;color:#1e4a45}
+.kb-tip-srv{background:#fdf0ea;border-color:#d05820;color:#7a2010}
 .kb-s h3{color:#6b35a8;margin:20px 0 6px}.kb-s ul,.kb-s ol{padding-left:20px;line-height:1.9}
-@media print{.kb-page{page-break-after:always}}@media(max-width:600px){.kb-img{width:calc(50% - 6px)}}</style></head>
-<body><div class="kb-cover"><h1>✨ KI-Kreativbuch</h1><p>Mein persönliches Rezeptbuch</p><p style="opacity:.6;font-size:.85rem">Erstellt am ${date} · KI-illustriert · ${aiResults.length} Rezepte</p></div>
+@media print{.kb-page{page-break-after:always}}@media(max-width:600px){.kb-img{max-height:220px}}</style></head>
+<body><div class="kb-cover"><h1>✨ KI-Kreativbuch</h1><p>Mein persönliches Rezeptbuch</p><p style="opacity:.6;font-size:.85rem">Erstellt am ${date} · KI-Texte · ${recs.length} Rezepte</p></div>
 ${pages}</body></html>`;
   dlBlob(new Blob([bookHtml],{type:'text/html;charset=utf-8'}),`kreativbuch-${dt}.html`);
-
-  document.getElementById('kbProgTitle').textContent='✅ Kreativbuch fertig!';
-  const barWrap=document.querySelector('.kb-bar-wrap');
-  const costStr='$'+totalCost.toFixed(2).replace('.',',');
-  const imgTotal=aiResults.reduce((s,x)=>s+x.imgUrls.length,0);
-  barWrap.innerHTML=`<div class="kb-result-card">
-    <div class="kb-result-ok">✅ Kreativbuch erstellt &amp; heruntergeladen!</div>
-    <div class="kb-result-stats">${aiResults.length} Rezepte · ${imgTotal} KI-Bilder</div>
-    <div class="kb-result-cost">Tatsächliche Kosten: ${costStr}</div>
-    <button class="exp-btn brn" style="width:100%;margin-top:8px" onclick="document.getElementById('kbProgOv').style.display='none'">✓ Schließen</button>
-  </div>`;
+  closeAiBook();
+  closeExport();
+  toast('📖 '+T('aiBookDone'));
 }
 
 function switchFovTab(ovId,tab,el){
@@ -9803,7 +9597,7 @@ function _initTooltips(){
 (function(){
   const SC_ORDER=['recipes','folders','menu','backup','settings'];
   // IDs von Overlays/Modals — bei offenen Panels kein Seitenwechsel
-  const MODAL_IDS=['mv','importOv','exportOv','kbLightbox','kbCostOv','kbProgOv','aiBookOv','aiCostOv','apikeyOv','courseSheet','spellModal',
+  const MODAL_IDS=['mv','importOv','exportOv','kbLightbox','kbCostOv','kbProgOv','aiBookOv','apikeyOv','courseSheet','spellModal',
     'aip','aslBg','ob-wizard-bg','ob-helper-bg','ob-settings-bg','ob-scan-ov',
     'manualOv','bvaultModal','bselOv'];
   function anyModalOpen(){
@@ -9910,7 +9704,6 @@ boot();
     {id:'kbLightbox',     close:function(){closeKbLightbox();}},
     {id:'kbCostOv',       close:function(){closeKbCostOv();}},
     {id:'kbProgOv',       close:function(){document.getElementById('kbProgOv').style.display='none';}},
-    {id:'aiCostOv',       close:function(){closeAiCost();}},
     {id:'aiBookOv',       close:function(){closeAiBook();}},
     {id:'apikeyOv',       close:function(){closeApiKeyOv();}},
     {id:'courseSheet',    close:function(){closeCSheet();}},
