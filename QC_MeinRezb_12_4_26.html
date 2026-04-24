@@ -5535,6 +5535,7 @@ async function _aiBookRun(){
       const _zinePs=buildZinePrompts(r);
       for(let j=0;j<imgCnt;j++){
         if(_kbAbort)break;
+        _kbAnimBar(i+(j+1)/imgCnt,recs.length);
         try{
           const resp=await fetch('https://api.openai.com/v1/images/generations',{
             method:'POST',
@@ -5552,6 +5553,7 @@ async function _aiBookRun(){
           imgStatus[j]='❌';
           imgErrs[j]=err.message||'Fehler';
         }
+        _kbStopAnimBar();
         renderImgs();
         _kbSetBar(i+(j+1)/imgCnt,recs.length,totalCost);
       }
@@ -7223,6 +7225,7 @@ const _KB_PRICE_OUT= 0.004  / 1000;   // $/token output
 let _kbAbort = false;
 let _kbAiData = [];   // [{r, intro, flavorNote, cookTip, servingIdea, health, eco}]
 let _kbDesign = 'auto';
+let _kbFillTimer = null;
 let _kbLastHtml = '';
 
 const _KB_DESIGNS = {
@@ -7441,6 +7444,22 @@ function _kbSetBar(done,total,cost){
   if(p)p.textContent=pct+' %';
   if(c)c.textContent='Echte Kosten bisher: $'+cost.toFixed(4).replace('.',',');
 }
+function _kbAnimBar(targetDone,total){
+  clearInterval(_kbFillTimer);
+  const f=document.getElementById('kbBarFill');
+  const p=document.getElementById('kbBarPct');
+  if(!f)return;
+  const tPct=Math.max(0,Math.round(targetDone/total*100)-5);
+  _kbFillTimer=setInterval(()=>{
+    const cur=parseFloat(f.style.width)||0;
+    if(cur>=tPct){clearInterval(_kbFillTimer);return;}
+    const next=cur+(tPct-cur)*0.04;
+    const pct=Math.round(next);
+    f.style.width=pct+'%';
+    if(p)p.textContent=pct+' %';
+  },300);
+}
+function _kbStopAnimBar(){clearInterval(_kbFillTimer);}
 
 function _kbBuildHtml(){
   if(!_kbAiData.length) return '';
