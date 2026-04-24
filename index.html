@@ -2429,6 +2429,10 @@ Vielen Dank für deine Unterstützung.</div>
           <div id="igCostLbl" style="font-size:.74rem;color:var(--teal);margin-top:5px;text-align:center;font-weight:600"></div>
           <button class="scan-key-btn" id="igSaveBtn" onclick="closeImport()" style="display:none;background:var(--grn);margin-top:10px">✅ Bilder im Rezeptbuch – schließen</button>
         </div>
+        <div id="igBackupHint" style="display:none;margin-top:12px;background:#fff3cd;border:1.5px solid #e6a817;border-radius:10px;padding:11px 13px;font-size:.76rem;color:#5a3e00;line-height:1.6">
+          💰 <strong>Diese Bilder haben Geld gekostet</strong> — sichere sie jetzt! Beim Löschen des Browser-Caches oder auf einem neuen Gerät sind sie sonst weg.<br>
+          <button onclick="closeImport();openExport();" style="margin-top:9px;width:100%;padding:9px;background:#e6a817;color:#fff;border:none;border-radius:8px;font-size:.80rem;font-weight:700;cursor:pointer;letter-spacing:.01em">📤 Jetzt sichern &amp; exportieren</button>
+        </div>
         <div style="margin-top:14px;border-top:1px solid var(--sand2);padding-top:12px;display:flex;flex-direction:column;gap:8px">
           <button class="scan-key-btn" id="igRecoverBtn" onclick="recoverIdbImages()" style="background:var(--sand);color:var(--ink);border:1px solid var(--sand2);font-size:.76rem">🗂️ Gespeicherte KI-Bilder laden</button>
           <div id="igRecoverLbl" style="font-size:.72rem;color:var(--br3);display:none"></div>
@@ -4678,7 +4682,11 @@ async function startImgGen(){
   if(stopBtn){stopBtn.style.display='none';}
   if(btn){btn.style.display='flex';}
   if(saveBtn&&res.ok>0){saveBtn.style.display='flex';}
-  if(res.ok>0){toast('✅ '+res.ok+' KI-Bild'+(res.ok===1?'':'er')+' im Rezeptbuch gespeichert');}
+  if(res.ok>0){
+    toast('✅ '+res.ok+' KI-Bild'+(res.ok===1?'':'er')+' im Rezeptbuch gespeichert');
+    var hint=document.getElementById('igBackupHint');
+    if(hint)hint.style.display='block';
+  }
   if(typeof render==='function')render();
   updateImgGenInfo();
 }
