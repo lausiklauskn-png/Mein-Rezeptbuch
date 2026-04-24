@@ -1467,6 +1467,26 @@ button:active{transform:scale(0.97)}
 .srch-act-btn.add{background:var(--rust);color:#fff}
 @media(max-width:380px){.srch-act-btn{padding:0 6px;font-size:.6rem}}
 
+/* ── Food-Zine Generator ── */
+.zine-bar{display:flex;align-items:center;justify-content:center;gap:8px;padding:5px 14px;background:linear-gradient(135deg,rgba(80,40,120,0.13),rgba(60,20,100,0.13));border:none;width:100%;cursor:pointer;font-size:.85rem;font-weight:700;color:#6b3fa0;letter-spacing:.02em;transition:opacity .12s;border-top:1px solid var(--sand2)}
+.zine-bar:active{opacity:.6}
+.zine-bar-txt{display:flex;flex-direction:column;text-align:left;gap:0}
+.zine-bar-lbl{font-size:.5rem;font-weight:900;color:#6b3fa0;letter-spacing:.03em}
+.zine-bar-sub{font-size:.38rem;font-weight:600;color:#8a5cbb;opacity:.8;letter-spacing:0}
+.zine-body{flex:1;overflow-y:auto;padding:14px 12px;display:flex;flex-direction:column;gap:14px}
+.zine-step-lbl{font-size:.6rem;font-weight:900;letter-spacing:.1em;text-transform:uppercase;color:var(--br3);margin-bottom:5px}
+.zine-recipe-sel{width:100%;padding:10px 12px;border:1.5px solid var(--sand2);border-radius:10px;background:var(--parch);font-size:.88rem;color:var(--ink);outline:none;cursor:pointer;-webkit-appearance:none;appearance:none}
+.zine-prompt-box{width:100%;min-height:200px;padding:10px 12px;border:1.5px solid var(--sand2);border-radius:10px;background:var(--sand);font-size:.68rem;color:var(--ink);resize:vertical;line-height:1.55;font-family:inherit;box-sizing:border-box}
+.zine-copy-btn{display:flex;align-items:center;gap:6px;background:#6b3fa0;color:#fff;border:none;border-radius:9px;padding:10px 14px;font-size:.8rem;font-weight:700;cursor:pointer;margin-top:5px;width:100%;justify-content:center}
+.zine-drop{border:2px dashed var(--sand2);border-radius:12px;min-height:160px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:8px;padding:16px;background:var(--parch);cursor:pointer;transition:border-color .2s,background .2s;text-align:center}
+.zine-drop.dragover{border-color:#6b3fa0;background:rgba(107,63,160,.07)}
+.zine-drop-ico{font-size:2rem}
+.zine-drop-txt{font-size:.78rem;font-weight:700;color:var(--br2)}
+.zine-drop-sub{font-size:.65rem;color:var(--br3)}
+#zinePreviewImg{max-width:100%;border-radius:10px;display:none;margin-top:8px;box-shadow:0 4px 16px rgba(0,0,0,.12)}
+.zine-print-btn{width:100%;background:#6b3fa0;color:#fff;border:none;border-radius:9px;padding:11px;font-size:.85rem;font-weight:700;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:8px;margin-top:8px}
+.zine-print-btn:disabled{opacity:.35;cursor:default}
+.zine-hint{font-size:.65rem;color:var(--br3);line-height:1.4;background:var(--sand);padding:8px 10px;border-radius:8px;border-left:3px solid #6b3fa0}
 
 </style>
 <link rel="apple-touch-icon" href="data:image/png;base64,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">
@@ -2453,6 +2473,46 @@ Vielen Dank für deine Unterstützung.</div>
   </div>
 </div>
 
+
+<div class="fov" id="zineOv" style="display:none">
+  <div class="fov-hdr" onclick="closeZineOv()">
+    <button class="fov-back" onclick="event.stopPropagation();closeZineOv()" title="Zurück">←</button>
+    <div class="fov-title">🎨 Food-Zine Generator</div>
+  </div>
+  <div class="zine-body">
+    <div class="zine-hint">Wähle ein Rezept → kopiere den Prompt → füge ihn in ChatGPT oder DALL-E ein → ziehe das KI-Bild hierher → drucken!</div>
+    <div>
+      <div class="zine-step-lbl">① Lieblingsrezept wählen</div>
+      <select class="zine-recipe-sel" id="zineRecipeSel" onchange="zineOnRecipeChange()">
+        <option value="">– Rezept auswählen –</option>
+      </select>
+    </div>
+    <div id="zineStep2" style="display:none">
+      <div class="zine-step-lbl">② Prompt kopieren → in ChatGPT / DALL-E einfügen</div>
+      <textarea class="zine-prompt-box" id="zinePromptBox" readonly></textarea>
+      <button class="zine-copy-btn" onclick="zineCopyPrompt()">
+        <span>📋</span><span id="zineCopyLbl">Prompt kopieren</span>
+      </button>
+    </div>
+    <div id="zineStep3" style="display:none">
+      <div class="zine-step-lbl">③ KI-Bild einfügen (Drag &amp; Drop oder klicken)</div>
+      <div class="zine-drop" id="zineDropZone"
+           ondragover="event.preventDefault();this.classList.add('dragover')"
+           ondragleave="this.classList.remove('dragover')"
+           ondrop="zineHandleDrop(event)"
+           onclick="document.getElementById('zineFileIn').click()">
+        <div class="zine-drop-ico">🖼️</div>
+        <div class="zine-drop-txt">Bild hier ablegen</div>
+        <div class="zine-drop-sub">oder tippen / klicken zum Auswählen</div>
+        <input type="file" id="zineFileIn" accept="image/*" style="display:none" onchange="zineHandleFile(this.files[0])">
+      </div>
+      <img id="zinePreviewImg" alt="Food-Zine Vorschau">
+      <button class="zine-print-btn" id="zinePrintBtn" onclick="zinePrint()" disabled>
+        🖨️ Food-Zine drucken / als PDF
+      </button>
+    </div>
+  </div>
+</div>
 
 <div class="fov" id="langOv" style="display:none">
   <div class="fov-hdr" onclick="closeLang()">
@@ -4469,6 +4529,7 @@ function navTo(n){
   const _fovClose=[
     {id:'importOv',   fn:function(){closeImport();}},
     {id:'exportOv',   fn:function(){closeExport();}},
+    {id:'zineOv',     fn:function(){closeZineOv();}},
     {id:'apikeyOv',   fn:function(){closeApiKeyOv();}},
     {id:'langOv',     fn:function(){closeLang();}},
     {id:'helpOv',     fn:function(){closeHelpOv();}},
@@ -4564,6 +4625,206 @@ function openImport(){
 function closeImport(){document.getElementById('importOv').style.display='none';}
 function openExport(){document.getElementById('exportOv').style.display='flex';}
 function closeExport(){document.getElementById('exportOv').style.display='none';}
+
+// ═══════════════════════════════════════════════════════
+// FOOD-ZINE GENERATOR
+// ═══════════════════════════════════════════════════════
+var _zineRid=null;
+function openZineOv(rid){
+  var sel=document.getElementById('zineRecipeSel');
+  var opts=R.filter(function(r){return r.name&&!r.blank;}).sort(function(a,b){return a.name.localeCompare(b.name,CL,{sensitivity:'base'});});
+  sel.innerHTML='<option value="">– Rezept auswählen –</option>'+opts.map(function(r){return'<option value="'+r.id+'">'+h(r.name)+'</option>';}).join('');
+  if(rid){
+    sel.value=String(rid);
+    _zineRid=rid;
+    _zineGeneratePrompt(rid);
+  }else{
+    document.getElementById('zineStep2').style.display='none';
+    document.getElementById('zineStep3').style.display='none';
+    _zineRid=null;
+  }
+  document.getElementById('zineOv').style.display='flex';
+}
+function closeZineOv(){document.getElementById('zineOv').style.display='none';}
+function zineOnRecipeChange(){
+  var rid=+document.getElementById('zineRecipeSel').value;
+  if(!rid){
+    document.getElementById('zineStep2').style.display='none';
+    document.getElementById('zineStep3').style.display='none';
+    _zineRid=null;
+    return;
+  }
+  _zineRid=rid;
+  _zineGeneratePrompt(rid);
+}
+function _zineGeneratePrompt(rid){
+  var r=R.find(function(r){return r.id===rid;});if(!r||!r.name)return;
+  var ingLines=(r.ings||[]).map(function(i){
+    var parts=[(i.amt||''),(i.unit||''),(i.name||'')].filter(Boolean);
+    return'• '+parts.join(' ');
+  }).join('\n');
+  var stepLines=(r.steps||[]).map(function(s,i){return(i+1)+'. '+(s.txt||s||'').trim();}).join('\n');
+  var zeit=r.prepTime?(r.prepTime+' Minuten'):'ca. 30–60 Minuten';
+  var portionen=r.servings||4;
+  var kat=catName(r.cat)||'Hauptgericht';
+  var ico=catIco(r.cat)||'🍽️';
+  var nutStr='';
+  if(r.nutrition&&r.nutrition.kcal){var n=r.nutrition;nutStr='\nNährwerte pro Portion: '+n.kcal+' kcal | Fett: '+n.fat+'g | Kohlenhydrate: '+n.carbs+'g | Eiweiß: '+n.protein+'g';}
+  var extrasArr=[];
+  if((r.flavors||[]).length)extrasArr.push('Aromen/Stil: '+r.flavors.join(', '));
+  if((r.allergens||[]).length)extrasArr.push('Hinweise: '+r.allergens.join(', '));
+  var extras=extrasArr.length?('\n'+extrasArr.join('\n')):'';
+  var prompt='Erstelle ein 3-seitiges, farbiges Food-Zine im Mixed-Media-Stil zu folgendem Rezept:\n\n'
+    +'📖 REZEPT: '+r.name+'\n'
+    +ico+' Kategorie: '+kat+'\n'
+    +'👥 Portionen: '+portionen+' Personen\n'
+    +'⏱️ Zubereitungszeit: '+zeit+nutStr+extras+'\n\n'
+    +'🧂 ZUTATEN:\n'+(ingLines||'(keine Zutaten angegeben)')+'\n\n'
+    +'👨‍🍳 ZUBEREITUNG:\n'+(stepLines||'(keine Schritte angegeben)')+'\n\n'
+    +'━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n\n'
+    +'ANWEISUNGEN FÜR DAS FOOD-ZINE\n'
+    +'Format: 3 Seiten · DIN A4 · Hochformat · Farbdruck · Mixed-Media-Stil\n\n'
+    +'📌 SEITE 1 — TITELSEITE (Cover)\n'
+    +'• Großes, appetitliches Bild des fertigen Gerichts (Aquarell + Foto-Collage)\n'
+    +'• Titel „'+r.name+'" in handschriftlicher / kreativer Typografie\n'
+    +'• Kurzer Teaser: Herkunft, besonderes Merkmal, Stimmung des Gerichts\n'
+    +'• Farbpalette passend zu Küche und Zutaten (warm, einladend)\n'
+    +'• Infopillen: '+portionen+' Port. · '+zeit+' · '+kat+'\n\n'
+    +'📌 SEITE 2 — ZUBEREITUNG & DIAGRAMME\n'
+    +'• Schritt-für-Schritt-Illustrationen (handgezeichnet / Infografik-Stil)\n'
+    +'• Visueller Zeitstrahl der Zubereitung mit Schlüsselmomenten\n'
+    +'• Zutaten als illustriertes Diagramm mit Mengenangaben\n'
+    +'• Infografik: Zubereitungszeit / Schwierigkeitsgrad / Portionen\n'
+    +'• Tipps & Tricks, Variationen, Substitutionsmöglichkeiten\n'
+    +'• Benötigte Küchengeräte (illustriert)\n\n'
+    +'📌 SEITE 3 — HINTERGRUNDWISSEN & GENUSS\n'
+    +'• Gesundheitliche Vorteile der wichtigsten Zutaten (illustrierte Icons)\n'
+    +'• Ökologischer Fußabdruck / Saisonalität / regionale Herkunft\n'
+    +'• Geschichte und Kultur des Gerichts\n'
+    +'• Getränkebegleitung / Weinempfehlung\n'
+    +'• Serviervorschlag & Anrichtetipps (illustriert)\n'
+    +'• „Wusstest du?" — interessante Fakten zum Gericht\n\n'
+    +'✏️ DESIGN-STIL:\n'
+    +'Warm, einladend, lebendig — wie ein handgefertigtes Kunstwerk-Kochbuch.\n'
+    +'Mixed Media: Aquarell-Texturen, handgezeichnete Elemente, moderne Typografie.\n'
+    +'Einheitliche Farbpalette und Schriftfamilie über alle 3 Seiten.\n'
+    +'Alle 3 Seiten als zusammenhängendes visuelles Konzept.';
+  document.getElementById('zinePromptBox').value=prompt;
+  document.getElementById('zineStep2').style.display='block';
+  document.getElementById('zineStep3').style.display='block';
+  document.getElementById('zineCopyLbl').textContent='Prompt kopieren';
+}
+function zineCopyPrompt(){
+  var txt=document.getElementById('zinePromptBox').value;if(!txt)return;
+  var setLbl=function(t){document.getElementById('zineCopyLbl').textContent=t;};
+  navigator.clipboard&&navigator.clipboard.writeText(txt).then(function(){setLbl('✅ Kopiert!');setTimeout(function(){setLbl('Prompt kopieren');},2200);}).catch(function(){_zineFallbackCopy(txt,setLbl);});
+  if(!navigator.clipboard)_zineFallbackCopy(txt,setLbl);
+}
+function _zineFallbackCopy(txt,setLbl){
+  var ta=document.getElementById('zinePromptBox');ta.removeAttribute('readonly');ta.select();document.execCommand('copy');ta.setAttribute('readonly','');
+  setLbl('✅ Kopiert!');setTimeout(function(){setLbl('Prompt kopieren');},2200);
+}
+function zineHandleDrop(e){
+  e.preventDefault();document.getElementById('zineDropZone').classList.remove('dragover');
+  var file=e.dataTransfer.files[0];if(file&&file.type.startsWith('image/'))zineHandleFile(file);
+}
+function zineHandleFile(file){
+  if(!file)return;
+  var reader=new FileReader();
+  reader.onload=function(ev){
+    var img=document.getElementById('zinePreviewImg');
+    img.src=ev.target.result;img.style.display='block';
+    document.getElementById('zinePrintBtn').disabled=false;
+    document.getElementById('zineDropZone').style.display='none';
+  };
+  reader.readAsDataURL(file);
+}
+function zinePrint(){
+  var img=document.getElementById('zinePreviewImg');
+  var r=_zineRid?R.find(function(r){return r.id===_zineRid;}):null;
+  var name=r?r.name:'Food-Zine';
+  var portionen=r?r.servings||4:4;
+  var zeit=r&&r.prepTime?(r.prepTime+' Min.'):'–';
+  var kat=r?catName(r.cat):'–';
+  var ico=r?catIco(r.cat):'🍽️';
+  var ingList=r?(r.ings||[]).map(function(i){return[(i.amt||''),(i.unit||''),(i.name||'')].filter(Boolean).join(' ');}).filter(Boolean):[];
+  var stepList=r?(r.steps||[]).map(function(s,i){return{n:i+1,txt:(s.txt||s||'').trim();};}):[];
+  var nutHtml='';
+  if(r&&r.nutrition&&r.nutrition.kcal){var n=r.nutrition;nutHtml='<div class="tip-box" style="margin-top:0">📊 <strong>Nährwerte pro Portion:</strong> '+n.kcal+' kcal · Fett: '+n.fat+'g · KH: '+n.carbs+'g · Eiweiß: '+n.protein+'g</div>';}
+  var win=window.open('','_blank');
+  if(!win)return;
+  win.document.write('<!DOCTYPE html><html><head><meta charset="utf-8"><title>Food-Zine · '+h(name)+'<\/title><style>'
+    +'*{box-sizing:border-box;margin:0;padding:0}'
+    +'body{font-family:Georgia,serif;background:#fff;color:#2a1a0a}'
+    +'@media print{body{margin:0}@page{size:A4 portrait;margin:0}}'
+    +'.page{width:210mm;min-height:297mm;padding:14mm 13mm;page-break-after:always;display:flex;flex-direction:column;gap:8mm}'
+    +'.cover{background:linear-gradient(135deg,#fdf4e7 60%,#f0e0c0);align-items:center;text-align:center;gap:6mm}'
+    +'.cover-img{max-width:100%;max-height:120mm;border-radius:14px;box-shadow:0 8px 28px rgba(0,0,0,.18);object-fit:cover}'
+    +'.cover-title{font-size:26pt;font-weight:900;color:#5c3d2e;font-style:italic;line-height:1.15}'
+    +'.cover-sub{font-size:10pt;color:#7a5840;margin-top:2mm}'
+    +'.cover-pills{display:flex;gap:8px;justify-content:center;flex-wrap:wrap;margin-top:3mm}'
+    +'.pill{background:#5c3d2e;color:#fff;border-radius:20px;padding:4px 12px;font-size:8pt;font-weight:700}'
+    +'.pg-title{font-size:13pt;font-weight:900;color:#5c3d2e;border-bottom:2pt solid #b85535;padding-bottom:2mm;margin-bottom:2mm}'
+    +'.info-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:5mm}'
+    +'.info-box{background:#f5e6c8;border-radius:8px;padding:5mm;display:flex;flex-direction:column;align-items:center;gap:2px}'
+    +'.info-ico{font-size:16pt}.info-val{font-size:11pt;font-weight:900;color:#5c3d2e}'
+    +'.info-lbl{font-size:6.5pt;color:#7a5840;text-transform:uppercase;letter-spacing:.08em}'
+    +'.zlbl{font-size:6pt;font-weight:900;letter-spacing:.12em;text-transform:uppercase;color:#b85535;margin-bottom:1.5mm}'
+    +'.ings-grid{display:grid;grid-template-columns:1fr 1fr;gap:2.5mm}'
+    +'.ing-item{display:flex;gap:5px;font-size:8.5pt;align-items:flex-start;line-height:1.4}'
+    +'.ing-dot{width:6px;height:6px;border-radius:50%;background:#b85535;flex-shrink:0;margin-top:4px}'
+    +'.step-item{display:flex;gap:7px;margin-bottom:3.5mm;align-items:flex-start;font-size:9pt;line-height:1.5}'
+    +'.step-num{min-width:22px;height:22px;background:#5c3d2e;color:#fff;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:7.5pt;font-weight:900;flex-shrink:0}'
+    +'.tip-box{background:#fdf4e7;border-left:3pt solid #b85535;padding:3.5mm 5mm;border-radius:0 8px 8px 0;font-size:8pt;line-height:1.5}'
+    +'.p3-grid{display:grid;grid-template-columns:1fr 1fr;gap:5mm}'
+    +'.p3-card{background:#f9f0e3;border-radius:8px;padding:5mm;font-size:8pt;line-height:1.5}'
+    +'.p3-card-title{font-size:9pt;font-weight:900;color:#5c3d2e;margin-bottom:1.5mm}'
+    +'.footer{font-size:6.5pt;color:#bbb;text-align:center;margin-top:auto;padding-top:4mm}'
+    +'.img-ph{width:100%;height:90mm;background:linear-gradient(135deg,#f5e6c8,#fdf4e7);border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:11pt;color:#b85535;font-style:italic;border:1.5pt dashed #c8a080}'
+    +'<\/style><\/head><body>'
+    +'<div class="page cover">'
+    +(img.src&&img.src!==location.href?'<img class="cover-img" src="'+img.src+'" alt="'+h(name)+'"/>'
+      :'<div class="img-ph">🍽️ Kein Bild — KI-Bild per Drag &amp; Drop einfügen<\/div>')
+    +'<div class="cover-title">'+h(name)+'<\/div>'
+    +'<div class="cover-sub">Ein Food-Zine aus Mein Rezeptbuch<\/div>'
+    +'<div class="cover-pills"><span class="pill">'+ico+' '+h(kat)+'<\/span><span class="pill">👥 '+portionen+' Port.<\/span><span class="pill">⏱️ '+h(zeit)+'<\/span><\/div>'
+    +'<div class="footer">Mein Rezeptbuch · Food-Zine · Seite 1<\/div>'
+    +'<\/div>'
+    +'<div class="page">'
+    +'<div class="pg-title">🧂 Zutaten &amp; Zubereitung<\/div>'
+    +'<div class="info-grid">'
+    +'<div class="info-box"><div class="info-ico">👥<\/div><div class="info-val">'+portionen+'<\/div><div class="info-lbl">Portionen<\/div><\/div>'
+    +'<div class="info-box"><div class="info-ico">⏱️<\/div><div class="info-val">'+h(zeit)+'<\/div><div class="info-lbl">Zubereitungszeit<\/div><\/div>'
+    +'<div class="info-box"><div class="info-ico">'+ico+'<\/div><div class="info-val">'+h(kat)+'<\/div><div class="info-lbl">Kategorie<\/div><\/div>'
+    +'<\/div>'
+    +'<div><div class="zlbl">Zutaten<\/div><div class="ings-grid">'
+    +(ingList.length?ingList.map(function(ing){return'<div class="ing-item"><div class="ing-dot"><\/div><div>'+h(ing)+'<\/div><\/div>';}).join('')
+      :'<div style="color:#bbb;font-size:8.5pt">Keine Zutaten eingetragen<\/div>')
+    +'<\/div><\/div>'
+    +'<div><div class="zlbl">Schritt-für-Schritt<\/div>'
+    +(stepList.length?stepList.map(function(s){return'<div class="step-item"><div class="step-num">'+s.n+'<\/div><div>'+h(s.txt)+'<\/div><\/div>';}).join('')
+      :'<div style="color:#bbb;font-size:8.5pt">Keine Schritte eingetragen<\/div>')
+    +'<\/div>'
+    +'<div class="footer">Mein Rezeptbuch · Food-Zine · Seite 2<\/div>'
+    +'<\/div>'
+    +'<div class="page">'
+    +'<div class="pg-title">✨ Genuss &amp; Hintergrundwissen<\/div>'
+    +'<div class="p3-grid">'
+    +'<div class="p3-card"><div class="p3-card-title">🥗 Gesundheit<\/div>Die Zutaten dieses Gerichts liefern wertvolle Nährstoffe. Schonende Zubereitung bewahrt Vitamine und Mineralstoffe.<\/div>'
+    +'<div class="p3-card"><div class="p3-card-title">🌱 Nachhaltigkeit<\/div>Saisonale und regionale Zutaten wählen für einen besseren ökologischen Fußabdruck. Bio-Qualität bevorzugen.<\/div>'
+    +'<div class="p3-card"><div class="p3-card-title">🍷 Getränkebegleitung<\/div>Frage deine KI nach einer individuellen Getränke- oder Weinempfehlung passend zu diesem Gericht.<\/div>'
+    +'<div class="p3-card"><div class="p3-card-title">🌍 Geschichte &amp; Kultur<\/div>Erforsche Herkunft und Tradition dieses Gerichts — jedes Rezept erzählt eine Geschichte.<\/div>'
+    +'<\/div>'
+    +nutHtml
+    +'<div class="tip-box">💡 <strong>Tipp:<\/strong> Den vollständigen KI-Prompt für dieses Food-Zine findest du im Food-Zine Generator in der App.<\/div>'
+    +'<div class="tip-box" style="margin-top:0">🎨 Erstellt mit <strong>Mein Rezeptbuch<\/strong> · Food-Zine Generator<\/div>'
+    +'<div class="footer">Mein Rezeptbuch · Food-Zine · Seite 3<\/div>'
+    +'<\/div>'
+    +'<script>window.onload=function(){window.print();}<\/script>'
+    +'<\/body><\/html>');
+  win.document.close();
+}
+
 function switchFovTab(ovId,tab,el){
   const ov=document.getElementById(ovId);
   ov.querySelectorAll('.fovtab').forEach(t=>t.classList.remove('on'));
@@ -7330,6 +7591,13 @@ function rndCard(r){
         <span class="print-bar-lbl">${T('printBtn')}</span>
         <span class="print-bar-sub">${T('printSub')}</span>
       </span>
+    </button>
+    <button class="zine-bar" onclick="event.stopPropagation();openZineOv(${r.id})">
+      <span>🎨</span>
+      <span class="zine-bar-txt">
+        <span class="zine-bar-lbl">Food-Zine erstellen</span>
+        <span class="zine-bar-sub">KI-Poster generieren &amp; drucken</span>
+      </span>
     </button>`:''}
   </div>`;
 }
@@ -8098,7 +8366,7 @@ document.addEventListener('keydown',e=>{
   if(meta&&e.key==='n'){e.preventDefault();openNewPanel();}
   if(meta&&e.key==='m'){e.preventDefault();showSc('menu');}
   if(meta&&e.key==='z'&&!e.shiftKey){e.preventDefault();undoRec(_lastEditRid||(R.find(r=>!r.shut)||{}).id);}
-  if(e.key==='Escape'){if(document.getElementById('cropOv')?.style.display!=='none'){closeCrop();return;}closeImport();closeExport();closeLang();closeMV();
+  if(e.key==='Escape'){if(document.getElementById('cropOv')?.style.display!=='none'){closeCrop();return;}closeImport();closeExport();closeZineOv();closeLang();closeMV();
     document.getElementById('courseSheet').style.display='none';
     document.getElementById('folderSheet').style.display='none';
     document.getElementById('_rp')?.remove();}
