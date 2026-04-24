@@ -2450,6 +2450,17 @@ Vielen Dank für deine Unterstützung.</div>
         <button class="exp-btn brn" onclick="exportData()" id="expJsonBtn" title="Alle Rezepte als JSON-Backup speichern">💾 Backup erstellen</button>
       </div>
     </div>
+    <div class="exp-card">
+      <div class="exp-ico">📡</div>
+      <div>
+        <div class="exp-title" id="expSyncT">Teilen & Synchronisieren</div>
+        <div class="exp-desc" id="expSyncD">Rezepte & Menüpläne als JSON-Datei – per Quick Share, Bluetooth oder E-Mail an ein anderes Gerät übertragen</div>
+        <div class="exp-safe" id="expSyncSafe">🔒 Enthält keine API-Keys — sicher teilbar</div>
+        <button class="exp-btn brn" onclick="expShareBackup()" id="expSyncBtn">📤 Teilen / Sichern</button>
+        <div id="expSyncStatus" style="font-size:.72rem;color:var(--br3);margin-top:5px;min-height:1em"></div>
+        <button class="exp-btn" onclick="expQuickShare()" id="expQsBtn" style="display:none;background:#e07020;color:#fff;margin-top:2px">📡 Quick Share starten</button>
+      </div>
+    </div>
   </div>
 </div>
 
@@ -2680,6 +2691,7 @@ const LANGS={
     expFlipT:'Blätterbuch (HTML)',expFlipD:'Interaktives Blätterbuch als HTML-Datei — offline in jedem Browser.',expFlipBtn:'📥 Blätterbuch erstellen',flipProg:'Erstelle …',flipDone:'✅ Blätterbuch erstellt!',
     expPdfT:'PDF-Buch',expPdfD:'Alle Rezepte als druckfertiges PDF mit Deckblatt.',expPdfBtn:'📥 PDF-Buch erstellen',expPdfProg:'⏳ Erstelle PDF …',expPdfNone:'⚠️ Keine Rezepte vorhanden',expPdfRecs:'Rezepte',
     expJsonT:'Datensicherung (JSON)',expJsonD:'Alle Rezepte & Menüpläne als JSON sichern.',expJsonSafe:'🔒 Enthält keine API-Keys — sicher teilbar',expJsonBtn:'💾 Backup erstellen',
+    expSyncT:'Teilen & Synchronisieren',expSyncD:'Rezepte & Menüpläne als JSON-Datei – per Quick Share, Bluetooth oder E-Mail an ein anderes Gerät übertragen',expSyncSafe:'🔒 Enthält keine API-Keys — sicher teilbar',expSyncBtn:'📤 Teilen / Sichern',expQsBtn:'📡 Quick Share starten',expQsFail:'Quick Share nicht verfügbar — Datei gespeichert',expQsStarted:'✅ Geteilt',
     sTheme:'🎨 THEMA',sLang:'🌐 SPRACHE',sData:'📁 IMPORT & EXPORT',
     sImpLbl:'Importieren',sImpSub:'Bilder, KI-Scan, Backup',
     sExpLbl:'Exportieren',sExpSub:'E-Book, Blätterbuch, JSON',
@@ -2805,6 +2817,7 @@ const LANGS={
     expFlipT:'Flipbook (HTML)',expFlipD:'Interactive flipbook as HTML file — works offline in any browser.',expFlipBtn:'📥 Create flipbook',flipProg:'Creating …',flipDone:'✅ Flipbook created!',
     expPdfT:'PDF Book',expPdfD:'All recipes as a printable PDF with cover page.',expPdfBtn:'📥 Create PDF book',expPdfProg:'⏳ Creating PDF…',expPdfNone:'⚠️ No recipes available',expPdfRecs:'Recipes',
     expJsonT:'Backup (JSON)',expJsonD:'Save all recipes & menu as a JSON file.',expJsonSafe:'🔒 No API keys included — safe to share',expJsonBtn:'💾 Create backup',
+    expSyncT:'Share & Sync',expSyncD:'Transfer recipes & menu plans as a JSON file – via Quick Share, Bluetooth or email to another device',expSyncSafe:'🔒 No API keys included — safe to share',expSyncBtn:'📤 Share / Save',expQsBtn:'📡 Start Quick Share',expQsFail:'Quick Share unavailable — file saved',expQsStarted:'✅ Shared',
     sTheme:'🎨 THEME',sLang:'🌐 LANGUAGE',sData:'📁 IMPORT & EXPORT',
     sImpLbl:'Import',sImpSub:'Images, AI scan, backup',
     sExpLbl:'Export',sExpSub:'E-Book, flipbook, JSON',
@@ -2930,6 +2943,7 @@ const LANGS={
     expFlipT:'Листалка (HTML)',expFlipD:'Интерактивная листалка как HTML-файл — работает офлайн.',expFlipBtn:'📥 Создать листалку',flipProg:'Создание …',flipDone:'✅ Листалка создана!',
     expPdfT:'PDF-книга',expPdfD:'Все рецепты как PDF для печати с обложкой.',expPdfBtn:'📥 Создать PDF-книгу',expPdfProg:'⏳ Создаю PDF …',expPdfNone:'⚠️ Нет рецептов',expPdfRecs:'Рецептов',
     expJsonT:'Резервная копия (JSON)',expJsonD:'Сохранить все рецепты и меню как JSON-файл.',expJsonSafe:'🔒 API-ключи не включены — безопасно для передачи',expJsonBtn:'💾 Создать резервную копию',
+    expSyncT:'Поделиться & Синхронизировать',expSyncD:'Передача рецептов и меню как JSON-файл – через Quick Share, Bluetooth или Email на другое устройство',expSyncSafe:'🔒 Без API-ключей — безопасно для передачи',expSyncBtn:'📤 Поделиться / Сохранить',expQsBtn:'📡 Запустить Quick Share',expQsFail:'Quick Share недоступен — файл сохранён',expQsStarted:'✅ Отправлено',
     sTheme:'🎨 ТЕМА',sLang:'🌐 ЯЗЫК',sData:'📁 ИМПОРТ & ЭКСПОРТ',
     sImpLbl:'Импорт',sImpSub:'Фото, ИИ-скан, резерв',
     sExpLbl:'Экспорт',sExpSub:'Эл. книга, листалка, JSON',
@@ -3055,6 +3069,7 @@ const LANGS={
     expFlipT:'翻页书（HTML）',expFlipD:'交互式翻页书，离线在任何浏览器中使用。',expFlipBtn:'📥 创建翻页书',flipProg:'正在创建 …',flipDone:'✅ 翻页书已创建！',
     expPdfT:'PDF书籍',expPdfD:'所有食谱导出为带封面的可打印PDF。',expPdfBtn:'📥 创建PDF书籍',expPdfProg:'⏳ 正在创建PDF…',expPdfNone:'⚠️ 暂无食谱',expPdfRecs:'食谱',
     expJsonT:'数据备份（JSON）',expJsonD:'将所有食谱和菜单保存为JSON文件。',expJsonSafe:'🔒 不含API密钥 — 可安全共享',expJsonBtn:'💾 创建备份',
+    expSyncT:'分享 & 同步',expSyncD:'将食谱和菜单作为JSON文件传输 – 通过Quick Share、蓝牙或电子邮件到其他设备',expSyncSafe:'🔒 不含API密钥 — 可安全共享',expSyncBtn:'📤 分享 / 保存',expQsBtn:'📡 启动 Quick Share',expQsFail:'Quick Share不可用 — 文件已保存',expQsStarted:'✅ 已分享',
     sTheme:'🎨 主题',sLang:'🌐 语言',sData:'📁 导入 & 导出',
     sImpLbl:'导入',sImpSub:'图片、AI扫描、备份',
     sExpLbl:'导出',sExpSub:'电子书、翻页书、JSON',
@@ -3180,6 +3195,7 @@ const LANGS={
     expFlipT:'Libro interactivo (HTML)',expFlipD:'Libro interactivo como HTML — sin conexión en cualquier navegador.',expFlipBtn:'📥 Crear libro',flipProg:'Creando …',flipDone:'✅ Libro creado!',
     expPdfT:'Libro PDF',expPdfD:'Todas las recetas como PDF imprimible con portada.',expPdfBtn:'📥 Crear libro PDF',expPdfProg:'⏳ Creando PDF…',expPdfNone:'⚠️ No hay recetas',expPdfRecs:'Recetas',
     expJsonT:'Copia de seguridad (JSON)',expJsonD:'Guardar todas las recetas y menús como JSON.',expJsonSafe:'🔒 Sin claves API — seguro para compartir',expJsonBtn:'💾 Crear copia de seguridad',
+    expSyncT:'Compartir & Sincronizar',expSyncD:'Transferir recetas y menús como JSON – via Quick Share, Bluetooth o email a otro dispositivo',expSyncSafe:'🔒 Sin claves API — seguro para compartir',expSyncBtn:'📤 Compartir / Guardar',expQsBtn:'📡 Iniciar Quick Share',expQsFail:'Quick Share no disponible — archivo guardado',expQsStarted:'✅ Compartido',
     sTheme:'🎨 TEMA',sLang:'🌐 IDIOMA',sData:'📁 IMPORTAR & EXPORTAR',
     sImpLbl:'Importar',sImpSub:'Imágenes, Scan IA, Copia',
     sExpLbl:'Exportar',sExpSub:'E-Book, Libro, JSON',
@@ -3347,6 +3363,7 @@ const LANGS={
     expJsonD:'Sauvegarder en JSON.',
     expJsonSafe:'🔒 Sans clés API — sûr à partager',
     expJsonBtn:'💾 Créer une sauvegarde',
+    expSyncT:'Partager & Synchroniser',expSyncD:'Transférer recettes et menus en JSON – via Quick Share, Bluetooth ou email vers un autre appareil',expSyncSafe:'🔒 Sans clés API — sûr à partager',expSyncBtn:'📤 Partager / Sauvegarder',expQsBtn:'📡 Démarrer Quick Share',expQsFail:'Quick Share indisponible — fichier sauvegardé',expQsStarted:'✅ Partagé',
     sTheme:'🎨 THEME',
     sLang:'🌐 LANGUE',
     sData:'📁 IMPORT EXPORT',
@@ -3581,6 +3598,7 @@ const LANGS={
     expJsonD:'Salva come JSON.',
     expJsonSafe:'🔒 Nessuna chiave API — sicuro da condividere',
     expJsonBtn:'💾 Crea backup',
+    expSyncT:'Condividi & Sincronizza',expSyncD:'Trasferisci ricette e menu come JSON – via Quick Share, Bluetooth o email a un altro dispositivo',expSyncSafe:'🔒 Nessuna chiave API — sicuro da condividere',expSyncBtn:'📤 Condividi / Salva',expQsBtn:'📡 Avvia Quick Share',expQsFail:'Quick Share non disponibile — file salvato',expQsStarted:'✅ Condiviso',
     sTheme:'🎨 TEMA',
     sLang:'🌐 LINGUA',
     sData:'📁 IMPORTA ESPORTA',
@@ -3815,6 +3833,7 @@ const LANGS={
     expJsonD:'Guardar como JSON.',
     expJsonSafe:'🔒 Sem chaves API — seguro para partilhar',
     expJsonBtn:'💾 Criar cópia de segurança',
+    expSyncT:'Partilhar & Sincronizar',expSyncD:'Transferir receitas e menus como JSON – via Quick Share, Bluetooth ou email para outro dispositivo',expSyncSafe:'🔒 Sem chaves API — seguro para partilhar',expSyncBtn:'📤 Partilhar / Guardar',expQsBtn:'📡 Iniciar Quick Share',expQsFail:'Quick Share indisponível — ficheiro guardado',expQsStarted:'✅ Partilhado',
     sTheme:'🎨 TEMA',
     sLang:'🌐 IDIOMA',
     sData:'📁 IMPORTAR EXPORTAR',
@@ -4349,6 +4368,7 @@ function applyLang(code){
     'sBvScreenTitle','sBvLbl','sBvSub',
     'expTitle','expPdfT','expPdfD','expPdfBtn','expFlipT','expFlipD','expFlipBtn',
     'expJsonT','expJsonD','expJsonSafe','expJsonBtn',
+    'expSyncT','expSyncD','expSyncSafe','expSyncBtn','expQsBtn',
     'sTheme','sLang','sData','sImpLbl','sImpSub','sExpLbl','sExpSub',
     'sInfo','sStore','sClear','sClearSub',
     'sManualHead','sManualLbl','sManualSub','manOvTitle','manPdfLbl',
@@ -5609,6 +5629,51 @@ function exportData(){
   dlBlob(new Blob([JSON.stringify({version:9,exported:new Date().toISOString(),recipes:R,menu:MS,folders:FD},null,2)],
     {type:'application/json'}),`mein-rezeptbuch-${dt}.json`);
   toast('✅ JSON');
+}
+let _expQsBlob=null,_expQsFname='';
+function expShareBackup(){
+  _collapseAll();sv();
+  const dt=new Date().toISOString().slice(0,16).replace('T','-').replace(':','h');
+  _expQsFname=`mein-rezeptbuch-${dt}.json`;
+  _expQsBlob=new Blob([JSON.stringify({version:9,exported:new Date().toISOString(),recipes:R,menu:MS,folders:FD},null,2)],{type:'application/json'});
+  dlBlob(_expQsBlob,_expQsFname);
+  const st=document.getElementById('expSyncStatus');
+  const qb=document.getElementById('expQsBtn');
+  if(st){st.textContent=_expQsFname+' gespeichert.';st.style.display='';}
+  if(qb)qb.style.display='';
+}
+async function expQuickShare(){
+  _collapseAll();sv();
+  const dt=new Date().toISOString().slice(0,16).replace('T','-').replace(':','h');
+  const fname=_expQsFname||`mein-rezeptbuch-${dt}.json`;
+  const blob=_expQsBlob||new Blob([JSON.stringify({version:9,exported:new Date().toISOString(),recipes:R,menu:MS,folders:FD},null,2)],{type:'application/json'});
+  if(!navigator.share){
+    dlBlob(blob,fname);
+    const st=document.getElementById('expSyncStatus');
+    if(st){st.textContent=fname+' gespeichert.';st.style.display='';}
+    toast(T('expQsFail'));
+    return;
+  }
+  const file=new File([blob],fname,{type:'application/json'});
+  const canShare=!navigator.canShare||navigator.canShare({files:[file]});
+  if(!canShare){
+    dlBlob(blob,fname);
+    const st=document.getElementById('expSyncStatus');
+    if(st){st.textContent=fname+' gespeichert.';st.style.display='';}
+    toast(T('expQsFail'));
+    return;
+  }
+  try{
+    await navigator.share({files:[file],title:'Mein Rezeptbuch',text:'Mein Rezeptbuch – Backup'});
+    toast(T('expQsStarted'));
+  }catch(e){
+    if(e.name!=='AbortError'){
+      dlBlob(blob,fname);
+      const st=document.getElementById('expSyncStatus');
+      if(st){st.textContent=fname+' gespeichert.';st.style.display='';}
+      toast(T('expQsFail'));
+    }
+  }
 }
 function _normalizeRecs(recs){
   recs.forEach(r=>{if(!r.img)r.img='';if(r.folder===undefined)r.folder='';if(!r.rating)r.rating={stars:0,comment:'',imps:[]};if(!r.ings)r.ings=[];if(!r.steps)r.steps=[];if(!r.flavors)r.flavors=[];if(!r.servings)r.servings=4;if(!r.imgCrop)r.imgCrop={x:50,y:50,scale:1};});
