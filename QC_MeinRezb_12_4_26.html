@@ -5532,13 +5532,14 @@ async function _aiBookRun(){
         subEl.innerHTML=`<span>${t}</span>${chips}`;
       };
       renderImgs();
+      const _zinePs=buildZinePrompts(r);
       for(let j=0;j<imgCnt;j++){
         if(_kbAbort)break;
         try{
           const resp=await fetch('https://api.openai.com/v1/images/generations',{
             method:'POST',
             headers:{'Content-Type':'application/json','Authorization':'Bearer '+key},
-            body:JSON.stringify({model:'dall-e-3',prompt:`Professional food photography of "${r.name}". Appetizing, beautifully presented, well-lit, cookbook style.`,n:1,size:imgHd?'1792x1024':'1024x1024',quality:imgHd?'hd':'standard',response_format:'b64_json'})
+            body:JSON.stringify({model:'dall-e-3',prompt:_zinePs[j%_zinePs.length],n:1,size:'1024x1792',quality:imgHd?'hd':'standard',response_format:'b64_json'})
           });
           if(!resp.ok){const e=await resp.json().catch(()=>({}));throw new Error(e.error?.message||'HTTP '+resp.status);}
           const b64=(await resp.json()).data[0].b64_json;
@@ -5571,7 +5572,7 @@ async function _aiBookRun(){
     const imgs=imgUrls.map(u=>`<img src="${h(u)}" class="kb-img" alt="${h(r.name)}">`).join('');
     return`<section class="kb-page"><h2 class="kb-title">${h(r.name)}</h2>${txt?`<p class="kb-intro">${h(txt)}</p>`:''}${imgs?`<div class="kb-imgs">${imgs}</div>`:''}${ings?`<div class="kb-s"><h3>Zutaten</h3><ul>${ings}</ul></div>`:''}${steps?`<div class="kb-s"><h3>Zubereitung</h3><ol>${steps}</ol></div>`:''}</section>`;
   }).join('\n');
-  const imgAspect=imgHd?'16/9':'1';
+  const imgAspect='2/3';
   const bookHtml=`<!DOCTYPE html>
 <html lang="de"><head><meta charset="UTF-8"><title>✨ KI-Kreativbuch</title>
 <style>*{box-sizing:border-box}body{margin:0;font-family:Georgia,serif;background:#faf6f0;color:#2a1808}
@@ -12433,13 +12434,14 @@ function buildZinePrompts(r){
   const name=r.name||'Rezept';
   const ings=(r.ings||[]).slice(0,8).map(i=>[i.amt,i.unit,i.name].filter(Boolean).join(' ')).filter(Boolean).join(', ')||'verschiedene Zutaten';
   const stepsArr=(r.steps||[]).slice(0,6);
-  const steps=stepsArr.map((s,i)=>`${i+1}. ${((s.text||s)||'').slice(0,90)}`).join(' | ')||'Zubereitung folgen';
+  const steps=stepsArr.map((s,i)=>`${i+1}. ${((s.text||s)||'').slice(0,80)}`).join(' | ')||'Zubereitung folgen';
   const srv=r.servings||4;
-  const base='Professional full-page food magazine layout, A4 portrait format, vivid appetizing colors, modern German food magazine style, no watermarks, no borders.';
+  const nSteps=Math.max(stepsArr.length,4);
+  const base='Handcrafted mixed-media food zine illustration, A4 portrait format, scrapbook collage style. Cream parchment paper texture background. Vivid appetizing colors. Bold typography mixing ALL-CAPS print headlines, large flowing script titles, and handwritten annotation styles. Decorative hand-drawn doodle elements: small arrows, hearts, stars, crown icons. No watermarks, no outer borders. All text labels in German only. Print-quality illustration.';
   return[
-    `${base} COVER PAGE for recipe "${name}". Top half: large realistic hero food photo of the dish. Bottom half: bold headline "${name}", one-line German tagline, small ingredient icons/photos for: ${ings}, badge "Für ${srv} Personen". German text only. Magazine quality.`,
-    `${base} STEP-BY-STEP cooking guide page. Headline "Step-by-Step". Recipe: "${name}". ${stepsArr.length||4} numbered step cards, each with a small food photo and brief German text: ${steps}. Bottom: prep time, cook time, portion badge. Clean instructional magazine layout. German text only.`,
-    `${base} HEALTH & TIPS info page. Headline "Gesundheit & Tipps". Recipe: "${name}". Circular nutrition pie chart (protein, carbs, fat, vitamins). Three health benefit icons with German text. Two serving variation suggestions. One highlighted pro-tip box. Footer sustainability note. Colorful infographic style. German text only.`
+    `${base} PAGE 1 – COVER. Top third: large vibrant appetizing hero food photo of the dish "${name}". Middle section: bold chunky ALL-CAPS black print headline "TRENDKÜCHE", below it a large flowing red-orange brush-script recipe name "${name}", short italic German tagline underneath. Left column: short German intro paragraph with two highlighted keywords in colored marker style. Right column: three star-bullet reasons to cook this dish, plus a torn yellow sticky-note card with a German heat/tip hint. Bottom strip: a row of 6 individual ingredient cut-out photos with German name labels below each (ingredients: ${ings}), a teal badge "Für ${srv} Personen" and a clock badge "ca. X Min.". Navigation footer text "Seite 2: Step-by-Step →  Seite 3: Gesundheit & Öko". Color palette: warm cream background, teal and orange-red accents, yellow sticky notes, fresh green highlights.`,
+    `${base} PAGE 2 – STEP-BY-STEP. Small "SEITE 2" circle badge top-left. Bold ALL-CAPS black headline "STEP-BY-STEP", large red-coral brush-script subtitle "So machst du ${name}". Main grid: ${nSteps} numbered cooking-step cards arranged in a 2-column grid. Each card contains: a bold circled step number, a bold German step title, a small round food photo inset, and 2 short lines of German instruction text. Steps: ${steps}. Bottom info strip with three colored boxes side by side: teal "ZEIT-PLAN" box showing clock prep time, fire cook time, plate serve time in German; yellow "PROFI-TIPP" box with gold star and a single German pro tip; green "SWAP" box listing German ingredient alternatives. Arrow navigation footer "→ Weiter zu Seite 3: Gesundheit & Öko". Warm cream background, hand-drawn doodle accents.`,
+    `${base} PAGE 3 – HEALTH & ECO. Small "SEITE 3" circle badge top-left. Bold ALL-CAPS black headline "GESUNDHEIT & ÖKO", colored German subtitle "Was steckt in ${name}?". Left side: circular hero food photo cut-out of the finished dish. Right side: colorful pie/donut chart with 4 nutrition segments labeled in German – Protein, Omega-3, Kohlenhydrate, Gemüse & Frische – with percentage values. Section "WARUM GUT?" with 4 numbered German health benefit bullet points. Green-tinted box titled "KLIMAFREUNDLICHER KOCHEN" listing 3 ecological cooking tips in German. One torn sticky-note card highlighting a key ingredient with German text. Bottom section: "MACH ES ZU DEINEM GERICHT" showing 3 serving variation mini-cards with German descriptions. Footer row of colorful rating badges. Closing hand-lettered German text "Fertig. Jetzt essen." with a heart doodle. Green, teal, cream color palette.`
   ];
 }
 
