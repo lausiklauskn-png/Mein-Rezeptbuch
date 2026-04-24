@@ -5003,8 +5003,8 @@ async function boot(){
   if(!rawFD){const bFD=await _idbGet('mfd9m');if(bFD){rawFD=bFD;localStorage.setItem('mfd9m',bFD);}}
   _bootProg(38,'Rezepte verarbeiten…');
 
-  R=JSON.parse(rawR||'null')||[];
-  MS=JSON.parse(rawM||'null')||[];
+  try{R=JSON.parse(rawR||'null')||[];}catch(e){R=[];}
+  try{MS=JSON.parse(rawM||'null')||[];}catch(e){MS=[];}
   // Migration v2: date-Feld + mealType + courseType
   (function(){
     const now=new Date(),dow=(now.getDay()+6)%7;
@@ -5018,7 +5018,7 @@ async function boot(){
       if(!s.courseType)s.courseType='main';
     });
   })();
-  FD=JSON.parse(localStorage.getItem('mfd9m')||'null')||[];
+  try{FD=JSON.parse(localStorage.getItem('mfd9m')||'null')||[];}catch(e){FD=[];}
   // Migrate & ensure fields
   R.forEach(r=>{
     if(!r.img)r.img='';
@@ -9982,7 +9982,11 @@ function _initTooltips(){
   },{passive:true});
 })();
 
-boot();
+// Failsafe: wenn boot() nach 8s noch nicht fertig ist, Splash entfernen
+var _bootFailsafe=setTimeout(()=>{console.warn('Boot-Timeout – Failsafe aktiv');_bootDone();},8000);
+var _bootDoneOrig=_bootDone;
+_bootDone=function(){clearTimeout(_bootFailsafe);_bootDoneOrig();};
+boot().catch(e=>{console.error('Boot-Fehler:',e);_bootDone();});
 
 // ── ZURÜCK-TASTE (Android-Hardware + Maus-Zurück) ────────
 (function(){
