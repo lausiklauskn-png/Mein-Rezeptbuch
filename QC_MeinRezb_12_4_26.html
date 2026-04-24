@@ -5544,7 +5544,12 @@ function _kbCpCopy(){
 
 function _kbCpOpen(url){
   _kbCpCopy();
-  window.open(url,'_blank','noopener');
+  const a=document.createElement('a');
+  a.href=url;
+  a.target='_blank';
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
 }
 
 function _kbCpGenerate(){
