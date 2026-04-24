@@ -4617,7 +4617,9 @@ function updateImgGenInfo(){
   var el=document.getElementById('imggenInfo');
   var btn=document.getElementById('igGenBtn');
   if(el){
-    if(!eligible.length&&!replaceAll){
+    if(!all.length){
+      el.innerHTML='<span style="color:var(--br3)">ℹ️ Keine Rezepte im Buch</span>';
+    }else if(!eligible.length&&!replaceAll){
       el.innerHTML='<span style="color:var(--grn)">✅ Alle Rezepte haben bereits ein KI-Foto</span>';
     }else{
       var cost=(eligible.length*0.04).toFixed(2).replace('.',',');
