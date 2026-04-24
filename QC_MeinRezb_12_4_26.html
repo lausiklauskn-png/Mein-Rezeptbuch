@@ -5538,7 +5538,7 @@ async function _aiBookRun(){
         if(_kbAbort)break;
         _kbAnimBar(i+(j+1)/imgCnt,recs.length);
         const _ac=new AbortController();
-        const _tout=setTimeout(()=>_ac.abort(),60000);
+        const _reqTout=setTimeout(()=>_ac.abort(),90000);
         try{
           const resp=await fetch('https://api.openai.com/v1/images/generations',{
             signal:_ac.signal,
@@ -5546,18 +5546,25 @@ async function _aiBookRun(){
             headers:{'Content-Type':'application/json','Authorization':'Bearer '+key},
             body:JSON.stringify({model:'dall-e-3',prompt:_zinePs[j%_zinePs.length],n:1,size:'1024x1792',quality:imgHd?'hd':'standard',response_format:'b64_json'})
           });
-          if(!resp.ok){clearTimeout(_tout);const e=await resp.json().catch(()=>({}));throw new Error(e.error?.message||'HTTP '+resp.status);}
-          const b64=(await resp.json()).data[0].b64_json;
-          clearTimeout(_tout);
+          clearTimeout(_reqTout);
+          if(!resp.ok){const e=await resp.json().catch(()=>({}));throw new Error(e.error?.message||'HTTP '+resp.status);}
+          // Promise.race: b64_json-Body kann ~2MB sein – separater Timeout für Body-Download
+          const data=await Promise.race([
+            resp.json(),
+            new Promise((_,rej)=>setTimeout(()=>rej(new Error('__BODY_TIMEOUT__')),90000))
+          ]);
+          const b64=data.data[0].b64_json;
           if(!b64)throw new Error('Kein Bild erhalten');
           imgUrls.push('data:image/png;base64,'+b64);
           imgStatus[j]='✅';
           totalCost+=imgPrice;
         }catch(err){
-          clearTimeout(_tout);
+          clearTimeout(_reqTout);
           if(_kbAbort)break;
           imgStatus[j]='❌';
-          imgErrs[j]=err.name==='AbortError'?'Timeout (>60s) – bitte erneut versuchen':(err.message||'Fehler');
+          imgErrs[j]=err.message==='__BODY_TIMEOUT__'?'Timeout (Bild-Download >90s)':
+            err.name==='AbortError'?'Timeout (Verbindung >90s)':
+            _kbErrHint(err.message||'Fehler');
         }
         _kbStopAnimBar();
         renderImgs();
