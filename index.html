@@ -4666,7 +4666,7 @@ async function runDalleImgBatch(rids,onProgress){
 // ── KI-BILD-TAB ──────────────────────────────────────────────────────────────
 function updateImgGenInfo(){
   var replaceAll=!!(document.getElementById('imggenReplaceAll')&&document.getElementById('imggenReplaceAll').checked);
-  var all=(window.R||[]).filter(function(r){return r.name&&!r.blank;});
+  var all=R.filter(function(r){return r.name&&!r.blank;});
   var eligible=replaceAll?all:all.filter(function(r){return!r.img;});
   var el=document.getElementById('imggenInfo');
   var btn=document.getElementById('igGenBtn');
@@ -4684,7 +4684,7 @@ function stopImgGen(){_imgGenAborted=true;}
 async function startImgGen(){
   _imgGenAborted=false;
   var replaceAll=!!(document.getElementById('imggenReplaceAll')&&document.getElementById('imggenReplaceAll').checked);
-  var rids=(window.R||[]).filter(function(r){return r.name&&!r.blank&&(replaceAll||!r.img);}).map(function(r){return r.id;});
+  var rids=R.filter(function(r){return r.name&&!r.blank&&(replaceAll||!r.img);}).map(function(r){return r.id;});
   if(!rids.length){toast('ℹ️ Keine Rezepte zum Generieren');return;}
   var btn=document.getElementById('igGenBtn');
   var stopBtn=document.getElementById('igStopBtn');
@@ -4703,7 +4703,7 @@ async function startImgGen(){
   var res=await _runImgQueue(rids,_dalleGenImg,function(p){
     var pct=Math.round(p.done/p.total*100);
     if(fill)fill.style.width=pct+'%';
-    var r=(window.R||[]).find(function(x){return x.id===p.rid;});
+    var r=R.find(function(x){return x.id===p.rid;});
     if(lbl)lbl.textContent=p.done+' / '+p.total+(r?' · '+(r.name||''):'')+(p.fail?' · '+p.fail+' ✗':'');
     if(costLbl)costLbl.textContent='Kosten bisher: ~'+(p.ok*0.04).toFixed(2).replace('.',',')+' €';
   },{useIdb:false});
