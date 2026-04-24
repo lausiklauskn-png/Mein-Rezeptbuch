@@ -6748,12 +6748,23 @@ function _showImportChoiceDialog(recCount, onReplace, onMerge){
   ov.querySelector('#_impMerge').onclick=()=>{ov.remove();onMerge();};
   ov.querySelector('#_impCancel').onclick=()=>ov.remove();
 }
+function _importImgJson(entries){
+  let matched=0;
+  for(const entry of entries){
+    let r=R.find(x=>x.id===entry.id);
+    if(!r&&entry.name)r=R.find(x=>x.name&&x.name.trim().toLowerCase()===entry.name.trim().toLowerCase());
+    if(r&&entry.img){r.img=entry.img;matched++;}
+  }
+  if(matched>0){sv();if(typeof render==='function')render();}
+  setUpSt(matched>0?'✅ '+matched+' Bild'+(matched===1?'':'er')+' in Rezepte eingespielt':'ℹ️ Keine passenden Rezepte gefunden',matched>0?'ok':'err');
+}
 function importData(e){
   const f=e.target.files[0];if(!f)return;
   const fr=new FileReader();
   fr.onload=ev=>{
     try{
       const d=JSON.parse(ev.target.result);
+      if(Array.isArray(d)&&d.length&&d[0].img){_importImgJson(d);return;}
       if(!d.recipes||!Array.isArray(d.recipes))throw new Error('Ungültiges Format');
       const imported=d.recipes;
       _showImportChoiceDialog(imported.filter(r=>r.name&&!r.blank).length,
