@@ -573,6 +573,19 @@ body.nav-collapsed{padding-bottom:calc(16px + var(--sb))}
 .exp-btn.brn{background:var(--sand2);color:var(--ink);border:1.5px solid var(--sand2)}.exp-btn.brn:active{background:var(--br);color:#fff}
 .exp-btn.tl{background:var(--teals);color:var(--teal);border:1.5px solid var(--teal)}.exp-btn.tl:active{background:var(--teal);color:#fff}
 .exp-prog{font-size:.69rem;color:var(--br3);margin-top:5px;display:none}.exp-prog.on{display:block}
+#kiBuchOv{position:fixed;inset:0;z-index:9998;flex-direction:column;background:var(--parch)}
+.kib-hdr{background:linear-gradient(90deg,#e43,#f70,#fc0,#1a5,#08f,#84f,#e43);background-size:200% 100%;animation:kib-anim 4s linear infinite;padding:12px 14px;display:flex;align-items:center;gap:8px;flex-shrink:0}
+@keyframes kib-anim{0%{background-position:0%}100%{background-position:200%}}
+.kib-title{font-size:.88rem;font-weight:700;color:#fff;text-shadow:0 1px 2px rgba(0,0,0,.35);flex:1}
+.kib-body{flex:1;overflow-y:auto;padding:10px 14px}
+.kib-rec{padding:7px 0;border-bottom:1px solid var(--sand2)}
+.kib-rname{font-size:.78rem;font-weight:700;color:var(--ink);margin-bottom:4px}
+.kib-steps{display:flex;flex-wrap:wrap;gap:5px}
+.kib-step{font-size:.64rem;color:var(--br3);white-space:nowrap}
+.kib-foot{padding:9px 14px;border-top:1px solid var(--sand2);flex-shrink:0}
+.kib-foot-row{display:flex;justify-content:space-between;font-size:.67rem;color:var(--br3);margin-bottom:5px}
+.kib-bar-bg{height:5px;background:var(--sand2);border-radius:3px;overflow:hidden}
+.kib-bar-fill{height:100%;width:0%;background:linear-gradient(90deg,var(--teal),var(--gold));transition:width .3s ease}
 
 /* folders */
 .fld-top{padding:10px 12px 8px;background:var(--parch);border-bottom:1px solid var(--sand2)}
@@ -2438,6 +2451,34 @@ Vielen Dank für deine Unterstützung.</div>
         <button class="exp-btn brn" onclick="exportData()" id="expJsonBtn" title="Alle Rezepte als JSON-Backup speichern">💾 Backup erstellen</button>
       </div>
     </div>
+    <div class="exp-card">
+      <div class="exp-ico">✨</div>
+      <div style="flex:1">
+        <div class="exp-title" id="expBkT">KI Kreativbuch</div>
+        <div class="exp-desc" id="expBkD">KI schreibt für jedes Rezept einen stilvollen Zine-Eintrag mit Einleitung, Tipps und Serviervorschlag — als herunterladbare HTML-Datei.</div>
+        <select id="expBkStyle" style="font-size:.72rem;padding:4px 7px;border-radius:6px;border:1px solid var(--sand2);background:var(--parch);color:var(--ink);margin-bottom:7px;width:100%;max-width:220px">
+          <option value="foodzine">GPTStandard Food-zine</option>
+          <option value="magazine">Magazin-Stil</option>
+        </select><br>
+        <button class="exp-btn grn" onclick="startKiBuch()" id="expBkBtn">✨ KI-Buch generieren</button>
+        <div class="exp-prog" id="expBkProg"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div id="kiBuchOv" style="display:none">
+  <div class="kib-hdr">
+    <div class="kib-title" id="kiBuchTitle">✨ KI generiert dein Kreativbuch …</div>
+    <button onclick="kiBuchAbort()" style="background:rgba(255,255,255,.2);border:none;color:#fff;border-radius:6px;padding:4px 9px;font-size:.7rem;cursor:pointer" id="kiBuchStopBtn">✕ Abbrechen</button>
+  </div>
+  <div class="kib-body" id="kiBuchBody"></div>
+  <div class="kib-foot">
+    <div class="kib-foot-row">
+      <span id="kiBuchCost">Echte Kosten bisher: $0,0000</span>
+      <span id="kiBuchPct">0 %</span>
+    </div>
+    <div class="kib-bar-bg"><div class="kib-bar-fill" id="kiBuchBar"></div></div>
   </div>
 </div>
 
@@ -6023,6 +6064,157 @@ h1 em{color:#c9a882}
       pr.textContent=T('flipDone');setTimeout(()=>pr.className='exp-prog',3500);
     }catch(err){pr.textContent='❌ '+err.message;console.error(err);}
   },60);
+}
+
+// ═══════════════════════════════════════════════════════
+// KI KREATIVBUCH
+// ═══════════════════════════════════════════════════════
+let _kiBuchAborted=false;
+function kiBuchAbort(){_kiBuchAborted=true;document.getElementById('kiBuchOv').style.display='none';}
+
+function _kiBuchPrompt(r,style,seg){
+  const ings=r.ings.map(g=>`${g.amt}${g.unit?' '+g.unit:''} ${g.name}`).filter(Boolean).slice(0,12).join(', ');
+  const steps=(r.steps||[]).map(s=>s.txt).filter(Boolean).slice(0,8).join(' | ');
+  const flavors=(r.flavors||[]).join(', ');
+  const styleNote=style==='foodzine'
+    ?'Du schreibst für ein handgemachtes Food-Zine mit Mixed-Media-Ästhetik: authentisch, lebhaft, kurz und persönlich.'
+    :'Du schreibst für ein hochwertiges Kochmagazin: präzise, inspirierend, professionell.';
+  const segs=[
+    `Schreibe eine kurze persönliche Einleitung (2–3 Sätze) für das Rezept „${r.name}". ${styleNote} Keine Überschrift, direkt beginnen. Zutaten-Kontext: ${ings||'keine Angabe'}.`,
+    `Nenne 2–3 Küchentipps oder Variationen für „${r.name}". Kurz, konkret, jeder Tipp als eigene Zeile beginnend mit „·". ${styleNote}`,
+    `Schreibe einen stimmungsvollen Serviervorschlag (1–2 Sätze) für „${r.name}". ${styleNote} Zubereitung-Kontext: ${steps||'keine Angabe'}.`
+  ];
+  return segs[seg]||segs[0];
+}
+
+function _kiBuchPageHtml(r,style,texts){
+  const cr=r.imgCrop||{x:50,y:50,scale:1};
+  const imgHtml=r.img?`<div style="width:100%;height:160px;overflow:hidden;border-radius:6px;margin-bottom:12px"><img src="${r.img}" alt="" style="width:100%;height:100%;object-fit:cover;object-position:${cr.x}% ${cr.y}%;transform:scale(${cr.scale});transform-origin:${cr.x}% ${cr.y}%"/></div>`:'';
+  const ings=(r.ings||[]).map(g=>`<span style="display:inline-block;background:rgba(255,255,255,.08);border-radius:4px;padding:2px 7px;margin:2px;font-size:.65rem">${h(g.amt)}${g.unit?' '+h(g.unit):''} ${h(g.name)}</span>`).join('');
+  const accent=style==='foodzine'?'#fc0':'#c9a882';
+  const bg=style==='foodzine'?'#1a1a1a':'#2c1f0e';
+  return`<div style="page-break-before:always;background:${bg};color:#f5f0e8;padding:22px 20px 28px;font-family:Georgia,serif;min-height:100vh;box-sizing:border-box">
+    <div style="font-size:.55rem;text-transform:uppercase;letter-spacing:.15em;color:${accent};margin-bottom:8px">${style==='foodzine'?'FOOD ZINE':'REZEPT-MAGAZIN'}</div>
+    <h2 style="font-size:1.4rem;font-weight:700;margin:0 0 6px;line-height:1.2;color:#fff">${h(r.name)}</h2>
+    <div style="font-size:.6rem;text-transform:uppercase;letter-spacing:.1em;color:${accent};opacity:.7;margin-bottom:14px">${catName(r.cat)||''}</div>
+    ${imgHtml}
+    ${texts[0]?`<p style="font-size:.75rem;line-height:1.65;margin:0 0 14px;color:#e0d8cc">${h(texts[0])}</p>`:''}
+    ${ings?`<div style="margin-bottom:14px"><div style="font-size:.55rem;text-transform:uppercase;letter-spacing:.12em;color:${accent};margin-bottom:5px">Zutaten</div>${ings}</div>`:''}
+    ${texts[1]?`<div style="font-size:.71rem;line-height:1.6;color:#c8c0b0;border-left:2px solid ${accent};padding-left:10px;margin-bottom:14px">${texts[1].split('\n').map(l=>h(l)).join('<br>')}</div>`:''}
+    ${texts[2]?`<p style="font-size:.73rem;line-height:1.6;color:#a09080;font-style:italic;margin:0">${h(texts[2])}</p>`:''}
+  </div>`;
+}
+
+async function startKiBuch(){
+  const key=getKey();
+  if(!key){alert('Bitte zuerst einen KI-Zugangscode eingeben.');openApiKeyOv();return;}
+  const named=R.filter(r=>r.name);
+  if(!named.length){alert('Keine Rezepte vorhanden.');return;}
+  const style=document.getElementById('expBkStyle').value;
+  _kiBuchAborted=false;
+
+  const ov=document.getElementById('kiBuchOv');
+  ov.style.display='flex';
+  const body=document.getElementById('kiBuchBody');
+  body.innerHTML='';
+
+  // Build per-recipe status rows upfront
+  named.forEach((r,ri)=>{
+    const row=document.createElement('div');
+    row.className='kib-rec';
+    row.innerHTML=`<div class="kib-rname">${h(r.name)}</div>
+      <div class="kib-steps">
+        <span class="kib-step" id="kbs_${ri}_t">⏳ Text</span>
+        <span class="kib-step" id="kbs_${ri}_0">⏳ Bild 1/3</span>
+        <span class="kib-step" id="kbs_${ri}_1">⏳ Bild 2/3</span>
+        <span class="kib-step" id="kbs_${ri}_2">⏳ Bild 3/3</span>
+      </div>`;
+    body.appendChild(row);
+  });
+
+  const totalSteps=named.length*4; // text step + 3 image steps per recipe
+  let doneSteps=0;
+  let totalCost=0;
+
+  function _setStep(ri,key2,icon,col){
+    const el=document.getElementById(`kbs_${ri}_${key2}`);
+    if(el){el.textContent=icon;el.style.color=col;}
+  }
+  function _tick(){
+    doneSteps++;
+    const pct=Math.round(doneSteps/totalSteps*100);
+    document.getElementById('kiBuchBar').style.width=pct+'%';
+    document.getElementById('kiBuchPct').textContent=pct+' %';
+  }
+  function _addCost(inputTok,outputTok){
+    // claude-3-5-haiku-20241022: $0.80/M input, $4/M output
+    totalCost+=(inputTok/1e6)*0.80+(outputTok/1e6)*4;
+    document.getElementById('kiBuchCost').textContent=
+      'Echte Kosten bisher: $'+totalCost.toFixed(4).replace('.',',');
+  }
+
+  async function _aiText(prompt){
+    const resp=await fetch('https://api.anthropic.com/v1/messages',{
+      method:'POST',
+      headers:{'Content-Type':'application/json','x-api-key':key,'anthropic-version':'2023-06-01','anthropic-dangerous-direct-browser-access':'true'},
+      body:JSON.stringify({model:'claude-haiku-4-5-20251001',max_tokens:300,
+        messages:[{role:'user',content:prompt}]})
+    });
+    if(!resp.ok){const e=await resp.json();throw new Error(e.error?.message||'HTTP '+resp.status);}
+    const d=await resp.json();
+    const text=(d.content||[]).map(c=>c.text||'').join('').trim();
+    _addCost(d.usage?.input_tokens||100,d.usage?.output_tokens||150);
+    return text;
+  }
+
+  const pages=[];
+  // Sequential generation — each await completes before the next starts
+  // This ensures the progress bar updates after every single step (not frozen)
+  for(let ri=0;ri<named.length;ri++){
+    if(_kiBuchAborted)break;
+    const r=named[ri];
+    const texts=['','',''];
+    _setStep(ri,'t','⏳ Text','#e8a000');
+
+    // Step 0: intro text (counted as the "Text" step)
+    try{
+      texts[0]=await _aiText(_kiBuchPrompt(r,style,0));
+      _setStep(ri,'t','✅ Text','var(--grn)');
+    }catch(e){_setStep(ri,'t','❌ Text','#c00');}
+    _tick(); // update progress bar immediately
+
+    // Steps 1–3: the three "Bild" segments — generated one by one
+    for(let seg=0;seg<3;seg++){
+      if(_kiBuchAborted)break;
+      _setStep(ri,seg,`⏳ Bild ${seg+1}/3`,'#e8a000');
+      try{
+        texts[seg]=await _aiText(_kiBuchPrompt(r,style,seg));
+        _setStep(ri,seg,`✅ Bild ${seg+1}/3`,'var(--grn)');
+      }catch(e){_setStep(ri,seg,`❌ Bild ${seg+1}/3`,'#c00');}
+      _tick(); // progress bar updates after EACH image step
+    }
+    pages.push({r,texts});
+  }
+
+  if(_kiBuchAborted)return;
+
+  // Assemble downloadable HTML book
+  const bookName=(LANGS[CL]&&LANGS[CL].appTitle)||'Mein Rezeptbuch';
+  const coverHtml=`<div style="background:linear-gradient(160deg,#1a1a1a,#2c1a08);color:#f5f0e8;padding:60px 30px;font-family:Georgia,serif;min-height:100vh;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;box-sizing:border-box">
+    <div style="font-size:.6rem;text-transform:uppercase;letter-spacing:.2em;color:#fc0;margin-bottom:20px">${style==='foodzine'?'FOOD ZINE':'MAGAZIN'}</div>
+    <h1 style="font-size:2rem;margin:0 0 16px;line-height:1.2">${h(bookName)}</h1>
+    <p style="font-size:.75rem;color:#a09080;margin:0">${pages.length} ${CL==='en'?'Recipes':'Rezepte'}</p>
+  </div>`;
+  const recipePages=pages.map(({r,texts})=>_kiBuchPageHtml(r,style,texts)).join('');
+  const fullHtml=`<!DOCTYPE html><html lang="${CL}"><head><meta charset="UTF-8"><title>${h(bookName)}</title>
+    <style>*{box-sizing:border-box;margin:0;padding:0}body{background:#111}@media print{div{page-break-inside:avoid}}</style>
+    </head><body>${coverHtml}${recipePages}</body></html>`;
+
+  dlBlob(new Blob([fullHtml],{type:'text/html'}),'mein-kreativbuch.html');
+  ov.style.display='none';
+  document.getElementById('kiBuchBar').style.width='0%';
+  document.getElementById('kiBuchPct').textContent='0 %';
+  document.getElementById('kiBuchCost').textContent='Echte Kosten bisher: $0,0000';
 }
 
 // ═══════════════════════════════════════════════════════
