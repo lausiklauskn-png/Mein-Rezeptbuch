@@ -7468,11 +7468,11 @@ function _kbAnimBar(targetDone,total){
   const p=document.getElementById('kbBarPct');
   if(!f)return;
   const tPct=Math.max(0,Math.round(targetDone/total*100)-5);
+  let cur=parseFloat(f.style.width)||0;
   _kbFillTimer=setInterval(()=>{
-    const cur=parseFloat(f.style.width)||0;
     if(cur>=tPct){clearInterval(_kbFillTimer);return;}
-    const next=cur+(tPct-cur)*0.04;
-    const pct=Math.round(next);
+    cur+=(tPct-cur)*0.04;
+    const pct=Math.round(cur);
     f.style.width=pct+'%';
     if(p)p.textContent=pct+' %';
   },300);
