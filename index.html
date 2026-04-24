@@ -5519,7 +5519,11 @@ async function _aiBookRun(){
       const imgStatus=Array(imgCnt).fill('⏳');
       const renderImgs=()=>{
         const t=txt?'<span>✅ Text</span> · ':(txtErr?'<span style="color:#c0392b">⚠️ Text</span> · ':'');
-        subEl.innerHTML=t+imgStatus.map((s,j)=>`<span style="margin-right:5px" title="${h(imgErrs[j]||'')}">${s} Bild ${j+1}/${imgCnt}</span>`).join('');
+        const chips=imgStatus.map((s,j)=>{
+          if(s==='❌'&&imgErrs[j])return`<div style="color:#c0392b;font-size:.67rem;margin-top:2px">❌ Bild ${j+1}: ${h(imgErrs[j])}</div>`;
+          return`<span style="margin-right:5px">${s} Bild ${j+1}/${imgCnt}</span>`;
+        }).join('');
+        subEl.innerHTML=`<span>${t}</span>${chips}`;
       };
       renderImgs();
       for(let j=0;j<imgCnt;j++){
