@@ -2636,15 +2636,6 @@ Vielen Dank für deine Unterstützung.</div>
       </div>
     </div>
     <div class="exp-card">
-      <div class="exp-ico">📖</div>
-      <div>
-        <div class="exp-title" id="expFlipT">Blätterbuch (HTML)</div>
-        <div class="exp-desc" id="expFlipD">Interaktives Blätterbuch als HTML-Datei — offline blättern in jedem Browser auf Android, iOS, PC & Mac.</div>
-        <button class="exp-btn gld" onclick="exportFlipbook()" id="expFlipBtn" title="Interaktives Blätterbuch als HTML-Datei erstellen">📥 Blätterbuch erstellen</button>
-        <div class="exp-prog" id="flipProg"></div>
-      </div>
-    </div>
-    <div class="exp-card">
       <div class="exp-ico">✨</div>
       <div>
         <div class="exp-title" id="expKbT">Kreativbuch (Claude)</div>
@@ -2655,11 +2646,11 @@ Vielen Dank für deine Unterstützung.</div>
       </div>
     </div>
     <div class="exp-card">
-      <div class="exp-ico">✨</div>
+      <div class="exp-ico">📖✨</div>
       <div>
         <div class="exp-title" id="expAiT">KI-Kreativbuch</div>
         <div class="exp-desc" id="expAiD">Prompt erstellen → in Claude/ChatGPT einfügen → JSON zurück → Buch herunterladen. Kein API-Key nötig.</div>
-        <button class="exp-btn pur" onclick="openAiBook()" id="expAiBtn">✨ KI-Kreativbuch erstellen</button>
+        <button class="exp-btn pur" onclick="openAiBook()" id="expAiBtn">📖✨ KI-Kreativbuch erstellen</button>
       </div>
     </div>
     <div class="exp-card">
@@ -3012,7 +3003,7 @@ const LANGS={
     expKbT:'Kreativbuch (Claude)',expKbD:'Claude schreibt für jedes Rezept eine persönliche Beschreibung — fertiges Blätterbuch mit Charakter.',expKbSafe:'🔑 Anthropic API-Schlüssel · wird verbraucht',expKbBtn:'✨ Kreativbuch erstellen',
     expPdfT:'PDF-Buch',expPdfD:'Alle Rezepte als druckfertiges PDF mit Deckblatt.',expPdfBtn:'📥 PDF-Buch erstellen',expPdfProg:'⏳ Erstelle PDF …',expPdfNone:'⚠️ Keine Rezepte vorhanden',expPdfRecs:'Rezepte',expPdfPart:'Teil',expPdfChunkInfo:'Dein Buch wird in',expPdfChunkSplit:'aufgeteilt',
     expJsonT:'Datensicherung (JSON)',expJsonD:'Alle Rezepte & Menüpläne als JSON sichern.',expJsonSafe:'🔒 Enthält keine API-Keys — sicher teilbar',expJsonBtn:'💾 Backup erstellen',
-    expAiT:'KI-Kreativbuch',expAiD:'Prompt erstellen → in Claude/ChatGPT einfügen → JSON zurück → Buch herunterladen. Kein API-Key nötig.',expAiBtn:'✨ KI-Kreativbuch erstellen',
+    expAiT:'KI-Kreativbuch',expAiD:'Prompt erstellen → in Claude/ChatGPT einfügen → JSON zurück → Buch herunterladen. Kein API-Key nötig.',expAiBtn:'📖✨ KI-Kreativbuch erstellen',
     aiBookTitle:'✨ KI-Kreativbuch · Rezepte wählen',aiBookSelAll:'Alle wählen',aiBookDeselAll:'Alle abwählen',aiBookGewählt:'gewählt',
     aiBookWeiter:'→ Prompt erstellen',aiBookStep2Title:'✨ KI-Kreativbuch · Prompt',
     aiBookBack:'← Rezepte ändern',aiBookPromptLbl:'1. Prompt kopieren',aiBookCopyBtn:'📋 Kopieren',
@@ -3153,7 +3144,7 @@ const LANGS={
     expKbT:'Creative Book (Claude)',expKbD:'Claude writes a personal description for every recipe — ready as an interactive flipbook.',expKbSafe:'🔑 Anthropic API key · tokens consumed',expKbBtn:'✨ Create Creative Book',
     expPdfT:'PDF Book',expPdfD:'All recipes as a printable PDF with cover page.',expPdfBtn:'📥 Create PDF book',expPdfProg:'⏳ Creating PDF…',expPdfNone:'⚠️ No recipes available',expPdfRecs:'Recipes',expPdfPart:'Part',expPdfChunkInfo:'Your book will be split into',expPdfChunkSplit:'parts',
     expJsonT:'Backup (JSON)',expJsonD:'Save all recipes & menu as a JSON file.',expJsonSafe:'🔒 No API keys included — safe to share',expJsonBtn:'💾 Create backup',
-    expAiT:'AI Creative Book',expAiD:'Build prompt → paste into Claude/ChatGPT → paste JSON back → download book. No API key needed.',expAiBtn:'✨ Create AI cookbook',
+    expAiT:'AI Creative Book',expAiD:'Build prompt → paste into Claude/ChatGPT → paste JSON back → download book. No API key needed.',expAiBtn:'📖✨ Create AI cookbook',
     aiBookTitle:'✨ AI Creative Book · Select recipes',aiBookSelAll:'Select all',aiBookDeselAll:'Deselect all',aiBookGewählt:'selected',
     aiBookWeiter:'→ Build prompt',aiBookStep2Title:'✨ AI Creative Book · Prompt',
     aiBookBack:'← Change recipes',aiBookPromptLbl:'1. Copy prompt',aiBookCopyBtn:'📋 Copy',
@@ -3293,7 +3284,7 @@ const LANGS={
     expFlipT:'Листалка (HTML)',expFlipD:'Интерактивная листалка как HTML-файл — работает офлайн.',expFlipBtn:'📥 Создать листалку',flipProg:'Создание …',flipDone:'✅ Листалка создана!',
     expPdfT:'PDF-книга',expPdfD:'Все рецепты как PDF для печати с обложкой.',expPdfBtn:'📥 Создать PDF-книгу',expPdfProg:'⏳ Создаю PDF …',expPdfNone:'⚠️ Нет рецептов',expPdfRecs:'Рецептов',expPdfPart:'Часть',expPdfChunkInfo:'Книга будет разделена на',expPdfChunkSplit:'части',
     expJsonT:'Резервная копия (JSON)',expJsonD:'Сохранить все рецепты и меню как JSON-файл.',expJsonSafe:'🔒 API-ключи не включены — безопасно для передачи',expJsonBtn:'💾 Создать резервную копию',
-    expAiT:'КИ-Кулинарная книга',expAiD:'Создать промпт → вставить в Claude/ChatGPT → вставить JSON → скачать книгу. Без API-ключа.',expAiBtn:'✨ Создать КИ-книгу',
+    expAiT:'КИ-Кулинарная книга',expAiD:'Создать промпт → вставить в Claude/ChatGPT → вставить JSON → скачать книгу. Без API-ключа.',expAiBtn:'📖✨ Создать КИ-книгу',
     aiBookTitle:'✨ КИ-Книга · Выбрать рецепты',aiBookSelAll:'Выбрать все',aiBookDeselAll:'Снять выбор',aiBookGewählt:'выбрано',
     aiBookWeiter:'→ Создать промпт',aiBookStep2Title:'✨ КИ-Книга · Промпт',
     aiBookBack:'← Изменить рецепты',aiBookPromptLbl:'1. Скопировать промпт',aiBookCopyBtn:'📋 Копировать',
@@ -3433,7 +3424,7 @@ const LANGS={
     expFlipT:'翻页书（HTML）',expFlipD:'交互式翻页书，离线在任何浏览器中使用。',expFlipBtn:'📥 创建翻页书',flipProg:'正在创建 …',flipDone:'✅ 翻页书已创建！',
     expPdfT:'PDF书籍',expPdfD:'所有食谱导出为带封面的可打印PDF。',expPdfBtn:'📥 创建PDF书籍',expPdfProg:'⏳ 正在创建PDF…',expPdfNone:'⚠️ 暂无食谱',expPdfRecs:'食谱',expPdfPart:'部分',expPdfChunkInfo:'书籍将分为',expPdfChunkSplit:'个部分',
     expJsonT:'数据备份（JSON）',expJsonD:'将所有食谱和菜单保存为JSON文件。',expJsonSafe:'🔒 不含API密钥 — 可安全共享',expJsonBtn:'💾 创建备份',
-    expAiT:'AI创意食谱书',expAiD:'生成提示词 → 粘贴到 Claude/ChatGPT → 粘贴 JSON → 下载书籍。无需 API 密钥。',expAiBtn:'✨ 创建AI食谱书',
+    expAiT:'AI创意食谱书',expAiD:'生成提示词 → 粘贴到 Claude/ChatGPT → 粘贴 JSON → 下载书籍。无需 API 密钥。',expAiBtn:'📖✨ 创建AI食谱书',
     aiBookTitle:'✨ AI创意书 · 选择食谱',aiBookSelAll:'全选',aiBookDeselAll:'取消全选',aiBookGewählt:'已选',
     aiBookWeiter:'→ 生成提示词',aiBookStep2Title:'✨ AI创意书 · 提示词',
     aiBookBack:'← 修改食谱',aiBookPromptLbl:'1. 复制提示词',aiBookCopyBtn:'📋 复制',
@@ -3573,7 +3564,7 @@ const LANGS={
     expFlipT:'Libro interactivo (HTML)',expFlipD:'Libro interactivo como HTML — sin conexión en cualquier navegador.',expFlipBtn:'📥 Crear libro',flipProg:'Creando …',flipDone:'✅ Libro creado!',
     expPdfT:'Libro PDF',expPdfD:'Todas las recetas como PDF imprimible con portada.',expPdfBtn:'📥 Crear libro PDF',expPdfProg:'⏳ Creando PDF…',expPdfNone:'⚠️ No hay recetas',expPdfRecs:'Recetas',expPdfPart:'Parte',expPdfChunkInfo:'Tu libro se dividirá en',expPdfChunkSplit:'partes',
     expJsonT:'Copia de seguridad (JSON)',expJsonD:'Guardar todas las recetas y menús como JSON.',expJsonSafe:'🔒 Sin claves API — seguro para compartir',expJsonBtn:'💾 Crear copia de seguridad',
-    expAiT:'Libro IA creativo',expAiD:'Crear prompt → pegar en Claude/ChatGPT → pegar JSON → descargar libro. Sin clave API.',expAiBtn:'✨ Crear libro IA',
+    expAiT:'Libro IA creativo',expAiD:'Crear prompt → pegar en Claude/ChatGPT → pegar JSON → descargar libro. Sin clave API.',expAiBtn:'📖✨ Crear libro IA',
     aiBookTitle:'✨ Libro IA · Elegir recetas',aiBookSelAll:'Seleccionar todas',aiBookDeselAll:'Deseleccionar',aiBookGewählt:'seleccionadas',
     aiBookWeiter:'→ Crear prompt',aiBookStep2Title:'✨ Libro IA · Prompt',
     aiBookBack:'← Cambiar recetas',aiBookPromptLbl:'1. Copiar prompt',aiBookCopyBtn:'📋 Copiar',
@@ -3755,7 +3746,7 @@ const LANGS={
     expJsonD:'Sauvegarder en JSON.',
     expJsonSafe:'🔒 Sans clés API — sûr à partager',
     expJsonBtn:'💾 Créer une sauvegarde',
-    expAiT:'Livre IA créatif',expAiD:'Créer prompt → coller dans Claude/ChatGPT → coller JSON → télécharger. Sans clé API.',expAiBtn:'✨ Créer livre IA',
+    expAiT:'Livre IA créatif',expAiD:'Créer prompt → coller dans Claude/ChatGPT → coller JSON → télécharger. Sans clé API.',expAiBtn:'📖✨ Créer livre IA',
     aiBookTitle:'✨ Livre IA · Choisir des recettes',aiBookSelAll:'Tout sélectionner',aiBookDeselAll:'Tout désélectionner',aiBookGewählt:'sélectionnées',
     aiBookWeiter:'→ Créer le prompt',aiBookStep2Title:'✨ Livre IA · Prompt',
     aiBookBack:'← Changer les recettes',aiBookPromptLbl:'1. Copier le prompt',aiBookCopyBtn:'📋 Copier',
@@ -4005,7 +3996,7 @@ const LANGS={
     expJsonD:'Salva come JSON.',
     expJsonSafe:'🔒 Nessuna chiave API — sicuro da condividere',
     expJsonBtn:'💾 Crea backup',
-    expAiT:'Libro IA creativo',expAiD:'Creare prompt → incollare in Claude/ChatGPT → incollare JSON → scaricare. Senza chiave API.',expAiBtn:'✨ Crea libro IA',
+    expAiT:'Libro IA creativo',expAiD:'Creare prompt → incollare in Claude/ChatGPT → incollare JSON → scaricare. Senza chiave API.',expAiBtn:'📖✨ Crea libro IA',
     aiBookTitle:'✨ Libro IA · Scegli ricette',aiBookSelAll:'Seleziona tutto',aiBookDeselAll:'Deseleziona tutto',aiBookGewählt:'selezionate',
     aiBookWeiter:'→ Crea prompt',aiBookStep2Title:'✨ Libro IA · Prompt',
     aiBookBack:'← Cambia ricette',aiBookPromptLbl:'1. Copia prompt',aiBookCopyBtn:'📋 Copia',
@@ -4254,7 +4245,7 @@ const LANGS={
     expJsonD:'Guardar como JSON.',
     expJsonSafe:'🔒 Sem chaves API — seguro para partilhar',
     expJsonBtn:'💾 Criar cópia de segurança',
-    expAiT:'Livro IA criativo',expAiD:'Criar prompt → colar no Claude/ChatGPT → colar JSON → descarregar. Sem chave API.',expAiBtn:'✨ Criar livro IA',
+    expAiT:'Livro IA criativo',expAiD:'Criar prompt → colar no Claude/ChatGPT → colar JSON → descarregar. Sem chave API.',expAiBtn:'📖✨ Criar livro IA',
     aiBookTitle:'✨ Livro IA · Escolher receitas',aiBookSelAll:'Selecionar tudo',aiBookDeselAll:'Desmarcar tudo',aiBookGewählt:'selecionadas',
     aiBookWeiter:'→ Criar prompt',aiBookStep2Title:'✨ Livro IA · Prompt',
     aiBookBack:'← Alterar receitas',aiBookPromptLbl:'1. Copiar prompt',aiBookCopyBtn:'📋 Copiar',
