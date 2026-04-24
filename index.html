@@ -613,7 +613,9 @@ body.nav-collapsed{padding-bottom:calc(16px + var(--sb))}
 .aibk2-ta{width:100%;min-height:90px;border:1.5px solid var(--sand2);border-radius:8px;padding:9px 11px;font-size:.77rem;resize:vertical;font-family:monospace;background:var(--parch);color:var(--ink)}
 .aibk2-gen{width:100%;padding:13px;border:none;border-radius:9px;background:linear-gradient(135deg,#5500bb,#8833dd);color:#fff;font-size:.86rem;font-weight:700;cursor:pointer;margin-top:9px}
 .aibk2-back{background:none;border:none;color:var(--br3);font-size:.76rem;cursor:pointer;padding:6px 0;display:block;margin-bottom:4px}
-.aibk2-zine-lbl{font-family:Georgia,serif;font-size:.88rem;font-weight:700;color:var(--br);margin:4px 0 10px}
+.aibk2-zine-lbl{font-family:Georgia,serif;font-size:.88rem;font-weight:700;color:var(--br);margin:4px 0 6px}
+.aibk2-zine-pick-lbl{font-size:.72rem;font-weight:700;color:var(--br3);text-transform:uppercase;letter-spacing:.04em;margin-bottom:5px}
+.aibk2-zine-sel{min-height:auto;height:auto;padding:7px 10px;font-size:.77rem;margin-bottom:4px;cursor:pointer}
 
 /* folders */
 .fld-top{padding:10px 12px 8px;background:var(--parch);border-bottom:1px solid var(--sand2)}
@@ -2743,7 +2745,14 @@ Vielen Dank für deine Unterstützung.</div>
           <textarea class="aibk2-ta" id="aiBookCustomTa" rows="3"
             oninput="document.getElementById('aiBookPromptBox').value=_kbBuildCpPrompt()"></textarea>
         </div>
-        <div id="aiBookZineSect" class="aibk2-zine-lbl" style="display:none">🗞️ Erstelle deine eigenen Food-Zine Poster</div>
+        <div id="aiBookZineSect" style="display:none">
+          <div class="aibk2-zine-lbl">🗞️ Erstelle deine eigenen Food-Zine Poster</div>
+          <div class="aibk2-zine-pick-lbl">Wähle ein Lieblingsrezept:</div>
+          <select class="aibk2-ta aibk2-zine-sel" id="aiBookZineRec"
+            onchange="document.getElementById('aiBookPromptBox').value=_kbBuildCpPrompt()">
+            <option value="">– Kein Lieblingsrezept –</option>
+          </select>
+        </div>
       </div>
       <!-- Prompt preview + actions -->
       <div class="aibk2-sect">
@@ -5550,6 +5559,16 @@ const _AIBK_STYLES={
 };
 let _kbCpStyle='auto';
 
+function _kbFillZineSelect(){
+  const sel=document.getElementById('aiBookZineRec');
+  if(!sel)return;
+  const ids=[..._aiBookSel];
+  const recs=R.filter(r=>ids.includes(r.id)&&r.name);
+  const cur=sel.value;
+  sel.innerHTML='<option value="">– Kein Lieblingsrezept –</option>'
+    +recs.map(r=>`<option value="${r.id}"${r.id===cur?' selected':''}>${r.name}</option>`).join('');
+}
+
 function _kbCpPickStyle(key){
   _kbCpStyle=key;
   document.querySelectorAll('#aiBookStyleGrid .kb-dchip').forEach(b=>b.classList.toggle('on',b.dataset.style===key));
@@ -5559,6 +5578,7 @@ function _kbCpPickStyle(key){
   if(ta&&!ta.placeholder)ta.placeholder=T('aiBookCustomPh');
   const zs=document.getElementById('aiBookZineSect');
   if(zs)zs.style.display=key==='zine'?'':'none';
+  if(key==='zine')_kbFillZineSelect();
   document.getElementById('aiBookPromptBox').value=_kbBuildCpPrompt();
 }
 
@@ -5589,9 +5609,10 @@ function aiBookWeiter(){
   if(cs)cs.style.display=_kbCpStyle==='custom'?'':'none';
   const cta=document.getElementById('aiBookCustomTa');
   if(cta)cta.placeholder=T('aiBookCustomPh');
-  // show/hide food-zine label
+  // show/hide food-zine picker
   const zs=document.getElementById('aiBookZineSect');
   if(zs)zs.style.display=_kbCpStyle==='zine'?'':'none';
+  if(_kbCpStyle==='zine')_kbFillZineSelect();
   document.getElementById('aiBookPromptBox').value=_kbBuildCpPrompt();
 }
 
@@ -5611,11 +5632,15 @@ function _kbBuildCpPrompt(){
   const styleHint=_kbCpStyle==='custom'
     ?(document.getElementById('aiBookCustomTa')?.value?.trim()||'')
     :(dsn.hint||'');
+  const zineSelId=_kbCpStyle==='zine'?(document.getElementById('aiBookZineRec')?.value||''):'';
+  const zineFav=zineSelId?R.find(r=>r.id===zineSelId):null;
   const recLines=recs.map((r,i)=>{
     const ings=(r.ings||[]).slice(0,6).map(g=>`${g.amt||g.amount||''} ${g.unit||''} ${g.name||''}`.trim()).filter(Boolean).join(', ');
-    return`${i+1}. ${r.name}`+(ings?' ('+ings+')':'');
+    const isFav=zineFav&&r.id===zineFav.id;
+    return`${i+1}. ${r.name}`+(ings?' ('+ings+')')+(isFav?' ⭐ Lieblingsrezept':'');
   }).join('\n');
-  const styleInstr=styleHint?('\nStil: '+styleHint+'\n'):'';
+  const zineFavLine=zineFav?'\nLieblingsrezept: '+zineFav.name+' — schreibe dafür einen besonders packenden Food-Zine Poster-Text (doppelte Länge, starkes Bild, einprägsamer Slogan).\n':'';
+  const styleInstr=styleHint?('\nStil: '+styleHint+zineFavLine+'\n'):(zineFavLine?'\n'+zineFavLine:'');
   const prompts={
     de:`Schreibe für die folgenden Rezepte kurze Texte für ein persönliches Kochbuch.${styleInstr}\nRezepte:\n${recLines}\n\nAntworte NUR mit diesem JSON (kein Text davor oder danach):\n{"kreativbuch":[\n  {"name":"Rezeptname","intro":"Warmherzige Einleitung (60-80 Wörter)","tip":"1 Küchentipp","serve":"Serviervorschlag (1 Satz)"},\n  ...\n]}`,
     en:`Write short texts for the following recipes for a personal cookbook.${styleInstr}\nRecipes:\n${recLines}\n\nReply ONLY with this JSON (no text before or after):\n{"kreativbuch":[\n  {"name":"Recipe name","intro":"Warm introduction (60-80 words)","tip":"1 cooking tip","serve":"Serving suggestion (1 sentence)"},\n  ...\n]}`,
