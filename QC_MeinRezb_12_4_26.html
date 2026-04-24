@@ -5553,7 +5553,7 @@ async function _aiBookRun(){
           imgErrs[j]=err.message||'Fehler';
         }
         renderImgs();
-        _kbSetBar(i,recs.length,totalCost);
+        _kbSetBar(i+(j+1)/imgCnt,recs.length,totalCost);
       }
     }
     aiResults.push({r,txt,imgUrls});
