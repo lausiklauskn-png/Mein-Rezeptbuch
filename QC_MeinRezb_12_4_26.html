@@ -5536,12 +5536,16 @@ async function _aiBookRun(){
       for(let j=0;j<imgCnt;j++){
         if(_kbAbort)break;
         _kbAnimBar(i+(j+1)/imgCnt,recs.length);
+        const _ac=new AbortController();
+        const _tout=setTimeout(()=>_ac.abort(),120000);
         try{
           const resp=await fetch('https://api.openai.com/v1/images/generations',{
+            signal:_ac.signal,
             method:'POST',
             headers:{'Content-Type':'application/json','Authorization':'Bearer '+key},
             body:JSON.stringify({model:'dall-e-3',prompt:_zinePs[j%_zinePs.length],n:1,size:'1024x1792',quality:imgHd?'hd':'standard',response_format:'b64_json'})
           });
+          clearTimeout(_tout);
           if(!resp.ok){const e=await resp.json().catch(()=>({}));throw new Error(e.error?.message||'HTTP '+resp.status);}
           const b64=(await resp.json()).data[0].b64_json;
           if(!b64)throw new Error('Kein Bild erhalten');
@@ -5549,9 +5553,10 @@ async function _aiBookRun(){
           imgStatus[j]='✅';
           totalCost+=imgPrice;
         }catch(err){
+          clearTimeout(_tout);
           if(_kbAbort)break;
           imgStatus[j]='❌';
-          imgErrs[j]=err.message||'Fehler';
+          imgErrs[j]=err.name==='AbortError'?'Timeout (>120s) – bitte erneut versuchen':(err.message||'Fehler');
         }
         _kbStopAnimBar();
         renderImgs();
