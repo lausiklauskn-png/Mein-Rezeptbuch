@@ -2417,6 +2417,12 @@ Vielen Dank für deine Unterstützung.</div>
           <div id="igCostLbl" style="font-size:.74rem;color:var(--teal);margin-top:5px;text-align:center;font-weight:600"></div>
           <button class="scan-key-btn" id="igSaveBtn" onclick="closeImport()" style="display:none;background:var(--grn);margin-top:10px">✅ Bilder im Rezeptbuch – schließen</button>
         </div>
+        <div style="margin-top:14px;border-top:1px solid var(--sand2);padding-top:12px;display:flex;flex-direction:column;gap:8px">
+          <button class="scan-key-btn" id="igRecoverBtn" onclick="recoverIdbImages()" style="background:var(--sand);color:var(--ink);border:1px solid var(--sand2);font-size:.76rem">🗂️ Gespeicherte KI-Bilder laden</button>
+          <div id="igRecoverLbl" style="font-size:.72rem;color:var(--br3);display:none"></div>
+          <button class="scan-key-btn" id="igExportBtn" onclick="exportImgJson()" style="background:var(--sand);color:var(--ink);border:1px solid var(--sand2);font-size:.76rem">📥 KI-Bilder exportieren (JSON)</button>
+          <div id="igExportLbl" style="font-size:.72rem;color:var(--br3);display:none"></div>
+        </div>
       </div>
     </div>
 
@@ -4653,6 +4659,50 @@ async function startImgGen(){
   if(res.ok>0){toast('✅ '+res.ok+' KI-Bild'+(res.ok===1?'':'er')+' im Rezeptbuch gespeichert');}
   if(typeof render==='function')render();
   updateImgGenInfo();
+}
+
+async function recoverIdbImages(){
+  const lbl=document.getElementById('igRecoverLbl');
+  const btn=document.getElementById('igRecoverBtn');
+  if(btn)btn.disabled=true;
+  if(lbl){lbl.style.display='block';lbl.textContent='⏳ Suche gespeicherte Bilder …';}
+  let found=0,assigned=0;
+  const recipes=R.filter(r=>r.name&&!r.blank);
+  for(const r of recipes){
+    const img=await _idbGetImg(r.id);
+    if(img){found++;if(!r.img){r.img=img;assigned++;}}
+  }
+  if(assigned>0){sv();if(typeof render==='function')render();}
+  if(lbl)lbl.textContent=found===0?'ℹ️ Keine gespeicherten Bilder gefunden':assigned>0?'✅ '+assigned+' Bild'+(assigned===1?'':'er')+' in Rezepte übertragen':'ℹ️ '+found+' Bilder gefunden — bereits alle zugeordnet';
+  if(btn)btn.disabled=false;
+  updateImgGenInfo();
+}
+
+async function exportImgJson(){
+  const lbl=document.getElementById('igExportLbl');
+  const btn=document.getElementById('igExportBtn');
+  if(btn)btn.disabled=true;
+  if(lbl){lbl.style.display='block';lbl.textContent='⏳ Bereite Export vor …';}
+  const result=[];
+  const recipes=R.filter(r=>r.name&&!r.blank);
+  for(const r of recipes){
+    let img=r.img||'';
+    if(!img){const idbImg=await _idbGetImg(r.id);if(idbImg)img=idbImg;}
+    if(img)result.push({id:r.id,name:r.name,img});
+  }
+  if(!result.length){
+    if(lbl)lbl.textContent='ℹ️ Keine Bilder zum Exportieren gefunden';
+    if(btn)btn.disabled=false;
+    return;
+  }
+  const json=JSON.stringify(result,null,2);
+  const blob=new Blob([json],{type:'application/json'});
+  const url=URL.createObjectURL(blob);
+  const a=document.createElement('a');
+  a.href=url;a.download='rezeptbilder.json';a.click();
+  setTimeout(()=>URL.revokeObjectURL(url),5000);
+  if(lbl)lbl.textContent='✅ '+result.length+' Bild'+(result.length===1?'':'er')+' exportiert';
+  if(btn)btn.disabled=false;
 }
 
 // ── Undo-System (Rezept-Editor, max. 10 Schritte) ────────
