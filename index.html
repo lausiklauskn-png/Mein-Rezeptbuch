@@ -5453,6 +5453,24 @@ function aiCostDoGenerate(){
   _aiBookRun();
 }
 
+function _kbErrHint(msg){
+  const m=msg||'';
+  if(/billing hard limit|hard limit has been reached/i.test(m))
+    return'Monatliches Ausgabenlimit erreicht → <a href="https://platform.openai.com/settings/billing" target="_blank" style="color:#c0392b">Limit erhöhen</a>';
+  if(/exceeded.*quota|insufficient.*quota|quota.*exceeded/i.test(m))
+    return'Guthaben aufgebraucht → <a href="https://platform.openai.com/settings/billing" target="_blank" style="color:#c0392b">Guthaben aufladen</a>';
+  if(/invalid.*api.*key|incorrect.*api.*key|no api key/i.test(m))
+    return'Ungültiger API-Key – bitte in den Einstellungen prüfen';
+  if(/account.*not active|account.*deactivated/i.test(m))
+    return'Konto nicht aktiv → <a href="https://platform.openai.com/settings/billing" target="_blank" style="color:#c0392b">Zahlung hinterlegen</a>';
+  if(/rate.*limit/i.test(m))
+    return'Rate-Limit – bitte kurz warten und erneut versuchen';
+  if(/model.*not.*found|model.*does not exist/i.test(m))
+    return'Modell nicht verfügbar für diesen API-Key';
+  if(/content.*policy|safety/i.test(m))
+    return'Bild abgelehnt (Inhaltsrichtlinien)';
+  return h(m);
+}
 async function _aiBookRun(){
   const p=window._aiBookParams;
   if(!p||!p.ids.length)return;
@@ -5509,7 +5527,7 @@ async function _aiBookRun(){
     }catch(err){
       if(_kbAbort)break;
       txtErr=err.message||'Fehler';
-      subEl.innerHTML=`<span style="color:#c0392b">⚠️ Text: ${h(txtErr)}</span>`;
+      subEl.innerHTML=`<span style="color:#c0392b">⚠️ Text: ${_kbErrHint(txtErr)}</span>`;
     }
     _kbSetBar(i,recs.length,totalCost);
 
@@ -5520,7 +5538,7 @@ async function _aiBookRun(){
       const renderImgs=()=>{
         const t=txt?'<span>✅ Text</span> · ':(txtErr?'<span style="color:#c0392b">⚠️ Text</span> · ':'');
         const chips=imgStatus.map((s,j)=>{
-          if(s==='❌'&&imgErrs[j])return`<div style="color:#c0392b;font-size:.67rem;margin-top:2px">❌ Bild ${j+1}: ${h(imgErrs[j])}</div>`;
+          if(s==='❌'&&imgErrs[j])return`<div style="color:#c0392b;font-size:.67rem;margin-top:2px">❌ Bild ${j+1}: ${_kbErrHint(imgErrs[j])}</div>`;
           return`<span style="margin-right:5px">${s} Bild ${j+1}/${imgCnt}</span>`;
         }).join('');
         subEl.innerHTML=`<span>${t}</span>${chips}`;
