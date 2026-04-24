@@ -4759,12 +4759,16 @@ async function shareFullBook(){
       await navigator.share({files:[file],title:'Mein Rezeptbuch'});
       if(prog)prog.textContent='✅ '+full.length+' Rezepte geteilt';
     }catch(e){
-      if(e.name!=='AbortError')dlBlob(blob,fname);
-      if(prog)prog.textContent=e.name==='AbortError'?'ℹ️ Abgebrochen':'✅ '+full.length+' Rezepte gespeichert';
+      if(e.name!=='AbortError'){
+        dlBlob(blob,fname);
+        if(prog)prog.innerHTML='📥 Datei heruntergeladen: <strong>'+fname+'</strong><br><span style="color:var(--ink)">Öffne die Downloads-App → Datei antippen → Teilen wählen</span>';
+      }else{
+        if(prog)prog.textContent='ℹ️ Abgebrochen';
+      }
     }
   }else{
     dlBlob(blob,fname);
-    if(prog)prog.textContent='✅ '+full.length+' Rezepte gespeichert';
+    if(prog)prog.innerHTML='📥 Datei heruntergeladen: <strong>'+fname+'</strong><br><span style="color:var(--ink)">Öffne die Downloads-App → Datei antippen → Teilen wählen</span>';
   }
   if(btn)btn.disabled=false;
 }
