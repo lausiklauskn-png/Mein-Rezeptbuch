@@ -2727,10 +2727,22 @@ Vielen Dank für deine Unterstützung.</div>
       </div>
       <div id="aiBookList" style="flex:1;overflow-y:auto;-webkit-overflow-scrolling:touch"></div>
     </div>
-    <!-- Step 2: prompt + paste -->
+    <!-- Step 2: style + prompt + paste -->
     <div id="aiBookStep2" style="display:none">
+      <!-- Style chooser -->
       <div class="aibk2-sect">
-        <button class="aibk2-back" onclick="_kbCpBack()" id="aiBookBackBtn">← Rezepte ändern</button>
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px">
+          <button class="aibk2-back" onclick="_kbCpBack()" id="aiBookBackBtn">← Rezepte ändern</button>
+          <span class="aibk2-lbl" style="margin:0" id="aiBookStyleLbl">Stil wählen</span>
+        </div>
+        <div class="kb-design-grid" id="aiBookStyleGrid"></div>
+        <div id="aiBookCustomSect" style="display:none" class="aibk2-custom">
+          <textarea class="aibk2-ta" id="aiBookCustomTa" rows="3"
+            oninput="document.getElementById('aiBookPromptBox').textContent=_kbBuildCpPrompt()"></textarea>
+        </div>
+      </div>
+      <!-- Prompt preview + actions -->
+      <div class="aibk2-sect">
         <div class="aibk2-lbl" id="aiBookPromptLbl">1. Prompt kopieren</div>
         <div class="aibk2-prompt" id="aiBookPromptBox"></div>
         <div class="aibk2-btns">
@@ -2739,6 +2751,7 @@ Vielen Dank für deine Unterstützung.</div>
           <button class="aibk2-btn gpt" onclick="_kbCpOpen('https://chatgpt.com/')" id="aiBookGptBtn">🤖 ChatGPT</button>
         </div>
       </div>
+      <!-- Paste JSON + generate -->
       <div class="aibk2-sect">
         <div class="aibk2-lbl" id="aiBookPasteLbl">2. Antwort einfügen (JSON)</div>
         <textarea class="aibk2-ta" id="aiBookTa" placeholder="JSON …"></textarea>
@@ -3017,6 +3030,7 @@ const LANGS={
     aiBookPasteLbl:'2. Antwort einfügen (JSON)',aiBookTaPh:'JSON hier einfügen …',
     aiBookGenBtn:'📖 Kreativbuch erstellen',aiBookCopied:'✓ Kopiert!',
     aiBookDone:'Kreativbuch erstellt & heruntergeladen!',aiBookErrEmpty:'⚠️ Bitte zuerst JSON einfügen.',aiBookErrJson:'⚠️ Ungültiges JSON – bitte prüfen.',
+    aiBookStyleLbl:'Stil wählen',aiBookCustomPh:'Beschreibe deinen Wunschstil … z.B. "humorvoll, direkt wie ein Berliner Street-Food-Koch"',aiBookSAuto:'KI entscheidet',aiBookSMed:'Mediterran',aiBookSNord:'Nordisch',aiBookSRust:'Rustikal',aiBookSBunt:'Bunt',aiBookSEleg:'Elegant',aiBookSZine:'Food-Zine',aiBookSCustom:'Eigener Stil',
     sTheme:'🎨 THEMA',sLang:'🌐 SPRACHE',sData:'📁 IMPORT & EXPORT',
     sImpLbl:'Importieren',sImpSub:'Bilder, KI-Scan, Backup',
     sExpLbl:'Exportieren',sExpSub:'E-Book, Blätterbuch, JSON',
@@ -3157,6 +3171,7 @@ const LANGS={
     aiBookPasteLbl:'2. Paste answer (JSON)',aiBookTaPh:'Paste JSON here …',
     aiBookGenBtn:'📖 Create book',aiBookCopied:'✓ Copied!',
     aiBookDone:'Creative book created & downloaded!',aiBookErrEmpty:'⚠️ Please paste JSON first.',aiBookErrJson:'⚠️ Invalid JSON – please check.',
+    aiBookStyleLbl:'Choose style',aiBookCustomPh:'Describe your style … e.g. "playful, like a London street-food chef"',aiBookSAuto:'AI decides',aiBookSMed:'Mediterranean',aiBookSNord:'Nordic',aiBookSRust:'Rustic',aiBookSBunt:'Colourful',aiBookSEleg:'Elegant',aiBookSZine:'Food-Zine',aiBookSCustom:'Custom style',
     sTheme:'🎨 THEME',sLang:'🌐 LANGUAGE',sData:'📁 IMPORT & EXPORT',
     sImpLbl:'Import',sImpSub:'Images, AI scan, backup',
     sExpLbl:'Export',sExpSub:'E-Book, flipbook, JSON',
@@ -3296,6 +3311,7 @@ const LANGS={
     aiBookPasteLbl:'2. Вставить ответ (JSON)',aiBookTaPh:'Вставьте JSON здесь …',
     aiBookGenBtn:'📖 Создать книгу',aiBookCopied:'✓ Скопировано!',
     aiBookDone:'Книга создана и скачана!',aiBookErrEmpty:'⚠️ Сначала вставьте JSON.',aiBookErrJson:'⚠️ Неверный JSON – проверьте.',
+    aiBookStyleLbl:'Выбрать стиль',aiBookCustomPh:'Опишите свой стиль … например «живо, как у московского стрит-фуд повара»',aiBookSAuto:'КИ решает',aiBookSMed:'Средиземноморский',aiBookSNord:'Скандинавский',aiBookSRust:'Деревенский',aiBookSBunt:'Яркий',aiBookSEleg:'Элегантный',aiBookSZine:'Food-Zine',aiBookSCustom:'Свой стиль',
     sTheme:'🎨 ТЕМА',sLang:'🌐 ЯЗЫК',sData:'📁 ИМПОРТ & ЭКСПОРТ',
     sImpLbl:'Импорт',sImpSub:'Фото, ИИ-скан, резерв',
     sExpLbl:'Экспорт',sExpSub:'Эл. книга, листалка, JSON',
@@ -3435,6 +3451,7 @@ const LANGS={
     aiBookPasteLbl:'2. 粘贴回答（JSON）',aiBookTaPh:'在此粘贴 JSON …',
     aiBookGenBtn:'📖 创建书籍',aiBookCopied:'✓ 已复制！',
     aiBookDone:'创意书已创建并下载！',aiBookErrEmpty:'⚠️ 请先粘贴 JSON。',aiBookErrJson:'⚠️ JSON 无效，请检查。',
+    aiBookStyleLbl:'选择风格',aiBookCustomPh:'描述你的风格 … 例如「像上海街头美食厨师一样生动」',aiBookSAuto:'AI 决定',aiBookSMed:'地中海风',aiBookSNord:'北欧风',aiBookSRust:'乡村风',aiBookSBunt:'色彩缤纷',aiBookSEleg:'优雅风',aiBookSZine:'美食杂志',aiBookSCustom:'自定义风格',
     sTheme:'🎨 主题',sLang:'🌐 语言',sData:'📁 导入 & 导出',
     sImpLbl:'导入',sImpSub:'图片、AI扫描、备份',
     sExpLbl:'导出',sExpSub:'电子书、翻页书、JSON',
@@ -3574,6 +3591,7 @@ const LANGS={
     aiBookPasteLbl:'2. Pegar respuesta (JSON)',aiBookTaPh:'Pegar JSON aquí …',
     aiBookGenBtn:'📖 Crear libro',aiBookCopied:'✓ ¡Copiado!',
     aiBookDone:'¡Libro creado y descargado!',aiBookErrEmpty:'⚠️ Por favor pega el JSON primero.',aiBookErrJson:'⚠️ JSON no válido – comprueba.',
+    aiBookStyleLbl:'Elegir estilo',aiBookCustomPh:'Describe tu estilo … p.ej. «divertido, como un chef de street food madrileño»',aiBookSAuto:'IA decide',aiBookSMed:'Mediterráneo',aiBookSNord:'Nórdico',aiBookSRust:'Rústico',aiBookSBunt:'Colorido',aiBookSEleg:'Elegante',aiBookSZine:'Food-Zine',aiBookSCustom:'Estilo propio',
     sTheme:'🎨 TEMA',sLang:'🌐 IDIOMA',sData:'📁 IMPORTAR & EXPORTAR',
     sImpLbl:'Importar',sImpSub:'Imágenes, Scan IA, Copia',
     sExpLbl:'Exportar',sExpSub:'E-Book, Libro, JSON',
@@ -3755,6 +3773,7 @@ const LANGS={
     aiBookPasteLbl:'2. Coller la réponse (JSON)',aiBookTaPh:'Coller JSON ici …',
     aiBookGenBtn:'📖 Créer le livre',aiBookCopied:'✓ Copié !',
     aiBookDone:'Livre créé et téléchargé !',aiBookErrEmpty:'⚠️ Veuillez coller le JSON d\'abord.',aiBookErrJson:'⚠️ JSON invalide – vérifiez.',
+    aiBookStyleLbl:'Choisir le style',aiBookCustomPh:'Décris ton style … ex. «vivant, comme un chef de street food parisien»',aiBookSAuto:'IA décide',aiBookSMed:'Méditerranéen',aiBookSNord:'Nordique',aiBookSRust:'Rustique',aiBookSBunt:'Coloré',aiBookSEleg:'Élégant',aiBookSZine:'Food-Zine',aiBookSCustom:'Style libre',
 
     sTheme:'🎨 THEME',
     sLang:'🌐 LANGUE',
@@ -4004,6 +4023,7 @@ const LANGS={
     aiBookPasteLbl:'2. Incolla risposta (JSON)',aiBookTaPh:'Incolla JSON qui …',
     aiBookGenBtn:'📖 Crea libro',aiBookCopied:'✓ Copiato!',
     aiBookDone:'Libro creato e scaricato!',aiBookErrEmpty:'⚠️ Per favore incolla il JSON prima.',aiBookErrJson:'⚠️ JSON non valido – controlla.',
+    aiBookStyleLbl:'Scegli lo stile',aiBookCustomPh:'Descrivi il tuo stile … es. «vivace, come uno chef di street food romano»',aiBookSAuto:'IA decide',aiBookSMed:'Mediterraneo',aiBookSNord:'Nordico',aiBookSRust:'Rustico',aiBookSBunt:'Colorato',aiBookSEleg:'Elegante',aiBookSZine:'Food-Zine',aiBookSCustom:'Stile libero',
     sTheme:'🎨 TEMA',
     sLang:'🌐 LINGUA',
     sData:'📁 IMPORTA ESPORTA',
@@ -4252,6 +4272,7 @@ const LANGS={
     aiBookPasteLbl:'2. Colar resposta (JSON)',aiBookTaPh:'Colar JSON aqui …',
     aiBookGenBtn:'📖 Criar livro',aiBookCopied:'✓ Copiado!',
     aiBookDone:'Livro criado e descarregado!',aiBookErrEmpty:'⚠️ Por favor cole o JSON primeiro.',aiBookErrJson:'⚠️ JSON inválido – verifique.',
+    aiBookStyleLbl:'Escolher estilo',aiBookCustomPh:'Descreve o teu estilo … ex. «animado, como um chef de street food lisboeta»',aiBookSAuto:'IA decide',aiBookSMed:'Mediterrâneo',aiBookSNord:'Nórdico',aiBookSRust:'Rústico',aiBookSBunt:'Colorido',aiBookSEleg:'Elegante',aiBookSZine:'Food-Zine',aiBookSCustom:'Estilo próprio',
     sTheme:'🎨 TEMA',
     sLang:'🌐 IDIOMA',
     sData:'📁 IMPORTAR EXPORTAR',
@@ -5014,6 +5035,7 @@ function applyLang(code){
     'expJsonT','expJsonD','expJsonSafe','expJsonBtn',
     'expAiT','expAiD','expAiBtn',
     'aiBookTitle','aiBookSelAll','aiBookDeselAll','aiBookGewählt','aiBookWeiter',
+    'aiBookStyleLbl',
     'sTheme','sLang','sData','sImpLbl','sImpSub','sExpLbl','sExpSub',
     'sInfo','sStore','sClear','sClearSub',
     'sManualHead','sManualLbl','sManualSub','manOvTitle','manPdfLbl',
@@ -5309,14 +5331,57 @@ function _aiBookUpdateCount(total){
   document.getElementById('aiBookSelAllBtn').textContent=allSel?T('aiBookDeselAll'):T('aiBookSelAll');
 }
 
+// ── KI-Kreativbuch Stil-System ────────────────────────────────────────────────
+const _AIBK_STYLES={
+  auto:  {ico:'✨',n:'aiBookSAuto',
+    hint:'',
+    cover:'linear-gradient(135deg,#5500bb,#8833dd,#bb55ff)',acc:'#8833dd'},
+  med:   {ico:'🌿',n:'aiBookSMed',
+    hint:'Schreibe im mediterranen Stil: warm, sonnig, duftend nach Kräutern, Zitrone und Olivenöl. Sinnliche, einladende Sprache mit Bildern des Südens.',
+    cover:'linear-gradient(135deg,#c07040,#783810)',acc:'#c07040'},
+  nord:  {ico:'🌲',n:'aiBookSNord',
+    hint:'Nordisch-minimalistisch: ruhig, klar, naturverbunden. Kurze präzise Sätze. Betone Frische, Qualität der Zutaten und Einfachheit.',
+    cover:'linear-gradient(135deg,#3a7a5a,#1a4030)',acc:'#3a7a5a'},
+  rust:  {ico:'🍂',n:'aiBookSRust',
+    hint:'Rustikal-nostalgisch wie ein handgeschriebenes Familienrezeptbuch: gemütlich, herzlich, mit Hauch Erinnerung. Als würdest du einer Freundin das Rezept erklären.',
+    cover:'linear-gradient(135deg,#8b5e30,#4a2a10)',acc:'#8b5e30'},
+  bunt:  {ico:'🎨',n:'aiBookSBunt',
+    hint:'Lebhaft wie ein Food-Blogger: persönliche Freude am Essen, kleine Ausrufe, Begeisterung. Farbenfroh in der Sprache, Emojis erlaubt.',
+    cover:'linear-gradient(135deg,#c0403a,#7a1a20)',acc:'#c0403a'},
+  eleg:  {ico:'🥂',n:'aiBookSEleg',
+    hint:'Gehobenes Kochbuch: verfeinert, präzise, kulinarisches Fachvokabular. Elegant und kultiviert wie ein Gourmet-Restaurant.',
+    cover:'linear-gradient(135deg,#2a1a08,#1a0e04)',acc:'#8a6a30'},
+  zine:  {ico:'📰',n:'aiBookSZine',
+    hint:'Food-Zine-Stil: knapp, lebendig, direkte Ansprache. Packende Sätze wie in einem Foodmagazin. Evokativ, mutig, keine Klischees. Kurze Absätze, starke Eröffnung.',
+    cover:'linear-gradient(135deg,#1a1a2e,#16213e)',acc:'#e94560'},
+  custom:{ico:'✏️',n:'aiBookSCustom',hint:null,
+    cover:'linear-gradient(135deg,#3a5050,#1a3030)',acc:'#508080'},
+};
+let _kbCpStyle='auto';
+
+function _kbCpPickStyle(key){
+  _kbCpStyle=key;
+  document.querySelectorAll('#aiBookStyleGrid .kb-dchip').forEach(b=>b.classList.toggle('on',b.dataset.style===key));
+  const cs=document.getElementById('aiBookCustomSect');
+  if(cs)cs.style.display=key==='custom'?'':'none';
+  const ta=document.getElementById('aiBookCustomTa');
+  if(ta&&!ta.placeholder)ta.placeholder=T('aiBookCustomPh');
+  document.getElementById('aiBookPromptBox').textContent=_kbBuildCpPrompt();
+}
+
+function _kbRenderStyleChips(){
+  const grid=document.getElementById('aiBookStyleGrid');
+  if(!grid)return;
+  grid.innerHTML=Object.entries(_AIBK_STYLES).map(([k,v])=>`<button class="kb-dchip${k===_kbCpStyle?' on':''}" data-style="${k}" onclick="_kbCpPickStyle('${k}')"><span>${v.ico}</span>${T(v.n)||v.n}<span class="aibk2-stripe" style="background:${v.acc}"></span></button>`).join('');
+}
+
 function aiBookWeiter(){
   if(_aiBookSel.size===0)return;
-  // Switch to step 2
   document.getElementById('aiBookStep1').style.display='none';
   document.getElementById('aiBookStep2').style.display='flex';
   document.getElementById('aiBookFoot').style.display='none';
   document.getElementById('aiBookTitle').textContent=T('aiBookStep2Title');
-  // Apply i18n labels
+  const stLbl=document.getElementById('aiBookStyleLbl');if(stLbl)stLbl.textContent=T('aiBookStyleLbl');
   const backBtn=document.getElementById('aiBookBackBtn');if(backBtn)backBtn.textContent=T('aiBookBack');
   const pl=document.getElementById('aiBookPromptLbl');if(pl)pl.textContent=T('aiBookPromptLbl');
   const cpBtn=document.getElementById('aiBookCopyBtn');if(cpBtn)cpBtn.textContent=T('aiBookCopyBtn');
@@ -5325,7 +5390,12 @@ function aiBookWeiter(){
   const paLbl=document.getElementById('aiBookPasteLbl');if(paLbl)paLbl.textContent=T('aiBookPasteLbl');
   const ta=document.getElementById('aiBookTa');if(ta)ta.placeholder=T('aiBookTaPh');
   const genBtn=document.getElementById('aiBookGenBtn');if(genBtn)genBtn.textContent=T('aiBookGenBtn');
-  // Build prompt
+  _kbRenderStyleChips();
+  // show/hide custom textarea
+  const cs=document.getElementById('aiBookCustomSect');
+  if(cs)cs.style.display=_kbCpStyle==='custom'?'':'none';
+  const cta=document.getElementById('aiBookCustomTa');
+  if(cta)cta.placeholder=T('aiBookCustomPh');
   document.getElementById('aiBookPromptBox').textContent=_kbBuildCpPrompt();
 }
 
@@ -5341,19 +5411,24 @@ function _kbBuildCpPrompt(){
   const ids=[..._aiBookSel];
   const recs=R.filter(r=>ids.includes(r.id)&&r.name);
   if(!recs.length)return'';
+  const dsn=_AIBK_STYLES[_kbCpStyle]||_AIBK_STYLES.auto;
+  const styleHint=_kbCpStyle==='custom'
+    ?(document.getElementById('aiBookCustomTa')?.value?.trim()||'')
+    :(dsn.hint||'');
   const recLines=recs.map((r,i)=>{
     const ings=(r.ings||[]).slice(0,6).map(g=>`${g.amt||g.amount||''} ${g.unit||''} ${g.name||''}`.trim()).filter(Boolean).join(', ');
     return`${i+1}. ${r.name}`+(ings?' ('+ings+')':'');
   }).join('\n');
+  const styleInstr=styleHint?('\nStil: '+styleHint+'\n'):'';
   const prompts={
-    de:`Schreibe für die folgenden Rezepte kurze Texte für ein persönliches Kochbuch.\n\nRezepte:\n${recLines}\n\nAntworte NUR mit diesem JSON (kein Text davor oder danach):\n{"kreativbuch":[\n  {"name":"Rezeptname","intro":"Warmherzige Einleitung (60-80 Wörter)","tip":"1 Küchentipp","serve":"Serviervorschlag (1 Satz)"},\n  ...\n]}`,
-    en:`Write short texts for the following recipes for a personal cookbook.\n\nRecipes:\n${recLines}\n\nReply ONLY with this JSON (no text before or after):\n{"kreativbuch":[\n  {"name":"Recipe name","intro":"Warm introduction (60-80 words)","tip":"1 cooking tip","serve":"Serving suggestion (1 sentence)"},\n  ...\n]}`,
-    ru:`Напиши короткие тексты для следующих рецептов для личной кулинарной книги.\n\nРецепты:\n${recLines}\n\nОтвечай ТОЛЬКО этим JSON (без текста до или после):\n{"kreativbuch":[\n  {"name":"Название рецепта","intro":"Тёплое введение (60-80 слов)","tip":"1 кулинарный совет","serve":"Предложение подачи (1 предложение)"},\n  ...\n]}`,
-    zh:`为以下食谱写一本私人食谱书的短文。\n\n食谱：\n${recLines}\n\n仅用以下JSON回复（前后不加任何文字）：\n{"kreativbuch":[\n  {"name":"食谱名称","intro":"温馨介绍（60-80字）","tip":"1个烹饪技巧","serve":"上菜建议（1句话）"},\n  ...\n]}`,
-    es:`Escribe textos cortos para las siguientes recetas para un libro de cocina personal.\n\nRecetas:\n${recLines}\n\nResponde SOLO con este JSON (sin texto antes ni después):\n{"kreativbuch":[\n  {"name":"Nombre receta","intro":"Introducción cálida (60-80 palabras)","tip":"1 consejo de cocina","serve":"Sugerencia de servicio (1 frase)"},\n  ...\n]}`,
-    fr:`Écris de courts textes pour les recettes suivantes pour un livre de cuisine personnel.\n\nRecettes:\n${recLines}\n\nRéponds UNIQUEMENT avec ce JSON (sans texte avant ou après):\n{"kreativbuch":[\n  {"name":"Nom recette","intro":"Introduction chaleureuse (60-80 mots)","tip":"1 conseil de cuisine","serve":"Suggestion de service (1 phrase)"},\n  ...\n]}`,
-    it:`Scrivi brevi testi per le seguenti ricette per un libro di cucina personale.\n\nRicette:\n${recLines}\n\nRispondi SOLO con questo JSON (senza testo prima o dopo):\n{"kreativbuch":[\n  {"name":"Nome ricetta","intro":"Introduzione calorosa (60-80 parole)","tip":"1 consiglio di cucina","serve":"Suggerimento servizio (1 frase)"},\n  ...\n]}`,
-    pt:`Escreve textos curtos para as seguintes receitas para um livro de culinária pessoal.\n\nReceitas:\n${recLines}\n\nResponde APENAS com este JSON (sem texto antes ou depois):\n{"kreativbuch":[\n  {"name":"Nome receita","intro":"Introdução calorosa (60-80 palavras)","tip":"1 dica de culinária","serve":"Sugestão de servir (1 frase)"},\n  ...\n]}`
+    de:`Schreibe für die folgenden Rezepte kurze Texte für ein persönliches Kochbuch.${styleInstr}\nRezepte:\n${recLines}\n\nAntworte NUR mit diesem JSON (kein Text davor oder danach):\n{"kreativbuch":[\n  {"name":"Rezeptname","intro":"Warmherzige Einleitung (60-80 Wörter)","tip":"1 Küchentipp","serve":"Serviervorschlag (1 Satz)"},\n  ...\n]}`,
+    en:`Write short texts for the following recipes for a personal cookbook.${styleInstr}\nRecipes:\n${recLines}\n\nReply ONLY with this JSON (no text before or after):\n{"kreativbuch":[\n  {"name":"Recipe name","intro":"Warm introduction (60-80 words)","tip":"1 cooking tip","serve":"Serving suggestion (1 sentence)"},\n  ...\n]}`,
+    ru:`Напиши короткие тексты для следующих рецептов для личной кулинарной книги.${styleInstr}\nРецепты:\n${recLines}\n\nОтвечай ТОЛЬКО этим JSON (без текста до или после):\n{"kreativbuch":[\n  {"name":"Название рецепта","intro":"Тёплое введение (60-80 слов)","tip":"1 кулинарный совет","serve":"Предложение подачи (1 предложение)"},\n  ...\n]}`,
+    zh:`为以下食谱写一本私人食谱书的短文。${styleInstr}\n食谱：\n${recLines}\n\n仅用以下JSON回复（前后不加任何文字）：\n{"kreativbuch":[\n  {"name":"食谱名称","intro":"温馨介绍（60-80字）","tip":"1个烹饪技巧","serve":"上菜建议（1句话）"},\n  ...\n]}`,
+    es:`Escribe textos cortos para las siguientes recetas para un libro de cocina personal.${styleInstr}\nRecetas:\n${recLines}\n\nResponde SOLO con este JSON (sin texto antes ni después):\n{"kreativbuch":[\n  {"name":"Nombre receta","intro":"Introducción cálida (60-80 palabras)","tip":"1 consejo de cocina","serve":"Sugerencia de servicio (1 frase)"},\n  ...\n]}`,
+    fr:`Écris de courts textes pour les recettes suivantes pour un livre de cuisine personnel.${styleInstr}\nRecettes:\n${recLines}\n\nRéponds UNIQUEMENT avec ce JSON (sans texte avant ou après):\n{"kreativbuch":[\n  {"name":"Nom recette","intro":"Introduction chaleureuse (60-80 mots)","tip":"1 conseil de cuisine","serve":"Suggestion de service (1 phrase)"},\n  ...\n]}`,
+    it:`Scrivi brevi testi per le seguenti ricette per un libro di cucina personale.${styleInstr}\nRicette:\n${recLines}\n\nRispondi SOLO con questo JSON (senza testo prima o dopo):\n{"kreativbuch":[\n  {"name":"Nome ricetta","intro":"Introduzione calorosa (60-80 parole)","tip":"1 consiglio di cucina","serve":"Suggerimento servizio (1 frase)"},\n  ...\n]}`,
+    pt:`Escreve textos curtos para as seguintes receitas para um livro de culinária pessoal.${styleInstr}\nReceitas:\n${recLines}\n\nResponde APENAS com este JSON (sem texto antes ou depois):\n{"kreativbuch":[\n  {"name":"Nome receita","intro":"Introdução calorosa (60-80 palavras)","tip":"1 dica de culinária","serve":"Sugestão de servir (1 frase)"},\n  ...\n]}`
   };
   return prompts[CL]||prompts.de;
 }
@@ -5399,21 +5474,24 @@ function _kbCpGenerate(){
     const tips=[ai.tip&&`<div class="kb-tip kb-tip-cook">${h(ai.tip)}</div>`,ai.serve&&`<div class="kb-tip kb-tip-srv">${h(ai.serve)}</div>`].filter(Boolean).join('');
     return`<section class="kb-page">${imgTag}<h2 class="kb-title">${h(r.name)}</h2>${intro}${tips}${ings?`<div class="kb-s"><h3>Zutaten</h3><ul>${ings}</ul></div>`:''}${steps?`<div class="kb-s"><h3>Zubereitung</h3><ol>${steps}</ol></div>`:''}</section>`;
   }).join('\n');
+  const dsn=_AIBK_STYLES[_kbCpStyle]||_AIBK_STYLES.auto;
+  const dsnName=T(dsn.n)||_kbCpStyle;
   const bookHtml=`<!DOCTYPE html>
-<html lang="${CL||'de'}"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>✨ KI-Kreativbuch</title>
+<html lang="${CL||'de'}"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>✨ KI-Kreativbuch · ${h(dsnName)}</title>
 <style>*{box-sizing:border-box}body{margin:0;font-family:Georgia,serif;background:#faf6f0;color:#2a1808}
-.kb-cover{min-height:46vh;background:linear-gradient(135deg,#5500bb,#8833dd,#bb55ff);color:#fff;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:40px 24px}
+.kb-cover{min-height:46vh;background:${dsn.cover};color:#fff;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:40px 24px}
 .kb-cover h1{font-size:clamp(2rem,5vw,3.5rem);margin:0 0 12px;font-style:italic}.kb-cover p{opacity:.85;margin:4px 0}
+.kb-style-badge{display:inline-block;font-size:.72rem;opacity:.65;border:1px solid rgba(255,255,255,.4);padding:2px 10px;border-radius:20px;margin-top:6px}
 .kb-page{max-width:760px;margin:0 auto;padding:40px 24px 60px;border-bottom:2px solid #ede0cc}
 .kb-img{width:100%;max-height:320px;object-fit:cover;border-radius:12px;margin-bottom:20px;box-shadow:0 4px 20px rgba(0,0,0,.15)}
 .kb-title{font-size:clamp(1.6rem,3vw,2.2rem);color:#4a1a00;font-style:italic;margin:0 0 16px}
-.kb-intro{font-size:.97rem;line-height:1.8;color:#3a2010;background:#fff8f0;border-left:4px solid #8833dd;padding:14px 18px;border-radius:4px;margin:0 0 16px}
+.kb-intro{font-size:.97rem;line-height:1.8;color:#3a2010;background:#fff8f0;border-left:4px solid ${dsn.acc};padding:14px 18px;border-radius:4px;margin:0 0 16px}
 .kb-tip{font-size:.82rem;line-height:1.55;padding:9px 13px;border-radius:0 8px 8px 0;border-left:3px solid;margin-bottom:8px}
-.kb-tip-cook{background:#e8f5f3;border-color:#3a8a76;color:#1e4a45}
-.kb-tip-srv{background:#fdf0ea;border-color:#d05820;color:#7a2010}
-.kb-s h3{color:#6b35a8;margin:20px 0 6px}.kb-s ul,.kb-s ol{padding-left:20px;line-height:1.9}
+.kb-tip-cook{background:${dsn.acc}18;border-color:${dsn.acc};color:#1e2a20}
+.kb-tip-srv{background:${dsn.acc}0e;border-color:${dsn.acc}88;color:#2a1808}
+.kb-s h3{color:${dsn.acc};margin:20px 0 6px}.kb-s ul,.kb-s ol{padding-left:20px;line-height:1.9}
 @media print{.kb-page{page-break-after:always}}@media(max-width:600px){.kb-img{max-height:220px}}</style></head>
-<body><div class="kb-cover"><h1>✨ KI-Kreativbuch</h1><p>Mein persönliches Rezeptbuch</p><p style="opacity:.6;font-size:.85rem">Erstellt am ${date} · KI-Texte · ${recs.length} Rezepte</p></div>
+<body><div class="kb-cover"><h1>✨ KI-Kreativbuch</h1><p>Mein persönliches Rezeptbuch</p><p style="opacity:.6;font-size:.85rem">Erstellt am ${date} · KI-Texte · ${recs.length} Rezepte</p><span class="kb-style-badge">${h(dsnName)}</span></div>
 ${pages}</body></html>`;
   dlBlob(new Blob([bookHtml],{type:'text/html;charset=utf-8'}),`kreativbuch-${dt}.html`);
   closeAiBook();
