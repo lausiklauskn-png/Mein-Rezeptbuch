@@ -4546,8 +4546,10 @@ function _idbOpen(){
   return new Promise((res,rej)=>{
     if(_IDB){res(_IDB);return;}
     const req=indexedDB.open('MeinRzBackup1',1);
-    req.onerror=()=>rej(req.error);
-    req.onsuccess=()=>{_IDB=req.result;res(_IDB);};
+    const t=setTimeout(()=>rej(new Error('IDB timeout')),3000);
+    req.onerror=()=>{clearTimeout(t);rej(req.error);};
+    req.onblocked=()=>{clearTimeout(t);rej(new Error('IDB blocked'));};
+    req.onsuccess=()=>{clearTimeout(t);_IDB=req.result;res(_IDB);};
     req.onupgradeneeded=e=>{
       const d=e.target.result;
       if(!d.objectStoreNames.contains('kv'))
