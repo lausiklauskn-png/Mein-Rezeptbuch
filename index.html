@@ -2134,53 +2134,6 @@ Vielen Dank für deine Unterstützung.</div>
       <div id="noPendMsg" class="no-pend" style="display:none">Noch keine Bilder ausgewählt.</div>
       <button class="bigbtn grn" id="assignBtn" style="display:none" onclick="assignAllImgs()" title="Bildzuordnungen speichern">✅ Zuordnung speichern</button>
 
-      <!-- ── DALL-E 3 Bereich ── -->
-      <div style="margin-top:20px;border-top:1.5px solid var(--sand2);padding-top:14px">
-        <!-- Setup-View (kein Key gespeichert) -->
-        <div id="dalleSetup">
-          <div style="background:var(--teals);border-radius:10px;padding:12px 14px;margin-bottom:14px;border:1.5px solid var(--teal)">
-            <div style="font-size:.94rem;font-weight:700;color:var(--teal);font-family:Georgia,serif;margin-bottom:6px">🤖 KI-Fotos einrichten</div>
-            <div style="font-size:.76rem;color:#1e4a45;line-height:1.55">Erstellt automatisch ein appetitliches Foto für alle Rezepte ohne Bild — mit OpenAI DALL·E 3. Du brauchst dafür einen eigenen OpenAI API-Schlüssel.</div>
-          </div>
-          <div class="paste-box" style="margin-bottom:12px">
-            <div class="paste-box-label">🔑 OpenAI API-Schlüssel</div>
-            <div class="paste-row">
-              <input class="scan-key-in" id="oaiKeyIn" type="password" placeholder="sk-…"
-                oninput="onOaiKeyInput(this.value)"
-                onkeydown="if(event.key==='Enter')saveDalleKey()"/>
-              <button class="paste-btn" onclick="pasteOaiKey()" title="Schlüssel aus Zwischenablage einfügen">📋 Einfügen</button>
-            </div>
-            <button class="scan-key-btn" id="dalleSaveBtn" onclick="saveDalleKey()" disabled>🚀 Speichern & aktivieren</button>
-            <div class="scan-key-note">🔒 Bleibt nur auf deinem Gerät — wird niemals weitergegeben</div>
-          </div>
-          <div style="background:var(--sand2);border-radius:8px;padding:10px 12px;font-size:.74rem;color:var(--br3);line-height:1.65">
-            <strong>So erhältst du deinen Schlüssel:</strong><br>
-            1. <a href="https://platform.openai.com/api-keys" target="_blank" rel="noopener" style="color:var(--teal)">platform.openai.com/api-keys</a> → „Create new secret key"<br>
-            2. Schlüssel kopieren (beginnt mit <code style="background:rgba(0,0,0,.07);padding:1px 4px;border-radius:3px;font-size:.68rem">sk-…</code>)<br>
-            3. Hier einfügen &amp; speichern<br>
-            <br>💡 Ein Bild kostet ~0,04 € · Abrechnung direkt bei OpenAI
-          </div>
-        </div>
-        <!-- Ready-View (Key gespeichert) -->
-        <div id="dalleMain" style="display:none">
-          <div class="scan-ready-bar">
-            <div class="scan-ready-ico">🤖</div>
-            <div class="scan-ready-txt">
-              <div class="scan-ready-lbl">KI-Fotos aktiv</div>
-              <div class="scan-ready-sub" id="dalleReadySub">Schlüssel gespeichert</div>
-            </div>
-            <button class="scan-key-change" onclick="showDalleSetup()">ändern</button>
-          </div>
-          <div id="dalleInfo" style="font-size:.74rem;color:var(--br3);margin:10px 0 8px"></div>
-          <button class="scan-key-btn" id="dalleBtn" onclick="startDalleGen()">🎨 KI-Fotos generieren</button>
-          <button class="scan-key-btn" id="dalleStopBtn" onclick="stopDalleGen()" style="display:none;background:#c0392b;margin-top:6px">⏹ Generierung stoppen</button>
-          <div id="dalleProgWrap" style="display:none;margin-top:10px">
-            <div class="sb-prog" style="margin-bottom:5px"><div class="sb-fill" id="dalleFill" style="width:0%"></div></div>
-            <div id="dalleProgLbl" style="font-size:.73rem;color:var(--br3)"></div>
-            <div id="dalleCostLbl" style="font-size:.73rem;color:var(--teal);margin-top:4px;font-weight:600"></div>
-          </div>
-        </div>
-      </div>
     </div>
     <div class="fov-pane" id="imp-scan">
 
@@ -4656,13 +4609,6 @@ async function _dalleGenImg(rid,recipe){
   return 'data:image/png;base64,'+b64;
 }
 
-// ── DALL-E-3 Batch-Wrapper (Stufe 1 + 3 kombiniert) ──────────────────────────
-// Generiert Bilder sequenziell – je 1 Rezept aktiv, Rohbild + komprimiertes
-// Bild direkt in IDB, nie mehr als 1 Bild gleichzeitig im RAM.
-async function runDalleImgBatch(rids,onProgress){
-  if(!rids||!rids.length)return{ok:0,fail:0,total:0};
-  return _runImgQueue(rids,_dalleGenImg,onProgress,{useIdb:true});
-}
 // ── KI-BILD-TAB ──────────────────────────────────────────────────────────────
 function updateImgGenInfo(){
   var replaceAll=!!(document.getElementById('imggenReplaceAll')&&document.getElementById('imggenReplaceAll').checked);
@@ -4717,96 +4663,6 @@ async function startImgGen(){
   if(res.ok>0){toast('✅ '+res.ok+' KI-Bild'+(res.ok===1?'':'er')+' im Rezeptbuch gespeichert');}
   if(typeof render==='function')render();
   updateImgGenInfo();
-}
-
-// ── DALL-E-3-UI (Bilder-Tab) ─────────────────────────────────────────────────
-function initDalleSection(){
-  const saved=getSavedOpenAiKey();
-  if(saved){switchToDalleMain();}
-  else{
-    document.getElementById('dalleSetup').style.display='block';
-    document.getElementById('dalleMain').style.display='none';
-    const inp=document.getElementById('oaiKeyIn');
-    if(inp){inp.value='';onOaiKeyInput('');}
-  }
-  _updateDalleInfo();
-}
-function switchToDalleMain(){
-  document.getElementById('dalleSetup').style.display='none';
-  document.getElementById('dalleMain').style.display='block';
-  const key=getSavedOpenAiKey();
-  const sub=document.getElementById('dalleReadySub');
-  if(sub&&key)sub.textContent=key.slice(0,7)+'…'+key.slice(-4);
-}
-function showDalleSetup(){
-  document.getElementById('dalleSetup').style.display='block';
-  document.getElementById('dalleMain').style.display='none';
-  setTimeout(()=>{const inp=document.getElementById('oaiKeyIn');if(inp){inp.value='';inp.focus();}},100);
-}
-function saveDalleKey(){
-  const v=(document.getElementById('oaiKeyIn')?.value||'').trim();
-  if(!v)return;
-  setSavedOpenAiKey(v);
-  toast('✅ OpenAI-Schlüssel gespeichert!');
-  switchToDalleMain();
-}
-function _updateDalleInfo(){
-  const el=document.getElementById('dalleInfo');
-  if(!el)return;
-  const n=R.filter(r=>r.name&&!r.img&&!r.blank).length;
-  el.textContent=n?`${n} Rezept${n===1?'':'e'} ohne Foto — werden alle generiert`:'✅ Alle Rezepte haben bereits ein Foto';
-}
-function onOaiKeyInput(v){
-  const ok=v.trim().startsWith('sk-')&&v.trim().length>20;
-  const btn=document.getElementById('dalleSaveBtn');
-  if(btn)btn.disabled=!ok;
-  const inp=document.getElementById('oaiKeyIn');
-  if(inp)inp.style.borderColor=ok?'var(--grn)':'var(--sand2)';
-}
-async function pasteOaiKey(){
-  try{
-    const txt=await navigator.clipboard.readText();
-    const inp=document.getElementById('oaiKeyIn');
-    if(inp){inp.value=txt.trim();onOaiKeyInput(txt.trim());}
-    if(txt.trim().startsWith('sk-'))toast('✅ OpenAI-Schlüssel eingefügt!');
-  }catch(e){
-    const inp=document.getElementById('oaiKeyIn');
-    if(inp){inp.focus();inp.select();}
-    toast('📋 Strg+V / Cmd+V zum Einfügen');
-  }
-}
-function stopDalleGen(){_imgGenAborted=true;}
-async function startDalleGen(){
-  _imgGenAborted=false;
-  const v=getSavedOpenAiKey();
-  if(!v){toast('⚠️ Bitte zuerst den OpenAI-Schlüssel speichern');showDalleSetup();return;}
-  const rids=R.filter(r=>r.name&&!r.img&&!r.blank).map(r=>r.id);
-  if(!rids.length){toast('ℹ️ Alle Rezepte haben bereits ein Foto');return;}
-  const btn=document.getElementById('dalleBtn');
-  const stopBtn=document.getElementById('dalleStopBtn');
-  const wrap=document.getElementById('dalleProgWrap');
-  const fill=document.getElementById('dalleFill');
-  const lbl=document.getElementById('dalleProgLbl');
-  const costLbl=document.getElementById('dalleCostLbl');
-  if(btn){btn.style.display='none';}
-  if(stopBtn){stopBtn.style.display='flex';}
-  if(wrap)wrap.style.display='block';
-  if(fill)fill.style.width='0%';
-  if(lbl)lbl.textContent='Starte …';
-  if(costLbl){costLbl.textContent='Kosten bisher: 0,00 €';costLbl.style.display='block';}
-  const res=await runDalleImgBatch(rids,(p)=>{
-    if(fill)fill.style.width=Math.round(p.done/p.total*100)+'%';
-    if(lbl)lbl.textContent=`${p.done} / ${p.total}${p.fail?' · '+p.fail+' Fehler':''}`;
-    if(costLbl)costLbl.textContent='Kosten bisher: ~'+(p.ok*0.04).toFixed(2).replace('.',',')+' €';
-  });
-  if(fill)fill.style.width='100%';
-  const stopTxt=res.aborted?' · gestoppt':'';
-  if(lbl)lbl.textContent=`${res.aborted?'⏹':'✅'} ${res.ok} Foto${res.ok===1?'':'s'} gespeichert${res.fail?' · '+res.fail+' Fehler':''}${stopTxt}`;
-  if(costLbl)costLbl.textContent='Gesamt: ~'+(res.ok*0.04).toFixed(2).replace('.',',')+' €';
-  if(stopBtn){stopBtn.style.display='none';}
-  if(btn){btn.style.display='flex';}
-  if(res.ok>0)toast(`✅ ${res.ok} KI-Foto${res.ok===1?'':'s'} gespeichert`);
-  _updateDalleInfo();
 }
 
 // ── Undo-System (Rezept-Editor, max. 10 Schritte) ────────
@@ -5314,7 +5170,6 @@ function openImport(){
   document.getElementById('importOv').style.display='flex';
   initScanPane();
   initTxtPane();
-  initDalleSection();
   initImgGenPane();
 }
 function closeImport(){document.getElementById('importOv').style.display='none';}
@@ -5654,7 +5509,6 @@ function switchFovTab(ovId,tab,el){
   if(tab==='scan')initScanPane();
   if(tab==='txt')initTxtPane();
   if(tab==='imggen')initImgGenPane();
-  if(tab==='img')initDalleSection();
 }
 
 // ═══════════════════════════════════════════════════════
