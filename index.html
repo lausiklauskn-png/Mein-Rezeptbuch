@@ -7272,7 +7272,7 @@ function _kbShowCostOv(n, est){
     `<button class="kb-dchip${k==='auto'?' on':''}" data-kbstyle="${k}" onclick="_kbPickDesign(this)"><span>${v.ico}</span>${v.label}</button>`
   ).join('');
   body.innerHTML =
-    `<div class="kb-ex-strip"><div class="kb-ex-lbl">💡 Beispiel-Ausgabe</div><div class="kb-ex-thumbs"><img class="kb-ex-thumb" src="${_KB_EX[0]}" onclick="event.stopPropagation();openKbExample(0)" alt="Cover & Zutaten"><img class="kb-ex-thumb" src="${_KB_EX[1]}" onclick="event.stopPropagation();openKbExample(1)" alt="Step-by-Step"><img class="kb-ex-thumb" src="${_KB_EX[2]}" onclick="event.stopPropagation();openKbExample(2)" alt="Gesundheit & Öko"></div></div><div style="padding:16px 16px 0">
+    `<div style="padding:16px 16px 0">
        <div style="font-size:.83rem;color:var(--br2);line-height:1.6;margin-bottom:12px">
          Claude schreibt für jedes Rezept eine persönliche Beschreibung, eine Geschmacksnotiz,
          einen Kochtipp und eine Servier-Idee. Das Ergebnis wird als Blätterbuch heruntergeladen.
