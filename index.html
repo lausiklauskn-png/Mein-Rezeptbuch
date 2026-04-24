@@ -4838,8 +4838,19 @@ async function shareFullBook(){
 }
 async function retryShareBook(){
   if(!_sbFile){toast(T('shareRetryFirst'));return;}
-  try{await navigator.share({files:[_sbFile],title:'Mein Rezeptbuch'});}
-  catch(e){if(e.name!=='AbortError')toast(T('shareNoFiles'));}
+  const prog=document.getElementById('expShareProg');
+  try{
+    await navigator.share({files:[_sbFile],title:'Mein Rezeptbuch'});
+    if(prog)prog.textContent='✅ '+T('shareFileSaved');
+  }catch(e){
+    if(e.name==='AbortError')return;
+    if(prog)prog.innerHTML=
+      '<div style="margin-bottom:6px">📁 '+T('shareNoFiles')+'</div>'+
+      '<div style="font-size:.72rem;color:var(--br3);line-height:1.6">'+
+      '1. <strong>Google Files</strong> oder <strong>Downloads</strong> App öffnen<br>'+
+      '2. Datei antippen → <strong>Teilen</strong> → <strong>Quick Share</strong> wählen'+
+      '</div>';
+  }
 }
 
 // ── Undo-System (Rezept-Editor, max. 10 Schritte) ────────
