@@ -5856,17 +5856,10 @@ function _kbCpBack(){
 }
 
 function _kbBuildCpPrompt(){
-  const ids=[..._aiBookSel];
-  const recs=R.filter(r=>ids.includes(r.id)&&r.name);
-  if(!recs.length)return'';
-  const dsn=_AIBK_STYLES[_kbCpStyle]||_AIBK_STYLES.auto;
-  const styleHint=_kbCpStyle==='custom'
-    ?(document.getElementById('aiBookCustomTa')?.value?.trim()||'')
-    :(dsn.hint||'');
-  const zineSelId=_kbCpStyle==='zine'?(document.getElementById('aiBookZineRec')?.value||''):'';
-  const zineFav=zineSelId?R.find(r=>r.id===zineSelId):null;
-  // Food-Zine style: generate standalone poster prompt pre-filled with the selected recipe
+  // Food-Zine: eigenständiger Prompt – unabhängig von _aiBookSel, nur Lieblingsrezept-Dropdown
   if(_kbCpStyle==='zine'){
+    const zineSelId=+(document.getElementById('aiBookZineRec')?.value||0);
+    const zineFav=zineSelId?R.find(r=>r.id===zineSelId):null;
     if(!zineFav)return'';
     const r=zineFav;
     const ingLines=(r.ings||[]).map(i=>'• '+[(i.amt||''),(i.unit||''),(i.name||'')].filter(Boolean).join(' ')).join('\n');
@@ -5906,6 +5899,13 @@ function _kbBuildCpPrompt(){
       +'Warm, einladend, lebendig — Mixed Media: Aquarell-Texturen, handgezeichnete Elemente, moderne Typografie.\n'
       +'Einheitliche Farbpalette und Schriftfamilie über alle Seiten.';
   }
+  const ids=[..._aiBookSel];
+  const recs=R.filter(r=>ids.includes(r.id)&&r.name);
+  if(!recs.length)return'';
+  const dsn=_AIBK_STYLES[_kbCpStyle]||_AIBK_STYLES.auto;
+  const styleHint=_kbCpStyle==='custom'
+    ?(document.getElementById('aiBookCustomTa')?.value?.trim()||'')
+    :(dsn.hint||'');
   const recLines=recs.map((r,i)=>{
     const ings=(r.ings||[]).slice(0,6).map(g=>`${g.amt||g.amount||''} ${g.unit||''} ${g.name||''}`.trim()).filter(Boolean).join(', ');
     return`${i+1}. ${r.name}`+(ings?' ('+ings+')':'');
