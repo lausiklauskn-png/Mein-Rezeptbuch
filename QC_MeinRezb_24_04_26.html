@@ -1642,14 +1642,15 @@ button:active{transform:scale(0.97)}
 .zine-cancel-btn{width:100%;padding:9px;background:var(--sand);border:1px solid var(--sand2);border-radius:8px;font-size:.84rem;color:var(--br3);cursor:pointer}
 .zine-pages{display:flex;flex-direction:column;gap:16px;padding:12px}
 .zine-page-lbl{font-size:.72rem;font-weight:700;color:var(--teal);margin-bottom:5px;text-transform:uppercase;letter-spacing:.05em}
-.zine-page{border-radius:10px;overflow:hidden;border:2px dashed var(--teal);background:var(--teals);min-height:140px;display:flex;align-items:center;justify-content:center}
+.zine-page{border-radius:10px;overflow:hidden;border:2px solid var(--teal);background:var(--teal);min-height:160px;display:flex;align-items:center;justify-content:center}
 .zine-page.done{border:2px solid var(--teal);background:var(--sand)}
 .zine-page img{width:100%;display:block}
-.zine-loading{padding:28px 16px;text-align:center}
-.zine-loading-ico{font-size:2rem;margin-bottom:8px}
-.zine-loading-txt{font-size:.82rem;font-weight:700;color:var(--teal);margin-bottom:4px}
-.zine-loading-sub{font-size:.7rem;color:var(--br3)}
-.zine-err{padding:20px 16px;text-align:center;font-size:.8rem;color:var(--rust)}
+.zine-loading{padding:28px 16px;text-align:center;width:100%}
+.zine-loading-ico{font-size:2.4rem;margin-bottom:10px}
+.zine-loading-txt{font-size:.9rem;font-weight:800;color:#fff;margin-bottom:6px}
+.zine-loading-sub{font-size:.72rem;color:rgba(255,255,255,.8)}
+.zine-err{padding:20px 16px;text-align:center;font-size:.8rem;color:var(--rust);background:var(--rusts);width:100%}
+.zine-banner{display:none;align-items:center;gap:8px;background:#fff3cd;border:1.5px solid #ffc107;border-radius:8px;padding:9px 13px;margin:0 11px 6px;font-size:.78rem;font-weight:700;color:#856404}
 .zine-pulse{animation:zpulse .9s ease-in-out infinite;display:inline-block}
 @keyframes zpulse{0%,100%{opacity:.3}50%{opacity:1}}
 .zine-btns{display:flex;gap:6px;margin-top:6px}
@@ -13337,6 +13338,8 @@ async function startZine(tier){
   const prompts=buildZinePrompts(r);
   _zineB64s=[null,null,null];
   for(let i=0;i<3;i++)_zineSetLoading(i,true);
+  const banner=document.getElementById('zineBanner');
+  if(banner)banner.style.display='flex';
 
   for(let i=0;i<3;i++){
     const t0=Date.now();
@@ -13351,6 +13354,7 @@ async function startZine(tier){
     }catch(e){_zineSetError(i,e.message);}
     finally{clearInterval(timer);}
   }
+  if(banner)banner.style.display='none';
 }
 
 // ── Dialog-Steuerung ──────────────────────────────────
@@ -13606,6 +13610,7 @@ function saveZinePage(idx){
     <button class="fov-back" onclick="closeZine()" title="Zurück">←</button>
     <div class="fov-title" id="zineTitleEl">✨ KI-Zine</div>
   </div>
+  <div class="zine-banner" id="zineBanner">⏳ Bilder werden erstellt … bitte warten (kann 1–5 Min. dauern)</div>
   <div class="fov-body">
     <div class="zine-pages">
       <div>
