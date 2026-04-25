@@ -573,6 +573,30 @@ body.nav-collapsed{padding-bottom:calc(16px + var(--sb))}
 .exp-btn.brn{background:var(--sand2);color:var(--ink);border:1.5px solid var(--sand2)}.exp-btn.brn:active{background:var(--br);color:#fff}
 .exp-btn.tl{background:var(--teals);color:var(--teal);border:1.5px solid var(--teal)}.exp-btn.tl:active{background:var(--teal);color:#fff}
 .exp-prog{font-size:.69rem;color:var(--br3);margin-top:5px;display:none}.exp-prog.on{display:block}
+/* Kreativbuch aus eigenen Bildern */
+.kbk-steps{margin:8px 0 10px}
+.kbk-step{display:flex;gap:8px;margin-bottom:8px;align-items:flex-start}
+.kbk-step-n{min-width:22px;height:22px;border-radius:50%;background:var(--br);color:#fff;font-size:.72rem;font-weight:700;display:flex;align-items:center;justify-content:center;flex-shrink:0;margin-top:1px}
+.kbk-step-t{font-size:.79rem;color:var(--ink);line-height:1.5}
+.kbk-step-t b{color:var(--br)}
+.kbk-add-lbl{display:inline-flex;align-items:center;gap:6px;background:var(--sand);border:1.5px dashed var(--sand2);border-radius:9px;padding:8px 14px;font-size:.82rem;cursor:pointer;color:var(--br);font-weight:600;font-family:inherit;transition:background .15s;margin-bottom:10px;user-select:none}
+.kbk-add-lbl:active{background:var(--sand2)}
+.kbk-counter-row{display:flex;align-items:center;gap:8px;margin-bottom:8px;flex-wrap:wrap}
+.kbk-counter-txt{font-size:.74rem;color:var(--br3);white-space:nowrap}
+.kbk-bar{flex:1;height:5px;background:var(--sand2);border-radius:3px;overflow:hidden;min-width:40px}
+.kbk-bar-fill{height:100%;background:var(--teal);border-radius:3px;transition:width .3s}
+.kbk-warn{font-size:.72rem;color:#b94040;width:100%;margin-top:2px}
+.kbk-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(88px,1fr));gap:8px;margin-bottom:6px}
+.kbk-thumb{position:relative;border-radius:8px;overflow:hidden;background:var(--sand);aspect-ratio:1;cursor:grab;border:2px solid transparent;transition:border-color .15s;-webkit-user-drag:element}
+.kbk-thumb.drag-over{border-color:var(--br);opacity:.7}
+.kbk-thumb.dragging{opacity:.35;border:2px dashed var(--br3)}
+.kbk-thumb img{width:100%;height:100%;object-fit:cover;display:block;pointer-events:none;user-select:none}
+.kbk-del{position:absolute;top:3px;right:3px;background:rgba(0,0,0,.55);color:#fff;border:none;border-radius:50%;width:20px;height:20px;font-size:.65rem;cursor:pointer;display:flex;align-items:center;justify-content:center;padding:0;line-height:1}
+.kbk-hdl{position:absolute;bottom:3px;left:3px;background:rgba(0,0,0,.4);color:#fff;border-radius:4px;width:18px;height:18px;font-size:.7rem;display:flex;align-items:center;justify-content:center;cursor:grab;touch-action:none;user-select:none}
+.kbk-add-cell{display:flex;align-items:center;justify-content:center;font-size:1.6rem;color:var(--br3);background:var(--sand);cursor:pointer;border:2px dashed var(--sand2);border-radius:8px;aspect-ratio:1;transition:background .15s}
+.kbk-add-cell:active{background:var(--sand2)}
+.kbk-export-btn{width:100%;margin-top:8px;padding:10px;border:none;border-radius:8px;background:var(--teals);color:var(--teal);border:1.5px solid var(--teal);font-size:.82rem;font-weight:700;cursor:pointer;font-family:inherit;transition:background .15s}
+.kbk-export-btn:active{background:var(--teal);color:#fff}
 .exp-btn.pur{background:#f0e8ff;color:#6600cc;border:1.5px solid #8833dd}.exp-btn.pur:active{background:#8833dd;color:#fff}
 #aiBookOv .fov-hdr{background:linear-gradient(90deg,#5500bb,#8833dd,#bb55ff)}
 #aiBookOv .fov-body{padding:0;overflow:hidden;display:flex;flex-direction:column}
@@ -2717,6 +2741,46 @@ Vielen Dank für deine Unterstützung.</div>
         <button class="exp-btn pur" onclick="openAiBook()" id="expAiBtn">📖✨ KI-Kreativbuch erstellen</button>
       </div>
     </div>
+
+    <!-- ── Eigenes Kreativbuch aus Bildern ── -->
+    <div class="exp-card" style="flex-direction:column;gap:0">
+      <div style="display:flex;align-items:flex-start;gap:10px;width:100%">
+        <div class="exp-ico">📸</div>
+        <div style="flex:1">
+          <div class="exp-title">Eigenes Kreativbuch</div>
+          <div class="exp-desc">Lade deine eigenen Fotos hoch — sortiere sie per Drag &amp; Drop und erstelle daraus ein Kochbuch-PDF. Unterstützt JPG, PNG, WEBP, PDF. Bis zu 30 Seiten, alles im Browser — kein Upload auf einen Server.</div>
+        </div>
+      </div>
+      <div style="margin-top:10px;width:100%">
+        <div class="kbk-steps">
+          <div class="kbk-step">
+            <div class="kbk-step-n">1</div>
+            <div class="kbk-step-t">Tippe auf <b>+ Bilder hinzufügen</b> und wähle deine Fotos aus. JPG, PNG, WEBP und PDF werden unterstützt — bis zu <b>30 Bilder</b>, max. 15 MB pro Datei.</div>
+          </div>
+          <div class="kbk-step">
+            <div class="kbk-step-n">2</div>
+            <div class="kbk-step-t">Ziehe die Vorschaubilder am <b>⠿ Griff</b> in die gewünschte Reihenfolge. Tippe <b>✕</b> um ein Bild zu entfernen.</div>
+          </div>
+          <div class="kbk-step">
+            <div class="kbk-step-n">3</div>
+            <div class="kbk-step-t">Tippe auf <b>Als Kochbuch-PDF erstellen</b>. Es öffnet sich eine Vorschau — dort oben auf <b>„Drucken / Als PDF speichern"</b> klicken.</div>
+          </div>
+        </div>
+        <label class="kbk-add-lbl" for="kbkFileIn">📎 Bilder hinzufügen</label>
+        <input type="file" id="kbkFileIn" multiple accept="image/jpeg,image/png,image/webp,image/gif,application/pdf" style="display:none" onchange="kbkAddFiles(this.files)">
+        <div id="kbkCounter" style="display:none">
+          <div class="kbk-counter-row">
+            <span class="kbk-counter-txt" id="kbkCounterTxt">0 / 30 Bilder</span>
+            <div class="kbk-bar"><div class="kbk-bar-fill" id="kbkBarFill" style="width:0%"></div></div>
+          </div>
+          <div class="kbk-warn" id="kbkWarnTxt" style="display:none">⚠ Ab 20 Bildern kann der Browser etwas länger brauchen.</div>
+        </div>
+        <div id="kbkGrid" class="kbk-grid"></div>
+        <button id="kbkExportBtn" class="kbk-export-btn" onclick="kbkExport()" style="display:none" title="Kochbuch-PDF aus deinen Bildern erstellen">📥 Als Kochbuch-PDF erstellen</button>
+        <div class="exp-prog" id="kbkProg"></div>
+      </div>
+    </div>
+
     <div class="exp-card">
       <div class="exp-ico">💾</div>
       <div>
@@ -12771,6 +12835,177 @@ var qrcode=function(){var t=function(t,r){var e=t,n=g[r],o=null,i=0,a=null,u=[],
   }
 })();
 /* === ONBOARDING END === */
+
+// ── EIGENES KREATIVBUCH AUS BILDERN ─────────────────────────────────────────
+(function(){
+  const KBK_MAX       = 30;
+  const KBK_WARN      = 20;
+  const KBK_THUMB_PX  = 320;
+  const KBK_EXPORT_PX = 1600;
+  const KBK_QUALITY   = 0.85;
+  const KBK_MAX_BYTES = 15 * 1024 * 1024;
+
+  let kbkImages   = [];
+  let kbkDragIdx  = null;
+  let kbkTouchIdx = null;
+  let kbkTouchClone = null;
+
+  function kbkH(s){ return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
+
+  function kbkResize(img, maxPx) {
+    const ratio = Math.min(maxPx / (img.naturalWidth||img.width), maxPx / (img.naturalHeight||img.height), 1);
+    const w = Math.round((img.naturalWidth||img.width)*ratio);
+    const h = Math.round((img.naturalHeight||img.height)*ratio);
+    const c = document.createElement('canvas');
+    c.width=w; c.height=h;
+    c.getContext('2d').drawImage(img,0,0,w,h);
+    return c.toDataURL('image/jpeg', KBK_QUALITY);
+  }
+
+  function kbkPlaceholder(label) {
+    const c = document.createElement('canvas');
+    c.width=KBK_THUMB_PX; c.height=KBK_THUMB_PX;
+    const ctx=c.getContext('2d');
+    ctx.fillStyle='#f0ebe2'; ctx.fillRect(0,0,KBK_THUMB_PX,KBK_THUMB_PX);
+    ctx.textAlign='center'; ctx.textBaseline='middle';
+    ctx.font=`bold ${Math.round(KBK_THUMB_PX*.22)}px serif`;
+    ctx.fillStyle='#9e7050';
+    ctx.fillText('📄',KBK_THUMB_PX/2,KBK_THUMB_PX*.42);
+    ctx.font=`600 ${Math.round(KBK_THUMB_PX*.09)}px sans-serif`;
+    ctx.fillStyle='#7a5840';
+    const short=label.length>18?label.slice(0,16)+'…':label;
+    ctx.fillText(short,KBK_THUMB_PX/2,KBK_THUMB_PX*.72);
+    return c.toDataURL('image/png');
+  }
+
+  function kbkShowProg(msg,persist){
+    const p=document.getElementById('kbkProg'); if(!p)return;
+    p.className='exp-prog on'; p.textContent=msg;
+    if(!persist) setTimeout(()=>{p.className='exp-prog';},4000);
+  }
+
+  window.kbkAddFiles=function(files){
+    const list=Array.from(files);
+    const oversized=list.filter(f=>f.size>KBK_MAX_BYTES);
+    if(oversized.length) kbkShowProg('⚠ Datei zu groß (max. 15 MB): '+oversized.map(f=>f.name).join(', '));
+    const valid=list.filter(f=>f.size<=KBK_MAX_BYTES);
+    const slots=KBK_MAX-kbkImages.length;
+    const toLoad=valid.slice(0,slots);
+    if(!toLoad.length){ if(valid.length) kbkShowProg('⚠ Maximale Anzahl ('+KBK_MAX+' Bilder) erreicht.'); document.getElementById('kbkFileIn').value=''; return; }
+    if(valid.length>slots) kbkShowProg('⚠ Nur '+slots+' Plätze frei – erste '+slots+' Bilder werden geladen.');
+    let pending=toLoad.length;
+    const done=()=>{ if(!--pending){ kbkRender(); document.getElementById('kbkFileIn').value=''; } };
+    toLoad.forEach(f=>{ if(f.type==='application/pdf') kbkLoadPdf(f,done); else kbkLoadImg(f,done); });
+  };
+
+  function kbkLoadImg(file,cb){
+    const reader=new FileReader();
+    reader.onload=e=>{
+      const img=new Image();
+      img.onload=()=>{ kbkImages.push({name:file.name,thumbUrl:kbkResize(img,KBK_THUMB_PX),exportUrl:kbkResize(img,KBK_EXPORT_PX)}); cb(); };
+      img.onerror=()=>{ kbkShowProg('⚠ Bild konnte nicht geladen werden: '+file.name); cb(); };
+      img.src=e.target.result;
+    };
+    reader.readAsDataURL(file);
+  }
+
+  function kbkLoadPdf(file,cb){
+    const objUrl=URL.createObjectURL(file);
+    const img=new Image();
+    let settled=false;
+    const fallback=()=>{ if(settled)return; settled=true; URL.revokeObjectURL(objUrl); kbkImages.push({name:file.name,thumbUrl:kbkPlaceholder(file.name),exportUrl:null,isPdf:true,pdfName:file.name}); cb(); };
+    img.onload=()=>{ if(settled)return; settled=true; URL.revokeObjectURL(objUrl); if(img.naturalWidth>0){ kbkImages.push({name:file.name,thumbUrl:kbkResize(img,KBK_THUMB_PX),exportUrl:kbkResize(img,KBK_EXPORT_PX)}); } else fallback(); cb(); };
+    img.onerror=fallback;
+    setTimeout(fallback,2000);
+    img.src=objUrl;
+  }
+
+  function kbkRender(){
+    const grid=document.getElementById('kbkGrid');
+    const counter=document.getElementById('kbkCounter');
+    const exportBtn=document.getElementById('kbkExportBtn');
+    if(!grid)return;
+    const n=kbkImages.length;
+    grid.innerHTML=kbkImages.map((img,i)=>
+      `<div class="kbk-thumb" draggable="true" id="kbk-t${i}"
+          ondragstart="kbkDS(${i})" ondragover="kbkDO(event,${i})"
+          ondrop="kbkDP(${i})" ondragend="kbkDE()"
+          ontouchstart="kbkTS(event,${i})" ontouchmove="kbkTM(event)" ontouchend="kbkTE(event)">
+        <img src="${kbkH(img.thumbUrl)}" alt="${kbkH(img.name)}" draggable="false">
+        <button class="kbk-del" onclick="kbkDel(${i})" title="Entfernen">✕</button>
+        <div class="kbk-hdl" title="Ziehen zum Sortieren">⠿</div>
+      </div>`
+    ).join('')+(n<KBK_MAX?`<label class="kbk-add-cell" for="kbkFileIn" title="Weitere Bilder hinzufügen">+</label>`:'');
+    if(n>0){
+      document.getElementById('kbkCounterTxt').textContent=n+' / '+KBK_MAX+' Bilder';
+      document.getElementById('kbkBarFill').style.width=Math.round(n/KBK_MAX*100)+'%';
+      const warn=document.getElementById('kbkWarnTxt'); if(warn) warn.style.display=n>=KBK_WARN?'':'none';
+      counter.style.display=''; exportBtn.style.display='';
+    } else { counter.style.display='none'; exportBtn.style.display='none'; }
+  }
+
+  window.kbkDel=function(i){ kbkImages.splice(i,1); kbkRender(); };
+
+  window.kbkDS=function(i){ kbkDragIdx=i; const el=document.getElementById('kbk-t'+i); if(el)el.classList.add('dragging'); };
+  window.kbkDO=function(e,i){ e.preventDefault(); document.querySelectorAll('.kbk-thumb').forEach(t=>t.classList.remove('drag-over')); if(i!==kbkDragIdx){const el=document.getElementById('kbk-t'+i);if(el)el.classList.add('drag-over');} };
+  window.kbkDP=function(i){ if(kbkDragIdx===null||kbkDragIdx===i)return; const m=kbkImages.splice(kbkDragIdx,1)[0]; kbkImages.splice(i,0,m); kbkRender(); };
+  window.kbkDE=function(){ kbkDragIdx=null; kbkRender(); };
+
+  window.kbkTS=function(e,i){
+    kbkTouchIdx=i;
+    const el=document.getElementById('kbk-t'+i); if(!el)return;
+    const r=el.getBoundingClientRect();
+    kbkTouchClone=el.cloneNode(true);
+    kbkTouchClone.style.cssText=`position:fixed;opacity:.8;pointer-events:none;width:${r.width}px;height:${r.height}px;top:${r.top}px;left:${r.left}px;z-index:9999;border-radius:8px;transition:none`;
+    document.body.appendChild(kbkTouchClone); el.classList.add('dragging');
+  };
+  window.kbkTM=function(e){
+    if(!kbkTouchClone)return; e.preventDefault();
+    const t=e.touches[0];
+    kbkTouchClone.style.top=(t.clientY-44)+'px'; kbkTouchClone.style.left=(t.clientX-44)+'px';
+    document.querySelectorAll('.kbk-thumb').forEach(th=>th.classList.remove('drag-over'));
+    const under=document.elementFromPoint(t.clientX,t.clientY);
+    const thumb=under&&under.closest&&under.closest('.kbk-thumb[id^="kbk-t"]');
+    if(thumb)thumb.classList.add('drag-over');
+  };
+  window.kbkTE=function(e){
+    if(kbkTouchClone){kbkTouchClone.remove();kbkTouchClone=null;}
+    const t=e.changedTouches[0];
+    const under=document.elementFromPoint(t.clientX,t.clientY);
+    const thumb=under&&under.closest&&under.closest('.kbk-thumb[id^="kbk-t"]');
+    if(thumb&&kbkTouchIdx!==null){
+      const targetIdx=parseInt(thumb.id.replace('kbk-t',''),10);
+      if(!isNaN(targetIdx)&&targetIdx!==kbkTouchIdx){ const m=kbkImages.splice(kbkTouchIdx,1)[0]; kbkImages.splice(targetIdx,0,m); }
+    }
+    kbkTouchIdx=null; kbkRender();
+  };
+
+  window.kbkExport=function(){
+    if(!kbkImages.length)return;
+    kbkShowProg('⏳ Erstelle Vorschau …',true);
+    setTimeout(()=>{
+      const pages=kbkImages.map((img,i)=>{
+        const isLast=i===kbkImages.length-1;
+        const content=img.isPdf
+          ?`<div style="display:flex;flex-direction:column;align-items:center;justify-content:center;height:100%;color:#9e7050;font-family:Georgia,serif"><div style="font-size:4rem;margin-bottom:.5cm">📄</div><div style="font-size:1rem;font-weight:bold;text-align:center;max-width:14cm">${kbkH(img.pdfName||img.name)}</div><div style="font-size:.7rem;margin-top:.3cm;color:#b8a090">PDF-Datei · bitte separat drucken</div></div>`
+          :`<img src="${kbkH(img.exportUrl)}" style="max-width:100%;max-height:100%;object-fit:contain;display:block;-webkit-print-color-adjust:exact;print-color-adjust:exact" alt="${kbkH(img.name)}">`;
+        return `<div style="width:100%;height:100vh;display:flex;align-items:center;justify-content:center;padding:1.2cm;box-sizing:border-box;${isLast?'':'page-break-after:always'}">${content}</div>`;
+      }).join('\n');
+      const win=window.open('','_blank');
+      if(!win){kbkShowProg('⚠ Popup blockiert – bitte Popup-Blocker deaktivieren.');return;}
+      win.document.write(`<!DOCTYPE html><html lang="de"><head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Mein Kreativbuch – ${kbkImages.length} Seiten</title>
+<style>*{box-sizing:border-box;margin:0;padding:0}@page{size:A4 portrait;margin:0}body{background:#fff;font-family:Georgia,'Times New Roman',serif;-webkit-print-color-adjust:exact;print-color-adjust:exact}.noprint{position:fixed;top:0;left:0;right:0;background:#7a5840;color:#fff;padding:10px 16px;font-family:sans-serif;font-size:.88rem;display:flex;align-items:center;justify-content:space-between;gap:10px;z-index:999;box-shadow:0 2px 8px rgba(0,0,0,.25)}.noprint button{background:#fff;color:#7a5840;border:none;border-radius:6px;padding:7px 16px;font-size:.84rem;font-weight:700;cursor:pointer}.pages{margin-top:44px}@media print{.noprint{display:none}.pages{margin-top:0}}</style>
+</head><body>
+<div class="noprint"><span>📸 Mein Kreativbuch &nbsp;·&nbsp; ${kbkImages.length} Seite${kbkImages.length!==1?'n':''}</span><button onclick="window.print()">🖨️ Drucken / Als PDF speichern</button></div>
+<div class="pages">${pages}</div></body></html>`);
+      win.document.close();
+      kbkShowProg('✅ Vorschau geöffnet — oben auf „Drucken / Als PDF speichern" tippen.');
+    },60);
+  };
+})();
+// ── ENDE KREATIVBUCH ─────────────────────────────────────────────────────────
 
 function openHelp(){document.getElementById('helpOv').style.display='flex';}
 function closeHelpOv(){document.getElementById('helpOv').style.display='none';}
