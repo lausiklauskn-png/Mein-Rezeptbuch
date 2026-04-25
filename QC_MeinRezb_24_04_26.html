@@ -2777,9 +2777,9 @@ Vielen Dank für deine Unterstützung.</div>
           </div>
         </div>
         <label class="kbk-add-lbl" for="kbkFileIn">📎 Bilder hinzufügen</label>
-        <label class="kbk-proj-lbl" for="kbkProjIn" title="Gespeichertes Kreativbuch-Projekt laden und weiterbearbeiten">📂 Kreativbuch laden</label>
+        <label class="kbk-proj-lbl" for="kbkProjIn" title="Gespeichertes Kreativbuch-Projekt (.kreativbuch) laden — oder Fotos &amp; PDFs direkt hinzufügen">📂 Kreativbuch laden</label>
         <input type="file" id="kbkFileIn" multiple accept="image/jpeg,image/png,image/webp,image/gif,application/pdf" style="display:none" onchange="kbkAddFiles(this.files)">
-        <input type="file" id="kbkProjIn" accept=".kreativbuch" style="display:none" onchange="kbkLoadProject(this.files)">
+        <input type="file" id="kbkProjIn" accept=".kreativbuch,image/jpeg,image/png,image/webp,image/gif,application/pdf" multiple style="display:none" onchange="kbkLoadProject(this.files)">
         <div id="kbkCounter" style="display:none">
           <div class="kbk-counter-row">
             <span class="kbk-counter-txt" id="kbkCounterTxt">0 / 30 Bilder</span>
@@ -12946,14 +12946,35 @@ var qrcode=function(){var t=function(t,r){var e=t,n=g[r],o=null,i=0,a=null,u=[],
   }
 
   function kbkLoadPdf(file,cb){
-    const objUrl=URL.createObjectURL(file);
-    const img=new Image();
-    let settled=false;
-    const fallback=()=>{ if(settled)return; settled=true; URL.revokeObjectURL(objUrl); kbkImages.push({name:file.name,thumbUrl:kbkPlaceholder(file.name),exportUrl:null,isPdf:true,pdfName:file.name}); cb(); };
-    img.onload=()=>{ if(settled)return; settled=true; URL.revokeObjectURL(objUrl); if(img.naturalWidth>0){ kbkImages.push({name:file.name,thumbUrl:kbkResize(img,KBK_THUMB_PX),exportUrl:kbkResize(img,KBK_EXPORT_PX)}); } else fallback(); cb(); };
-    img.onerror=fallback;
-    setTimeout(fallback,2000);
-    img.src=objUrl;
+    const fallback=()=>{ kbkImages.push({name:file.name,thumbUrl:kbkPlaceholder(file.name),exportUrl:null,isPdf:true,pdfName:file.name}); cb(); };
+    function doRender(){
+      const reader=new FileReader();
+      reader.onload=async e=>{
+        try{
+          const pdf=await pdfjsLib.getDocument({data:new Uint8Array(e.target.result)}).promise;
+          const baseName=file.name.replace(/\.pdf$/i,'');
+          for(let i=1;i<=pdf.numPages;i++){
+            if(kbkImages.length>=KBK_MAX)break;
+            const page=await pdf.getPage(i);
+            const vp=page.getViewport({scale:2});
+            const canvas=document.createElement('canvas');
+            canvas.width=vp.width; canvas.height=vp.height;
+            await page.render({canvasContext:canvas.getContext('2d'),viewport:vp}).promise;
+            const pageName=pdf.numPages>1?baseName+' S.'+i:file.name;
+            kbkImages.push({name:pageName,thumbUrl:kbkResize(canvas,KBK_THUMB_PX),exportUrl:kbkResize(canvas,KBK_EXPORT_PX)});
+          }
+          cb();
+        }catch(err){ fallback(); }
+      };
+      reader.onerror=fallback;
+      reader.readAsArrayBuffer(file);
+    }
+    if(window.pdfjsLib){doRender();return;}
+    const s=document.createElement('script');
+    s.src='https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js';
+    s.onload=()=>{pdfjsLib.GlobalWorkerOptions.workerSrc='https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';doRender();};
+    s.onerror=fallback;
+    document.head.appendChild(s);
   }
 
   function kbkRender(){
@@ -13055,24 +13076,32 @@ var qrcode=function(){var t=function(t,r){var e=t,n=g[r],o=null,i=0,a=null,u=[],
   };
 
   window.kbkLoadProject=function(files){
-    const file=files[0]; if(!file)return;
-    const reader=new FileReader();
-    reader.onload=e=>{
-      try{
-        const data=JSON.parse(e.target.result);
-        if(!data.images||!Array.isArray(data.images))throw new Error();
-        const slots=KBK_MAX-kbkImages.length;
-        if(!slots){kbkShowProg('⚠ Maximale Anzahl ('+KBK_MAX+' Bilder) bereits erreicht.');document.getElementById('kbkProjIn').value='';return;}
-        const toAdd=data.images.slice(0,slots).filter(img=>img&&img.thumbUrl);
-        kbkImages.push(...toAdd);
-        kbkRender();
-        kbkShowProg('✅ '+toAdd.length+' Seite'+(toAdd.length!==1?'n':'')+' aus gespeichertem Projekt geladen.');
-      }catch(err){
-        kbkShowProg('⚠ Datei ungültig oder beschädigt — bitte eine .kreativbuch-Datei wählen.');
-      }
-      document.getElementById('kbkProjIn').value='';
-    };
-    reader.readAsText(file);
+    const list=Array.from(files); if(!list.length)return;
+    const mediaFiles=list.filter(f=>f.type.startsWith('image/')||f.type==='application/pdf'||f.name.toLowerCase().endsWith('.pdf'));
+    const projFiles=list.filter(f=>f.name.toLowerCase().endsWith('.kreativbuch'));
+    if(mediaFiles.length) kbkAddFiles(mediaFiles);
+    if(projFiles.length){
+      const file=projFiles[0];
+      const reader=new FileReader();
+      reader.onload=e=>{
+        try{
+          const data=JSON.parse(e.target.result);
+          if(!data.images||!Array.isArray(data.images))throw new Error();
+          const slots=KBK_MAX-kbkImages.length;
+          if(!slots){kbkShowProg('⚠ Maximale Anzahl ('+KBK_MAX+' Bilder) bereits erreicht.');return;}
+          const toAdd=data.images.slice(0,slots).filter(img=>img&&img.thumbUrl);
+          kbkImages.push(...toAdd);
+          kbkRender();
+          kbkShowProg('✅ '+toAdd.length+' Seite'+(toAdd.length!==1?'n':'')+' aus gespeichertem Projekt geladen.');
+        }catch(err){
+          kbkShowProg('⚠ Datei ungültig oder beschädigt — bitte eine .kreativbuch-Datei wählen.');
+        }
+      };
+      reader.readAsText(file);
+    } else if(!mediaFiles.length){
+      kbkShowProg('⚠ Datei ungültig — bitte eine .kreativbuch-Datei, ein Foto (JPG/PNG/WEBP) oder ein PDF wählen.');
+    }
+    document.getElementById('kbkProjIn').value='';
   };
 
   window.kbkExport=function(){
