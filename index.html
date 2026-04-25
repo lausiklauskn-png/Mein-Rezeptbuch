@@ -1,6 +1,6 @@
 <!--
   ╔═════════════════════════════════════════════════════════════════╗
-  ║  Muttis Rezeptbuch  v9.2  ©  2026  Klaus Nitzsche            ║
+  ║  Mein Rezeptbuch  v10.0  ©  2026  Klaus Nitzsche              ║
   ║  klaus-nitzsche@t-online.de                                     ║
   ║  Alle Rechte vorbehalten. Unautorisierte Vervielfaeltigung,     ║
   ║  Verbreitung oder Bearbeitung ist untersagt.                    ║
@@ -1532,7 +1532,7 @@ h4.man-sub{font-family:Georgia,serif;font-size:.81rem;font-weight:700;color:var(
 #bs-bar{height:100%;width:5%;background:var(--br,#6a4c36);border-radius:3px;transition:width .35s ease}
 
 /* ═══════════════════════════════════════════════════
-   UI/UX REFACTOR v9.5 — Micro-Animations & States
+   UI/UX REFACTOR v10.0 — Micro-Animations & States
    ═══════════════════════════════════════════════════ */
 
 /* ── Micro-Animations: Global Transitions ── */
@@ -1709,7 +1709,7 @@ const _CR=Object.freeze({c:'© 2026 Klaus Nitzsche',r:'All rights reserved',v:'v
     <button class="hbtn" onclick="openHelp()" title="Hilfe · Teilen · Reparatur" id="helpHdrBtn">ℹ️</button>
 <!-- === ONBOARDING START === -->
     <!-- === ONBOARDING END === -->
-    <span id="appVersion" style="font-size:.55rem;font-weight:700;color:var(--br3,#a08060);background:var(--br1,#f5efe8);border:1px solid var(--br2,#c4a07a);border-radius:4px;padding:1px 5px;margin-left:5px;align-self:center;letter-spacing:.04em">v9.5</span>
+    <span id="appVersion" style="font-size:.55rem;font-weight:700;color:var(--br3,#a08060);background:var(--br1,#f5efe8);border:1px solid var(--br2,#c4a07a);border-radius:4px;padding:1px 5px;margin-left:5px;align-self:center;letter-spacing:.04em">v10.0</span>
   </div>
 </div>
 
@@ -2095,7 +2095,7 @@ const _CR=Object.freeze({c:'© 2026 Klaus Nitzsche',r:'All rights reserved',v:'v
       <div class="sett-row ntap">
         <div class="sett-ico" onclick="_iTap()" style="cursor:default;user-select:none;-webkit-user-select:none">📖</div>
         <div class="sett-body"><div class="sett-lbl">Mein Rezeptbuch</div>
-          <div class="sett-sub">Version 9.5 · Offline-fähig</div>
+          <div class="sett-sub">Version 10.0 · Offline-fähig</div>
           <div class="sett-sub" style="margin-top:3px;color:var(--br3)">© 2026 by Klaus Nitzsche</div>
           <div class="sett-sub" style="margin-top:1px"><a href="mailto:klaus-nitzsche@t-online.de" style="color:var(--br);font-size:.7rem">klaus-nitzsche@t-online.de</a></div></div>
       </div>
@@ -2140,7 +2140,7 @@ Vielen Dank für deine Unterstützung.</div>
         <div class="sett-arr">›</div>
       </div>
     </div>
-    <div style="text-align:center;padding:6px;font-size:.6rem;color:var(--br3)">Mein Rezeptbuch v9.5 · © 2026 Klaus Nitzsche · <a href="mailto:klaus-nitzsche@t-online.de" style="color:var(--br3)">klaus-nitzsche@t-online.de</a> · <a href="impressum.html" target="_blank" id="sImprintFooter" style="color:var(--br3)">Impressum &amp; Datenschutz</a></div>
+    <div style="text-align:center;padding:6px;font-size:.6rem;color:var(--br3)">Mein Rezeptbuch v10.0 · © 2026 Klaus Nitzsche · <a href="mailto:klaus-nitzsche@t-online.de" style="color:var(--br3)">klaus-nitzsche@t-online.de</a> · <a href="impressum.html" target="_blank" id="sImprintFooter" style="color:var(--br3)">Impressum &amp; Datenschutz</a></div>
   </div>
 </div>
 
@@ -7104,7 +7104,7 @@ function setUpSt(msg,type){
   el.textContent=msg;el.className='upst '+type;el.style.display='block';
   setTimeout(()=>el.style.display='none',5000);
 }
-const _APP_VER='9.5';
+const _APP_VER='10.0';
 const _APP_UPDATE_URL='https://lausiklauskn-png.github.io/Mein-Rezeptbuch/index.html';
 async function checkAppUpdate(){
   const st=document.getElementById('updateStatus');

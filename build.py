@@ -53,7 +53,7 @@ def build():
     header = (
         '<!--\n'
         '  ╔═════════════════════════════════════════════════════════════════╗\n'
-        '  ║  Muttis Rezeptbuch  v9.2  ©  2026  Klaus Nitzsche            ║\n'
+        '  ║  Mein Rezeptbuch  v10.0  ©  2026  Klaus Nitzsche              ║\n'
         '  ║  klaus-nitzsche@t-online.de                                     ║\n'
         '  ║  Alle Rechte vorbehalten. Unautorisierte Vervielfaeltigung,     ║\n'
         '  ║  Verbreitung oder Bearbeitung ist untersagt.                    ║\n'
