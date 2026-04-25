@@ -768,6 +768,10 @@ body.nav-collapsed{padding-bottom:calc(16px + var(--sb))}
 .print-bar-txt{display:flex;flex-direction:column;text-align:left;gap:0}
 .print-bar-lbl{font-size:.5rem;font-weight:900;color:var(--rust);text-shadow:0 0 8px rgba(184,85,53,0.18);letter-spacing:.03em}
 .print-bar-sub{font-size:.38rem;font-weight:600;color:var(--rust);opacity:.8;letter-spacing:0}
+.fz-bar{display:flex;align-items:center;justify-content:center;gap:8px;padding:5px 14px;background:linear-gradient(135deg,rgba(54,112,106,0.13),rgba(22,64,56,0.13));border:none;border-top:1px solid rgba(54,112,106,0.1);width:100%;cursor:pointer;font-size:.85rem;font-weight:700;color:var(--teal);letter-spacing:.02em;transition:opacity .12s}
+.fz-bar:active{opacity:.6}
+.fz-bar-lbl{font-size:.5rem;font-weight:900;color:var(--teal);text-shadow:0 0 8px rgba(54,112,106,0.18);letter-spacing:.03em}
+.fz-bar-sub{font-size:.38rem;font-weight:600;color:var(--teal);opacity:.8;letter-spacing:0}
 
 /* serving selector */
 .srv-bar{display:flex;align-items:center;gap:7px;padding:8px 11px 7px;border-top:1px solid var(--sand2);background:var(--parch)}
@@ -5409,6 +5413,7 @@ function navTo(n){
     {id:'langOv',     fn:function(){closeLang();}},
     {id:'helpOv',     fn:function(){closeHelpOv();}},
     {id:'manualOv',   fn:function(){var e=document.getElementById('manualOv');if(e)e.style.display='none';}},
+    {id:'foodZineOv', fn:function(){closeFoodZine();}},
   ];
   var closed=false;
   for(var i=0;i<_fovClose.length;i++){
@@ -5559,6 +5564,105 @@ async function startImgGenSingle(){
 }
 function openExport(){document.getElementById('exportOv').style.display='flex';}
 function closeExport(){document.getElementById('exportOv').style.display='none';}
+
+// ═══════════════════════════════════════════════════════
+// FOOD-ZINE (lokal, kein API-Schlüssel nötig)
+// ═══════════════════════════════════════════════════════
+let _fzRid=null;
+function openFoodZine(rid){
+  const r=R.find(x=>x.id===rid);if(!r||!r.name)return;
+  _fzRid=rid;
+  const imgThumb=r.img
+    ?`<img src="${r.img}" style="width:54px;height:54px;object-fit:cover;border-radius:8px;flex-shrink:0;border:2px solid var(--sand2)" alt=""/>`
+    :`<div style="width:54px;height:54px;background:var(--teals);border-radius:8px;flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:1.8rem">📖</div>`;
+  document.getElementById('fzBody').innerHTML=`
+    <div style="display:flex;gap:12px;align-items:center;background:var(--sand2);border-radius:10px;padding:12px 14px;margin-bottom:14px">
+      ${imgThumb}
+      <div style="flex:1;min-width:0">
+        <div style="font-size:.8rem;font-weight:700;color:var(--teal);margin-bottom:3px">📰 Neues Food-Zine für:</div>
+        <div style="font-size:.9rem;font-weight:800;color:var(--ink);line-height:1.3;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${h(r.name)}</div>
+        <div style="font-size:.68rem;color:var(--br3);margin-top:3px">Als HTML-Seite geöffnet · kostenlos</div>
+      </div>
+    </div>
+    <div style="display:flex;gap:8px;margin-bottom:16px">
+      <button onclick="generateFoodZine()" style="flex:1;padding:13px;background:var(--teal);color:#fff;border:none;border-radius:10px;font-size:.88rem;font-weight:700;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:6px">📰 Jetzt erstellen</button>
+      <button onclick="closeFoodZine()" style="padding:13px 16px;background:var(--sand2);color:var(--br2);border:none;border-radius:10px;font-size:.82rem;font-weight:700;cursor:pointer">← Zurück</button>
+    </div>
+    <div style="background:var(--teals);border-radius:10px;padding:12px 14px;border:1.5px solid var(--teal)">
+      <div style="font-size:.94rem;font-weight:700;color:var(--teal);font-family:Georgia,serif;margin-bottom:6px">📰 Food-Zine für deine Rezepte</div>
+      <div style="display:flex;gap:12px">
+        <div style="flex:1">
+          <div style="font-size:.65rem;font-weight:900;color:var(--teal);letter-spacing:.05em;text-transform:uppercase;margin-bottom:5px">Was erstellt wird</div>
+          <ul style="margin:0;padding-left:14px;font-size:.73rem;color:var(--ink);line-height:1.65">
+            <li>Magazin-Layout für dein Rezept</li>
+            <li>Großes Rezeptfoto (falls vorhanden)</li>
+            <li>Zutaten &amp; Zubereitung</li>
+            <li>Sofort druckfertig</li>
+          </ul>
+        </div>
+        <div style="flex:1">
+          <div style="font-size:.65rem;font-weight:900;color:var(--teal);letter-spacing:.05em;text-transform:uppercase;margin-bottom:5px">Was du bekommst</div>
+          <ul style="margin:0;padding-left:14px;font-size:.73rem;color:var(--ink);line-height:1.65">
+            <li>HTML-Seite in neuem Fenster</li>
+            <li>Als PDF speicherbar</li>
+            <li>Ohne KI · ohne Internet</li>
+            <li>Kein API-Schlüssel nötig</li>
+          </ul>
+        </div>
+      </div>
+    </div>`;
+  document.getElementById('foodZineOv').style.display='flex';
+}
+function closeFoodZine(){document.getElementById('foodZineOv').style.display='none';_fzRid=null;}
+function generateFoodZine(){
+  const r=R.find(x=>x.id===_fzRid);if(!r)return;
+  const cc=catCol(r.cat);
+  const ingList=(r.ings||[]).map(i=>`<li><span class="amt">${h(i.amt)}${i.unit?' '+h(i.unit):''}</span> ${h(i.name)}</li>`).join('');
+  const stepList=(r.steps||[]).map((s,n)=>`<div class="step"><div class="snum">${n+1}</div><div class="stxt">${h(s.txt)}</div></div>`).join('');
+  const imgBlock=r.img?`<div class="zimg"><img src="${r.img}" alt="${h(r.name)}" /></div>`:'';
+  const tags=(r.flavors||[]).map(f=>`<span class="tag">${h(f)}</span>`).join('');
+  const meta=[r.servings?`🍽 ${r.servings} Portionen`:'',r.prepTime?`⏱ ${r.prepTime} Min.`:''].filter(Boolean).join(' · ');
+  const dt=new Date().toLocaleDateString('de-DE',{day:'numeric',month:'long',year:'numeric'});
+  const html=`<!DOCTYPE html><html lang="de"><head><meta charset="utf-8"><title>${h(r.name)} – Food-Zine</title>
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<style>*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:Georgia,serif;background:#fff;max-width:720px;margin:0 auto;padding:28px 20px}
+@media print{body{max-width:100%;padding:12px}@page{margin:15mm}}
+.lbl{font-family:system-ui,sans-serif;font-size:9px;font-weight:900;letter-spacing:.22em;text-transform:uppercase;color:${cc}}
+h1{font-size:34px;line-height:1.2;color:#1a0a00;margin:6px 0 8px}
+.meta{font-family:system-ui,sans-serif;font-size:12px;color:#888;margin-bottom:6px}
+hr{border:none;border-top:3.5px solid ${cc};margin:14px 0 20px}
+.zimg{border-radius:12px;overflow:hidden;max-height:300px;margin-bottom:20px;background:#f5ede0;display:flex;justify-content:center}
+.zimg img{width:100%;max-height:300px;object-fit:cover}
+.tags{display:flex;flex-wrap:wrap;gap:5px;margin-bottom:18px}
+.tag{background:${cc}1a;color:${cc};border:1px solid ${cc}55;border-radius:20px;padding:3px 10px;font-family:system-ui,sans-serif;font-size:11px;font-weight:700}
+.layout{display:flex;gap:30px}
+@media(max-width:560px){.layout{flex-direction:column}}
+.ings{flex:0 0 200px}.steps{flex:1}
+.sec-hdr{font-family:system-ui,sans-serif;font-size:9.5px;font-weight:900;letter-spacing:.14em;text-transform:uppercase;color:${cc};border-bottom:2px solid ${cc}44;padding-bottom:6px;margin-bottom:12px}
+.ings ul{list-style:none}.ings li{border-bottom:1px solid #f0e8dc;padding:7px 0;font-size:13px;line-height:1.4;color:#2a1a0a}
+.ings li .amt{color:${cc};font-family:system-ui,sans-serif;font-size:11px;font-weight:700}
+.step{display:flex;gap:10px;margin-bottom:14px;page-break-inside:avoid}
+.snum{background:${cc};color:#fff;min-width:24px;height:24px;border-radius:50%;font-family:system-ui,sans-serif;font-size:10px;font-weight:900;display:flex;align-items:center;justify-content:center;flex-shrink:0;margin-top:3px}
+.stxt{font-size:14px;line-height:1.65;color:#2a1a0a}
+.footer{margin-top:30px;padding-top:12px;border-top:1px solid #e0d4c4;font-family:system-ui,sans-serif;font-size:10px;color:#bbb;text-align:center}
+</style></head><body>
+<div class="lbl">📰 Food-Zine · Mein Rezeptbuch</div>
+<h1>${h(r.name)}</h1>
+<div class="meta">${meta}</div>
+<hr>
+${imgBlock}
+${tags?`<div class="tags">${tags}</div>`:''}
+<div class="layout">
+  <div class="ings"><div class="sec-hdr">Zutaten</div><ul>${ingList||'<li style="font-size:13px;color:#aaa">Keine Zutaten</li>'}</ul></div>
+  <div class="steps"><div class="sec-hdr">Zubereitung</div>${stepList||'<p style="font-size:13px;color:#aaa">Keine Schritte</p>'}</div>
+</div>
+<div class="footer">Erstellt mit Mein Rezeptbuch · ${dt}</div>
+</body></html>`;
+  const w=window.open('','_blank');
+  if(w){w.document.write(html);w.document.close();}
+  else toast('⚠️ Bitte Pop-ups im Browser erlauben');
+}
 
 // ═══════════════════════════════════════════════════════
 // FOOD-ZINE PROMPT-GENERATOR
@@ -9287,6 +9391,12 @@ function rndCard(r){
           <span class="print-bar-sub">${T('printSub')}</span>
         </span>
       </button>
+      <button class="fz-bar" onclick="event.stopPropagation();openFoodZine(${r.id})">
+        <span class="print-bar-txt">
+          <span class="fz-bar-lbl">📰 Food-Zine</span>
+          <span class="fz-bar-sub">Magazin-Seite erstellen</span>
+        </span>
+      </button>
     </div>`:''}
   </div>`;
 }
@@ -12640,6 +12750,14 @@ var qrcode=function(){var t=function(t,r){var e=t,n=g[r],o=null,i=0,a=null,u=[],
         onclick="document.getElementById('cacheOv').style.display='none'">✓ Verstanden</button>
     </div>
   </div>
+</div>
+
+<div class="fov" id="foodZineOv" style="display:none">
+  <div class="fov-hdr" onclick="closeFoodZine()">
+    <button class="fov-back" onclick="event.stopPropagation();closeFoodZine()" title="Zurück">←</button>
+    <div class="fov-title">📰 Food-Zine</div>
+  </div>
+  <div class="fov-body" id="fzBody"></div>
 </div>
 
 <script>
