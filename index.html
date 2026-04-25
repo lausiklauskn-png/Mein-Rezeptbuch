@@ -4607,6 +4607,7 @@ const CATS=[
   {id:'vegi',ico:'🥦',de:'Vegetarisch',en:'Vegetarian',ru:'Вегет.',zh:'素食',es:'Vegetariano',fr:'Végétarien',it:'Vegetariano',pt:'Vegetariano',col:'#4a6741'},
   {id:'kuchen',ico:'🍰',de:'Kuchen',en:'Cakes',ru:'Выпечка',zh:'蛋糕',es:'Pasteles',fr:'Gâteaux',it:'Torte',pt:'Bolos',col:'#8b5e3c'},
   {id:'dessert',ico:'🍮',de:'Desserts',en:'Desserts',ru:'Десерты',zh:'甜点',es:'Postres',fr:'Desserts',it:'Dolci',pt:'Sobremesas',col:'#7a5c2e'},
+  {id:'drk',ico:'🍷',de:'Getränke',en:'Drinks',ru:'Напитки',zh:'饮料',es:'Bebidas',fr:'Boissons',it:'Bevande',pt:'Bebidas',col:'#4a6090'},
 ];
 const COURSES=[
   {id:'app',ico:'🥗',de:'Vorspeise',en:'Starter',ru:'Закуска',zh:'前菜',es:'Entrante',fr:'Entrée',it:'Antipasto',pt:'Entrada'},
@@ -7012,7 +7013,8 @@ function exportData(){
   toast('✅ JSON');
 }
 function _normalizeRecs(recs){
-  recs.forEach(r=>{if(!r.img)r.img='';if(r.folder===undefined)r.folder='';if(!r.rating)r.rating={stars:0,comment:'',imps:[]};if(!r.ings)r.ings=[];if(!r.steps)r.steps=[];if(!r.flavors)r.flavors=[];if(!r.servings)r.servings=4;if(!r.imgCrop)r.imgCrop={x:50,y:50,scale:1};});
+  const validCats=new Set(CATS.filter(c=>c.id!=='all').map(c=>c.id));
+  recs.forEach(r=>{if(!r.img)r.img='';if(r.folder===undefined)r.folder='';if(!r.rating)r.rating={stars:0,comment:'',imps:[]};if(!r.ings)r.ings=[];if(!r.steps)r.steps=[];if(!r.flavors)r.flavors=[];if(!r.servings)r.servings=4;if(!r.imgCrop)r.imgCrop={x:50,y:50,scale:1};if(!r.cat||(!validCats.has(r.cat)&&!String(r.cat).startsWith('fld_')))r.cat='fleisch';});
 }
 function _showImportChoiceDialog(recCount, onReplace, onMerge){
   const ov=document.createElement('div');
@@ -11891,6 +11893,7 @@ function importJsonFromVault(input){
           R=recs;
           MS=data.menu||data.ms||MS||[];
           FD=data.folders||data.fd||FD||[];
+          _normalizeRecs(R);
           sv();svM();svFD();render();badge();
           closeBackupVault();
           toast('✅ '+recs.length+' Rezepte aus JSON geladen');
