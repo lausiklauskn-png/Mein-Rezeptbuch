@@ -2476,6 +2476,7 @@ Vielen Dank für deine Unterstützung.</div>
           </div>
           <div style="display:flex;gap:8px">
             <button class="scan-key-btn" style="flex:1;margin:0;padding:10px" onclick="startImgGenSingle()">🎨 Jetzt generieren</button>
+            <button id="imggenSingleDlBtn" style="display:none;flex:0 0 auto;padding:0 14px;background:var(--sand);border:1.5px solid var(--teal);border-radius:8px;font-size:.78rem;font-weight:600;color:var(--teal);cursor:pointer;font-family:inherit" onclick="downloadImg(_imgGenSingleRid)" title="Aktuelles Bild herunterladen">💾</button>
             <button style="flex:0 0 auto;padding:0 16px;background:var(--sand);border:1.5px solid var(--sand2);border-radius:8px;font-size:.78rem;font-weight:600;color:var(--br3);cursor:pointer;font-family:inherit" onclick="closeImport()">↩ Zurück</button>
           </div>
         </div>
@@ -5515,6 +5516,8 @@ function openImgGenForRecipe(rid){
   if(title&&r)title.textContent='📸 Neues KI-Bild für: '+r.name;
   if(preview&&r&&r.img){preview.src=r.img;preview.style.display='block';}
   else if(preview)preview.style.display='none';
+  const dlBtn=document.getElementById('imggenSingleDlBtn');
+  if(dlBtn)dlBtn.style.display=(r&&r.img)?'block':'none';
   if(rl)rl.style.display='none';
   if(gb)gb.style.display='none';
 }
