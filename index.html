@@ -2480,6 +2480,17 @@ Vielen Dank für deine Unterstützung.</div>
       </div>
 
       <div id="imggenMain" style="display:none">
+        <div id="imggenSingleWrap" style="display:none;margin-bottom:14px;background:var(--sand);border:1.5px solid var(--sand2);border-radius:10px;padding:12px 14px">
+          <div style="font-size:.82rem;font-weight:700;color:var(--ink);margin-bottom:9px" id="imggenSingleTitle">📸 Neues KI-Bild erstellen</div>
+          <div style="display:flex;gap:10px;align-items:center;margin-bottom:11px">
+            <img id="imggenSinglePreview" src="" style="width:76px;height:57px;object-fit:cover;border-radius:8px;border:1px solid var(--sand2);display:none;flex-shrink:0"/>
+            <div style="font-size:.72rem;color:var(--br3);line-height:1.6">Aktuelles Bild wird ersetzt<br>Kosten: <strong style="color:var(--teal)">~0,04 €</strong> · Abrechnung bei OpenAI</div>
+          </div>
+          <div style="display:flex;gap:8px">
+            <button class="scan-key-btn" style="flex:1;margin:0;padding:10px" onclick="startImgGenSingle()">🎨 Jetzt generieren</button>
+            <button style="flex:0 0 auto;padding:0 16px;background:var(--sand);border:1.5px solid var(--sand2);border-radius:8px;font-size:.78rem;font-weight:600;color:var(--br3);cursor:pointer;font-family:inherit" onclick="closeImport()">↩ Zurück</button>
+          </div>
+        </div>
         <div style="background:var(--teals);border-radius:10px;padding:12px 14px;margin-bottom:14px;border:1.5px solid var(--teal)">
           <div style="font-size:.94rem;font-weight:700;color:var(--teal);font-family:Georgia,serif;margin-bottom:6px" id="imggenInfoTitle">🎨 KI-Bilder für deine Rezepte</div>
           <div style="display:flex;gap:12px">
@@ -4748,6 +4759,7 @@ function _compressImgStage1(dataUrl){
 // onProgress: ({done, total, ok, fail, rid}) → void
 // opts.useIdb: true → Stufe 3: Bild in IDB statt r.img (RAM frei halten)
 var _imgGenAborted=false;
+var _imgGenSingleRid=null;
 async function _runImgQueue(rids, genFn, onProgress, opts){
   const total=rids.length;
   const useIdb=opts?.useIdb===true;
@@ -5494,7 +5506,60 @@ function openImport(){
   initTxtPane();
   initImgGenPane();
 }
-function closeImport(){document.getElementById('importOv').style.display='none';}
+function closeImport(){
+  document.getElementById('importOv').style.display='none';
+  _imgGenSingleRid=null;
+  const sw=document.getElementById('imggenSingleWrap');if(sw)sw.style.display='none';
+  const rl=document.getElementById('imggenReplaceAll')?.closest('label');if(rl)rl.style.display='';
+  const gb=document.getElementById('igGenBtn');if(gb)gb.style.display='';
+}
+function openImgGenForRecipe(rid){
+  _imgGenSingleRid=rid;
+  openImport();
+  switchFovTab('importOv','imggen',document.getElementById('impTabImgGen'));
+  const r=R.find(r=>r.id===rid);
+  const sw=document.getElementById('imggenSingleWrap');
+  const title=document.getElementById('imggenSingleTitle');
+  const preview=document.getElementById('imggenSinglePreview');
+  const rl=document.getElementById('imggenReplaceAll')?.closest('label');
+  const gb=document.getElementById('igGenBtn');
+  if(sw)sw.style.display='block';
+  if(title&&r)title.textContent='📸 Neues KI-Bild für: '+r.name;
+  if(preview&&r&&r.img){preview.src=r.img;preview.style.display='block';}
+  else if(preview)preview.style.display='none';
+  if(rl)rl.style.display='none';
+  if(gb)gb.style.display='none';
+}
+async function startImgGenSingle(){
+  const rid=_imgGenSingleRid;if(!rid)return;
+  const r=R.find(r=>r.id===rid);if(!r)return;
+  const sw=document.getElementById('imggenSingleWrap');if(sw)sw.style.display='none';
+  const stopBtn=document.getElementById('igStopBtn');
+  const progWrap=document.getElementById('igProgWrap');
+  const fill=document.getElementById('igFill');
+  const lbl=document.getElementById('igProgLbl');
+  const costLbl=document.getElementById('igCostLbl');
+  const saveBtn=document.getElementById('igSaveBtn');
+  if(stopBtn)stopBtn.style.display='flex';
+  if(saveBtn)saveBtn.style.display='none';
+  if(progWrap)progWrap.style.display='block';
+  if(fill)fill.style.width='0%';
+  if(lbl)lbl.textContent='Generiere …';
+  if(costLbl){costLbl.textContent='Kosten: ~0,04 €';costLbl.style.display='block';}
+  const res=await _runImgQueue([rid],_dalleGenImg,function(p){
+    if(fill)fill.style.width='100%';
+    if(lbl)lbl.textContent=p.ok?'✅ Bild gespeichert':'❌ Fehler';
+  },{useIdb:false});
+  if(stopBtn)stopBtn.style.display='none';
+  if(lbl)lbl.textContent=res.ok?'✅ Bild für „'+r.name+'" gespeichert':'❌ Generierung fehlgeschlagen';
+  if(res.ok>0){
+    if(saveBtn)saveBtn.style.display='flex';
+    toast('✅ KI-Bild für „'+r.name+'" gespeichert');
+    if(typeof render==='function')render();
+    updateImgGenInfo();
+  }
+  _imgGenSingleRid=null;
+}
 function openExport(){document.getElementById('exportOv').style.display='flex';}
 function closeExport(){document.getElementById('exportOv').style.display='none';}
 
@@ -9112,7 +9177,7 @@ function rndCard(r){
         ${r.name?`<div class="rcard-acts" onclick="event.stopPropagation()">
           ${r.name?`<button class="ra ren" onclick="event.stopPropagation();startRename(${r.id})" title="${T('ttlRename')}">✏️</button>`:''}
           ${r.name?r.img?`<button class="ra imgr" onclick="event.stopPropagation();toggleImgPop(${r.id},this)" title="Bild-Optionen" style="background:var(--teals);border-color:var(--teal);color:var(--teal)">🖼️✓</button>`:`<button class="ra imgr" onclick="pickImgForCard(${r.id})" title="${T('addImg')}">🖼️</button>`:''}
-          ${r.name?`<button class="ra ra-cam" onclick="event.stopPropagation();generateFreePhoto(${r.id})" title="${r.img?'Neues KI-Foto erstellen':T('freeFotoBtnTitle')}">📸✨</button>`:''}
+          ${r.name?`<button class="ra ra-cam" onclick="event.stopPropagation();openImgGenForRecipe(${r.id})" title="${r.img?'Neues KI-Bild erstellen':'KI-Bild erzeugen'}">📸✨</button>`:''}
           ${r.name?`<button class="ra ${inMenu?'gld':'out'}" onclick="event.stopPropagation();${inMenu?`removeFromMenu(${r.id})`:`openCSheet(${r.id})`}" title="${inMenu?T('inMenuRm'):T('addToMenu')}">${inMenu?mSlot.ico+' ✓':T('addToMenu')}</button>`:''}
           ${r.name?`<button class="ra ren" onclick="event.stopPropagation();spellCheckCard(${r.id})" title="${T('ttlSpell')}" style="background:var(--golds);border-color:var(--gold);color:var(--gold)">✨</button>`:''}
           ${r.name?`<button class="ra ren" onclick="event.stopPropagation();shareRecipeQR(${r.id})" title="${T('shareTtl')}" style="background:var(--teals);border-color:var(--teal);color:var(--teal)">📤</button>`:''}
