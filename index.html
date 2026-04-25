@@ -13029,7 +13029,7 @@ var qrcode=function(){var t=function(t,r){var e=t,n=g[r],o=null,i=0,a=null,u=[],
         const content=img.isPdf
           ?`<div style="display:flex;flex-direction:column;align-items:center;justify-content:center;height:100%;color:#9e7050;font-family:Georgia,serif"><div style="font-size:4rem;margin-bottom:.5cm">📄</div><div style="font-size:1rem;font-weight:bold;text-align:center;max-width:14cm">${kbkH(img.pdfName||img.name)}</div><div style="font-size:.7rem;margin-top:.3cm;color:#b8a090">PDF-Datei · bitte separat drucken</div></div>`
           :`<img src="${kbkH(img.exportUrl)}" style="max-width:100%;max-height:100%;object-fit:contain;display:block;-webkit-print-color-adjust:exact;print-color-adjust:exact" alt="${kbkH(img.name)}">`;
-        return `<div style="width:100%;height:100vh;display:flex;align-items:center;justify-content:center;padding:1.2cm;box-sizing:border-box;${isLast?'':'page-break-after:always'}">${content}</div>`;
+        return `<div style="width:100%;height:297mm;display:flex;align-items:center;justify-content:center;padding:1.2cm;box-sizing:border-box;page-break-after:always;page-break-inside:avoid;overflow:hidden">${content}</div>`;
       }).join('\n');
       const win=window.open('','_blank');
       if(!win){kbkShowProg('⚠ Popup blockiert – bitte Popup-Blocker deaktivieren.');return;}
