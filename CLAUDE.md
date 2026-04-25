@@ -133,6 +133,9 @@ Wenn der Benutzer **"Hochladen"** schreibt:
 - Feature-Branches werden automatisch angelegt (Format: `claude/<beschreibung>-<id>`)
 - Immer auf dem zugewiesenen Branch arbeiten (steht oben in der Session-Konfiguration)
 
+### GitHub-Repo ist auf Privat gestellt
+**Keine Review-Kommentare oder CI-Checks prüfen.** Das Repo ist privat – es gibt keine externen Reviewer und kein CI-System. Nach einem Push/Merge müssen weder `get_review_comments` noch `get_check_runs` aufgerufen werden.
+
 ---
 
 ## Icon-Aktualisierungen: Pflicht-Verifikation
