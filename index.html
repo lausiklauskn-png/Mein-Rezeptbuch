@@ -544,6 +544,13 @@ body.nav-collapsed{padding-bottom:calc(16px + var(--sb))}
 .share-btn-p{width:100%;background:var(--grn);color:#fff;border:none;border-radius:9px;padding:11px;font-size:.83rem;font-weight:700;cursor:pointer;margin-bottom:6px;display:flex;align-items:center;justify-content:center;gap:7px}
 .share-btn-s{width:100%;background:transparent;border:1.5px solid var(--sand2);border-radius:9px;padding:10px;font-size:.8rem;color:var(--br2);cursor:pointer;margin-bottom:6px}
 .share-btn-cl{width:100%;background:transparent;border:none;font-size:.75rem;color:var(--br3);cursor:pointer;padding:4px}
+.catmap-box{text-align:left;max-height:80vh;overflow-y:auto}
+.catmap-row{display:flex;align-items:center;gap:8px;padding:7px 0;border-bottom:1px solid var(--sand2)}
+.catmap-row:last-of-type{border-bottom:none}
+.catmap-src{flex:1;min-width:0}
+.catmap-lbl{font-size:.8rem;font-weight:700;color:var(--br);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.catmap-cnt{font-size:.68rem;color:var(--br3)}
+.catmap-sel{border:1.5px solid var(--sand2);border-radius:7px;padding:5px 8px;font-size:.77rem;background:var(--sand);color:var(--ink);font-family:inherit;cursor:pointer;flex-shrink:0}
 @media (max-height:540px),(orientation:landscape) and (max-height:680px){
   .share-box{max-width:520px;display:flex;flex-direction:row;align-items:center;gap:16px;text-align:left;padding:14px 18px}
   .share-box-sub{margin-bottom:10px}
@@ -7035,6 +7042,24 @@ function _showImportChoiceDialog(recCount, onReplace, onMerge){
   ov.querySelector('#_impMerge').onclick=()=>{ov.remove();onMerge();};
   ov.querySelector('#_impCancel').onclick=()=>ov.remove();
 }
+function _applyCatMapping(recs,mapping){
+  if(!mapping||!Object.keys(mapping).length)return;
+  recs.forEach(r=>{if(r.cat&&mapping[r.cat])r.cat=mapping[r.cat];});
+}
+function _showCatMapDialog(recs,onDone){
+  const validCats=new Set(CATS.filter(c=>c.id!=='all').map(c=>c.id));
+  const unknownMap={};
+  recs.forEach(r=>{if(r.cat&&!validCats.has(r.cat)&&!String(r.cat).startsWith('fld_'))unknownMap[r.cat]=(unknownMap[r.cat]||0)+1;});
+  const unknowns=Object.keys(unknownMap);
+  if(!unknowns.length){onDone({});return;}
+  const catOpts=CATS.filter(c=>c.id!=='all').map(c=>`<option value="${c.id}">${c.ico} ${c[CL]||c.de}</option>`).join('');
+  const rows=unknowns.map(cat=>`<div class="catmap-row"><div class="catmap-src"><div class="catmap-lbl">"${h(cat)}"</div><div class="catmap-cnt">${unknownMap[cat]} Rezept${unknownMap[cat]!==1?'e':''}</div></div><select class="catmap-sel" data-cat="${h(cat)}">${catOpts}</select></div>`).join('');
+  const ov=document.createElement('div');ov.className='share-ov';
+  ov.innerHTML=`<div class="share-box catmap-box"><div style="font-size:1.3rem;margin-bottom:5px;text-align:center">🗂️</div><div class="share-box-title" style="text-align:center;margin-bottom:3px">${T('catmapTitle')||'Kategorien zuordnen'}</div><div class="share-box-sub" style="text-align:center;margin-bottom:10px">${T('catmapSub')||'Unbekannte Kategorien aus der Datei — bitte zuordnen:'}</div>${rows}<button class="share-btn-p" id="_catmapOk" style="margin-top:12px;background:var(--rust)">✅ ${T('catmapOk')||'Übernehmen'}</button><button class="share-btn-cl" id="_catmapSkip">${T('catmapSkip')||'Überspringen'}</button></div>`;
+  document.body.appendChild(ov);
+  ov.querySelector('#_catmapOk').onclick=()=>{const m={};ov.querySelectorAll('.catmap-sel').forEach(s=>{m[s.dataset.cat]=s.value;});ov.remove();onDone(m);};
+  ov.querySelector('#_catmapSkip').onclick=()=>{ov.remove();onDone({});};
+}
 function _importImgJson(entries){
   let matched=0;
   for(const entry of entries){
@@ -7058,8 +7083,7 @@ function importData(e){
         ()=>{
           // Ersetzen
           R=imported;MS=d.menu||MS;FD=d.folders||FD;
-          _normalizeRecs(R);R.forEach(r=>r.shut=true);sv();svM();svFD();badge();render();
-          setUpSt(`✅ ${R.filter(r=>r.name).length} ${T('uploadOK')}`,'ok');
+          _showCatMapDialog(R,mapping=>{_applyCatMapping(R,mapping);_normalizeRecs(R);R.forEach(r=>r.shut=true);sv();svM();svFD();badge();render();setUpSt(`✅ ${R.filter(r=>r.name).length} ${T('uploadOK')}`,'ok');});
         },
         ()=>{
           // Hinzufügen (Merge)
@@ -7067,9 +7091,7 @@ function importData(e){
           const newRecs=imported.filter(r=>r.name&&!existingNames.has(r.name.trim().toLowerCase()));
           const maxId=R.reduce((m,r)=>Math.max(m,r.id||0),0);
           newRecs.forEach((r,i)=>{r.id=maxId+i+1;});
-          _normalizeRecs(newRecs);
-          R.unshift(...newRecs);R.forEach(r=>r.shut=true);sv();badge();render();
-          setUpSt(`✅ ${newRecs.length} neue Rezepte hinzugefügt`,'ok');
+          _showCatMapDialog(newRecs,mapping=>{_applyCatMapping(newRecs,mapping);_normalizeRecs(newRecs);R.unshift(...newRecs);R.forEach(r=>r.shut=true);sv();badge();render();setUpSt(`✅ ${newRecs.length} neue Rezepte hinzugefügt`,'ok');});
         }
       );
     }catch(err){setUpSt('❌ '+err.message,'err');}
@@ -11893,16 +11915,18 @@ function importJsonFromVault(input){
           R=recs;
           MS=data.menu||data.ms||MS||[];
           FD=data.folders||data.fd||FD||[];
-          _normalizeRecs(R);
-          sv();svM();svFD();render();badge();
-          closeBackupVault();
-          toast('✅ '+recs.length+' Rezepte aus JSON geladen');
           const name=fname.replace(/\.json$/i,'').slice(0,40);
           const ts=new Date().toISOString();
-          _bvRead().then(async vault=>{
-            vault.push({id:'man-'+ts,name,type:'manual',ts,recCnt:recs.length,
-              r:JSON.stringify(recs),ms:JSON.stringify(MS),fd:JSON.stringify(FD)});
-            await _bvWrite(vault);
+          _showCatMapDialog(R,mapping=>{
+            _applyCatMapping(R,mapping);_normalizeRecs(R);
+            sv();svM();svFD();render();badge();
+            closeBackupVault();
+            toast('✅ '+R.filter(r=>r.name).length+' Rezepte aus JSON geladen');
+            _bvRead().then(async vault=>{
+              vault.push({id:'man-'+ts,name,type:'manual',ts,recCnt:R.filter(r=>r.name).length,
+                r:JSON.stringify(R),ms:JSON.stringify(MS),fd:JSON.stringify(FD)});
+              await _bvWrite(vault);
+            });
           });
         },
         ()=>{
@@ -11911,10 +11935,12 @@ function importJsonFromVault(input){
           const newRecs=recs.filter(r=>r.name&&!existingNames.has(r.name.trim().toLowerCase()));
           const maxId=R.reduce((m,r)=>Math.max(m,r.id||0),0);
           newRecs.forEach((r,i)=>{r.id=maxId+i+1;});
-          _normalizeRecs(newRecs);
-          R.unshift(...newRecs);sv();badge();render();
-          closeBackupVault();
-          toast('✅ '+newRecs.length+' neue Rezepte hinzugefügt');
+          _showCatMapDialog(newRecs,mapping=>{
+            _applyCatMapping(newRecs,mapping);_normalizeRecs(newRecs);
+            R.unshift(...newRecs);sv();badge();render();
+            closeBackupVault();
+            toast('✅ '+newRecs.length+' neue Rezepte hinzugefügt');
+          });
         }
       );
     }catch(e){toast('⚠️ Fehler: Ungültige JSON-Datei');}
