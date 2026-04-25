@@ -2512,10 +2512,11 @@ Vielen Dank für deine Unterstützung.</div>
           <button class="scan-key-change" onclick="showImgGenSetup()" id="imggenChangeLbl" title="Schlüssel ändern">ändern</button>
         </div>
         <div id="imggenInfo" style="font-size:.74rem;color:var(--br3);margin:10px 0 8px"></div>
-        <label style="display:flex;align-items:center;gap:8px;font-size:.76rem;color:var(--ink);margin-bottom:10px;cursor:pointer;padding:8px 10px;background:var(--sand);border-radius:8px;border:1px solid var(--sand2)">
-          <input type="checkbox" id="imggenReplaceAll" onchange="updateImgGenInfo()" style="accent-color:var(--teal);width:16px;height:16px">
+        <label style="display:flex;align-items:center;gap:8px;font-size:.76rem;color:var(--ink);margin-bottom:6px;cursor:pointer;padding:8px 10px;background:var(--sand);border-radius:8px;border:1px solid var(--sand2)">
+          <input type="checkbox" id="imggenReplaceAll" onchange="onImgReplaceToggle()" style="accent-color:var(--teal);width:16px;height:16px">
           <span>Vorhandene Bilder ersetzen</span>
         </label>
+        <div id="imggenReplacePanel" style="display:none;margin-bottom:10px;border:1.5px solid var(--sand2);border-radius:10px;overflow:hidden"></div>
         <button class="scan-key-btn" id="igGenBtn" onclick="startImgGen()">🎨 KI-Bilder generieren</button>
         <button class="scan-key-btn" id="igStopBtn" onclick="stopImgGen()" style="display:none;background:#c0392b;margin-top:6px">⏹ Generierung stoppen</button>
         <div id="igProgWrap" style="display:none;margin-top:12px">
@@ -4809,28 +4810,145 @@ async function _dalleGenImg(rid,recipe){
 
 // ── KI-BILD-TAB ──────────────────────────────────────────────────────────────
 function updateImgGenInfo(){
-  var replaceAll=!!(document.getElementById('imggenReplaceAll')&&document.getElementById('imggenReplaceAll').checked);
+  var replaceChecked=!!(document.getElementById('imggenReplaceAll')&&document.getElementById('imggenReplaceAll').checked);
+  var panelVisible=replaceChecked&&document.getElementById('imggenReplacePanel')&&document.getElementById('imggenReplacePanel').style.display!=='none';
   var all=R.filter(function(r){return r.name&&!r.blank;});
-  var eligible=replaceAll?all:all.filter(function(r){return!r.img;});
+  var eligible;
+  if(panelVisible){
+    // Panel aktiv: Rezepte ohne Foto + explizit ausgewählte
+    var withoutImg=all.filter(function(r){return!r.img;});
+    var selectedWithImg=all.filter(function(r){return r.img&&_igrSel.has(r.id);});
+    eligible=withoutImg.concat(selectedWithImg.filter(function(r){return!withoutImg.find(function(x){return x.id===r.id;});}));
+  }else if(replaceChecked){
+    eligible=all;
+  }else{
+    eligible=all.filter(function(r){return!r.img;});
+  }
   var el=document.getElementById('imggenInfo');
   var btn=document.getElementById('igGenBtn');
   if(el){
     if(!all.length){
       el.innerHTML='<span style="color:var(--br3)">ℹ️ Keine Rezepte im Buch</span>';
-    }else if(!eligible.length&&!replaceAll){
+    }else if(!eligible.length&&!replaceChecked){
       el.innerHTML='<span style="color:var(--grn)">✅ Alle Rezepte haben bereits ein KI-Foto</span>';
+    }else if(!eligible.length){
+      el.innerHTML='<span style="color:var(--br3)">ℹ️ Keine Rezepte ausgewählt</span>';
     }else{
+      var noImg=eligible.filter(function(r){return!r.img;}).length;
+      var toReplace=eligible.filter(function(r){return r.img;}).length;
+      var parts=[];
+      if(noImg)parts.push(noImg+' ohne Foto');
+      if(toReplace)parts.push(toReplace+' werden ersetzt');
       var cost=(eligible.length*0.04).toFixed(2).replace('.',',');
-      el.textContent=eligible.length+' Rezept'+(eligible.length===1?'':'e')+(replaceAll?' werden neu generiert':' ohne Foto')+' · ~'+cost+' €';
+      el.textContent=parts.join(' · ')+' · ~'+cost+' €';
     }
   }
   if(btn)btn.disabled=(!eligible.length);
 }
+
+// ── Auswahl-Panel für "Vorhandene Bilder ersetzen" ───────────────────────────
+var _igrSel=new Set();
+
+function onImgReplaceToggle(){
+  var cb=document.getElementById('imggenReplaceAll');
+  var panel=document.getElementById('imggenReplacePanel');
+  if(!cb||!panel)return;
+  if(cb.checked){
+    _renderIgrPanel();
+    panel.style.display='block';
+  }else{
+    panel.style.display='none';
+    _igrSel.clear();
+  }
+  updateImgGenInfo();
+}
+
+function _renderIgrPanel(){
+  var panel=document.getElementById('imggenReplacePanel');
+  if(!panel)return;
+  _igrSel.clear();
+  var named=R.filter(function(r){return r.name&&!r.blank;});
+  named.forEach(function(r){_igrSel.add(r.id);});
+  var cats=CATS.filter(function(c){return c.id!=='all';});
+  var html='<div style="padding:7px 10px;background:var(--parch);border-bottom:1px solid var(--sand2);display:flex;justify-content:space-between;align-items:center"><span style="font-size:.72rem;font-weight:700;color:var(--br3)">Rezepte auswählen</span><span style="display:flex;gap:5px"><button onclick="igrAllRecipes(true)" style="font-size:.65rem;padding:2px 7px;border-radius:5px;border:1px solid var(--sand2);background:var(--sand);color:var(--ink);cursor:pointer">Alle</button><button onclick="igrAllRecipes(false)" style="font-size:.65rem;padding:2px 7px;border-radius:5px;border:1px solid var(--sand2);background:var(--sand);color:var(--ink);cursor:pointer">Keine</button></span></div>';
+  cats.forEach(function(cat){
+    var recs=named.filter(function(r){return r.cat===cat.id;});
+    if(!recs.length)return;
+    html+='<div style="border-bottom:1px solid var(--sand2)">';
+    html+='<div style="display:flex;align-items:center;justify-content:space-between;padding:5px 10px;background:var(--sand);cursor:pointer" onclick="igrToggleCat(\''+cat.id+'\',this)">';
+    html+='<span style="font-size:.75rem;font-weight:700;color:var(--ink)">'+cat.ico+' '+cat.de+'</span>';
+    html+='<span style="display:flex;gap:5px"><button onclick="event.stopPropagation();igrCatAll(\''+cat.id+'\',true)" style="font-size:.63rem;padding:2px 6px;border-radius:5px;border:1px solid var(--sand2);background:var(--parch);color:var(--ink);cursor:pointer">Alle</button><button onclick="event.stopPropagation();igrCatAll(\''+cat.id+'\',false)" style="font-size:.63rem;padding:2px 6px;border-radius:5px;border:1px solid var(--sand2);background:var(--parch);color:var(--ink);cursor:pointer">Keine</button></span></div>';
+    html+='<div class="igr-cat-items" style="padding:4px 10px 6px">';
+    recs.forEach(function(r){
+      var hasImg=r.img?'🖼️ ':'';
+      html+='<label style="display:flex;align-items:center;gap:6px;padding:3px 0;font-size:.74rem;color:var(--ink);cursor:pointer">';
+      html+='<input type="checkbox" class="igr-cb" data-rid="'+r.id+'" checked onchange="igrOnChange()" style="accent-color:var(--teal);width:14px;height:14px;flex-shrink:0">';
+      html+='<span>'+hasImg+(r.name||'')+'</span></label>';
+    });
+    html+='</div></div>';
+  });
+  // Rezepte ohne Kategorie (oder unbekannte Kategorie)
+  var knownCatIds=cats.map(function(c){return c.id;});
+  var other=named.filter(function(r){return!r.cat||!knownCatIds.includes(r.cat);});
+  if(other.length){
+    html+='<div style="border-bottom:1px solid var(--sand2)">';
+    html+='<div style="display:flex;align-items:center;justify-content:space-between;padding:5px 10px;background:var(--sand)">';
+    html+='<span style="font-size:.75rem;font-weight:700;color:var(--ink)">📁 Sonstige</span>';
+    html+='<span style="display:flex;gap:5px"><button onclick="igrCatAll(\'__other\',true)" style="font-size:.63rem;padding:2px 6px;border-radius:5px;border:1px solid var(--sand2);background:var(--parch);color:var(--ink);cursor:pointer">Alle</button><button onclick="igrCatAll(\'__other\',false)" style="font-size:.63rem;padding:2px 6px;border-radius:5px;border:1px solid var(--sand2);background:var(--parch);color:var(--ink);cursor:pointer">Keine</button></span></div>';
+    html+='<div class="igr-cat-items" style="padding:4px 10px 6px">';
+    other.forEach(function(r){
+      var hasImg=r.img?'🖼️ ':'';
+      html+='<label style="display:flex;align-items:center;gap:6px;padding:3px 0;font-size:.74rem;color:var(--ink);cursor:pointer">';
+      html+='<input type="checkbox" class="igr-cb" data-rid="'+r.id+'" checked onchange="igrOnChange()" style="accent-color:var(--teal);width:14px;height:14px;flex-shrink:0">';
+      html+='<span>'+hasImg+(r.name||'')+'</span></label>';
+    });
+    html+='</div></div>';
+  }
+  panel.innerHTML=html;
+}
+
+function igrOnChange(){
+  _igrSel.clear();
+  var cbs=document.querySelectorAll('#imggenReplacePanel .igr-cb');
+  cbs.forEach(function(cb){if(cb.checked)_igrSel.add(Number(cb.dataset.rid));});
+  updateImgGenInfo();
+}
+
+function igrCatAll(catId,checked){
+  var panel=document.getElementById('imggenReplacePanel');
+  if(!panel)return;
+  var knownCatIds=CATS.filter(function(c){return c.id!=='all';}).map(function(c){return c.id;});
+  var cbs=panel.querySelectorAll('.igr-cb');
+  cbs.forEach(function(cb){
+    var rid=Number(cb.dataset.rid);
+    var r=R.find(function(x){return x.id===rid;});
+    if(!r)return;
+    var inCat=catId==='__other'?(!r.cat||!knownCatIds.includes(r.cat)):r.cat===catId;
+    if(inCat)cb.checked=checked;
+  });
+  igrOnChange();
+}
+
+function igrAllRecipes(checked){
+  var cbs=document.querySelectorAll('#imggenReplacePanel .igr-cb');
+  cbs.forEach(function(cb){cb.checked=checked;});
+  igrOnChange();
+}
+
 function stopImgGen(){_imgGenAborted=true;}
 async function startImgGen(){
   _imgGenAborted=false;
-  var replaceAll=!!(document.getElementById('imggenReplaceAll')&&document.getElementById('imggenReplaceAll').checked);
-  var rids=R.filter(function(r){return r.name&&!r.blank&&(replaceAll||!r.img);}).map(function(r){return r.id;});
+  var replaceChecked=!!(document.getElementById('imggenReplaceAll')&&document.getElementById('imggenReplaceAll').checked);
+  var panelVisible=replaceChecked&&document.getElementById('imggenReplacePanel')&&document.getElementById('imggenReplacePanel').style.display!=='none';
+  var all=R.filter(function(r){return r.name&&!r.blank;});
+  var rids;
+  if(panelVisible){
+    var withoutImg=all.filter(function(r){return!r.img;});
+    var selectedWithImg=all.filter(function(r){return r.img&&_igrSel.has(r.id);});
+    rids=withoutImg.concat(selectedWithImg).map(function(r){return r.id;});
+  }else{
+    rids=all.filter(function(r){return replaceChecked||!r.img;}).map(function(r){return r.id;});
+  }
   if(!rids.length){toast('ℹ️ Keine Rezepte zum Generieren');return;}
   var btn=document.getElementById('igGenBtn');
   var stopBtn=document.getElementById('igStopBtn');
