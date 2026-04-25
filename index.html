@@ -5865,13 +5865,52 @@ function _kbBuildCpPrompt(){
     :(dsn.hint||'');
   const zineSelId=_kbCpStyle==='zine'?(document.getElementById('aiBookZineRec')?.value||''):'';
   const zineFav=zineSelId?R.find(r=>r.id===zineSelId):null;
+  // Food-Zine style: generate standalone poster prompt pre-filled with the selected recipe
+  if(_kbCpStyle==='zine'){
+    if(!zineFav)return'';
+    const r=zineFav;
+    const ingLines=(r.ings||[]).map(i=>'• '+[(i.amt||''),(i.unit||''),(i.name||'')].filter(Boolean).join(' ')).join('\n');
+    const stepLines=(r.steps||[]).map((s,j)=>(j+1)+'. '+(s.txt||s||'').trim()).join('\n');
+    const zeit=r.prepTime?(r.prepTime+' Minuten'):'ca. 30–60 Minuten';
+    const portionen=r.servings||4;
+    const kat=catName(r.cat)||'Hauptgericht';
+    const ico=catIco(r.cat)||'🍽️';
+    let nutStr='';if(r.nutrition&&r.nutrition.kcal){const n=r.nutrition;nutStr='\nNährwerte pro Portion: '+n.kcal+' kcal | Fett: '+n.fat+'g | KH: '+n.carbs+'g | Eiweiß: '+n.protein+'g';}
+    let extras='';if((r.flavors||[]).length)extras='\nAromen/Stil: '+r.flavors.join(', ');
+    return 'Erstelle ein 1-3-seitiges, farbiges Food-Zine im Mixed-Media-Stil im DIN A4 PDF-Format zu Folgendem Rezept:\n\n'
+      +'📖 REZEPT: '+r.name+'\n'+ico+' Kategorie: '+kat+'\n'
+      +'👥 Portionen: '+portionen+' Personen\n'
+      +'⏱️ Zubereitungszeit: '+zeit+nutStr+extras+'\n\n'
+      +'🧂 ZUTATEN:\n'+(ingLines||'(keine Zutaten angegeben)')+'\n\n'
+      +'👨‍🍳 ZUBEREITUNG:\n'+(stepLines||'(keine Schritte angegeben)')+'\n\n'
+      +'━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n\n'
+      +'Füge nötige Schritt-für-Schritt-Abbildungen, Diagramme (wenn sinnvoll und kein Stilbruch) sowie Erklärungen ein.\n'
+      +'Ergänze auch gesundheitliche oder ökologische Hintergründe zum Gericht.\n\n'
+      +'Format: 1–3 Seiten · DIN A4 · Hochformat · Farbdruck · Mixed-Media-Stil\n\n'
+      +'📌 SEITE 1 — TITELSEITE (Cover)\n'
+      +'• Großes, appetitliches Bild des fertigen Gerichts (Aquarell + Foto-Collage)\n'
+      +'• Titel „'+r.name+'" in handschriftlicher / kreativer Typografie\n'
+      +'• Kurzer Teaser: Herkunft, besonderes Merkmal, Stimmung des Gerichts\n'
+      +'• Infopillen: '+portionen+' Port. · '+zeit+' · '+kat+'\n\n'
+      +'📌 SEITE 2 — ZUBEREITUNG & DIAGRAMME\n'
+      +'• Schritt-für-Schritt-Illustrationen (handgezeichnet / Infografik-Stil)\n'
+      +'• Zutaten als illustriertes Diagramm mit Mengenangaben\n'
+      +'• Infografik: Zubereitungszeit / Schwierigkeitsgrad / Portionen\n'
+      +'• Tipps & Tricks, Variationen\n\n'
+      +'📌 SEITE 3 — HINTERGRUNDWISSEN & GENUSS\n'
+      +'• Gesundheitliche Vorteile der wichtigsten Zutaten\n'
+      +'• Ökologischer Fußabdruck / Saisonalität / regionale Herkunft\n'
+      +'• Geschichte und Kultur des Gerichts\n'
+      +'• Serviervorschlag & Anrichtetipps (illustriert)\n\n'
+      +'✏️ DESIGN-STIL:\n'
+      +'Warm, einladend, lebendig — Mixed Media: Aquarell-Texturen, handgezeichnete Elemente, moderne Typografie.\n'
+      +'Einheitliche Farbpalette und Schriftfamilie über alle Seiten.';
+  }
   const recLines=recs.map((r,i)=>{
     const ings=(r.ings||[]).slice(0,6).map(g=>`${g.amt||g.amount||''} ${g.unit||''} ${g.name||''}`.trim()).filter(Boolean).join(', ');
-    const isFav=zineFav&&r.id===zineFav.id;
-    return`${i+1}. ${r.name}`+(ings?' ('+ings+')':'')+(isFav?' ⭐ Lieblingsrezept':'');
+    return`${i+1}. ${r.name}`+(ings?' ('+ings+')':'');
   }).join('\n');
-  const zineFavLine=zineFav?'\nLieblingsrezept: '+zineFav.name+' — schreibe dafür einen besonders packenden Food-Zine Poster-Text (doppelte Länge, starkes Bild, einprägsamer Slogan).\n':'';
-  const styleInstr=styleHint?('\nStil: '+styleHint+zineFavLine+'\n'):(zineFavLine?'\n'+zineFavLine:'');
+  const styleInstr=styleHint?('\nStil: '+styleHint+'\n'):'';
   const prompts={
     de:`Schreibe für die folgenden Rezepte kurze Texte für ein persönliches Kochbuch.${styleInstr}\nRezepte:\n${recLines}\n\nAntworte NUR mit diesem JSON (kein Text davor oder danach):\n{"kreativbuch":[\n  {"name":"Rezeptname","intro":"Warmherzige Einleitung (60-80 Wörter)","tip":"1 Küchentipp","serve":"Serviervorschlag (1 Satz)"},\n  ...\n]}`,
     en:`Write short texts for the following recipes for a personal cookbook.${styleInstr}\nRecipes:\n${recLines}\n\nReply ONLY with this JSON (no text before or after):\n{"kreativbuch":[\n  {"name":"Recipe name","intro":"Warm introduction (60-80 words)","tip":"1 cooking tip","serve":"Serving suggestion (1 sentence)"},\n  ...\n]}`,
