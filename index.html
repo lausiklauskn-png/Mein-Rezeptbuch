@@ -3200,7 +3200,7 @@ const LANGS={
     infoIngr:'Anpassung = persönliche Alternative …',infoSteps:'Anpassung = Temperatur, Zeit …',
     addNote:'✎ Anpassung',addFlavor:'Neue Besonderheit …',
     addAmt:'Menge',addUnit:'Einheit',addIngName:'Zutat …',addStep:'Schritt beschreiben …',dragTip:'Ziehen zum Verschieben',
-    ttlSave:'Speichern',ttlEdit:'Bearbeiten',ttlNoteEdit:'Notiz bearbeiten',ttlNoteSave:'Notiz speichern',ttlTapEdit:'Tippen zum Bearbeiten',ttlDelIng:'Zutat löschen',ttlDelStep:'Schritt löschen',ttlDelFl:'Geschmack entfernen',ttlDelImp:'Punkt entfernen',ttlDelRec:'Rezept löschen',ttlRename:'Umbenennen',ttlSpell:'KI-Korrektur',ttlApplyServ:'Portionsgröße übernehmen',
+    ttlSave:'Speichern',ttlEdit:'Bearbeiten',ttlNoteEdit:'Notiz bearbeiten',ttlNoteSave:'Notiz speichern',ttlTapEdit:'Tippen zum Bearbeiten',ttlDelIng:'Zutat löschen',ttlDelStep:'Schritt löschen',ttlDelFl:'Geschmack entfernen',ttlDelImp:'Punkt entfernen',ttlDelRec:'Rezept löschen',ttlRename:'Umbenennen',ttlSpell:'✨ KI-Textverbesserung: Rechtschreibung, Grammatik & Klarheit',ttlApplyServ:'Portionsgröße übernehmen',
     impBessLbl:'💡 Beim nächsten Mal:',impBessPH:'Verbesserungsidee …',
     ratPH:'Was war besonders gut?',saveRat:'Fortschritt speichern',
     delConfirm:'Rezept löschen?',importConfirm:'Rezepte importieren?\nAktuelle Daten werden ersetzt.',impChoiceSub:'Wie sollen die Rezepte geladen werden?',impReplace:'🔄 Ersetzen',impReplaceDesc:'Aktuelle Rezepte werden überschrieben',impMerge:'➕ Hinzufügen',impMergeDesc:'Zu bestehenden Rezepten hinzufügen',impCancel:'Abbrechen',impRecipesLabel:'Rezepte importieren',
@@ -3346,7 +3346,7 @@ const LANGS={
     infoIngr:'Note = personal substitution …',infoSteps:'Note = temperature, time …',
     addNote:'✎ Note',addFlavor:'New flavour note …',
     addAmt:'Amount',addUnit:'Unit',addIngName:'Ingredient …',addStep:'Describe step …',dragTip:'Drag to reorder',
-    ttlSave:'Save',ttlEdit:'Edit',ttlNoteEdit:'Edit note',ttlNoteSave:'Save note',ttlTapEdit:'Tap to edit',ttlDelIng:'Remove ingredient',ttlDelStep:'Remove step',ttlDelFl:'Remove flavour note',ttlDelImp:'Remove point',ttlDelRec:'Delete recipe',ttlRename:'Rename',ttlSpell:'AI proofreading',ttlApplyServ:'Apply serving size',
+    ttlSave:'Save',ttlEdit:'Edit',ttlNoteEdit:'Edit note',ttlNoteSave:'Save note',ttlTapEdit:'Tap to edit',ttlDelIng:'Remove ingredient',ttlDelStep:'Remove step',ttlDelFl:'Remove flavour note',ttlDelImp:'Remove point',ttlDelRec:'Delete recipe',ttlRename:'Rename',ttlSpell:'✨ AI text improvement: spelling, grammar & clarity',ttlApplyServ:'Apply serving size',
     impBessLbl:'💡 Next time:',impBessPH:'Improvement idea …',
     ratPH:'What was especially good?',saveRat:'Save progress',
     delConfirm:'Delete this recipe?',importConfirm:'Import recipes?\nCurrent data will be replaced.',impChoiceSub:'How should the recipes be loaded?',impReplace:'🔄 Replace',impReplaceDesc:'Current recipes will be overwritten',impMerge:'➕ Add',impMergeDesc:'Add to existing recipes',impCancel:'Cancel',impRecipesLabel:'Import recipes',
@@ -9103,7 +9103,7 @@ function rndCard(r){
       ?`<div class="ie-row">
           <input class="ie-in ie-amt" id="ie-amt-${r.id}-${i.id}" value="${h(i.amt)}" placeholder="${T('addAmt')}">
           <input class="ie-in ie-unit" id="ie-unit-${r.id}-${i.id}" value="${h(i.unit)}" placeholder="${T('addUnit')}">
-          <input class="ie-in ie-name" id="ie-name-${r.id}-${i.id}" value="${h(i.name)}" placeholder="${T('addIngName')}"
+          <input class="ie-in ie-name" id="ie-name-${r.id}-${i.id}" value="${h(i.name)}" placeholder="${T('addIngName')}" spellcheck="true"
             onkeydown="if(event.key==='Enter'){event.preventDefault();saveIngEdit(${r.id},${i.id});}if(event.key==='Escape')cancelIngEdit(${r.id},${i.id});">
           <button class="nsave" onclick="saveIngEdit(${r.id},${i.id})" title="Speichern">✓</button>
           <button class="ncancel" onclick="cancelIngEdit(${r.id},${i.id})" title="Abbrechen">✕</button>
@@ -9133,7 +9133,7 @@ function rndCard(r){
       :`<button class="nadd" style="margin:0 0 4px 28px" onclick="openNote('${nk}')">${T('addNote')}</button>`;
     const stepRowEl=sed
       ?`<div class="neditor" style="margin:2px 0 6px 0">
-          <textarea class="nta" id="se-txt-${r.id}-${s.id}" rows="3"
+          <textarea class="nta" id="se-txt-${r.id}-${s.id}" rows="3" spellcheck="true"
             onkeydown="if(event.key==='Escape')cancelStepEdit(${r.id},${s.id});">${h(s.txt)}</textarea>
           <div class="nbtns">
             <button class="nsave" onclick="saveStepEdit(${r.id},${s.id})" title="Speichern">✓</button>
@@ -9196,7 +9196,7 @@ function rndCard(r){
       <div class="sec">
         <div class="slbl">${T('sFlavors')}</div>
         <div class="fl-wrap">${flavTags}</div>
-        <div class="arow"><input class="txtin" id="fi-${r.id}" placeholder="${T('addFlavor')}" onkeydown="if(event.key==='Enter')addFl(${r.id})"/>
+        <div class="arow"><input class="txtin" id="fi-${r.id}" placeholder="${T('addFlavor')}" spellcheck="true" onkeydown="if(event.key==='Enter')addFl(${r.id})"/>
           <button class="apill" onclick="addFl(${r.id})">+</button></div>
       </div>
       <div class="srv-bar">
@@ -9246,7 +9246,7 @@ function rndCard(r){
         <div class="add-ing">
           <input placeholder="${T('addAmt')}" id="ia-${r.id}"/>
           <input placeholder="${T('addUnit')}" id="iu-${r.id}"/>
-          <input placeholder="${T('addIngName')}" id="in-${r.id}" onkeydown="if(event.key==='Enter')addIng(${r.id})"/>
+          <input placeholder="${T('addIngName')}" id="in-${r.id}" spellcheck="true" onkeydown="if(event.key==='Enter')addIng(${r.id})"/>
           <div class="ac"><button class="apill r" onclick="addIng(${r.id})">+</button></div>
         </div>
       </div>
@@ -9255,7 +9255,7 @@ function rndCard(r){
         <div class="infonote"><span>🔧</span><span>${T('infoSteps')}</span></div>
         <ul class="step-ul">${steps}</ul>
         <div class="add-step">
-          <textarea class="stepta" id="sti-${r.id}" placeholder="${T('addStep')}" rows="2"
+          <textarea class="stepta" id="sti-${r.id}" placeholder="${T('addStep')}" rows="2" spellcheck="true"
             onkeydown="if(event.key==='Enter'&&!event.shiftKey){event.preventDefault();addStep(${r.id});}"></textarea>
           <button class="stepadd" style="background:${cc}" onclick="addStep(${r.id})">+</button>
         </div>
@@ -9269,11 +9269,11 @@ function rndCard(r){
         <div class="slbl">${T('sRating')}</div>
         <div class="ratbox">
           <div class="stars-row">${stars}</div>
-          <textarea class="ratta" id="rc-${r.id}" placeholder="${T('ratPH')}" rows="3">${h(rat.comment||'')}</textarea>
+          <textarea class="ratta" id="rc-${r.id}" placeholder="${T('ratPH')}" rows="3" spellcheck="true">${h(rat.comment||'')}</textarea>
           <span class="implbl">${T('impBessLbl')}</span>
           <ul class="imp-ul">${imps}</ul>
           <div class="add-imp">
-            <input class="impin" id="ii-${r.id}" placeholder="${T('impBessPH')}" onkeydown="if(event.key==='Enter')addImp(${r.id})"/>
+            <input class="impin" id="ii-${r.id}" placeholder="${T('impBessPH')}" spellcheck="true" onkeydown="if(event.key==='Enter')addImp(${r.id})"/>
             <button class="impadd" onclick="addImp(${r.id})">+</button>
           </div>
           <button class="saverat" id="srb-${r.id}" onclick="saveRat(${r.id})">${T('saveRat')}</button>
@@ -10601,7 +10601,7 @@ function openInlineEdit(id) {
   const el = document.getElementById('rname-' + id);
   if (!el) return;
   el.innerHTML = `<div class="rname-edit-row">
-    <input class="rname-input" id="rni-${id}" placeholder="${catName(r.cat)} …"
+    <input class="rname-input" id="rni-${id}" placeholder="${catName(r.cat)} …" spellcheck="true"
       onkeydown="if(event.key==='Enter'){event.preventDefault();saveInlineName(${id});}if(event.key==='Escape')cancelInlineEdit(${id});"
       onclick="event.stopPropagation()"/>
     <button class="rni-ok" onclick="event.stopPropagation();saveInlineName(${id})" title="${T('ttlSave')}">✓</button>
@@ -10647,7 +10647,7 @@ async function spellCheckCard(id) {
 
   // Zeige Modal mit Ladeindikator
   document.getElementById('spellContent').innerHTML =
-    `<div class="spell-loading">✨ Prüfe Rechtschreibung …</div>`;
+    `<div class="spell-loading">✨ KI verbessert dein Rezept …</div>`;
   const _sm = document.getElementById('spellModal');
   _sm.style.display = 'flex';
 
@@ -10658,10 +10658,10 @@ async function spellCheckCard(id) {
     steps: (r.steps || []).map(s => s.txt)
   };
 
-  const prompt = `Korrigiere Rechtschreibfehler im folgenden Rezept-JSON.
+  const prompt = `Verbessere das folgende Rezept-JSON: korrigiere Rechtschreibfehler und Grammatikfehler, und verbessere die Verständlichkeit der Zubereitungsschritte wo nötig.
 Gib NUR das korrigierte JSON zurück, KEINE Erklärungen, KEIN Markdown.
-Korrigiere nur echte Rechtschreibfehler.
-Verändere NICHT: Eigennamen, Markennamen, Dialektwörter, Kunstnamen, Mengangaben.
+Verändere NICHT: Eigennamen, Markennamen, Dialektwörter, Mengenangaben, Maßeinheiten.
+Behalte den Schreibstil und Ton des Autors bei. Verändere keine Fakten.
 ${JSON.stringify(recData)}`;
 
   try {
@@ -10709,7 +10709,7 @@ function renderSpellModal(r, corrected) {
   }
 
   html += `<div style="font-size:.73rem;color:var(--br3);margin-bottom:10px">
-    Bearbeite die Felder nach Wunsch und übernimm die Korrekturen:</div>`;
+    <strong style="color:var(--gold)">✨ KI-Textverbesserung</strong> — Rechtschreibung, Grammatik &amp; Klarheit der Schritte.<br>Bearbeite die Felder nach Wunsch und übernimm nur was dir gefällt:</div>`;
 
   // Name
   html += `<div class="spell-section">
