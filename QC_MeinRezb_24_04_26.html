@@ -5858,11 +5858,33 @@ let _kbCpStyle='auto';
 function _kbFillZineSelect(){
   const sel=document.getElementById('aiBookZineRec');
   if(!sel)return;
-  const ids=[..._aiBookSel];
-  const recs=R.filter(r=>ids.includes(r.id)&&r.name);
   const cur=sel.value;
-  sel.innerHTML='<option value="">– Kein Lieblingsrezept –</option>'
-    +recs.map(r=>`<option value="${r.id}"${r.id===cur?' selected':''}>${r.name}</option>`).join('');
+  const allRecs=R.filter(r=>r.name&&!r.blank);
+  let html='<option value="">– Kein Lieblingsrezept –</option>';
+  CATS.filter(c=>c.id!=='all').forEach(c=>{
+    const recs=allRecs.filter(r=>r.cat===c.id);
+    if(!recs.length)return;
+    html+=`<optgroup label="${c.ico} ${c[CL]||c.de}">`;
+    recs.forEach(r=>{html+=`<option value="${r.id}"${r.id===cur?' selected':''}>${r.name}</option>`;});
+    html+='</optgroup>';
+  });
+  FD.forEach(f=>{
+    const fid='fld_'+f.id;
+    const recs=allRecs.filter(r=>r.cat===fid);
+    if(!recs.length)return;
+    html+=`<optgroup label="${f.ico||'📁'} ${f.name}">`;
+    recs.forEach(r=>{html+=`<option value="${r.id}"${r.id===cur?' selected':''}>${r.name}</option>`;});
+    html+='</optgroup>';
+  });
+  const knownCats=new Set([...CATS.filter(c=>c.id!=='all').map(c=>c.id),...FD.map(f=>'fld_'+f.id)]);
+  const rest=allRecs.filter(r=>!knownCats.has(r.cat));
+  if(rest.length){
+    html+='<optgroup label="📝 Sonstiges">';
+    rest.forEach(r=>{html+=`<option value="${r.id}"${r.id===cur?' selected':''}>${r.name}</option>`;});
+    html+='</optgroup>';
+  }
+  sel.innerHTML=html;
+  if(cur)sel.value=cur;
 }
 
 function _kbCpPickStyle(key){
@@ -5935,7 +5957,7 @@ function _kbBuildCpPrompt(){
     const ico=catIco(r.cat)||'🍽️';
     let nutStr='';if(r.nutrition&&r.nutrition.kcal){const n=r.nutrition;nutStr='\nNährwerte pro Portion: '+n.kcal+' kcal | Fett: '+n.fat+'g | KH: '+n.carbs+'g | Eiweiß: '+n.protein+'g';}
     let extras='';if((r.flavors||[]).length)extras='\nAromen/Stil: '+r.flavors.join(', ');
-    return 'Erstelle ein 1-3-seitiges, farbiges Food-Zine im Mixed-Media-Stil im DIN A4 PDF-Format zu Folgendem Rezept:\n\n'
+    return 'Erstelle ein 1-3-seitiges, farbiges Food-Zine im Mixed-Media-Stil im DIN A4 Format zu Folgendem Rezept:\n\n'
       +'📖 REZEPT: '+r.name+'\n'+ico+' Kategorie: '+kat+'\n'
       +'👥 Portionen: '+portionen+' Personen\n'
       +'⏱️ Zubereitungszeit: '+zeit+nutStr+extras+'\n\n'
@@ -8858,6 +8880,7 @@ function renderFolders(){
   const btn=document.getElementById('fldToggleAll');
   if(btn){const allOpen=[...tree.querySelectorAll('.fld-grp')].every(g=>g.querySelector('.fld-recs')?.classList.contains('open'));btn.textContent=allOpen?'▲ Alle einklappen':'▼ Alle aufklappen';}
   setupTouchDrag();
+  if(typeof _kbFillZineSelect==='function')_kbFillZineSelect();
 }
 function deleteFolder(fid,name){
   if(!confirm('Ordner "'+name+'" löschen? Enthaltene Rezepte werden nicht gelöscht.'))return;
