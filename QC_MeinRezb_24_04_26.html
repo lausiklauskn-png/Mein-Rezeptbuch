@@ -2777,9 +2777,9 @@ Vielen Dank für deine Unterstützung.</div>
           </div>
         </div>
         <label class="kbk-add-lbl" for="kbkFileIn">📎 Bilder hinzufügen</label>
-        <label class="kbk-proj-lbl" for="kbkProjIn" title="Gespeichertes Kreativbuch-Projekt laden und weiterbearbeiten">📂 Kreativbuch laden</label>
+        <label class="kbk-proj-lbl" for="kbkProjIn" title="Gespeichertes Kreativbuch-Projekt (.kreativbuch) laden — oder Fotos &amp; PDFs direkt hinzufügen">📂 Kreativbuch laden</label>
         <input type="file" id="kbkFileIn" multiple accept="image/jpeg,image/png,image/webp,image/gif,application/pdf" style="display:none" onchange="kbkAddFiles(this.files)">
-        <input type="file" id="kbkProjIn" accept=".kreativbuch" style="display:none" onchange="kbkLoadProject(this.files)">
+        <input type="file" id="kbkProjIn" accept=".kreativbuch,image/jpeg,image/png,image/webp,image/gif,application/pdf" multiple style="display:none" onchange="kbkLoadProject(this.files)">
         <div id="kbkCounter" style="display:none">
           <div class="kbk-counter-row">
             <span class="kbk-counter-txt" id="kbkCounterTxt">0 / 30 Bilder</span>
@@ -13055,24 +13055,32 @@ var qrcode=function(){var t=function(t,r){var e=t,n=g[r],o=null,i=0,a=null,u=[],
   };
 
   window.kbkLoadProject=function(files){
-    const file=files[0]; if(!file)return;
-    const reader=new FileReader();
-    reader.onload=e=>{
-      try{
-        const data=JSON.parse(e.target.result);
-        if(!data.images||!Array.isArray(data.images))throw new Error();
-        const slots=KBK_MAX-kbkImages.length;
-        if(!slots){kbkShowProg('⚠ Maximale Anzahl ('+KBK_MAX+' Bilder) bereits erreicht.');document.getElementById('kbkProjIn').value='';return;}
-        const toAdd=data.images.slice(0,slots).filter(img=>img&&img.thumbUrl);
-        kbkImages.push(...toAdd);
-        kbkRender();
-        kbkShowProg('✅ '+toAdd.length+' Seite'+(toAdd.length!==1?'n':'')+' aus gespeichertem Projekt geladen.');
-      }catch(err){
-        kbkShowProg('⚠ Datei ungültig oder beschädigt — bitte eine .kreativbuch-Datei wählen.');
-      }
-      document.getElementById('kbkProjIn').value='';
-    };
-    reader.readAsText(file);
+    const list=Array.from(files); if(!list.length)return;
+    const mediaFiles=list.filter(f=>f.type.startsWith('image/')||f.type==='application/pdf'||f.name.toLowerCase().endsWith('.pdf'));
+    const projFiles=list.filter(f=>f.name.toLowerCase().endsWith('.kreativbuch'));
+    if(mediaFiles.length) kbkAddFiles(mediaFiles);
+    if(projFiles.length){
+      const file=projFiles[0];
+      const reader=new FileReader();
+      reader.onload=e=>{
+        try{
+          const data=JSON.parse(e.target.result);
+          if(!data.images||!Array.isArray(data.images))throw new Error();
+          const slots=KBK_MAX-kbkImages.length;
+          if(!slots){kbkShowProg('⚠ Maximale Anzahl ('+KBK_MAX+' Bilder) bereits erreicht.');return;}
+          const toAdd=data.images.slice(0,slots).filter(img=>img&&img.thumbUrl);
+          kbkImages.push(...toAdd);
+          kbkRender();
+          kbkShowProg('✅ '+toAdd.length+' Seite'+(toAdd.length!==1?'n':'')+' aus gespeichertem Projekt geladen.');
+        }catch(err){
+          kbkShowProg('⚠ Datei ungültig oder beschädigt — bitte eine .kreativbuch-Datei wählen.');
+        }
+      };
+      reader.readAsText(file);
+    } else if(!mediaFiles.length){
+      kbkShowProg('⚠ Datei ungültig — bitte eine .kreativbuch-Datei, ein Foto (JPG/PNG/WEBP) oder ein PDF wählen.');
+    }
+    document.getElementById('kbkProjIn').value='';
   };
 
   window.kbkExport=function(){
