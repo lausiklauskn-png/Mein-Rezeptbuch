@@ -262,6 +262,8 @@ body.nav-collapsed{padding-bottom:calc(16px + var(--sb))}
 .ra.del{background:transparent;border:1px solid rgba(0,0,0,.08);color:var(--br3)}
 .ra.imgr{background:var(--teals);border:1px solid var(--teal);color:var(--teal)}
 .ra:active{opacity:.65}
+.ra-cam{background:var(--teals);border:1px solid var(--teal);color:var(--teal);width:26px;padding:0;border-radius:50%}
+.ra-zine{background:linear-gradient(135deg,rgba(184,85,53,0.18),rgba(160,64,26,0.18));border:1px solid rgba(184,85,53,0.45);color:var(--rust);height:36px;padding:0 16px;border-radius:18px;font-size:.72rem}
 .blank-add-btn{display:block;width:100%;padding:7px;border:none;
   background:var(--rust);color:#fff;font-size:.72rem;font-weight:700;
   font-family:inherit;cursor:pointer;letter-spacing:.03em}
@@ -9067,12 +9069,14 @@ function rndCard(r){
         ${r.name?`<div class="rcard-acts" onclick="event.stopPropagation()">
           ${r.name?`<button class="ra ren" onclick="event.stopPropagation();startRename(${r.id})" title="${T('ttlRename')}">✏️</button>`:''}
           ${r.name?`<button class="ra imgr" onclick="pickImgForCard(${r.id})" title="${T('addImg')}">🖼️</button>`:''}
+          ${r.name?`<button class="ra ra-cam" onclick="event.stopPropagation();generateFreePhoto(${r.id})" title="${T('freeFotoBtnTitle')}">📸✨</button>`:''}
           ${r.name?`<button class="ra ${inMenu?'gld':'out'}" onclick="event.stopPropagation();${inMenu?`removeFromMenu(${r.id})`:`openCSheet(${r.id})`}" title="${inMenu?T('inMenuRm'):T('addToMenu')}">${inMenu?mSlot.ico+' ✓':T('addToMenu')}</button>`:''}
           ${r.name?`<button class="ra ren" onclick="event.stopPropagation();spellCheckCard(${r.id})" title="${T('ttlSpell')}" style="background:var(--golds);border-color:var(--gold);color:var(--gold)">✨</button>`:''}
           ${r.name?`<button class="ra ren" onclick="event.stopPropagation();shareRecipeQR(${r.id})" title="${T('shareTtl')}" style="background:var(--teals);border-color:var(--teal);color:var(--teal)">📤</button>`:''}
           ${r.name?`<button class="ra ren" onclick="event.stopPropagation();showNutrition(${r.id})" title="${T('nutrTtl')}" style="background:var(--grns);border-color:var(--grn);color:var(--grn)">🥗</button>`:''}
           <button class="ra del" onclick="delRecipe(${r.id})" title="${T('ttlDelRec')}">🗑</button>
           ${(_undoStack[r.id]||[]).length>0?`<button class="ra" onclick="event.stopPropagation();undoRec(${r.id})" title="${T('undoTtl')}" style="background:var(--sand);border:1.5px solid var(--sand2);color:var(--br2)">↩ ${(_undoStack[r.id]||[]).length}</button>`:''}
+          ${r.name&&getOpenAiImgKey()?`<button class="ra ra-zine" onclick="event.stopPropagation();openZineDialog(${r.id})" title="${T('zineBtnTitle')}">🎨 Food-Zine</button>`:''}
         </div>`:''}
         ${inMenu?`<span class="mnbadge">${mSlot.ico} ${mSlot.lbl}</span>`:''}
         ${isBlank?`<div style="font-size:.68rem;color:var(--br3);margin-top:3px;font-style:italic">👆 Tippen um Namen einzugeben</div>`:``}
@@ -9082,8 +9086,6 @@ function rndCard(r){
         <div class="chint">${r.shut?'▼ aufklappen':'▲ einklappen'}</div>
       </div>`}
     </div>
-    ${r.name?(()=>{const d=r.shut?'none':'flex';const free=`<button class="imgbar" style="flex:1" onclick="generateFreePhoto(${r.id})" title="${T('freeFotoBtnTitle')}">📸</button>`;const zine=getOpenAiImgKey()?`<button class="imgbar" onclick="openZineDialog(${r.id})" title="${T('zineBtnTitle')}" style="padding:7px 11px;border-left:1px solid var(--sand2)">🎨</button>`:'';return`<div style="display:${d};border-bottom:1px solid var(--sand2)">${free}${zine}</div>`;})():''}
-    ${r.name&&!isBlank?'':''}
     <div class="rbody ${r.shut?'shut':''}">
       ${isBlank?`<div style="padding:7px 11px;background:var(--teals);font-size:.72rem;color:#1e4a45;display:flex;gap:5px;border-bottom:1px solid var(--sand2)"><span>✏️</span>${T('blankHint')}</div>`:''}
       <div class="sec">
@@ -13177,10 +13179,7 @@ async function startZine(tier){
 // ── Dialog-Steuerung ──────────────────────────────────
 function openZineDialog(rid){
   _zineRid=rid;
-  document.getElementById('zineModeDialog').style.display='flex';
-}
-function closeZineDialog(){
-  document.getElementById('zineModeDialog').style.display='none';
+  startZine('standard');
 }
 
 // ── Viewer-Steuerung ──────────────────────────────────
@@ -13423,40 +13422,6 @@ function saveZinePage(idx){
   </div>
 </div>
 
-<!-- ── KI-Zine: Modus-Auswahl ──────────────────────────── -->
-<div id="zineModeDialog" class="zine-mode-ov" style="display:none" onclick="if(event.target===this)closeZineDialog()">
-  <div class="zine-mode-card">
-    <div class="zine-mode-title" id="zineModeTitle">✨ KI-Zine erstellen</div>
-    <div class="zine-mode-meta" id="zineModeMeta">📄 3 Seiten · Qualität wählen</div>
-    <div class="zine-tier-cards">
-      <div class="zine-tier-card">
-        <div class="zine-tier-icon">⚡</div>
-        <div class="zine-tier-name">Schnell</div>
-        <div class="zine-tier-feat">Textseiten<br>kein Bild</div>
-        <div class="zine-tier-price">Gratis</div>
-        <button class="zine-tier-btn" onclick="startZine('text')">Wählen</button>
-      </div>
-      <div class="zine-tier-card">
-        <div class="zine-tier-icon">✨</div>
-        <div class="zine-tier-name">Standard</div>
-        <div class="zine-tier-feat">3 Bilder<br>Standard</div>
-        <div class="zine-tier-price">~0,17 $</div>
-        <button class="zine-tier-btn" onclick="startZine('standard')">Wählen</button>
-      </div>
-      <div class="zine-tier-card">
-        <div class="zine-tier-icon">🏆</div>
-        <div class="zine-tier-name">Premium</div>
-        <div class="zine-tier-feat">3 Bilder HD<br>Hochformat</div>
-        <div class="zine-tier-price">~0,25 $</div>
-        <button class="zine-tier-btn" onclick="startZine('premium')">Wählen</button>
-      </div>
-    </div>
-    <div class="zine-cost-box">
-      <span id="zineCostNote">Von deinem OpenAI-Guthaben · Keine Abo-Kosten</span>
-    </div>
-    <button class="zine-cancel-btn" onclick="closeZineDialog()" id="zineCancelBtn" style="margin-top:4px;width:100%">Abbrechen</button>
-  </div>
-</div>
 
 <!-- ── KI-Zine: Viewer ─────────────────────────────────── -->
 <div class="fov" id="zineOv" style="display:none">
