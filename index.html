@@ -12958,14 +12958,35 @@ var qrcode=function(){var t=function(t,r){var e=t,n=g[r],o=null,i=0,a=null,u=[],
   }
 
   function kbkLoadPdf(file,cb){
-    const objUrl=URL.createObjectURL(file);
-    const img=new Image();
-    let settled=false;
-    const fallback=()=>{ if(settled)return; settled=true; URL.revokeObjectURL(objUrl); kbkImages.push({name:file.name,thumbUrl:kbkPlaceholder(file.name),exportUrl:null,isPdf:true,pdfName:file.name}); cb(); };
-    img.onload=()=>{ if(settled)return; settled=true; URL.revokeObjectURL(objUrl); if(img.naturalWidth>0){ kbkImages.push({name:file.name,thumbUrl:kbkResize(img,KBK_THUMB_PX),exportUrl:kbkResize(img,KBK_EXPORT_PX)}); } else fallback(); cb(); };
-    img.onerror=fallback;
-    setTimeout(fallback,2000);
-    img.src=objUrl;
+    const fallback=()=>{ kbkImages.push({name:file.name,thumbUrl:kbkPlaceholder(file.name),exportUrl:null,isPdf:true,pdfName:file.name}); cb(); };
+    function doRender(){
+      const reader=new FileReader();
+      reader.onload=async e=>{
+        try{
+          const pdf=await pdfjsLib.getDocument({data:new Uint8Array(e.target.result)}).promise;
+          const baseName=file.name.replace(/\.pdf$/i,'');
+          for(let i=1;i<=pdf.numPages;i++){
+            if(kbkImages.length>=KBK_MAX)break;
+            const page=await pdf.getPage(i);
+            const vp=page.getViewport({scale:2});
+            const canvas=document.createElement('canvas');
+            canvas.width=vp.width; canvas.height=vp.height;
+            await page.render({canvasContext:canvas.getContext('2d'),viewport:vp}).promise;
+            const pageName=pdf.numPages>1?baseName+' S.'+i:file.name;
+            kbkImages.push({name:pageName,thumbUrl:kbkResize(canvas,KBK_THUMB_PX),exportUrl:kbkResize(canvas,KBK_EXPORT_PX)});
+          }
+          cb();
+        }catch(err){ fallback(); }
+      };
+      reader.onerror=fallback;
+      reader.readAsArrayBuffer(file);
+    }
+    if(window.pdfjsLib){doRender();return;}
+    const s=document.createElement('script');
+    s.src='https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js';
+    s.onload=()=>{pdfjsLib.GlobalWorkerOptions.workerSrc='https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';doRender();};
+    s.onerror=fallback;
+    document.head.appendChild(s);
   }
 
   function kbkRender(){
