@@ -603,6 +603,10 @@ body.nav-collapsed{padding-bottom:calc(16px + var(--sb))}
 .kbk-add-cell:active{background:var(--sand2)}
 .kbk-export-btn{width:100%;margin-top:8px;padding:10px;border:none;border-radius:8px;background:var(--teals);color:var(--teal);border:1.5px solid var(--teal);font-size:.82rem;font-weight:700;cursor:pointer;font-family:inherit;transition:background .15s}
 .kbk-export-btn:active{background:var(--teal);color:#fff}
+.kbk-proj-lbl{display:inline-flex;align-items:center;gap:6px;background:transparent;border:1.5px solid var(--br3);border-radius:9px;padding:8px 14px;font-size:.82rem;cursor:pointer;color:var(--br);font-weight:600;font-family:inherit;transition:background .15s;margin-bottom:10px;margin-left:8px;user-select:none}
+.kbk-proj-lbl:active{background:var(--sand)}
+.kbk-save-btn{width:100%;margin-top:6px;padding:10px;border:1.5px solid var(--br3);border-radius:8px;background:transparent;color:var(--br);font-size:.82rem;font-weight:700;cursor:pointer;font-family:inherit;transition:background .15s}
+.kbk-save-btn:active{background:var(--sand)}
 .exp-btn.pur{background:#f0e8ff;color:#6600cc;border:1.5px solid #8833dd}.exp-btn.pur:active{background:#8833dd;color:#fff}
 #aiBookOv .fov-hdr{background:linear-gradient(90deg,#5500bb,#8833dd,#bb55ff)}
 #aiBookOv .fov-body{padding:0;overflow:hidden;display:flex;flex-direction:column}
@@ -2754,7 +2758,7 @@ Vielen Dank für deine Unterstützung.</div>
         <div class="exp-ico">📸</div>
         <div style="flex:1">
           <div class="exp-title">Eigenes Kreativbuch</div>
-          <div class="exp-desc">Lade deine eigenen Fotos hoch — sortiere sie per Drag &amp; Drop und erstelle daraus ein Kochbuch-PDF. Unterstützt JPG, PNG, WEBP, PDF. Bis zu 30 Seiten, alles im Browser — kein Upload auf einen Server.</div>
+          <div class="exp-desc">Lade deine eigenen Fotos hoch — sortiere sie per Drag &amp; Drop und erstelle daraus ein Kochbuch-PDF. Unterstützt JPG, PNG, WEBP, PDF. Bis zu 30 Seiten, alles im Browser — kein Upload auf einen Server. <b>Angefangenes Kreativbuch laden</b> um es zu ergänzen oder neu zu ordnen.</div>
         </div>
       </div>
       <div style="margin-top:10px;width:100%">
@@ -2773,7 +2777,9 @@ Vielen Dank für deine Unterstützung.</div>
           </div>
         </div>
         <label class="kbk-add-lbl" for="kbkFileIn">📎 Bilder hinzufügen</label>
+        <label class="kbk-proj-lbl" for="kbkProjIn" title="Gespeichertes Kreativbuch-Projekt laden und weiterbearbeiten">📂 Kreativbuch laden</label>
         <input type="file" id="kbkFileIn" multiple accept="image/jpeg,image/png,image/webp,image/gif,application/pdf" style="display:none" onchange="kbkAddFiles(this.files)">
+        <input type="file" id="kbkProjIn" accept=".kreativbuch" style="display:none" onchange="kbkLoadProject(this.files)">
         <div id="kbkCounter" style="display:none">
           <div class="kbk-counter-row">
             <span class="kbk-counter-txt" id="kbkCounterTxt">0 / 30 Bilder</span>
@@ -2783,6 +2789,7 @@ Vielen Dank für deine Unterstützung.</div>
         </div>
         <div id="kbkGrid" class="kbk-grid"></div>
         <button id="kbkExportBtn" class="kbk-export-btn" onclick="kbkExport()" style="display:none" title="Kochbuch-PDF aus deinen Bildern erstellen">📥 Als Kochbuch-PDF erstellen</button>
+        <button id="kbkSaveBtn" class="kbk-save-btn" onclick="kbkSaveProject()" style="display:none" title="Kreativbuch-Projekt speichern — später weitermachen oder neu ordnen">💾 Projekt speichern (.kreativbuch)</button>
         <div class="exp-prog" id="kbkProg"></div>
       </div>
     </div>
@@ -12948,7 +12955,11 @@ var qrcode=function(){var t=function(t,r){var e=t,n=g[r],o=null,i=0,a=null,u=[],
       document.getElementById('kbkBarFill').style.width=Math.round(n/KBK_MAX*100)+'%';
       const warn=document.getElementById('kbkWarnTxt'); if(warn) warn.style.display=n>=KBK_WARN?'':'none';
       counter.style.display=''; exportBtn.style.display='';
-    } else { counter.style.display='none'; exportBtn.style.display='none'; }
+      const saveBtn=document.getElementById('kbkSaveBtn'); if(saveBtn)saveBtn.style.display='';
+    } else {
+      counter.style.display='none'; exportBtn.style.display='none';
+      const saveBtn=document.getElementById('kbkSaveBtn'); if(saveBtn)saveBtn.style.display='none';
+    }
   }
 
   window.kbkDel=function(i){ kbkImages.splice(i,1); kbkRender(); };
@@ -13006,6 +13017,39 @@ var qrcode=function(){var t=function(t,r){var e=t,n=g[r],o=null,i=0,a=null,u=[],
       if(!isNaN(targetIdx)&&targetIdx!==kbkTouchIdx){ const m=kbkImages.splice(kbkTouchIdx,1)[0]; kbkImages.splice(targetIdx,0,m); }
     }
     kbkTouchIdx=null; kbkRender();
+  };
+
+  window.kbkSaveProject=function(){
+    if(!kbkImages.length){kbkShowProg('⚠ Keine Bilder zum Speichern.');return;}
+    const data=JSON.stringify({v:1,images:kbkImages});
+    const blob=new Blob([data],{type:'application/json'});
+    const a=document.createElement('a');
+    a.href=URL.createObjectURL(blob);
+    a.download='mein-kreativbuch.kreativbuch';
+    document.body.appendChild(a); a.click();
+    setTimeout(()=>{URL.revokeObjectURL(a.href);a.remove();},1000);
+    kbkShowProg('✅ Projekt gespeichert — Datei „mein-kreativbuch.kreativbuch" heruntergeladen.');
+  };
+
+  window.kbkLoadProject=function(files){
+    const file=files[0]; if(!file)return;
+    const reader=new FileReader();
+    reader.onload=e=>{
+      try{
+        const data=JSON.parse(e.target.result);
+        if(!data.images||!Array.isArray(data.images))throw new Error();
+        const slots=KBK_MAX-kbkImages.length;
+        if(!slots){kbkShowProg('⚠ Maximale Anzahl ('+KBK_MAX+' Bilder) bereits erreicht.');document.getElementById('kbkProjIn').value='';return;}
+        const toAdd=data.images.slice(0,slots).filter(img=>img&&img.thumbUrl);
+        kbkImages.push(...toAdd);
+        kbkRender();
+        kbkShowProg('✅ '+toAdd.length+' Seite'+(toAdd.length!==1?'n':'')+' aus gespeichertem Projekt geladen.');
+      }catch(err){
+        kbkShowProg('⚠ Datei ungültig oder beschädigt — bitte eine .kreativbuch-Datei wählen.');
+      }
+      document.getElementById('kbkProjIn').value='';
+    };
+    reader.readAsText(file);
   };
 
   window.kbkExport=function(){
