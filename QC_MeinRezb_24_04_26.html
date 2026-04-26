@@ -1659,6 +1659,19 @@ button:active{transform:scale(0.97)}
 .ztc-text h3{margin:0 0 6px;font-size:.88rem;font-family:Georgia,serif;color:var(--teal)}
 .ztc-step{display:flex;gap:7px;margin-bottom:5px;font-size:.77rem;align-items:flex-start}
 .ztc-num{background:var(--teal);color:#fff;border-radius:50%;width:18px;height:18px;min-width:18px;display:flex;align-items:center;justify-content:center;font-size:.67rem;font-weight:700}
+/* ── Food-Zine Prompt-Copy ── */
+.znp-prompt-box{padding:10px}
+.znp-hint{font-size:.72rem;color:var(--br3);line-height:1.45;margin-bottom:8px}
+.znp-prompt-wrap{background:var(--sand);border:1px solid var(--sand2);border-radius:7px;padding:8px 10px;font-size:.69rem;color:var(--br3);line-height:1.4;word-break:break-word;max-height:64px;overflow:hidden;transition:max-height .25s}
+.znp-prompt-wrap.znp-open{max-height:600px}
+.znp-more-btn{background:none;border:none;color:var(--teal);font-size:.7rem;cursor:pointer;padding:3px 0;display:block}
+.znp-btns{display:flex;gap:7px;margin:8px 0 6px}
+.znp-copy{flex:1;padding:9px 6px;background:var(--teals);border:1.5px solid var(--teal);border-radius:8px;font-size:.79rem;color:var(--teal);cursor:pointer;font-weight:700;transition:background .15s,color .15s}
+.znp-copy:hover,.znp-copy.znp-ok{background:var(--teal);color:#fff}
+.znp-chatgpt{flex:1;padding:9px 6px;background:#10a37f1a;border:1.5px solid #10a37f;border-radius:8px;font-size:.79rem;color:#10a37f;font-weight:700;text-align:center;text-decoration:none;display:flex;align-items:center;justify-content:center;transition:background .15s,color .15s}
+.znp-chatgpt:hover{background:#10a37f;color:#fff}
+.znp-upload-btn{width:100%;padding:9px 6px;background:var(--sand2);border:1.5px solid var(--sand2);border-radius:8px;font-size:.79rem;color:var(--br3);cursor:pointer;font-weight:600;transition:background .15s,border-color .15s,color .15s}
+.znp-upload-btn:hover{background:var(--parch);border-color:var(--teal);color:var(--teal)}
 
 /* ── Food-Zine Button in Rezeptkarte ── */
 .fzg-bar{display:flex;align-items:center;justify-content:center;gap:8px;padding:5px 14px;background:none;border:none;border-top:1px solid rgba(184,85,53,0.2);width:100%;cursor:pointer;font-size:.85rem;font-weight:700;color:var(--rust);letter-spacing:.02em;transition:opacity .12s}
@@ -9287,7 +9300,7 @@ function rndCard(r){
           ${r.name?`<button class="ra ren" onclick="event.stopPropagation();showNutrition(${r.id})" title="${T('nutrTtl')}" style="background:var(--grns);border-color:var(--grn);color:var(--grn)">🥗</button>`:''}
           <button class="ra del" onclick="delRecipe(${r.id})" title="${T('ttlDelRec')}">🗑</button>
           ${(_undoStack[r.id]||[]).length>0?`<button class="ra" onclick="event.stopPropagation();undoRec(${r.id})" title="${T('undoTtl')}" style="background:var(--sand);border:1.5px solid var(--sand2);color:var(--br2)">↩ ${(_undoStack[r.id]||[]).length}</button>`:''}
-          ${r.name&&getOpenAiImgKey()?`<button class="ra ra-zine" onclick="event.stopPropagation();openZineDialog(${r.id})" title="${T('zineBtnTitle')}">🎨 Food-Zine</button>`:''}
+          ${r.name?`<button class="ra ra-zine" onclick="event.stopPropagation();openZineDialog(${r.id})" title="${T('zineBtnTitle')}">🎨 Food-Zine</button>`:''}
         </div>`:''}
         ${inMenu?`<span class="mnbadge">${mSlot.ico} ${mSlot.lbl}</span>`:''}
         ${isBlank?`<div style="font-size:.68rem;color:var(--br3);margin-top:3px;font-style:italic">👆 Tippen um Namen einzugeben</div>`:``}
@@ -13350,7 +13363,82 @@ async function startZine(tier){
 // ── Dialog-Steuerung ──────────────────────────────────
 function openZineDialog(rid){
   _zineRid=rid;
-  startZine('standard');
+  const r=R.find(x=>x.id===rid);
+  if(!r)return;
+  _zineShowPrompts(r);
+}
+
+// ── Prompt-Copy Workflow ──────────────────────────────
+var _zinePrompts=[];
+function _zineShowPrompts(r){
+  _zinePrompts=buildZinePrompts(r);
+  _zineB64s=[null,null,null];
+  openZine(r.name);
+  for(let i=0;i<3;i++){
+    _zineSetLoading(i,false);
+    const txt=document.getElementById('zineText'+i);
+    if(!txt)continue;
+    const p=_zinePrompts[i];
+    const safe=p.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+    txt.innerHTML=
+      '<div class="znp-prompt-box">'+
+      '<div class="znp-hint">📋 Prompt kopieren → ChatGPT öffnen → Bild herunterladen → hochladen</div>'+
+      '<div class="znp-prompt-wrap" id="znpW'+i+'">'+safe+'</div>'+
+      '<button class="znp-more-btn" onclick="_znpToggle('+i+')">▼ mehr anzeigen</button>'+
+      '<div class="znp-btns">'+
+        '<button class="znp-copy" id="znpCpy'+i+'" onclick="_znpCopy('+i+')">📋 Prompt kopieren</button>'+
+        '<a class="znp-chatgpt" href="https://chatgpt.com" target="_blank" rel="noopener">ChatGPT →</a>'+
+      '</div>'+
+      '<button class="znp-upload-btn" onclick="document.getElementById(\'znpIn'+i+'\').click()">🖼️ Fertiges Bild hochladen</button>'+
+      '<input type="file" id="znpIn'+i+'" accept="image/*" style="display:none" onchange="_znpLoad('+i+',this)">'+
+      '</div>';
+    txt.style.display='block';
+  }
+}
+
+function _znpToggle(i){
+  const w=document.getElementById('znpW'+i);
+  if(!w)return;
+  const open=w.classList.toggle('znp-open');
+  const btn=w.nextElementSibling;
+  if(btn)btn.textContent=open?'▲ weniger anzeigen':'▼ mehr anzeigen';
+}
+
+function _znpCopy(i){
+  const p=_zinePrompts[i];
+  if(!p)return;
+  const done=()=>{
+    const btn=document.getElementById('znpCpy'+i);
+    if(btn){btn.textContent='✅ Kopiert!';btn.classList.add('znp-ok');setTimeout(()=>{btn.textContent='📋 Prompt kopieren';btn.classList.remove('znp-ok');},2000);}
+  };
+  if(navigator.clipboard){navigator.clipboard.writeText(p).then(done).catch(()=>{_znpCopyFallback(p);done();});}
+  else{_znpCopyFallback(p);done();}
+}
+function _znpCopyFallback(text){
+  const ta=document.createElement('textarea');
+  ta.value=text;ta.style.position='fixed';ta.style.opacity='0';
+  document.body.appendChild(ta);ta.select();
+  try{document.execCommand('copy');}catch(e){}
+  document.body.removeChild(ta);
+}
+
+function _znpLoad(i,inp){
+  const file=inp.files&&inp.files[0];
+  if(!file)return;
+  const reader=new FileReader();
+  reader.onload=e=>{
+    const dataUrl=e.target.result;
+    _zineB64s=_zineB64s||[null,null,null];
+    _zineB64s[i]=dataUrl;
+    const img=document.getElementById('zineImg'+i);
+    const txt=document.getElementById('zineText'+i);
+    const save=document.getElementById('zineSave'+i);
+    if(img){img.src=dataUrl;img.style.display='block';}
+    if(txt)txt.style.display='none';
+    if(save)save.style.display='block';
+  };
+  reader.readAsDataURL(file);
+  inp.value='';
 }
 
 // ── Viewer-Steuerung ──────────────────────────────────
@@ -13378,10 +13466,10 @@ function closeZine(){
 
 // ── Seite als Rezeptbild speichern ────────────────────
 function saveZinePage(idx){
-  const b64=_zineB64s[idx];
+  const val=_zineB64s[idx];
   const r=R.find(x=>x.id===_zineRid);
-  if(!b64||!r)return;
-  r.img='data:image/jpeg;base64,'+b64;
+  if(!val||!r)return;
+  r.img=val.startsWith('data:')?val:'data:image/png;base64,'+val;
   r.imgCrop={x:50,y:50,scale:1};
   save();
   render();
@@ -13605,7 +13693,7 @@ function saveZinePage(idx){
       <div>
         <div class="zine-page-lbl" id="zinePageLbl0">📰 Seite 1 · Cover</div>
         <div class="zine-page" id="zinePage0">
-          <div class="zine-loading" id="zineLoad0"><span class="zine-pulse" id="zineLoadTxt0">⏳ Seite 1 wird erstellt…</span></div>
+          <div class="zine-loading" id="zineLoad0" style="display:none"><span class="zine-pulse" id="zineLoadTxt0">⏳ Seite 1 wird erstellt…</span></div>
           <img id="zineImg0" src="" alt="" style="display:none"/>
           <div class="zine-err" id="zineErr0" style="display:none"></div>
           <div class="ztc-text" id="zineText0" style="display:none"></div>
@@ -13615,7 +13703,7 @@ function saveZinePage(idx){
       <div>
         <div class="zine-page-lbl" id="zinePageLbl1">📋 Seite 2 · Schritt für Schritt</div>
         <div class="zine-page" id="zinePage1">
-          <div class="zine-loading" id="zineLoad1"><span class="zine-pulse" id="zineLoadTxt1">⏳ Seite 2 wird erstellt…</span></div>
+          <div class="zine-loading" id="zineLoad1" style="display:none"><span class="zine-pulse" id="zineLoadTxt1">⏳ Seite 2 wird erstellt…</span></div>
           <img id="zineImg1" src="" alt="" style="display:none"/>
           <div class="zine-err" id="zineErr1" style="display:none"></div>
           <div class="ztc-text" id="zineText1" style="display:none"></div>
@@ -13625,7 +13713,7 @@ function saveZinePage(idx){
       <div>
         <div class="zine-page-lbl" id="zinePageLbl2">💚 Seite 3 · Gesundheit & Tipps</div>
         <div class="zine-page" id="zinePage2">
-          <div class="zine-loading" id="zineLoad2"><span class="zine-pulse" id="zineLoadTxt2">⏳ Seite 3 wird erstellt…</span></div>
+          <div class="zine-loading" id="zineLoad2" style="display:none"><span class="zine-pulse" id="zineLoadTxt2">⏳ Seite 3 wird erstellt…</span></div>
           <img id="zineImg2" src="" alt="" style="display:none"/>
           <div class="zine-err" id="zineErr2" style="display:none"></div>
           <div class="ztc-text" id="zineText2" style="display:none"></div>
