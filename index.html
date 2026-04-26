@@ -1682,6 +1682,19 @@ button:active{transform:scale(0.97)}
 .ztc-text h3{margin:0 0 6px;font-size:.88rem;font-family:Georgia,serif;color:var(--teal)}
 .ztc-step{display:flex;gap:7px;margin-bottom:5px;font-size:.77rem;align-items:flex-start}
 .ztc-num{background:var(--teal);color:#fff;border-radius:50%;width:18px;height:18px;min-width:18px;display:flex;align-items:center;justify-content:center;font-size:.67rem;font-weight:700}
+/* ── Food-Zine Prompt-Copy ── */
+.znp-prompt-box{padding:10px}
+.znp-hint{font-size:.72rem;color:var(--br3);line-height:1.45;margin-bottom:8px}
+.znp-prompt-wrap{background:var(--sand);border:1px solid var(--sand2);border-radius:7px;padding:8px 10px;font-size:.69rem;color:var(--br3);line-height:1.4;word-break:break-word;max-height:64px;overflow:hidden;transition:max-height .25s}
+.znp-prompt-wrap.znp-open{max-height:600px}
+.znp-more-btn{background:none;border:none;color:var(--teal);font-size:.7rem;cursor:pointer;padding:3px 0;display:block}
+.znp-btns{display:flex;gap:7px;margin:8px 0 6px}
+.znp-copy{flex:1;padding:9px 6px;background:var(--teals);border:1.5px solid var(--teal);border-radius:8px;font-size:.79rem;color:var(--teal);cursor:pointer;font-weight:700;transition:background .15s,color .15s}
+.znp-copy:hover,.znp-copy.znp-ok{background:var(--teal);color:#fff}
+.znp-chatgpt{flex:1;padding:9px 6px;background:#10a37f1a;border:1.5px solid #10a37f;border-radius:8px;font-size:.79rem;color:#10a37f;font-weight:700;text-align:center;text-decoration:none;display:flex;align-items:center;justify-content:center;transition:background .15s,color .15s}
+.znp-chatgpt:hover{background:#10a37f;color:#fff}
+.znp-upload-btn{width:100%;padding:9px 6px;background:var(--sand2);border:1.5px solid var(--sand2);border-radius:8px;font-size:.79rem;color:var(--br3);cursor:pointer;font-weight:600;transition:background .15s,border-color .15s,color .15s}
+.znp-upload-btn:hover{background:var(--parch);border-color:var(--teal);color:var(--teal)}
 
 /* ── Food-Zine Button in Rezeptkarte ── */
 .fzg-bar{display:flex;align-items:center;justify-content:center;gap:8px;padding:5px 14px;background:none;border:none;border-top:1px solid rgba(184,85,53,0.2);width:100%;cursor:pointer;font-size:.85rem;font-weight:700;color:var(--rust);letter-spacing:.02em;transition:opacity .12s}
@@ -2536,10 +2549,11 @@ Vielen Dank für deine Unterstützung.</div>
           <button class="scan-key-change" onclick="showImgGenSetup()" id="imggenChangeLbl" title="Schlüssel ändern">ändern</button>
         </div>
         <div id="imggenInfo" style="font-size:.74rem;color:var(--br3);margin:10px 0 8px"></div>
-        <label style="display:flex;align-items:center;gap:8px;font-size:.76rem;color:var(--ink);margin-bottom:10px;cursor:pointer;padding:8px 10px;background:var(--sand);border-radius:8px;border:1px solid var(--sand2)">
-          <input type="checkbox" id="imggenReplaceAll" onchange="updateImgGenInfo()" style="accent-color:var(--teal);width:16px;height:16px">
+        <label style="display:flex;align-items:center;gap:8px;font-size:.76rem;color:var(--ink);margin-bottom:6px;cursor:pointer;padding:8px 10px;background:var(--sand);border-radius:8px;border:1px solid var(--sand2)">
+          <input type="checkbox" id="imggenReplaceAll" onchange="onImgReplaceToggle()" style="accent-color:var(--teal);width:16px;height:16px">
           <span>Vorhandene Bilder ersetzen</span>
         </label>
+        <div id="imggenReplacePanel" style="display:none;margin-bottom:10px;border:1.5px solid var(--sand2);border-radius:10px;overflow:hidden"></div>
         <button class="scan-key-btn" id="igGenBtn" onclick="startImgGen()">🎨 KI-Bilder generieren</button>
         <button class="scan-key-btn" id="igStopBtn" onclick="stopImgGen()" style="display:none;background:#c0392b;margin-top:6px">⏹ Generierung stoppen</button>
         <div id="igProgWrap" style="display:none;margin-top:12px">
@@ -4833,28 +4847,145 @@ async function _dalleGenImg(rid,recipe){
 
 // ── KI-BILD-TAB ──────────────────────────────────────────────────────────────
 function updateImgGenInfo(){
-  var replaceAll=!!(document.getElementById('imggenReplaceAll')&&document.getElementById('imggenReplaceAll').checked);
+  var replaceChecked=!!(document.getElementById('imggenReplaceAll')&&document.getElementById('imggenReplaceAll').checked);
+  var panelVisible=replaceChecked&&document.getElementById('imggenReplacePanel')&&document.getElementById('imggenReplacePanel').style.display!=='none';
   var all=R.filter(function(r){return r.name&&!r.blank;});
-  var eligible=replaceAll?all:all.filter(function(r){return!r.img;});
+  var eligible;
+  if(panelVisible){
+    // Panel aktiv: Rezepte ohne Foto + explizit ausgewählte
+    var withoutImg=all.filter(function(r){return!r.img;});
+    var selectedWithImg=all.filter(function(r){return r.img&&_igrSel.has(r.id);});
+    eligible=withoutImg.concat(selectedWithImg.filter(function(r){return!withoutImg.find(function(x){return x.id===r.id;});}));
+  }else if(replaceChecked){
+    eligible=all;
+  }else{
+    eligible=all.filter(function(r){return!r.img;});
+  }
   var el=document.getElementById('imggenInfo');
   var btn=document.getElementById('igGenBtn');
   if(el){
     if(!all.length){
       el.innerHTML='<span style="color:var(--br3)">ℹ️ Keine Rezepte im Buch</span>';
-    }else if(!eligible.length&&!replaceAll){
+    }else if(!eligible.length&&!replaceChecked){
       el.innerHTML='<span style="color:var(--grn)">✅ Alle Rezepte haben bereits ein KI-Foto</span>';
+    }else if(!eligible.length){
+      el.innerHTML='<span style="color:var(--br3)">ℹ️ Keine Rezepte ausgewählt</span>';
     }else{
+      var noImg=eligible.filter(function(r){return!r.img;}).length;
+      var toReplace=eligible.filter(function(r){return r.img;}).length;
+      var parts=[];
+      if(noImg)parts.push(noImg+' ohne Foto');
+      if(toReplace)parts.push(toReplace+' werden ersetzt');
       var cost=(eligible.length*0.04).toFixed(2).replace('.',',');
-      el.textContent=eligible.length+' Rezept'+(eligible.length===1?'':'e')+(replaceAll?' werden neu generiert':' ohne Foto')+' · ~'+cost+' €';
+      el.textContent=parts.join(' · ')+' · ~'+cost+' €';
     }
   }
   if(btn)btn.disabled=(!eligible.length);
 }
+
+// ── Auswahl-Panel für "Vorhandene Bilder ersetzen" ───────────────────────────
+var _igrSel=new Set();
+
+function onImgReplaceToggle(){
+  var cb=document.getElementById('imggenReplaceAll');
+  var panel=document.getElementById('imggenReplacePanel');
+  if(!cb||!panel)return;
+  if(cb.checked){
+    _renderIgrPanel();
+    panel.style.display='block';
+  }else{
+    panel.style.display='none';
+    _igrSel.clear();
+  }
+  updateImgGenInfo();
+}
+
+function _renderIgrPanel(){
+  var panel=document.getElementById('imggenReplacePanel');
+  if(!panel)return;
+  _igrSel.clear();
+  var named=R.filter(function(r){return r.name&&!r.blank;});
+  named.forEach(function(r){_igrSel.add(r.id);});
+  var cats=CATS.filter(function(c){return c.id!=='all';});
+  var html='<div style="padding:7px 10px;background:var(--parch);border-bottom:1px solid var(--sand2);display:flex;justify-content:space-between;align-items:center"><span style="font-size:.72rem;font-weight:700;color:var(--br3)">Rezepte auswählen</span><span style="display:flex;gap:5px"><button onclick="igrAllRecipes(true)" style="font-size:.65rem;padding:2px 7px;border-radius:5px;border:1px solid var(--sand2);background:var(--sand);color:var(--ink);cursor:pointer">Alle</button><button onclick="igrAllRecipes(false)" style="font-size:.65rem;padding:2px 7px;border-radius:5px;border:1px solid var(--sand2);background:var(--sand);color:var(--ink);cursor:pointer">Keine</button></span></div>';
+  cats.forEach(function(cat){
+    var recs=named.filter(function(r){return r.cat===cat.id;});
+    if(!recs.length)return;
+    html+='<div style="border-bottom:1px solid var(--sand2)">';
+    html+='<div style="display:flex;align-items:center;justify-content:space-between;padding:5px 10px;background:var(--sand);cursor:pointer" onclick="igrToggleCat(\''+cat.id+'\',this)">';
+    html+='<span style="font-size:.75rem;font-weight:700;color:var(--ink)">'+cat.ico+' '+cat.de+'</span>';
+    html+='<span style="display:flex;gap:5px"><button onclick="event.stopPropagation();igrCatAll(\''+cat.id+'\',true)" style="font-size:.63rem;padding:2px 6px;border-radius:5px;border:1px solid var(--sand2);background:var(--parch);color:var(--ink);cursor:pointer">Alle</button><button onclick="event.stopPropagation();igrCatAll(\''+cat.id+'\',false)" style="font-size:.63rem;padding:2px 6px;border-radius:5px;border:1px solid var(--sand2);background:var(--parch);color:var(--ink);cursor:pointer">Keine</button></span></div>';
+    html+='<div class="igr-cat-items" style="padding:4px 10px 6px">';
+    recs.forEach(function(r){
+      var hasImg=r.img?'🖼️ ':'';
+      html+='<label style="display:flex;align-items:center;gap:6px;padding:3px 0;font-size:.74rem;color:var(--ink);cursor:pointer">';
+      html+='<input type="checkbox" class="igr-cb" data-rid="'+r.id+'" checked onchange="igrOnChange()" style="accent-color:var(--teal);width:14px;height:14px;flex-shrink:0">';
+      html+='<span>'+hasImg+(r.name||'')+'</span></label>';
+    });
+    html+='</div></div>';
+  });
+  // Rezepte ohne Kategorie (oder unbekannte Kategorie)
+  var knownCatIds=cats.map(function(c){return c.id;});
+  var other=named.filter(function(r){return!r.cat||!knownCatIds.includes(r.cat);});
+  if(other.length){
+    html+='<div style="border-bottom:1px solid var(--sand2)">';
+    html+='<div style="display:flex;align-items:center;justify-content:space-between;padding:5px 10px;background:var(--sand)">';
+    html+='<span style="font-size:.75rem;font-weight:700;color:var(--ink)">📁 Sonstige</span>';
+    html+='<span style="display:flex;gap:5px"><button onclick="igrCatAll(\'__other\',true)" style="font-size:.63rem;padding:2px 6px;border-radius:5px;border:1px solid var(--sand2);background:var(--parch);color:var(--ink);cursor:pointer">Alle</button><button onclick="igrCatAll(\'__other\',false)" style="font-size:.63rem;padding:2px 6px;border-radius:5px;border:1px solid var(--sand2);background:var(--parch);color:var(--ink);cursor:pointer">Keine</button></span></div>';
+    html+='<div class="igr-cat-items" style="padding:4px 10px 6px">';
+    other.forEach(function(r){
+      var hasImg=r.img?'🖼️ ':'';
+      html+='<label style="display:flex;align-items:center;gap:6px;padding:3px 0;font-size:.74rem;color:var(--ink);cursor:pointer">';
+      html+='<input type="checkbox" class="igr-cb" data-rid="'+r.id+'" checked onchange="igrOnChange()" style="accent-color:var(--teal);width:14px;height:14px;flex-shrink:0">';
+      html+='<span>'+hasImg+(r.name||'')+'</span></label>';
+    });
+    html+='</div></div>';
+  }
+  panel.innerHTML=html;
+}
+
+function igrOnChange(){
+  _igrSel.clear();
+  var cbs=document.querySelectorAll('#imggenReplacePanel .igr-cb');
+  cbs.forEach(function(cb){if(cb.checked)_igrSel.add(Number(cb.dataset.rid));});
+  updateImgGenInfo();
+}
+
+function igrCatAll(catId,checked){
+  var panel=document.getElementById('imggenReplacePanel');
+  if(!panel)return;
+  var knownCatIds=CATS.filter(function(c){return c.id!=='all';}).map(function(c){return c.id;});
+  var cbs=panel.querySelectorAll('.igr-cb');
+  cbs.forEach(function(cb){
+    var rid=Number(cb.dataset.rid);
+    var r=R.find(function(x){return x.id===rid;});
+    if(!r)return;
+    var inCat=catId==='__other'?(!r.cat||!knownCatIds.includes(r.cat)):r.cat===catId;
+    if(inCat)cb.checked=checked;
+  });
+  igrOnChange();
+}
+
+function igrAllRecipes(checked){
+  var cbs=document.querySelectorAll('#imggenReplacePanel .igr-cb');
+  cbs.forEach(function(cb){cb.checked=checked;});
+  igrOnChange();
+}
+
 function stopImgGen(){_imgGenAborted=true;}
 async function startImgGen(){
   _imgGenAborted=false;
-  var replaceAll=!!(document.getElementById('imggenReplaceAll')&&document.getElementById('imggenReplaceAll').checked);
-  var rids=R.filter(function(r){return r.name&&!r.blank&&(replaceAll||!r.img);}).map(function(r){return r.id;});
+  var replaceChecked=!!(document.getElementById('imggenReplaceAll')&&document.getElementById('imggenReplaceAll').checked);
+  var panelVisible=replaceChecked&&document.getElementById('imggenReplacePanel')&&document.getElementById('imggenReplacePanel').style.display!=='none';
+  var all=R.filter(function(r){return r.name&&!r.blank;});
+  var rids;
+  if(panelVisible){
+    var withoutImg=all.filter(function(r){return!r.img;});
+    var selectedWithImg=all.filter(function(r){return r.img&&_igrSel.has(r.id);});
+    rids=withoutImg.concat(selectedWithImg).map(function(r){return r.id;});
+  }else{
+    rids=all.filter(function(r){return replaceChecked||!r.img;}).map(function(r){return r.id;});
+  }
   if(!rids.length){toast('ℹ️ Keine Rezepte zum Generieren');return;}
   var btn=document.getElementById('igGenBtn');
   var stopBtn=document.getElementById('igStopBtn');
@@ -9275,7 +9406,7 @@ function rndCard(r){
           ${r.name?`<button class="ra ren" onclick="event.stopPropagation();showNutrition(${r.id})" title="${T('nutrTtl')}" style="background:var(--grns);border-color:var(--grn);color:var(--grn)">🥗</button>`:''}
           <button class="ra del" onclick="delRecipe(${r.id})" title="${T('ttlDelRec')}">🗑</button>
           ${(_undoStack[r.id]||[]).length>0?`<button class="ra" onclick="event.stopPropagation();undoRec(${r.id})" title="${T('undoTtl')}" style="background:var(--sand);border:1.5px solid var(--sand2);color:var(--br2)">↩ ${(_undoStack[r.id]||[]).length}</button>`:''}
-          ${r.name&&getOpenAiImgKey()?`<button class="ra ra-zine" onclick="event.stopPropagation();openZineDialog(${r.id})" title="${T('zineBtnTitle')}">🎨 Food-Zine</button>`:''}
+          ${r.name?`<button class="ra ra-zine" onclick="event.stopPropagation();openZineDialog(${r.id})" title="${T('zineBtnTitle')}">🎨 Food-Zine</button>`:''}
         </div>`:''}
         ${inMenu?`<span class="mnbadge">${mSlot.ico} ${mSlot.lbl}</span>`:''}
         ${isBlank?`<div style="font-size:.68rem;color:var(--br3);margin-top:3px;font-style:italic">👆 Tippen um Namen einzugeben</div>`:``}
@@ -13372,7 +13503,82 @@ async function startZine(tier){
 // ── Dialog-Steuerung ──────────────────────────────────
 function openZineDialog(rid){
   _zineRid=rid;
-  startZine('standard');
+  const r=R.find(x=>x.id===rid);
+  if(!r)return;
+  _zineShowPrompts(r);
+}
+
+// ── Prompt-Copy Workflow ──────────────────────────────
+var _zinePrompts=[];
+function _zineShowPrompts(r){
+  _zinePrompts=buildZinePrompts(r);
+  _zineB64s=[null,null,null];
+  openZine(r.name);
+  for(let i=0;i<3;i++){
+    _zineSetLoading(i,false);
+    const txt=document.getElementById('zineText'+i);
+    if(!txt)continue;
+    const p=_zinePrompts[i];
+    const safe=p.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+    txt.innerHTML=
+      '<div class="znp-prompt-box">'+
+      '<div class="znp-hint">📋 Prompt kopieren → ChatGPT öffnen → Bild herunterladen → hochladen</div>'+
+      '<div class="znp-prompt-wrap" id="znpW'+i+'">'+safe+'</div>'+
+      '<button class="znp-more-btn" onclick="_znpToggle('+i+')">▼ mehr anzeigen</button>'+
+      '<div class="znp-btns">'+
+        '<button class="znp-copy" id="znpCpy'+i+'" onclick="_znpCopy('+i+')">📋 Prompt kopieren</button>'+
+        '<a class="znp-chatgpt" href="https://chatgpt.com" target="_blank" rel="noopener">ChatGPT →</a>'+
+      '</div>'+
+      '<button class="znp-upload-btn" onclick="document.getElementById(\'znpIn'+i+'\').click()">🖼️ Fertiges Bild hochladen</button>'+
+      '<input type="file" id="znpIn'+i+'" accept="image/*" style="display:none" onchange="_znpLoad('+i+',this)">'+
+      '</div>';
+    txt.style.display='block';
+  }
+}
+
+function _znpToggle(i){
+  const w=document.getElementById('znpW'+i);
+  if(!w)return;
+  const open=w.classList.toggle('znp-open');
+  const btn=w.nextElementSibling;
+  if(btn)btn.textContent=open?'▲ weniger anzeigen':'▼ mehr anzeigen';
+}
+
+function _znpCopy(i){
+  const p=_zinePrompts[i];
+  if(!p)return;
+  const done=()=>{
+    const btn=document.getElementById('znpCpy'+i);
+    if(btn){btn.textContent='✅ Kopiert!';btn.classList.add('znp-ok');setTimeout(()=>{btn.textContent='📋 Prompt kopieren';btn.classList.remove('znp-ok');},2000);}
+  };
+  if(navigator.clipboard){navigator.clipboard.writeText(p).then(done).catch(()=>{_znpCopyFallback(p);done();});}
+  else{_znpCopyFallback(p);done();}
+}
+function _znpCopyFallback(text){
+  const ta=document.createElement('textarea');
+  ta.value=text;ta.style.position='fixed';ta.style.opacity='0';
+  document.body.appendChild(ta);ta.select();
+  try{document.execCommand('copy');}catch(e){}
+  document.body.removeChild(ta);
+}
+
+function _znpLoad(i,inp){
+  const file=inp.files&&inp.files[0];
+  if(!file)return;
+  const reader=new FileReader();
+  reader.onload=e=>{
+    const dataUrl=e.target.result;
+    _zineB64s=_zineB64s||[null,null,null];
+    _zineB64s[i]=dataUrl;
+    const img=document.getElementById('zineImg'+i);
+    const txt=document.getElementById('zineText'+i);
+    const save=document.getElementById('zineSave'+i);
+    if(img){img.src=dataUrl;img.style.display='block';}
+    if(txt)txt.style.display='none';
+    if(save)save.style.display='block';
+  };
+  reader.readAsDataURL(file);
+  inp.value='';
 }
 
 // ── Viewer-Steuerung ──────────────────────────────────
@@ -13400,10 +13606,10 @@ function closeZine(){
 
 // ── Seite als Rezeptbild speichern ────────────────────
 function saveZinePage(idx){
-  const b64=_zineB64s[idx];
+  const val=_zineB64s[idx];
   const r=R.find(x=>x.id===_zineRid);
-  if(!b64||!r)return;
-  r.img='data:image/jpeg;base64,'+b64;
+  if(!val||!r)return;
+  r.img=val.startsWith('data:')?val:'data:image/png;base64,'+val;
   r.imgCrop={x:50,y:50,scale:1};
   save();
   render();
@@ -13628,7 +13834,7 @@ function saveZinePage(idx){
       <div>
         <div class="zine-page-lbl" id="zinePageLbl0">📰 Seite 1 · Cover</div>
         <div class="zine-page" id="zinePage0">
-          <div class="zine-loading" id="zineLoad0">
+          <div class="zine-loading" id="zineLoad0" style="display:none">
             <div class="zine-loading-ico"><span class="zine-pulse">🎨</span></div>
             <div class="zine-loading-txt" id="zineLoadTxt0">Seite 1 wird erstellt…</div>
             <div class="zine-loading-sub" id="zineLoadTime0">Kann 1–5 Min. dauern</div>
@@ -13645,7 +13851,7 @@ function saveZinePage(idx){
       <div>
         <div class="zine-page-lbl" id="zinePageLbl1">📋 Seite 2 · Schritt für Schritt</div>
         <div class="zine-page" id="zinePage1">
-          <div class="zine-loading" id="zineLoad1">
+          <div class="zine-loading" id="zineLoad1" style="display:none">
             <div class="zine-loading-ico"><span class="zine-pulse">🎨</span></div>
             <div class="zine-loading-txt" id="zineLoadTxt1">Seite 2 wird erstellt…</div>
             <div class="zine-loading-sub" id="zineLoadTime1">Kann 1–5 Min. dauern</div>
@@ -13662,7 +13868,7 @@ function saveZinePage(idx){
       <div>
         <div class="zine-page-lbl" id="zinePageLbl2">💚 Seite 3 · Gesundheit & Tipps</div>
         <div class="zine-page" id="zinePage2">
-          <div class="zine-loading" id="zineLoad2">
+          <div class="zine-loading" id="zineLoad2" style="display:none">
             <div class="zine-loading-ico"><span class="zine-pulse">🎨</span></div>
             <div class="zine-loading-txt" id="zineLoadTxt2">Seite 3 wird erstellt…</div>
             <div class="zine-loading-sub" id="zineLoadTime2">Kann 1–5 Min. dauern</div>
