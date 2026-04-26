@@ -10973,7 +10973,13 @@ function renderSpellModal(r, corrected) {
       </div>`;
     }
     return `<div style="margin-bottom:5px">
-      <textarea class="spell-field" id="sp-step-${i}" rows="2" style="font-size:.76rem">${h(cs)}</textarea>
+      <div class="spell-row">
+        <div class="spell-ki-col"><textarea class="spell-field" id="sp-step-${i}" rows="2" style="font-size:.76rem">${h(cs)}</textarea></div>
+        <div class="spell-row-btns" style="margin-top:0">
+          <button class="spell-acc-btn" title="Übernehmen" onclick="this.closest('.spell-row').querySelector('input,textarea').value=this.dataset.v" data-v="${h(cs)}">✓</button>
+          <button class="spell-rej-btn" title="Zurücksetzen" onclick="this.closest('.spell-row').querySelector('input,textarea').value=this.dataset.v" data-v="${h(orig.txt)}">✕</button>
+        </div>
+      </div>
     </div>`;
   }).join('');
 
