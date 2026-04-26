@@ -2951,7 +2951,7 @@ Vielen Dank für deine Unterstützung.</div>
         </div>
       </div>
       <!-- Paste JSON + generate -->
-      <div class="aibk2-sect">
+      <div class="aibk2-sect" id="aiBookPasteSect">
         <div class="aibk2-lbl" id="aiBookPasteLbl">2. Antwort einfügen (JSON)</div>
         <textarea class="aibk2-ta" id="aiBookTa" placeholder="JSON …"></textarea>
         <button class="aibk2-gen" onclick="_kbCpGenerate()" id="aiBookGenBtn">📖 Kreativbuch erstellen</button>
@@ -6092,12 +6092,15 @@ function _kbCpPickStyle(key){
   // Grid einklappen wenn Food-Zine aktiv
   const pill=document.getElementById('aiBookZinePill');
   const grid=document.getElementById('aiBookStyleGrid');
+  const ps=document.getElementById('aiBookPasteSect');
   if(key==='zine'){
     if(pill)pill.style.display='flex';
     if(grid)grid.style.display='none';
+    if(ps)ps.style.display='none';
   } else {
     if(pill)pill.style.display='none';
     if(grid)grid.style.display='';
+    if(ps)ps.style.display='';
   }
   document.getElementById('aiBookPromptBox').value=_kbBuildCpPrompt();
 }
