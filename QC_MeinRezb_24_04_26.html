@@ -6137,7 +6137,24 @@ function _kbBuildCpPrompt(){
     const fmtDef=_FZ_FORMATS.find(f=>f.id===_fzFormat)||_FZ_FORMATS[0];
     const extraPrompts=[..._fzExtras].map(id=>(_FZ_EXTRAS_DEF.find(e=>e.id===id)||{}).prompt).filter(Boolean);
     const extraBlock=extraPrompts.length?'\n\n➕ EXTRA-ANFORDERUNGEN:\n'+extraPrompts.map(p=>'• '+p).join('\n'):'';
-    return 'Erstelle ein , farbiges Food-Zine Poster im Mixed-Media-Stil im '+fmtDef.fmt+' zu Folgendem Rezept:\n\n'
+    if(_fzFormat==='zeitung'){
+      return 'STILPRIORITÄT: Natürlich wirkende aufgeschlagene Zeitung auf einem Tisch. Realistische Zeitungspapier-Textur, sichtbare Mittelfalte, Schatten, dezente Sepia-Töne, ruhiges klassisches Zeitungslayout. Nicht Poster, nicht Zine, nicht Magazincover.\n\n'
+        +'Erstelle ein einziges Bild einer aufgeschlagenen alten Zeitung, die auf einem Tisch liegt. Die Zeitung soll wie eine echte gedruckte Rezept-Zeitungsseite wirken — nicht wie ein Poster, nicht wie ein Food-Zine und nicht wie eine moderne Infografik. Zwei gegenüberliegende Zeitungsseiten im Hochformat, mit sichtbarer Mittelfalte, Papierwellen, leichtem Schatten auf dem Tisch, Sepia-Papier, natürlicher Druckoptik und ruhigem zweispaltigem Layout.\n\n'
+        +'📖 REZEPT: '+r.name+'\n'+ico+' Kategorie: '+kat+'\n'
+        +'👥 Portionen: '+portionen+' Personen\n'
+        +'⏱️ Zubereitungszeit: '+zeit+nutStr+extras+'\n\n'
+        +'🧂 ZUTATEN:\n'+(ingLines||'(keine Zutaten angegeben)')+'\n\n'
+        +'👨‍🍳 ZUBEREITUNG:\n'+(stepLines||'(keine Schritte angegeben)')+'\n\n'
+        +'━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n\n'
+        +'📰 LAYOUT — AUFGESCHLAGENE DOPPELSEITE:\n'
+        +'Keine Titelseite, keine 3 Einzelseiten, kein Posterlayout. Alles auf einer aufgeschlagenen Doppelseite einer Zeitung.\n\n'
+        +'LINKE SEITE: Zeitungsname/Datum als gesetzte Kopfzeile · Großer Rezepttitel in klassischer Zeitungsschrift · Rezeptfoto oder Strichillustration des fertigen Gerichts · Zweispaltiger Zutatenblock und Einkaufsliste mit Checkboxen.\n\n'
+        +'RECHTE SEITE: Zubereitungsschritte als nummerierte Zeitungsspalten · Nährwerte als schlichte Textbox (keine bunte Infografik) · Kultur & Geschichte des Gerichts als kurzer Zeitungsartikel · Bewusst genießen & Serviervorschlag als abgesetzte Rubrik.\n\n'
+        +'🚫 NICHT SO: Nicht als modernes Food-Zine gestalten. Keine überfüllte Collage, keine großen bunten Sticker, keine Comic-Optik, keine Posterwirkung, keine dreigeteilte Seitenstruktur. Keine leuchtenden Farben, keine modernen Magazinelemente.\n\n'
+        +'Der Eindruck soll sein: Man sitzt am Tisch und liest eine alte gedruckte Wochenzeitung mit Rezeptseite.'
+        +extraBlock;
+    }
+    return 'Erstelle ein farbiges Food-Zine Poster im Mixed-Media-Stil im '+fmtDef.fmt+' zu Folgendem Rezept:\n\n'
       +'📖 REZEPT: '+r.name+'\n'+ico+' Kategorie: '+kat+'\n'
       +'👥 Portionen: '+portionen+' Personen\n'
       +'⏱️ Zubereitungszeit: '+zeit+nutStr+extras+'\n\n'
