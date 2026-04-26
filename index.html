@@ -798,6 +798,8 @@ body.nav-collapsed{padding-bottom:calc(16px + var(--sb))}
 .fzg-add-btn:hover{background:var(--teals)}
 .fzg-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(78px,1fr));gap:6px}
 .fzg-thumb{position:relative;border-radius:8px;overflow:hidden;cursor:pointer;aspect-ratio:4/3;background:var(--sand2)}
+.fzg-thumb.dragging{opacity:.35;border:2px dashed var(--br3)}
+.fzg-thumb.drag-over{outline:2.5px dashed var(--teal);opacity:.75}
 .fzg-thumb img{width:100%;height:100%;object-fit:cover;display:block;transition:transform .15s}
 .fzg-thumb:hover img{transform:scale(1.06)}
 .fzg-del{position:absolute;top:3px;right:3px;width:20px;height:20px;border:none;border-radius:50%;background:rgba(0,0,0,.55);color:#fff;font-size:.65rem;cursor:pointer;display:flex;align-items:center;justify-content:center}
@@ -6138,8 +6140,44 @@ function _fzgRender(){
   const g=document.getElementById('fzgGrid');if(!g)return;
   if(!_fzg.items.length){g.innerHTML='<div class="fzg-empty">Noch keine Bilder</div>';return;}
   g.innerHTML=_fzg.items.map((it,i)=>
-    `<div class="fzg-thumb" onclick="_fzgOpen(${i})"><img src="${it.thumb}" alt="" draggable="false"><button class="fzg-del" onclick="event.stopPropagation();_fzgDel(${i})" title="Entfernen">✕</button></div>`
+    `<div class="fzg-thumb" id="fzg-t${i}" draggable="true"
+      ondragstart="_fzgDS(${i})" ondragover="_fzgDO(event,${i})" ondrop="_fzgDP(${i})" ondragend="_fzgDE()"
+      ontouchstart="_fzgTS(event,${i})" ontouchmove="_fzgTM(event)" ontouchend="_fzgTE(event)"
+      onclick="_fzgOpen(${i})"><img src="${it.thumb}" alt="" draggable="false"><button class="fzg-del" onclick="event.stopPropagation();_fzgDel(${i})" title="Entfernen">✕</button></div>`
   ).join('');
+}
+let _fzgDragIdx=null,_fzgTouchIdx=null,_fzgClone=null;
+function _fzgDS(i){_fzgDragIdx=i;const el=document.getElementById('fzg-t'+i);if(el)el.classList.add('dragging');}
+function _fzgDO(e,i){e.preventDefault();document.querySelectorAll('.fzg-thumb').forEach(t=>t.classList.remove('drag-over'));if(i!==_fzgDragIdx){const el=document.getElementById('fzg-t'+i);if(el)el.classList.add('drag-over');}}
+function _fzgDP(i){if(_fzgDragIdx===null||_fzgDragIdx===i)return;const m=_fzg.items.splice(_fzgDragIdx,1)[0];_fzg.items.splice(i,0,m);_fzgRender();}
+function _fzgDE(){_fzgDragIdx=null;_fzgRender();}
+function _fzgTS(e,i){
+  _fzgTouchIdx=i;
+  const el=document.getElementById('fzg-t'+i);if(!el)return;
+  const r=el.getBoundingClientRect();
+  _fzgClone=el.cloneNode(true);
+  _fzgClone.style.cssText=`position:fixed;opacity:.8;pointer-events:none;width:${r.width}px;height:${r.height}px;top:${r.top}px;left:${r.left}px;z-index:9999;border-radius:8px;transition:none`;
+  document.body.appendChild(_fzgClone);el.classList.add('dragging');
+}
+function _fzgTM(e){
+  if(!_fzgClone)return;e.preventDefault();
+  const t=e.touches[0];
+  _fzgClone.style.top=(t.clientY-44)+'px';_fzgClone.style.left=(t.clientX-44)+'px';
+  document.querySelectorAll('.fzg-thumb').forEach(th=>th.classList.remove('drag-over'));
+  const under=document.elementFromPoint(t.clientX,t.clientY);
+  const th=under&&under.closest&&under.closest('.fzg-thumb[id^="fzg-t"]');
+  if(th)th.classList.add('drag-over');
+}
+function _fzgTE(e){
+  if(_fzgClone){_fzgClone.remove();_fzgClone=null;}
+  const t=e.changedTouches[0];
+  const under=document.elementFromPoint(t.clientX,t.clientY);
+  const th=under&&under.closest&&under.closest('.fzg-thumb[id^="fzg-t"]');
+  if(th&&_fzgTouchIdx!==null){
+    const ti=parseInt(th.id.replace('fzg-t',''),10);
+    if(!isNaN(ti)&&ti!==_fzgTouchIdx){const m=_fzg.items.splice(_fzgTouchIdx,1)[0];_fzg.items.splice(ti,0,m);}
+  }
+  _fzgTouchIdx=null;_fzgRender();
 }
 function _fzgOpen(i){
   const it=_fzg.items[i];if(!it)return;
