@@ -773,9 +773,10 @@ body.nav-collapsed{padding-bottom:calc(16px + var(--sb))}
 .fz-extra-row:has(input:checked){background:var(--teals);border-color:var(--teal)}
 .fz-extra-row input{cursor:pointer;accent-color:var(--teal);width:14px;height:14px;flex-shrink:0}
 .fz-extra-row span{font-size:.72rem;color:var(--ink);cursor:pointer}
-.fz-trend-btn{display:block;margin-top:10px;width:100%;padding:11px 12px;border:none;border-radius:11px;background:linear-gradient(90deg,#ff416c,#ff9147,#ffd200,#3ecf8e,#ff9147,#ff416c);background-size:400% 100%;color:#fff;font-size:.77rem;font-weight:900;cursor:pointer;text-align:center;letter-spacing:.03em;text-shadow:0 1px 3px rgba(0,0,0,.3);animation:fzTrendRainbow 4s linear infinite,fzTrendBounce 1.8s ease-in-out infinite;box-shadow:0 3px 16px rgba(255,65,108,.4)}
+.fz-trend-btn{display:block;margin-top:10px;width:100%;padding:11px 12px;border:none;border-radius:11px;background:linear-gradient(90deg,#ff416c,#ff9147,#ffd200,#3ecf8e,#ff9147,#ff416c);background-size:400% 100%;color:#fff;font-size:.77rem;font-weight:900;cursor:pointer;text-align:center;letter-spacing:.03em;text-shadow:0 1px 3px rgba(0,0,0,.3);animation:fzTrendRainbow 4s linear infinite;box-shadow:0 3px 16px rgba(255,65,108,.4)}
 @keyframes fzTrendRainbow{0%{background-position:100% 50%}100%{background-position:0% 50%}}
 @keyframes fzTrendBounce{0%,100%{transform:translateY(0)}50%{transform:translateY(-3px)}}
+.fz-trend-btn:hover{animation:fzTrendRainbow 4s linear infinite,fzTrendBounce 1.8s ease-in-out infinite}
 .fz-trend-btn:active{transform:scale(.95)!important;opacity:.85}
 
 /* serving selector */
@@ -2939,7 +2940,7 @@ Vielen Dank für deine Unterstützung.</div>
         </div>
       </div>
       <!-- Paste JSON + generate -->
-      <div class="aibk2-sect">
+      <div class="aibk2-sect" id="aiBookPasteSect">
         <div class="aibk2-lbl" id="aiBookPasteLbl">2. Antwort einfügen (JSON)</div>
         <textarea class="aibk2-ta" id="aiBookTa" placeholder="JSON …"></textarea>
         <button class="aibk2-gen" onclick="_kbCpGenerate()" id="aiBookGenBtn">📖 Kreativbuch erstellen</button>
@@ -6080,12 +6081,15 @@ function _kbCpPickStyle(key){
   // Grid einklappen wenn Food-Zine aktiv
   const pill=document.getElementById('aiBookZinePill');
   const grid=document.getElementById('aiBookStyleGrid');
+  const ps=document.getElementById('aiBookPasteSect');
   if(key==='zine'){
     if(pill)pill.style.display='flex';
     if(grid)grid.style.display='none';
+    if(ps)ps.style.display='none';
   } else {
     if(pill)pill.style.display='none';
     if(grid)grid.style.display='';
+    if(ps)ps.style.display='';
   }
   document.getElementById('aiBookPromptBox').value=_kbBuildCpPrompt();
 }
