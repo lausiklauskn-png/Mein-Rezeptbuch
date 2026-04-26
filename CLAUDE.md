@@ -2,6 +2,24 @@
 
 ---
 
+## ⚠️ REGEL: Vollbremsung vor der Fehlersuche
+
+Bevor mit der Diagnose begonnen wird, ist genau **eine** Frage zu stellen:
+
+> *Wann hat es zuletzt funktioniert – und was hat sich seitdem geändert?*
+
+Erst wenn diese Frage beantwortet ist, wird mit der Suche begonnen. Nicht früher.
+
+**Konkret bei Code:**
+1. `git log` – Zeitachse der Änderungen ansehen
+2. Den letzten Commit vor dem Problem identifizieren
+3. `git diff <commit>^ <commit>` – was genau hat sich geändert
+4. **Dann** erst debuggen
+
+Diese Regel gilt auch wenn das Problem komplex wirkt, der Zeitdruck hoch ist, oder bereits eine plausible Hypothese vorhanden ist. **Gerade dann.**
+
+---
+
 ## ⚠️ PFLICHT-CHECKLISTE NACH JEDER ÄNDERUNG
 
 Claude muss nach **jeder** Änderung an der QC-Datei folgende Punkte ausgeben und den Benutzer explizit darauf hinweisen:
@@ -114,6 +132,9 @@ Wenn der Benutzer **"Hochladen"** schreibt:
 ### Branch-Konvention
 - Feature-Branches werden automatisch angelegt (Format: `claude/<beschreibung>-<id>`)
 - Immer auf dem zugewiesenen Branch arbeiten (steht oben in der Session-Konfiguration)
+
+### GitHub-Repo ist auf Privat gestellt
+**Keine Review-Kommentare oder CI-Checks prüfen.** Das Repo ist privat – es gibt keine externen Reviewer und kein CI-System. Nach einem Push/Merge müssen weder `get_review_comments` noch `get_check_runs` aufgerufen werden.
 
 ---
 
@@ -267,6 +288,10 @@ grep -rn 'rel="icon"\|rel="apple-touch-icon"\|icons:\[' \
 1. In `QC_MeinRezb_*.html` implementieren
 2. `python3 build.py` ausführen
 3. Hochladen
+
+### ⚠️ REGEL: Elementhöhe niemals per CSS calc(vw) — immer JS
+
+Hinweis: CSS `calc(vw)` wird in Chrome/Android ignoriert. Stattdessen `offsetWidth` messen + `style.setProperty` verwenden. Nur Getränke-Karten (`data-cat="drk"`) bekommen Hochformat 3:4, alle anderen bleiben Querformat 160px.
 
 ### Swipe / Touch / Drag & Drop
 - Swipe-Handler: IIFE ab `// ── SWIPE-NAVIGATION ──` (kurz vor `boot()`)
