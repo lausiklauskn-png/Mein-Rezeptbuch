@@ -5705,85 +5705,52 @@ function openExport(){document.getElementById('exportOv').style.display='flex';}
 function closeExport(){document.getElementById('exportOv').style.display='none';}
 
 // ═══════════════════════════════════════════════════════
-// FOOD-ZINE (lokal, kein API-Schlüssel nötig)
+// FOOD-ZINE PROMPT-ANZEIGE (kein API-Schlüssel nötig)
 // ═══════════════════════════════════════════════════════
 let _fzRid=null;
 function openFoodZine(rid){
   const r=R.find(x=>x.id===rid);if(!r||!r.name)return;
   _fzRid=rid;
-  const hasKey=!!getOpenAiImgKey();
+  _zineRid=rid;
   const imgThumb=r.img
     ?`<img src="${r.img}" style="width:54px;height:54px;object-fit:cover;border-radius:8px;flex-shrink:0;border:2px solid var(--sand2)" alt=""/>`
     :`<div style="width:54px;height:54px;background:var(--teals);border-radius:8px;flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:1.8rem">📖</div>`;
-  const keyStatusBlock=hasKey
-    ?`<div style="display:flex;align-items:center;gap:8px;background:#e8f5e9;border:1.5px solid #4caf50;border-radius:10px;padding:10px 13px;margin-bottom:12px">
-        <span style="font-size:1.2rem">✅</span>
-        <div>
-          <div style="font-size:.8rem;font-weight:800;color:#2e7d32">OpenAI API-Schlüssel hinterlegt</div>
-          <div style="font-size:.68rem;color:#388e3c">Du kannst jetzt Food-Zines generieren · ~0,36 € pro Food-Zine</div>
-        </div>
-      </div>`
-    :`<div style="display:flex;align-items:center;gap:8px;background:#fff3e0;border:1.5px solid #ff9800;border-radius:10px;padding:10px 13px;margin-bottom:12px">
-        <span style="font-size:1.2rem">⚠️</span>
-        <div>
-          <div style="font-size:.8rem;font-weight:800;color:#e65100">Kein OpenAI API-Schlüssel hinterlegt</div>
-          <div style="font-size:.68rem;color:#bf360c">Für DALL·E 3 wird ein OpenAI-Schlüssel benötigt (≠ Claude-Schlüssel)</div>
-        </div>
-      </div>`;
-  const genBtn=hasKey
-    ?`<button onclick="generateFoodZine()" style="flex:1;padding:13px;background:var(--teal);color:#fff;border:none;border-radius:10px;font-size:.88rem;font-weight:700;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:6px">📰 Jetzt erstellen</button>`
-    :`<button onclick="closeFoodZine();openImport();switchFovTab('importOv','imggen',document.getElementById('impTabImgGen'))" style="flex:1;padding:13px;background:#ff9800;color:#fff;border:none;border-radius:10px;font-size:.88rem;font-weight:700;cursor:pointer">🔑 OpenAI-Schlüssel einrichten</button>`;
+  const prompts=buildZinePrompts(r);
+  const labels=['📰 Cover','📋 Schritt für Schritt','💚 Gesundheit & Tipps'];
+  const promptCards=prompts.map((p,i)=>`
+    <div style="background:var(--sand2);border-radius:10px;padding:11px 13px;margin-bottom:10px">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:7px">
+        <div style="font-size:.72rem;font-weight:900;color:var(--teal);letter-spacing:.04em;text-transform:uppercase">Seite ${i+1} · ${labels[i]}</div>
+        <button onclick="fzCopy(${i})" id="fzCopyBtn${i}" style="padding:5px 11px;background:var(--teal);color:#fff;border:none;border-radius:7px;font-size:.72rem;font-weight:700;cursor:pointer">📋 Kopieren</button>
+      </div>
+      <div id="fzPrompt${i}" style="font-size:.68rem;color:var(--br2);line-height:1.5;word-break:break-word;max-height:80px;overflow:hidden;position:relative">${h(p)}<div style="position:absolute;bottom:0;left:0;right:0;height:28px;background:linear-gradient(transparent,var(--sand2))"></div></div>
+    </div>`).join('');
   document.getElementById('fzBody').innerHTML=`
     <div style="display:flex;gap:12px;align-items:center;background:var(--sand2);border-radius:10px;padding:12px 14px;margin-bottom:12px">
       ${imgThumb}
       <div style="flex:1;min-width:0">
-        <div style="font-size:.8rem;font-weight:700;color:var(--teal);margin-bottom:3px">📰 Neues Food-Zine für:</div>
+        <div style="font-size:.8rem;font-weight:700;color:var(--teal);margin-bottom:3px">📰 Food-Zine Prompts für:</div>
         <div style="font-size:.9rem;font-weight:800;color:var(--ink);line-height:1.3;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${h(r.name)}</div>
-        <div style="font-size:.68rem;color:var(--br3);margin-top:3px">3 Magazin-Poster · DALL·E 3 · handcrafted Illustration</div>
+        <div style="font-size:.68rem;color:var(--br3);margin-top:3px">Prompts in ChatGPT / DALL·E / Midjourney einfügen</div>
       </div>
     </div>
-    ${keyStatusBlock}
-    <div style="display:flex;gap:8px;margin-bottom:16px">
-      ${genBtn}
-      <button onclick="closeFoodZine()" style="padding:13px 16px;background:var(--sand2);color:var(--br2);border:none;border-radius:10px;font-size:.82rem;font-weight:700;cursor:pointer">← Zurück</button>
+    <div style="background:var(--teals);border-radius:8px;padding:9px 12px;margin-bottom:12px;border:1.5px solid var(--teal)">
+      <div style="font-size:.72rem;color:var(--teal);font-weight:700">💡 So verwendest du die Prompts</div>
+      <div style="font-size:.68rem;color:var(--br2);margin-top:3px;line-height:1.5">Kopiere jeden Prompt und füge ihn in ChatGPT (DALL·E), Midjourney oder ein anderes Bildgenerator-Tool ein — du erhältst ein Magazin-Poster im Food-Zine-Stil.</div>
     </div>
-    <div style="background:var(--teals);border-radius:10px;padding:12px 14px;border:1.5px solid var(--teal)">
-      <div style="font-size:.94rem;font-weight:700;color:var(--teal);font-family:Georgia,serif;margin-bottom:6px">📰 Food-Zine für deine Rezepte</div>
-      <div style="display:flex;gap:12px">
-        <div style="flex:1">
-          <div style="font-size:.65rem;font-weight:900;color:var(--teal);letter-spacing:.05em;text-transform:uppercase;margin-bottom:5px">Was erzeugt wird</div>
-          <ul style="margin:0;padding-left:14px;font-size:.73rem;color:var(--ink);line-height:1.65">
-            <li>3 Poster-Seiten im Magazin-Stil</li>
-            <li>Cover · Schritt-für-Schritt · Gesundheit</li>
-            <li>Handcrafted Illustration mit DALL·E 3</li>
-            <li>Als Bild speicherbar</li>
-          </ul>
-        </div>
-        <div style="flex:1">
-          <div style="font-size:.65rem;font-weight:900;color:var(--teal);letter-spacing:.05em;text-transform:uppercase;margin-bottom:5px">Was du brauchst</div>
-          <ul style="margin:0;padding-left:14px;font-size:.73rem;color:var(--ink);line-height:1.65">
-            <li>OpenAI API-Schlüssel</li>
-            <li>Ca. 0,36 € pro Food-Zine</li>
-            <li>Abrechnung direkt bei OpenAI</li>
-            <li>Bilder als JPG speicherbar</li>
-          </ul>
-        </div>
-      </div>
-    </div>`;
+    ${promptCards}`;
   document.getElementById('foodZineOv').style.display='flex';
 }
-function closeFoodZine(){document.getElementById('foodZineOv').style.display='none';_fzRid=null;}
-function generateFoodZine(){
-  if(!getOpenAiImgKey()){
-    closeFoodZine();
-    openImport();
-    switchFovTab('importOv','imggen',document.getElementById('impTabImgGen'));
-    return;
-  }
-  _zineRid=_fzRid;
-  closeFoodZine();
-  startZine('standard');
+function fzCopy(idx){
+  const r=R.find(x=>x.id===_fzRid);if(!r)return;
+  const prompts=buildZinePrompts(r);
+  const txt=prompts[idx]||'';
+  navigator.clipboard.writeText(txt).then(()=>{
+    const btn=document.getElementById('fzCopyBtn'+idx);
+    if(btn){btn.textContent='✅ Kopiert!';setTimeout(()=>{btn.textContent='📋 Kopieren';},1800);}
+  }).catch(()=>{});
 }
+function closeFoodZine(){document.getElementById('foodZineOv').style.display='none';_fzRid=null;}
 
 // ═══════════════════════════════════════════════════════
 // FOOD-ZINE PROMPT-GENERATOR
@@ -9406,7 +9373,6 @@ function rndCard(r){
           ${r.name?`<button class="ra ren" onclick="event.stopPropagation();showNutrition(${r.id})" title="${T('nutrTtl')}" style="background:var(--grns);border-color:var(--grn);color:var(--grn)">🥗</button>`:''}
           <button class="ra del" onclick="delRecipe(${r.id})" title="${T('ttlDelRec')}">🗑</button>
           ${(_undoStack[r.id]||[]).length>0?`<button class="ra" onclick="event.stopPropagation();undoRec(${r.id})" title="${T('undoTtl')}" style="background:var(--sand);border:1.5px solid var(--sand2);color:var(--br2)">↩ ${(_undoStack[r.id]||[]).length}</button>`:''}
-          ${r.name?`<button class="ra ra-zine" onclick="event.stopPropagation();openZineDialog(${r.id})" title="${T('zineBtnTitle')}">🎨 Food-Zine</button>`:''}
         </div>`:''}
         ${inMenu?`<span class="mnbadge">${mSlot.ico} ${mSlot.lbl}</span>`:''}
         ${isBlank?`<div style="font-size:.68rem;color:var(--br3);margin-top:3px;font-style:italic">👆 Tippen um Namen einzugeben</div>`:``}
