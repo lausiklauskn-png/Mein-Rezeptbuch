@@ -13795,6 +13795,10 @@ function saveZinePage(idx){
       if(typeof sv==='function')sv();
     }catch(e){}
   }
+
+  // Food-Zine: globalen Zugriff ermöglichen
+  window.openZineDialog=openZineDialog;
+  window.closeZine=closeZine;
 })();
 </script>
 
