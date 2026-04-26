@@ -768,6 +768,10 @@ body.nav-collapsed{padding-bottom:calc(16px + var(--sb))}
 .print-bar-txt{display:flex;flex-direction:column;text-align:left;gap:0}
 .print-bar-lbl{font-size:.5rem;font-weight:900;color:var(--rust);text-shadow:0 0 8px rgba(184,85,53,0.18);letter-spacing:.03em}
 .print-bar-sub{font-size:.38rem;font-weight:600;color:var(--rust);opacity:.8;letter-spacing:0}
+.fz-bar{display:flex;align-items:center;justify-content:center;gap:8px;padding:5px 14px;background:linear-gradient(135deg,rgba(54,112,106,0.13),rgba(22,64,56,0.13));border:none;border-top:1px solid rgba(54,112,106,0.1);width:100%;cursor:pointer;font-size:.85rem;font-weight:700;color:var(--teal);letter-spacing:.02em;transition:opacity .12s}
+.fz-bar:active{opacity:.6}
+.fz-bar-lbl{font-size:.5rem;font-weight:900;color:var(--teal);text-shadow:0 0 8px rgba(54,112,106,0.18);letter-spacing:.03em}
+.fz-bar-sub{font-size:.38rem;font-weight:600;color:var(--teal);opacity:.8;letter-spacing:0}
 
 /* serving selector */
 .srv-bar{display:flex;align-items:center;gap:7px;padding:8px 11px 7px;border-top:1px solid var(--sand2);background:var(--parch)}
@@ -1649,14 +1653,22 @@ button:active{transform:scale(0.97)}
 .zine-cancel-btn{width:100%;padding:9px;background:var(--sand);border:1px solid var(--sand2);border-radius:8px;font-size:.84rem;color:var(--br3);cursor:pointer}
 .zine-pages{display:flex;flex-direction:column;gap:16px;padding:12px}
 .zine-page-lbl{font-size:.72rem;font-weight:700;color:var(--teal);margin-bottom:5px;text-transform:uppercase;letter-spacing:.05em}
-.zine-page{border-radius:10px;overflow:hidden;border:1px solid var(--sand2);background:var(--sand);min-height:110px;display:flex;align-items:center;justify-content:center}
+.zine-page{border-radius:10px;overflow:hidden;border:2px solid var(--teal);background:var(--teal);min-height:160px;display:flex;align-items:center;justify-content:center}
+.zine-page.done{border:2px solid var(--teal);background:var(--sand)}
 .zine-page img{width:100%;display:block}
-.zine-loading{padding:32px 16px;text-align:center;font-size:.85rem;color:var(--br3)}
-.zine-err{padding:20px 16px;text-align:center;font-size:.8rem;color:var(--rust)}
-.zine-pulse{animation:zpulse 1.4s ease-in-out infinite;display:inline-block}
-@keyframes zpulse{0%,100%{opacity:.35}50%{opacity:1}}
-.zine-save-btn{margin-top:6px;width:100%;padding:9px;background:var(--teals);border:1.5px solid var(--teal);border-radius:8px;font-size:.82rem;color:var(--teal);cursor:pointer;font-weight:700;transition:background .15s,color .15s}
+.zine-loading{padding:28px 16px;text-align:center;width:100%}
+.zine-loading-ico{font-size:2.4rem;margin-bottom:10px}
+.zine-loading-txt{font-size:.9rem;font-weight:800;color:#fff;margin-bottom:6px}
+.zine-loading-sub{font-size:.72rem;color:rgba(255,255,255,.8)}
+.zine-err{padding:20px 16px;text-align:center;font-size:.8rem;color:var(--rust);background:var(--rusts);width:100%}
+.zine-banner{display:none;align-items:center;gap:8px;background:#fff3cd;border:1.5px solid #ffc107;border-radius:8px;padding:9px 13px;margin:0 11px 6px;font-size:.78rem;font-weight:700;color:#856404}
+.zine-pulse{animation:zpulse .9s ease-in-out infinite;display:inline-block}
+@keyframes zpulse{0%,100%{opacity:.3}50%{opacity:1}}
+.zine-btns{display:flex;gap:6px;margin-top:6px}
+.zine-save-btn{flex:1;padding:9px;background:var(--teals);border:1.5px solid var(--teal);border-radius:8px;font-size:.82rem;color:var(--teal);cursor:pointer;font-weight:700;transition:background .15s,color .15s}
 .zine-save-btn:hover{background:var(--teal);color:#fff}
+.zine-dl-btn{padding:9px 13px;background:var(--sand);border:1.5px solid var(--teal);border-radius:8px;font-size:.82rem;color:var(--teal);cursor:pointer;font-weight:700;transition:background .15s,color .15s}
+.zine-dl-btn:hover{background:var(--teal);color:#fff}
 .zine-tier-cards{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin:12px 0 4px}
 .zine-tier-card{background:var(--sand);border:1.5px solid var(--sand2);border-radius:12px;padding:10px 6px 8px;text-align:center;cursor:pointer;transition:border-color .15s,background .15s}
 .zine-tier-card:hover{border-color:var(--teal);background:var(--teals)}
@@ -5540,6 +5552,7 @@ function navTo(n){
     {id:'langOv',     fn:function(){closeLang();}},
     {id:'helpOv',     fn:function(){closeHelpOv();}},
     {id:'manualOv',   fn:function(){var e=document.getElementById('manualOv');if(e)e.style.display='none';}},
+    {id:'foodZineOv', fn:function(){closeFoodZine();}},
   ];
   var closed=false;
   for(var i=0;i<_fovClose.length;i++){
@@ -5690,6 +5703,87 @@ async function startImgGenSingle(){
 }
 function openExport(){document.getElementById('exportOv').style.display='flex';}
 function closeExport(){document.getElementById('exportOv').style.display='none';}
+
+// ═══════════════════════════════════════════════════════
+// FOOD-ZINE (lokal, kein API-Schlüssel nötig)
+// ═══════════════════════════════════════════════════════
+let _fzRid=null;
+function openFoodZine(rid){
+  const r=R.find(x=>x.id===rid);if(!r||!r.name)return;
+  _fzRid=rid;
+  const hasKey=!!getOpenAiImgKey();
+  const imgThumb=r.img
+    ?`<img src="${r.img}" style="width:54px;height:54px;object-fit:cover;border-radius:8px;flex-shrink:0;border:2px solid var(--sand2)" alt=""/>`
+    :`<div style="width:54px;height:54px;background:var(--teals);border-radius:8px;flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:1.8rem">📖</div>`;
+  const keyStatusBlock=hasKey
+    ?`<div style="display:flex;align-items:center;gap:8px;background:#e8f5e9;border:1.5px solid #4caf50;border-radius:10px;padding:10px 13px;margin-bottom:12px">
+        <span style="font-size:1.2rem">✅</span>
+        <div>
+          <div style="font-size:.8rem;font-weight:800;color:#2e7d32">OpenAI API-Schlüssel hinterlegt</div>
+          <div style="font-size:.68rem;color:#388e3c">Du kannst jetzt Food-Zines generieren · ~0,36 € pro Food-Zine</div>
+        </div>
+      </div>`
+    :`<div style="display:flex;align-items:center;gap:8px;background:#fff3e0;border:1.5px solid #ff9800;border-radius:10px;padding:10px 13px;margin-bottom:12px">
+        <span style="font-size:1.2rem">⚠️</span>
+        <div>
+          <div style="font-size:.8rem;font-weight:800;color:#e65100">Kein OpenAI API-Schlüssel hinterlegt</div>
+          <div style="font-size:.68rem;color:#bf360c">Für DALL·E 3 wird ein OpenAI-Schlüssel benötigt (≠ Claude-Schlüssel)</div>
+        </div>
+      </div>`;
+  const genBtn=hasKey
+    ?`<button onclick="generateFoodZine()" style="flex:1;padding:13px;background:var(--teal);color:#fff;border:none;border-radius:10px;font-size:.88rem;font-weight:700;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:6px">📰 Jetzt erstellen</button>`
+    :`<button onclick="closeFoodZine();openImport();switchFovTab('importOv','imggen',document.getElementById('impTabImgGen'))" style="flex:1;padding:13px;background:#ff9800;color:#fff;border:none;border-radius:10px;font-size:.88rem;font-weight:700;cursor:pointer">🔑 OpenAI-Schlüssel einrichten</button>`;
+  document.getElementById('fzBody').innerHTML=`
+    <div style="display:flex;gap:12px;align-items:center;background:var(--sand2);border-radius:10px;padding:12px 14px;margin-bottom:12px">
+      ${imgThumb}
+      <div style="flex:1;min-width:0">
+        <div style="font-size:.8rem;font-weight:700;color:var(--teal);margin-bottom:3px">📰 Neues Food-Zine für:</div>
+        <div style="font-size:.9rem;font-weight:800;color:var(--ink);line-height:1.3;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${h(r.name)}</div>
+        <div style="font-size:.68rem;color:var(--br3);margin-top:3px">3 Magazin-Poster · DALL·E 3 · handcrafted Illustration</div>
+      </div>
+    </div>
+    ${keyStatusBlock}
+    <div style="display:flex;gap:8px;margin-bottom:16px">
+      ${genBtn}
+      <button onclick="closeFoodZine()" style="padding:13px 16px;background:var(--sand2);color:var(--br2);border:none;border-radius:10px;font-size:.82rem;font-weight:700;cursor:pointer">← Zurück</button>
+    </div>
+    <div style="background:var(--teals);border-radius:10px;padding:12px 14px;border:1.5px solid var(--teal)">
+      <div style="font-size:.94rem;font-weight:700;color:var(--teal);font-family:Georgia,serif;margin-bottom:6px">📰 Food-Zine für deine Rezepte</div>
+      <div style="display:flex;gap:12px">
+        <div style="flex:1">
+          <div style="font-size:.65rem;font-weight:900;color:var(--teal);letter-spacing:.05em;text-transform:uppercase;margin-bottom:5px">Was erzeugt wird</div>
+          <ul style="margin:0;padding-left:14px;font-size:.73rem;color:var(--ink);line-height:1.65">
+            <li>3 Poster-Seiten im Magazin-Stil</li>
+            <li>Cover · Schritt-für-Schritt · Gesundheit</li>
+            <li>Handcrafted Illustration mit DALL·E 3</li>
+            <li>Als Bild speicherbar</li>
+          </ul>
+        </div>
+        <div style="flex:1">
+          <div style="font-size:.65rem;font-weight:900;color:var(--teal);letter-spacing:.05em;text-transform:uppercase;margin-bottom:5px">Was du brauchst</div>
+          <ul style="margin:0;padding-left:14px;font-size:.73rem;color:var(--ink);line-height:1.65">
+            <li>OpenAI API-Schlüssel</li>
+            <li>Ca. 0,36 € pro Food-Zine</li>
+            <li>Abrechnung direkt bei OpenAI</li>
+            <li>Bilder als JPG speicherbar</li>
+          </ul>
+        </div>
+      </div>
+    </div>`;
+  document.getElementById('foodZineOv').style.display='flex';
+}
+function closeFoodZine(){document.getElementById('foodZineOv').style.display='none';_fzRid=null;}
+function generateFoodZine(){
+  if(!getOpenAiImgKey()){
+    closeFoodZine();
+    openImport();
+    switchFovTab('importOv','imggen',document.getElementById('impTabImgGen'));
+    return;
+  }
+  _zineRid=_fzRid;
+  closeFoodZine();
+  startZine('standard');
+}
 
 // ═══════════════════════════════════════════════════════
 // FOOD-ZINE PROMPT-GENERATOR
@@ -9418,6 +9512,12 @@ function rndCard(r){
           <span class="print-bar-sub">${T('printSub')}</span>
         </span>
       </button>
+      <button class="fz-bar" onclick="event.stopPropagation();openFoodZine(${r.id})">
+        <span class="print-bar-txt">
+          <span class="fz-bar-lbl">📰 Food-Zine</span>
+          <span class="fz-bar-sub">Magazin-Seite erstellen</span>
+        </span>
+      </button>
     </div>`:''}
   </div>`;
 }
@@ -12773,6 +12873,14 @@ var qrcode=function(){var t=function(t,r){var e=t,n=g[r],o=null,i=0,a=null,u=[],
   </div>
 </div>
 
+<div class="fov" id="foodZineOv" style="display:none">
+  <div class="fov-hdr" onclick="closeFoodZine()">
+    <button class="fov-back" onclick="event.stopPropagation();closeFoodZine()" title="Zurück">←</button>
+    <div class="fov-title">📰 Food-Zine</div>
+  </div>
+  <div class="fov-body" id="fzBody"></div>
+</div>
+
 <script>
 /* === ONBOARDING START === */
 (function(){
@@ -13294,12 +13402,23 @@ function buildZinePrompts(r){
 function _zineShowImg(idx,dataUrl,final){
   const img=document.getElementById('zineImg'+idx);
   const load=document.getElementById('zineLoad'+idx);
+  const page=document.getElementById('zinePage'+idx);
   if(img){img.src=dataUrl;img.style.display='block';}
   if(load&&final)load.style.display='none';
+  if(page&&final){page.classList.remove('done');page.classList.add('done');}
   if(final){
     const save=document.getElementById('zineSave'+idx);
-    if(save)save.style.display='block';
+    if(save)save.style.display='flex';
   }
+}
+function downloadZinePage(idx){
+  const b64=_zineB64s[idx];
+  const r=R.find(x=>x.id===_zineRid);
+  if(!b64||!r)return;
+  const a=document.createElement('a');
+  a.href='data:image/png;base64,'+b64;
+  a.download=(r.name||'food-zine').replace(/[^a-zA-Z0-9äöüÄÖÜß\s]/g,'').trim()+'-seite-'+(idx+1)+'.png';
+  a.click();
 }
 function _zineSetLoading(idx,on){
   const load=document.getElementById('zineLoad'+idx);
@@ -13362,14 +13481,23 @@ async function startZine(tier){
   const prompts=buildZinePrompts(r);
   _zineB64s=[null,null,null];
   for(let i=0;i<3;i++)_zineSetLoading(i,true);
+  const banner=document.getElementById('zineBanner');
+  if(banner)banner.style.display='flex';
 
   for(let i=0;i<3;i++){
+    const t0=Date.now();
+    const timer=setInterval(()=>{
+      const el=document.getElementById('zineLoadTime'+i);
+      if(el){const s=Math.round((Date.now()-t0)/1000);el.textContent=s<60?`⏱ ${s} Sek. … noch in Arbeit`:`⏱ ${Math.floor(s/60)} Min. ${s%60} Sek. … noch in Arbeit`;}
+    },1000);
     try{
       const b64=await _zineGenDallE3(prompts[i],i);
       _zineB64s[i]=b64;
       _zineSetLoading(i,false);
     }catch(e){_zineSetError(i,e.message);}
+    finally{clearInterval(timer);}
   }
+  if(banner)banner.style.display='none';
 }
 
 // ── Dialog-Steuerung ──────────────────────────────────
@@ -13700,37 +13828,59 @@ function saveZinePage(idx){
     <button class="fov-back" onclick="closeZine()" title="Zurück">←</button>
     <div class="fov-title" id="zineTitleEl">✨ KI-Zine</div>
   </div>
+  <div class="zine-banner" id="zineBanner">⏳ Bilder werden erstellt … bitte warten (kann 1–5 Min. dauern)</div>
   <div class="fov-body">
     <div class="zine-pages">
       <div>
         <div class="zine-page-lbl" id="zinePageLbl0">📰 Seite 1 · Cover</div>
         <div class="zine-page" id="zinePage0">
-          <div class="zine-loading" id="zineLoad0" style="display:none"><span class="zine-pulse" id="zineLoadTxt0">⏳ Seite 1 wird erstellt…</span></div>
+          <div class="zine-loading" id="zineLoad0" style="display:none">
+            <div class="zine-loading-ico"><span class="zine-pulse">🎨</span></div>
+            <div class="zine-loading-txt" id="zineLoadTxt0">Seite 1 wird erstellt…</div>
+            <div class="zine-loading-sub" id="zineLoadTime0">Kann 1–5 Min. dauern</div>
+          </div>
           <img id="zineImg0" src="" alt="" style="display:none"/>
           <div class="zine-err" id="zineErr0" style="display:none"></div>
           <div class="ztc-text" id="zineText0" style="display:none"></div>
         </div>
-        <button class="zine-save-btn" id="zineSave0" style="display:none" onclick="saveZinePage(0)" title="Dieses Bild als Rezeptbild speichern">🖼️ Als Rezeptbild speichern</button>
+        <div class="zine-btns" id="zineSave0" style="display:none">
+          <button class="zine-save-btn" onclick="saveZinePage(0)" title="Als Rezeptbild speichern">🖼️ Als Rezeptbild speichern</button>
+          <button class="zine-dl-btn" onclick="downloadZinePage(0)" title="Als PNG herunterladen">💾</button>
+        </div>
       </div>
       <div>
         <div class="zine-page-lbl" id="zinePageLbl1">📋 Seite 2 · Schritt für Schritt</div>
         <div class="zine-page" id="zinePage1">
-          <div class="zine-loading" id="zineLoad1" style="display:none"><span class="zine-pulse" id="zineLoadTxt1">⏳ Seite 2 wird erstellt…</span></div>
+          <div class="zine-loading" id="zineLoad1" style="display:none">
+            <div class="zine-loading-ico"><span class="zine-pulse">🎨</span></div>
+            <div class="zine-loading-txt" id="zineLoadTxt1">Seite 2 wird erstellt…</div>
+            <div class="zine-loading-sub" id="zineLoadTime1">Kann 1–5 Min. dauern</div>
+          </div>
           <img id="zineImg1" src="" alt="" style="display:none"/>
           <div class="zine-err" id="zineErr1" style="display:none"></div>
           <div class="ztc-text" id="zineText1" style="display:none"></div>
         </div>
-        <button class="zine-save-btn" id="zineSave1" style="display:none" onclick="saveZinePage(1)" title="Dieses Bild als Rezeptbild speichern">🖼️ Als Rezeptbild speichern</button>
+        <div class="zine-btns" id="zineSave1" style="display:none">
+          <button class="zine-save-btn" onclick="saveZinePage(1)" title="Als Rezeptbild speichern">🖼️ Als Rezeptbild speichern</button>
+          <button class="zine-dl-btn" onclick="downloadZinePage(1)" title="Als PNG herunterladen">💾</button>
+        </div>
       </div>
       <div>
         <div class="zine-page-lbl" id="zinePageLbl2">💚 Seite 3 · Gesundheit & Tipps</div>
         <div class="zine-page" id="zinePage2">
-          <div class="zine-loading" id="zineLoad2" style="display:none"><span class="zine-pulse" id="zineLoadTxt2">⏳ Seite 3 wird erstellt…</span></div>
+          <div class="zine-loading" id="zineLoad2" style="display:none">
+            <div class="zine-loading-ico"><span class="zine-pulse">🎨</span></div>
+            <div class="zine-loading-txt" id="zineLoadTxt2">Seite 3 wird erstellt…</div>
+            <div class="zine-loading-sub" id="zineLoadTime2">Kann 1–5 Min. dauern</div>
+          </div>
           <img id="zineImg2" src="" alt="" style="display:none"/>
           <div class="zine-err" id="zineErr2" style="display:none"></div>
           <div class="ztc-text" id="zineText2" style="display:none"></div>
         </div>
-        <button class="zine-save-btn" id="zineSave2" style="display:none" onclick="saveZinePage(2)" title="Dieses Bild als Rezeptbild speichern">🖼️ Als Rezeptbild speichern</button>
+        <div class="zine-btns" id="zineSave2" style="display:none">
+          <button class="zine-save-btn" onclick="saveZinePage(2)" title="Als Rezeptbild speichern">🖼️ Als Rezeptbild speichern</button>
+          <button class="zine-dl-btn" onclick="downloadZinePage(2)" title="Als PNG herunterladen">💾</button>
+        </div>
       </div>
     </div>
   </div>
