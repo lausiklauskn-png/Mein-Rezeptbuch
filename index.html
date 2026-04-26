@@ -937,6 +937,9 @@ body.nav-collapsed{padding-bottom:calc(16px + var(--sb))}
 .kb-dchip{background:var(--parch);border:1.5px solid var(--sand2);border-radius:10px;padding:7px 6px 6px;font-size:.7rem;cursor:pointer;transition:all .15s;color:var(--br2);text-align:center;line-height:1.35;-webkit-tap-highlight-color:transparent}
 .kb-dchip span{display:block;font-size:1.1rem;margin-bottom:2px}
 .kb-dchip.on{background:linear-gradient(135deg,var(--br),var(--br2));border-color:var(--br);color:#fff;font-weight:700}
+#aiBookZinePill{display:none;align-items:center;justify-content:space-between;padding:6px 10px;background:linear-gradient(135deg,var(--br),var(--br2));border-radius:9px;margin-bottom:6px}
+#aiBookZinePill .zp-lbl{font-size:.78rem;font-weight:700;color:#fff}
+#aiBookZinePill .zp-btn{font-size:.66rem;color:rgba(255,255,255,.85);background:none;border:1px solid rgba(255,255,255,.4);border-radius:6px;padding:2px 8px;cursor:pointer;font-family:inherit}
 .kb-result-card{padding:14px 16px 16px;background:var(--parch)}
 .kb-result-ok{font-size:1.02rem;font-weight:700;color:var(--teal);margin-bottom:8px}
 .kb-result-stats{font-size:.76rem;color:var(--br2);margin-bottom:3px}
@@ -2907,6 +2910,10 @@ Vielen Dank für deine Unterstützung.</div>
         <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px">
           <button class="aibk2-back" onclick="_kbCpBack()" id="aiBookBackBtn">← Rezepte ändern</button>
           <span class="aibk2-lbl" style="margin:0" id="aiBookStyleLbl">Stil wählen</span>
+        </div>
+        <div id="aiBookZinePill">
+          <span class="zp-lbl">📰 Food-Zine</span>
+          <button class="zp-btn" onclick="_kbZineShowGrid()">Stil ändern ›</button>
         </div>
         <div class="kb-design-grid" id="aiBookStyleGrid"></div>
         <div id="aiBookCustomSect" style="display:none" class="aibk2-custom">
@@ -6059,7 +6066,23 @@ function _kbCpPickStyle(key){
   const zs=document.getElementById('aiBookZineSect');
   if(zs)zs.style.display=key==='zine'?'':'none';
   if(key==='zine')_kbFillZineSelect();
+  // Grid einklappen wenn Food-Zine aktiv
+  const pill=document.getElementById('aiBookZinePill');
+  const grid=document.getElementById('aiBookStyleGrid');
+  if(key==='zine'){
+    if(pill)pill.style.display='flex';
+    if(grid)grid.style.display='none';
+  } else {
+    if(pill)pill.style.display='none';
+    if(grid)grid.style.display='';
+  }
   document.getElementById('aiBookPromptBox').value=_kbBuildCpPrompt();
+}
+function _kbZineShowGrid(){
+  const pill=document.getElementById('aiBookZinePill');
+  const grid=document.getElementById('aiBookStyleGrid');
+  if(pill)pill.style.display='none';
+  if(grid)grid.style.display='';
 }
 
 function _kbRenderStyleChips(){
@@ -6089,10 +6112,14 @@ function aiBookWeiter(){
   if(cs)cs.style.display=_kbCpStyle==='custom'?'':'none';
   const cta=document.getElementById('aiBookCustomTa');
   if(cta)cta.placeholder=T('aiBookCustomPh');
-  // show/hide food-zine picker
+  // show/hide food-zine picker + grid einklappen
   const zs=document.getElementById('aiBookZineSect');
   if(zs)zs.style.display=_kbCpStyle==='zine'?'':'none';
   if(_kbCpStyle==='zine')_kbFillZineSelect();
+  const pill2=document.getElementById('aiBookZinePill');
+  const grid2=document.getElementById('aiBookStyleGrid');
+  if(_kbCpStyle==='zine'){if(pill2)pill2.style.display='flex';if(grid2)grid2.style.display='none';}
+  else{if(pill2)pill2.style.display='none';if(grid2)grid2.style.display='';}
   document.getElementById('aiBookPromptBox').value=_kbBuildCpPrompt();
 }
 
