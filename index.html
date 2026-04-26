@@ -790,6 +790,26 @@ body.nav-collapsed{padding-bottom:calc(16px + var(--sb))}
 @keyframes fzTrendBounce{0%,100%{transform:translateY(0)}50%{transform:translateY(-3px)}}
 .fz-trend-btn:hover{animation:fzTrendRainbow 4s linear infinite,fzTrendBounce 1.8s ease-in-out infinite}
 .fz-trend-btn:active{transform:scale(.95)!important;opacity:.85}
+/* Food-Zine Galerie */
+.fzg-sect{margin-top:13px;border-top:1px solid var(--sand2);padding-top:10px}
+.fzg-hdr{display:flex;align-items:center;justify-content:space-between;margin-bottom:8px}
+.fzg-lbl{font-size:.6rem;font-weight:900;color:var(--br3);text-transform:uppercase;letter-spacing:.05em}
+.fzg-add-btn{font-size:.72rem;font-weight:700;color:var(--br);background:var(--sand);border:1.5px solid var(--br2);border-radius:8px;padding:5px 10px;cursor:pointer;white-space:nowrap;user-select:none}
+.fzg-add-btn:hover{background:var(--teals)}
+.fzg-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(78px,1fr));gap:6px}
+.fzg-thumb{position:relative;border-radius:8px;overflow:hidden;cursor:pointer;aspect-ratio:4/3;background:var(--sand2)}
+.fzg-thumb img{width:100%;height:100%;object-fit:cover;display:block;transition:transform .15s}
+.fzg-thumb:hover img{transform:scale(1.06)}
+.fzg-del{position:absolute;top:3px;right:3px;width:20px;height:20px;border:none;border-radius:50%;background:rgba(0,0,0,.55);color:#fff;font-size:.65rem;cursor:pointer;display:flex;align-items:center;justify-content:center}
+.fzg-del:hover{background:rgba(200,0,0,.8)}
+.fzg-empty{font-size:.72rem;color:var(--br3);text-align:center;padding:18px 0;grid-column:1/-1}
+.fzg-lb{position:fixed;inset:0;background:rgba(0,0,0,.93);z-index:9200;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:12px;animation:fzgIn .18s ease}
+@keyframes fzgIn{from{opacity:0}to{opacity:1}}
+.fzg-lb-img{max-width:100%;max-height:calc(100dvh - 80px);object-fit:contain;border-radius:6px;box-shadow:0 4px 32px rgba(0,0,0,.6)}
+.fzg-lb-close{position:absolute;top:12px;right:14px;background:none;border:none;color:#fff;font-size:1.4rem;cursor:pointer;padding:4px 8px}
+.fzg-lb-bar{display:flex;gap:8px;margin-top:10px}
+.fzg-lb-print{background:rgba(255,255,255,.15);border:1px solid rgba(255,255,255,.3);color:#fff;font-size:.78rem;font-weight:700;border-radius:8px;padding:7px 16px;cursor:pointer}
+.fzg-lb-print:hover{background:rgba(255,255,255,.25)}
 
 /* serving selector */
 .srv-bar{display:flex;align-items:center;gap:7px;padding:8px 11px 7px;border-top:1px solid var(--sand2);background:var(--parch)}
@@ -2939,6 +2959,14 @@ Vielen Dank für deine Unterstützung.</div>
             <div class="fz-extras-lbl">Extras (optional)</div>
             <div id="fzExtrasContainer"></div>
             <button class="fz-trend-btn" onclick="_fzTrendSurprise()">🔥 KI-Überraschung: Trendrezepte entdecken!</button>
+          </div>
+          <div class="fzg-sect">
+            <div class="fzg-hdr">
+              <span class="fzg-lbl">🖼️ Meine Food-Zine Bilder</span>
+              <label class="fzg-add-btn" for="fzgFileIn">📎 Bilder hinzufügen</label>
+              <input type="file" id="fzgFileIn" multiple accept="image/*" style="display:none" onchange="_fzgAddFiles(this.files)">
+            </div>
+            <div class="fzg-grid" id="fzgGrid"><div class="fzg-empty">Noch keine Bilder</div></div>
           </div>
         </div>
       </div>
@@ -6079,6 +6107,63 @@ function _fzTrendSurprise(){
    +'8. Serviervorschlag für den perfekten Food-Post\n\n'
    +'Am Ende: KI nennt das gewählte Rezept + kurze Erklärung, warum es gerade viral geht.';
   document.getElementById('aiBookPromptBox').scrollIntoView({behavior:'smooth',block:'nearest'});
+}
+
+// ── FOOD-ZINE GALERIE ──
+const _fzg={items:[],THUMB:280,Q:0.82};
+function _fzgAddFiles(files){
+  Array.from(files).forEach(f=>{
+    if(!f.type.startsWith('image/'))return;
+    const oUrl=URL.createObjectURL(f);
+    const img=new Image();
+    img.onload=()=>{
+      const r=Math.min(_fzg.THUMB/img.width,_fzg.THUMB/img.height,1);
+      const w=Math.round(img.width*r),h=Math.round(img.height*r);
+      const c=document.createElement('canvas');c.width=w;c.height=h;
+      c.getContext('2d').drawImage(img,0,0,w,h);
+      _fzg.items.push({name:f.name,thumb:c.toDataURL('image/jpeg',_fzg.Q),oUrl});
+      _fzgRender();
+    };
+    img.onerror=()=>URL.revokeObjectURL(oUrl);
+    img.src=oUrl;
+  });
+  document.getElementById('fzgFileIn').value='';
+}
+function _fzgDel(i){
+  URL.revokeObjectURL(_fzg.items[i].oUrl);
+  _fzg.items.splice(i,1);
+  _fzgRender();
+}
+function _fzgRender(){
+  const g=document.getElementById('fzgGrid');if(!g)return;
+  if(!_fzg.items.length){g.innerHTML='<div class="fzg-empty">Noch keine Bilder</div>';return;}
+  g.innerHTML=_fzg.items.map((it,i)=>
+    `<div class="fzg-thumb" onclick="_fzgOpen(${i})"><img src="${it.thumb}" alt="" draggable="false"><button class="fzg-del" onclick="event.stopPropagation();_fzgDel(${i})" title="Entfernen">✕</button></div>`
+  ).join('');
+}
+function _fzgOpen(i){
+  const it=_fzg.items[i];if(!it)return;
+  const lb=document.createElement('div');lb.className='fzg-lb';
+  lb.innerHTML=`<button class="fzg-lb-close" title="Schließen">✕</button><img class="fzg-lb-img" src="${it.oUrl}" alt="${it.name}"><div class="fzg-lb-bar"><button class="fzg-lb-print">🖨️ Drucken / PDF</button></div>`;
+  const close=()=>{lb.style.animation='fzgIn .15s ease reverse';setTimeout(()=>lb.remove(),140);};
+  lb.querySelector('.fzg-lb-close').onclick=close;
+  lb.querySelector('.fzg-lb-print').onclick=()=>_fzgPrint(it.oUrl,it.name);
+  lb.onclick=e=>{if(e.target===lb)close();};
+  const onKey=e=>{if(e.key==='Escape'){close();document.removeEventListener('keydown',onKey);}};
+  document.addEventListener('keydown',onKey);
+  document.body.appendChild(lb);
+}
+function _fzgPrint(url,name){
+  const win=window.open('','_blank');if(!win)return;
+  win.document.write('<!DOCTYPE html><html><head><meta charset="UTF-8"><title>'+name+'</title>'
+    +'<style>*{margin:0;padding:0}body{background:#000;display:flex;align-items:center;justify-content:center;min-height:100vh}'
+    +'.img{max-width:100%;max-height:100vh;object-fit:contain;-webkit-print-color-adjust:exact;print-color-adjust:exact}'
+    +'.bar{position:fixed;top:0;left:0;right:0;padding:8px 16px;background:#7a5840;color:#fff;font-family:sans-serif;font-size:.85rem;display:flex;justify-content:space-between;align-items:center;gap:10px}'
+    +'.bar button{background:#fff;color:#7a5840;border:none;border-radius:6px;padding:6px 14px;font-weight:700;cursor:pointer}'
+    +'@page{size:auto;margin:0}@media print{.bar{display:none}body{background:#fff}}</style></head><body>'
+    +'<div class="bar"><span>'+name+'</span><button onclick="window.print()">🖨️ Drucken / Als PDF speichern</button></div>'
+    +'<img class="img" src="'+url+'"></body></html>');
+  win.document.close();
 }
 
 function _kbCpPickStyle(key){
