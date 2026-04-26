@@ -773,6 +773,10 @@ body.nav-collapsed{padding-bottom:calc(16px + var(--sb))}
 .fz-extra-row:has(input:checked){background:var(--teals);border-color:var(--teal)}
 .fz-extra-row input{cursor:pointer;accent-color:var(--teal);width:14px;height:14px;flex-shrink:0}
 .fz-extra-row span{font-size:.72rem;color:var(--ink);cursor:pointer}
+.fz-trend-btn{display:block;margin-top:10px;width:100%;padding:11px 12px;border:none;border-radius:11px;background:linear-gradient(90deg,#ff416c,#ff9147,#ffd200,#3ecf8e,#ff9147,#ff416c);background-size:400% 100%;color:#fff;font-size:.77rem;font-weight:900;cursor:pointer;text-align:center;letter-spacing:.03em;text-shadow:0 1px 3px rgba(0,0,0,.3);animation:fzTrendRainbow 4s linear infinite,fzTrendBounce 1.8s ease-in-out infinite;box-shadow:0 3px 16px rgba(255,65,108,.4)}
+@keyframes fzTrendRainbow{0%{background-position:100% 50%}100%{background-position:0% 50%}}
+@keyframes fzTrendBounce{0%,100%{transform:translateY(0)}50%{transform:translateY(-3px)}}
+.fz-trend-btn:active{transform:scale(.95)!important;opacity:.85}
 
 /* serving selector */
 .srv-bar{display:flex;align-items:center;gap:7px;padding:8px 11px 7px;border-top:1px solid var(--sand2);background:var(--parch)}
@@ -2920,6 +2924,7 @@ Vielen Dank für deine Unterstützung.</div>
           <div class="fz-extras">
             <div class="fz-extras-lbl">Extras (optional)</div>
             <div id="fzExtrasContainer"></div>
+            <button class="fz-trend-btn" onclick="_fzTrendSurprise()">🔥 KI-Überraschung: Trendrezepte entdecken!</button>
           </div>
         </div>
       </div>
@@ -6042,6 +6047,24 @@ function _fzPickFmt(id){
 function _fzToggleExtra(id,on){
   on?_fzExtras.add(id):_fzExtras.delete(id);
   document.getElementById('aiBookPromptBox').value=_kbBuildCpPrompt();
+}
+function _fzTrendSurprise(){
+  document.getElementById('aiBookPromptBox').value=
+    'Du bist ein kreativer Food-Zine-Gestalter. Erstelle ein einziges, großes, spektakuläres Food-Zine-Poster im Mixed-Media-Stil für EIN aktuelles Trendrezept, das gerade in sozialen Medien viral geht.\n\n'
+   +'Wähle selbst ein Rezept, das momentan angesagt ist – z.B. aus TikTok FoodTok, Instagram Reels oder Pinterest Trends. Überrasch uns komplett!\n\n'
+   +'FORMAT: Poster im Standard-Querformat (Landscape)\n\n'
+   +'🔥 DESIGN: Modern, trendig, Social-Media-tauglich. Kräftige Farben, frische Ästhetik, Mixed Media aus Fotos, Illustrationen und grafischen Elementen.\n\n'
+   +'PFLICHT-INHALTE:\n'
+   +'1. Rezeptname als Eye-Catching Headline + Trend-Hashtag (#[Rezept]Trend)\n'
+   +'2. „Viral auf [Plattform]"-Badge\n'
+   +'3. Zutaten als grafische Infografik mit Mengen\n'
+   +'4. Step-by-Step-Zubereitung in 5–6 klaren Schritten\n'
+   +'5. „Warum trendet das gerade?" – kurze Erklärung des Food-Trends\n'
+   +'6. Nährwerte als moderne Icon-Infografik\n'
+   +'7. Pro-Tipps: „So geht\'s noch besser!"\n'
+   +'8. Serviervorschlag für den perfekten Food-Post\n\n'
+   +'Am Ende: KI nennt das gewählte Rezept + kurze Erklärung, warum es gerade viral geht.';
+  document.getElementById('aiBookPromptBox').scrollIntoView({behavior:'smooth',block:'nearest'});
 }
 
 function _kbCpPickStyle(key){
