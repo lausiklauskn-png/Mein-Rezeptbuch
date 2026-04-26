@@ -20,6 +20,30 @@ Diese Regel gilt auch wenn das Problem komplex wirkt, der Zeitdruck hoch ist, od
 
 ---
 
+## ⚠️ REGEL: Branch-Zustand prüfen bevor in lokalen Dateien gesucht wird
+
+Wenn ein Feature oder Button im lokalen Code **nicht gefunden** wird, ist der erste Schritt **nicht** weiterzusuchen – sondern den Branch-Zustand zu prüfen:
+
+```bash
+git fetch origin main
+git log HEAD..origin/main --oneline   # Wie weit liegt main voraus?
+```
+
+Wenn main voraus liegt: **Die relevante Datei direkt von main holen** – nicht blind mergen:
+
+```bash
+git checkout origin/main -- <dateiname>   # Nur die eine Datei
+# Änderung machen
+python3 build.py
+git add + git commit + git push
+```
+
+**Niemals** `git merge origin/main` reflexartig ausführen wenn der Branch weit hinter main liegt – das produziert unnötige Konflikte. Stattdessen nur die benötigte Datei gezielt holen.
+
+**Warum diese Regel:** Lokale Dateien können veraltet sein. Ein Feature das "nicht im Code steht" ist oft in einer neueren Datei auf main – nicht in der lokalen Version.
+
+---
+
 ## ⚠️ PFLICHT-CHECKLISTE NACH JEDER ÄNDERUNG
 
 Claude muss nach **jeder** Änderung an der QC-Datei folgende Punkte ausgeben und den Benutzer explizit darauf hinweisen:
