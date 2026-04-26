@@ -1362,6 +1362,9 @@ html.a11y-hc body[data-theme=spektral] .bn-ico{color:#fff !important;text-shadow
 .spell-ok-btn:active,.spell-skip-btn:active{opacity:.8}
 .spell-note{font-size:.64rem;color:var(--br3);margin-top:8px;text-align:center;line-height:1.4}
 .spell-loading{text-align:center;padding:28px 16px;color:var(--br3);font-size:.82rem}
+.spell-sbs{display:grid;grid-template-columns:1fr 1fr;gap:6px}
+.spell-sbs-lbl{font-size:.58rem;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--br3);margin-bottom:2px}
+.spell-orig{background:var(--sand);border:1.5px solid var(--sand2);border-radius:8px;padding:6px 8px;font-size:.76rem;color:var(--br3);line-height:1.35;word-break:break-word;white-space:pre-wrap;box-sizing:border-box}
 /* ═══════════════ HANDBUCH / MANUAL ═══════════════ */
 .man-ov{position:fixed;top:0;left:0;right:0;bottom:0;z-index:9400;background:rgba(0,0,0,.52);display:flex;align-items:flex-end;justify-content:center}
 .man-card{background:var(--parch);border-radius:18px 18px 0 0;width:100%;max-width:600px;max-height:92vh;display:flex;flex-direction:column;overflow:hidden}
@@ -10901,18 +10904,31 @@ function renderSpellModal(r, corrected) {
   // Name
   html += `<div class="spell-section">
     <div class="spell-slbl">Rezeptname ${nameChanged ? '<span class="spell-badge">Korrigiert</span>' : ''}</div>
-    <input class="spell-field" id="sp-name" value="${h(corrected.name || r.name)}" style="height:38px"/>
+    ${nameChanged ? `<div class="spell-sbs">
+      <div><div class="spell-sbs-lbl">Vorher</div><div class="spell-orig" style="height:38px;display:flex;align-items:center">${h(r.name)}</div></div>
+      <div><div class="spell-sbs-lbl">KI-Korrektur</div><input class="spell-field" id="sp-name" value="${h(corrected.name)}" style="height:38px"/></div>
+    </div>` : `<input class="spell-field" id="sp-name" value="${h(corrected.name || r.name)}" style="height:38px"/>`}
   </div>`;
 
-  // Zutaten (nur geänderte anzeigen, Rest trotzdem mitschicken)
+  // Zutaten
   const ingRows = (corrected.ingredients || []).map((ci, i) => {
     const orig = r.ings[i];
     if (!orig) return '';
     const changed = ci.name !== orig.name;
+    if (changed) {
+      return `<div style="display:flex;align-items:flex-start;gap:6px;padding:3px 0">
+        <span style="font-size:.7rem;color:var(--gold);width:14px;padding-top:18px">✱</span>
+        <span style="font-size:.72rem;color:var(--br3);width:70px;flex-shrink:0;padding-top:18px">${h(orig.amt)} ${h(orig.unit||'')}</span>
+        <div class="spell-sbs" style="flex:1">
+          <div><div class="spell-sbs-lbl">Vorher</div><div class="spell-orig" style="min-height:30px;font-size:.76rem;padding:4px 7px">${h(orig.name)}</div></div>
+          <div><div class="spell-sbs-lbl">KI</div><input class="spell-field" id="sp-ing-${i}" value="${h(ci.name)}" style="height:30px;font-size:.76rem;padding:4px 7px"/></div>
+        </div>
+      </div>`;
+    }
     return `<div style="display:flex;align-items:center;gap:6px;padding:3px 0">
-      ${changed ? '<span style="font-size:.7rem;color:var(--gold)">✱</span>' : '<span style="width:14px"></span>'}
+      <span style="width:14px"></span>
       <span style="font-size:.72rem;color:var(--br3);width:70px;flex-shrink:0">${h(orig.amt)} ${h(orig.unit||'')}</span>
-      <input class="spell-field" id="sp-ing-${i}" value="${h(ci.name)}" style="height:30px;font-size:.76rem;padding:4px 7px"/>
+      <input class="spell-field" id="sp-ing-${i}" value="${h(ci.name)}" style="height:30px;font-size:.76rem;padding:4px 7px;flex:1"/>
     </div>`;
   }).join('');
 
@@ -10928,8 +10944,15 @@ function renderSpellModal(r, corrected) {
     const orig = r.steps[i];
     if (!orig) return '';
     const changed = cs !== orig.txt;
+    if (changed) {
+      return `<div style="margin-bottom:8px">
+        <div class="spell-sbs">
+          <div><div class="spell-sbs-lbl">Vorher</div><div class="spell-orig">${h(orig.txt)}</div></div>
+          <div><div class="spell-sbs-lbl">KI-Korrektur</div><textarea class="spell-field" id="sp-step-${i}" rows="2" style="font-size:.76rem">${h(cs)}</textarea></div>
+        </div>
+      </div>`;
+    }
     return `<div style="margin-bottom:5px">
-      ${changed ? '<span style="font-size:.65rem;color:var(--gold);display:block;margin-bottom:2px">✱ Korrigiert</span>' : ''}
       <textarea class="spell-field" id="sp-step-${i}" rows="2" style="font-size:.76rem">${h(cs)}</textarea>
     </div>`;
   }).join('');
