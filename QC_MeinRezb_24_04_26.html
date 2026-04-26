@@ -761,6 +761,18 @@ body.nav-collapsed{padding-bottom:calc(16px + var(--sb))}
 .fz-bar:active{opacity:.6}
 .fz-bar-lbl{font-size:.5rem;font-weight:900;color:var(--teal);text-shadow:0 0 8px rgba(54,112,106,0.18);letter-spacing:.03em}
 .fz-bar-sub{font-size:.38rem;font-weight:600;color:var(--teal);opacity:.8;letter-spacing:0}
+.fz-fmt-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:6px;margin:8px 0 4px}
+.fz-fmt-tile{border:1.5px solid var(--sand2);border-radius:10px;padding:8px 5px 6px;text-align:center;cursor:pointer;background:var(--parch);transition:border-color .15s,background .15s;user-select:none}
+.fz-fmt-tile.on{border-color:var(--teal);background:var(--teals)}
+.fz-fmt-tile-ico{font-size:1.25rem;margin-bottom:2px}
+.fz-fmt-tile-lbl{font-size:.66rem;font-weight:700;color:var(--ink);line-height:1.2}
+.fz-fmt-tile-sub{font-size:.52rem;color:var(--br3);margin-top:1px}
+.fz-extras{margin-top:9px;display:flex;flex-direction:column;gap:4px}
+.fz-extras-lbl{font-size:.6rem;font-weight:900;color:var(--br3);text-transform:uppercase;letter-spacing:.05em;margin-bottom:2px}
+.fz-extra-row{display:flex;align-items:center;gap:8px;padding:5px 9px;border-radius:8px;background:var(--parch);border:1px solid var(--sand2);cursor:pointer;transition:background .12s}
+.fz-extra-row:has(input:checked){background:var(--teals);border-color:var(--teal)}
+.fz-extra-row input{cursor:pointer;accent-color:var(--teal);width:14px;height:14px;flex-shrink:0}
+.fz-extra-row span{font-size:.72rem;color:var(--ink);cursor:pointer}
 
 /* serving selector */
 .srv-bar{display:flex;align-items:center;gap:7px;padding:8px 11px 7px;border-top:1px solid var(--sand2);background:var(--parch)}
@@ -2896,6 +2908,12 @@ Vielen Dank für deine Unterstützung.</div>
             onchange="document.getElementById('aiBookPromptBox').value=_kbBuildCpPrompt()">
             <option value="">– Kein Lieblingsrezept –</option>
           </select>
+          <div class="aibk2-zine-pick-lbl" style="margin-top:10px">Format wählen:</div>
+          <div class="fz-fmt-grid" id="fzFmtGrid"></div>
+          <div class="fz-extras">
+            <div class="fz-extras-lbl">Extras (optional)</div>
+            <div id="fzExtrasContainer"></div>
+          </div>
         </div>
       </div>
       <!-- Prompt preview + actions -->
@@ -5972,6 +5990,51 @@ function _kbFillZineSelect(){
   }
   sel.innerHTML=html;
   if(cur)sel.value=cur;
+  _fzRenderFmtGrid();
+  _fzRenderExtras();
+}
+
+const _FZ_FORMATS=[
+  {id:'poster',  ico:'📄',lbl:'Poster',       sub:'Querformat · Standard',    fmt:'Poster im Standard-Querformat (Landscape)'},
+  {id:'a4',      ico:'📋',lbl:'DIN A4',        sub:'Hochformat',               fmt:'DIN A4 Hochformat'},
+  {id:'insta',   ico:'📱',lbl:'Instagram',     sub:'1:1 · Quadrat',           fmt:'quadratisches Format 1:1 (Social Media / Instagram)'},
+  {id:'zeitung', ico:'📰',lbl:'Zeitungsseite', sub:'Zweispaltig · Hochformat', fmt:'Zeitungsseiten-Layout (zweispaltig, Hochformat)'},
+  {id:'karte',   ico:'🎴',lbl:'Rezeptkarte',   sub:'A5 · Kompakt',            fmt:'kompakte Rezeptkarte im A5-Format (zum Ausdrucken und Sammeln)'},
+  {id:'panorama',ico:'🖼️',lbl:'Panorama',      sub:'16:9 · Breitformat',      fmt:'Breitformat-Panorama (16:9, ideal für Screens und Pinterest)'},
+];
+const _FZ_EXTRAS_DEF=[
+  {id:'nutr', lbl:'Nährwert-Infografik',   prompt:'Integriere eine ansprechende Nährwert-Infografik mit Balken oder Icons für Kalorien, Fett, Kohlenhydrate und Eiweiß.'},
+  {id:'steps',lbl:'Step-by-Step Diagramm', prompt:'Visualisiere die Zubereitung als Step-by-Step-Diagramm mit nummerierten Schritten und kleinen Illustrationen.'},
+  {id:'shop', lbl:'Einkaufslisten-Block',  prompt:'Füge einen abtrennbaren Einkaufslisten-Block mit den Zutaten als Checkbox-Liste hinzu.'},
+  {id:'retro',lbl:'Vintage/Retro-Stil',    prompt:'Gestalte das Layout im Vintage/Retro-Stil mit gealterten Texturen, alter Typographie und Sepia-Tönen.'},
+  {id:'qr',   lbl:'QR-Code Platzhalter',   prompt:'Reserviere einen Bereich für einen QR-Code mit dem Hinweis [QR-Code hier einfügen].'},
+];
+let _fzFormat='poster';
+let _fzExtras=new Set();
+
+function _fzRenderFmtGrid(){
+  const g=document.getElementById('fzFmtGrid');if(!g)return;
+  g.innerHTML=_FZ_FORMATS.map(f=>`<div class="fz-fmt-tile${f.id===_fzFormat?' on':''}" onclick="_fzPickFmt('${f.id}')">
+    <div class="fz-fmt-tile-ico">${f.ico}</div>
+    <div class="fz-fmt-tile-lbl">${f.lbl}</div>
+    <div class="fz-fmt-tile-sub">${f.sub}</div>
+  </div>`).join('');
+}
+function _fzRenderExtras(){
+  const c=document.getElementById('fzExtrasContainer');if(!c)return;
+  c.innerHTML=_FZ_EXTRAS_DEF.map(e=>`<label class="fz-extra-row">
+    <input type="checkbox" ${_fzExtras.has(e.id)?'checked':''} onchange="_fzToggleExtra('${e.id}',this.checked)">
+    <span>${e.lbl}</span>
+  </label>`).join('');
+}
+function _fzPickFmt(id){
+  _fzFormat=id;
+  _fzRenderFmtGrid();
+  document.getElementById('aiBookPromptBox').value=_kbBuildCpPrompt();
+}
+function _fzToggleExtra(id,on){
+  on?_fzExtras.add(id):_fzExtras.delete(id);
+  document.getElementById('aiBookPromptBox').value=_kbBuildCpPrompt();
 }
 
 function _kbCpPickStyle(key){
@@ -6044,7 +6107,10 @@ function _kbBuildCpPrompt(){
     const ico=catIco(r.cat)||'🍽️';
     let nutStr='';if(r.nutrition&&r.nutrition.kcal){const n=r.nutrition;nutStr='\nNährwerte pro Portion: '+n.kcal+' kcal | Fett: '+n.fat+'g | KH: '+n.carbs+'g | Eiweiß: '+n.protein+'g';}
     let extras='';if((r.flavors||[]).length)extras='\nAromen/Stil: '+r.flavors.join(', ');
-    return 'Erstelle ein , farbiges Food-Zine Poster im Mixed-Media-Stil im Standard-Querformat zu Folgendem Rezept:\n\n'
+    const fmtDef=_FZ_FORMATS.find(f=>f.id===_fzFormat)||_FZ_FORMATS[0];
+    const extraPrompts=[..._fzExtras].map(id=>(_FZ_EXTRAS_DEF.find(e=>e.id===id)||{}).prompt).filter(Boolean);
+    const extraBlock=extraPrompts.length?'\n\n➕ EXTRA-ANFORDERUNGEN:\n'+extraPrompts.map(p=>'• '+p).join('\n'):'';
+    return 'Erstelle ein , farbiges Food-Zine Poster im Mixed-Media-Stil im '+fmtDef.fmt+' zu Folgendem Rezept:\n\n'
       +'📖 REZEPT: '+r.name+'\n'+ico+' Kategorie: '+kat+'\n'
       +'👥 Portionen: '+portionen+' Personen\n'
       +'⏱️ Zubereitungszeit: '+zeit+nutStr+extras+'\n\n'
@@ -6053,7 +6119,7 @@ function _kbBuildCpPrompt(){
       +'━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n\n'
       +'Füge nötige Schritt-für-Schritt-Abbildungen, Diagramme (wenn sinnvoll und kein Stilbruch) sowie Erklärungen ein.\n'
       +'Ergänze auch gesundheitliche oder ökologische Hintergründe zum Gericht.\n\n'
-      +'Format: 1–3 Seiten · DIN A4 · Hochformat · Farbdruck · Mixed-Media-Stil\n\n'
+      +'Format: '+fmtDef.fmt+' · Farbdruck · Mixed-Media-Stil\n\n'
       +'📌 SEITE 1 — TITELSEITE (Cover)\n'
       +'• Großes, appetitliches Bild des fertigen Gerichts (Aquarell + Foto-Collage)\n'
       +'• Titel „'+r.name+'" in handschriftlicher / kreativer Typografie\n'
@@ -6071,7 +6137,8 @@ function _kbBuildCpPrompt(){
       +'• Serviervorschlag & Anrichtetipps (illustriert)\n\n'
       +'✏️ DESIGN-STIL:\n'
       +'Warm, einladend, lebendig — Mixed Media: Aquarell-Texturen, handgezeichnete Elemente, moderne Typografie.\n'
-      +'Einheitliche Farbpalette und Schriftfamilie über alle Seiten.';
+      +'Einheitliche Farbpalette und Schriftfamilie über alle Seiten.'
+      +extraBlock;
   }
   const ids=[..._aiBookSel];
   const recs=R.filter(r=>ids.includes(r.id)&&r.name);
