@@ -6148,6 +6148,8 @@ function aiBookWeiter(){
   const grid2=document.getElementById('aiBookStyleGrid');
   if(_kbCpStyle==='zine'){if(pill2)pill2.style.display='flex';if(grid2)grid2.style.display='none';}
   else{if(pill2)pill2.style.display='none';if(grid2)grid2.style.display='';}
+  const ps2=document.getElementById('aiBookPasteSect');
+  if(ps2)ps2.style.display=_kbCpStyle==='zine'?'none':'';
   document.getElementById('aiBookPromptBox').value=_kbBuildCpPrompt();
 }
 
