@@ -9081,7 +9081,6 @@ function downloadImg(rid){
 function removeImg(rid){
   const r=R.find(r=>r.id===rid);if(!r||!r.img)return;
   _imgUndo[rid]={img:r.img,imgCrop:r.imgCrop||{x:50,y:50,scale:1}};
-  _pushUndo(rid);
   r.img='';r.imgCrop={x:50,y:50,scale:1};
   sv();render();
 }
