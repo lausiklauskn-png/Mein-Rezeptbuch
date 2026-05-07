@@ -4912,6 +4912,16 @@ const CATS=[
   {id:'kuchen',ico:'🍰',de:'Kuchen',en:'Cakes',ru:'Выпечка',zh:'蛋糕',es:'Pasteles',fr:'Gâteaux',it:'Torte',pt:'Bolos',col:'#8b5e3c'},
   {id:'dessert',ico:'🍮',de:'Desserts',en:'Desserts',ru:'Десерты',zh:'甜点',es:'Postres',fr:'Desserts',it:'Dolci',pt:'Sobremesas',col:'#7a5c2e'},
   {id:'drk',ico:'🍷',de:'Getränke',en:'Drinks',ru:'Напитки',zh:'饮料',es:'Bebidas',fr:'Boissons',it:'Bevande',pt:'Bebidas',col:'#4a6090'},
+  {id:'smooth',ico:'🥤',de:'Smoothies & Shakes',en:'Smoothies',ru:'Смузи',zh:'奶昔',es:'Batidos',fr:'Smoothies',it:'Frullati',pt:'Batidos',col:'#2d8a4e'},
+  {id:'mock',ico:'🍹',de:'Mocktails',en:'Mocktails',ru:'Мокт.',zh:'无酒',es:'Mocktails',fr:'Mocktails',it:'Mocktail',pt:'Mocktail',col:'#c05a8a'},
+  {id:'afckt',ico:'🍸',de:'Alkfr. Cocktails',en:'Alcohol-free',ru:'Безалк.',zh:'无酒鸡尾',es:'Sin alcohol',fr:'Sans alcool',it:'Analcolici',pt:'Sem álcool',col:'#7a3a9a'},
+  {id:'limo',ico:'🍋',de:'Limonaden',en:'Lemonades',ru:'Лимонады',zh:'柠檬水',es:'Limonadas',fr:'Limonades',it:'Limoniate',pt:'Limonadas',col:'#c8a020'},
+  {id:'tee',ico:'☕',de:'Tees & Kaffees',en:'Teas & Coffees',ru:'Чаи & Кофе',zh:'茶 & 咖啡',es:'Tés & Cafés',fr:'Thés & Cafés',it:'Tè & Caffè',pt:'Chás & Cafés',col:'#6b4a2a'},
+  {id:'ckt',ico:'🍸',de:'Cocktails',en:'Cocktails',ru:'Коктейли',zh:'鸡尾酒',es:'Cócteles',fr:'Cocktails',it:'Cocktail',pt:'Coquetéis',col:'#c04030'},
+  {id:'bowle',ico:'🍶',de:'Bowlen',en:'Punches',ru:'Пунши',zh:'宾治',es:'Ponches',fr:'Punchs',it:'Punch',pt:'Ponches',col:'#ff5a5f'},
+  {id:'sirup',ico:'🫙',de:'Sirup & Basis',en:'Syrups & Base',ru:'Сиропы',zh:'糖浆',es:'Siropes',fr:'Sirops',it:'Sciroppi',pt:'Xaropes',col:'#5a8a3a'},
+  {id:'knab',ico:'🥨',de:'Knabbereien',en:'Snacks',ru:'Снэки',zh:'小吃',es:'Aperitivos',fr:'Grignotages',it:'Stuzzichini',pt:'Petiscos',col:'#b8852a'},
+  {id:'finger',ico:'🍢',de:'Fingerfood',en:'Finger food',ru:'Закуски',zh:'指食',es:'Tapas',fr:'Amuse-bouches',it:'Finger food',pt:'Petiscos',col:'#a04a3a'},
 ];
 const COURSES=[
   {id:'app',ico:'🥗',de:'Vorspeise',en:'Starter',ru:'Закуска',zh:'前菜',es:'Entrante',fr:'Entrée',it:'Antipasto',pt:'Entrada'},
@@ -8743,11 +8753,12 @@ function renderCatNav(){
   const el=document.getElementById('catNav');if(!el)return;
   // Kategorien
   let pills=CATS.map(c=>{
-    const cnt=c.id==='all'?R.filter(r=>r.name).length:R.filter(r=>r.cat===c.id&&r.name).length;
+    const cnt=c.id==='all'?R.filter(r=>r.name&&!r.blank).length:R.filter(r=>r.cat===c.id&&r.name&&!r.blank).length;
+    if(cnt===0&&c.id!=='all')return '';
     const dragEvts=c.id!=='all'?`ondragover="pillDragOver(event,'${c.id}')" ondragleave="pillDragLeave(event)" ondrop="pillDrop(event,'${c.id}')"` :'';
     return`<div class="cpill ${CAT===c.id?'on':''}" onclick="setCAT('${c.id}')" ${dragEvts}>${c.ico} ${c[CL]||c.de} <span style="opacity:.65;font-size:.6rem">${cnt}</span></div>`;
   }).join('');
-  if(FD&&FD.length){pills+=FD.map(f=>{const fid='fld_'+f.id;const cnt=R.filter(r=>r.folder===String(f.id)&&r.name).length;return`<div class="cpill ${CAT===fid?'on':''}" onclick="setCAT('${fid}')">${f.ico} ${f.name} <span style="opacity:.65;font-size:.6rem">${cnt}</span></div>`;}).join('');}
+  if(FD&&FD.length){pills+=FD.map(f=>{const fid='fld_'+f.id;const cnt=R.filter(r=>(r.folder===String(f.id)||r.cat===fid)&&r.name&&!r.blank).length;if(cnt===0)return '';return`<div class="cpill ${CAT===fid?'on':''}" onclick="setCAT('${fid}')">${f.ico} ${f.name} <span style="opacity:.65;font-size:.6rem">${cnt}</span></div>`;}).join('');}
   el.innerHTML=pills;
   const catSel=document.getElementById('newCat');
   if(catSel)catSel.innerHTML=`<option value="">— ${T('lCat')} —</option>`+
@@ -9792,14 +9803,14 @@ function render(){
     html=named.length?named.map(r=>rndCard(r)).join(''):`<div class="empty-state empty-state--search"><div class="empty-state__icon">🔍</div><h3 class="empty-state__title">${T('noResults')}</h3></div>`;
   }else if(CAT==='all'){
     for(const cat of CATS.filter(c=>c.id!=='all')){
-      const grp=R.filter(r=>r.cat===cat.id);if(!grp.length)continue;
+      const grp=R.filter(r=>r.cat===cat.id&&!r.blank&&r.name&&r.name.trim());if(!grp.length)continue;
       html+=rndDiv(cat,grp)+grp.map(r=>rndCard(r)).join('');
     }
     // Ordner-Gruppen in Alle-Ansicht
     if(FD&&FD.length){
       FD.forEach(f=>{
         const fid='fld_'+f.id;
-        const grp=R.filter(r=>r.cat===fid);
+        const grp=R.filter(r=>r.cat===fid&&!r.blank&&r.name&&r.name.trim());
         if(!grp.length)return;
         const fc={id:fid,ico:f.ico,de:f.name,col:'#7a5840'};fc[CL]=f.name;
         html+=rndDiv(fc,grp)+grp.map(r=>rndCard(r)).join('');
@@ -9810,8 +9821,7 @@ function render(){
     // Ordner-Filter
     const fid=CAT.slice(4);
     const f=FD.find(f=>String(f.id)===fid);
-    const grpAll=R.filter(r=>r.cat===('fld_'+fid)||r.folder===fid);
-    const grpNamed=grpAll.filter(r=>r.name);
+    const grpAll=R.filter(r=>(r.cat===('fld_'+fid)||r.folder===fid)&&!r.blank&&r.name&&r.name.trim());
     if(f){
       const fc={id:'fld_'+fid,ico:f.ico,de:f.name,col:'#7a5840'};fc[CL]=f.name;
       html+=rndDiv(fc,grpAll);
@@ -9820,7 +9830,7 @@ function render(){
     if(!grpAll.length)html+=`<div class="empty-state"><div class="empty-state__icon">📂</div><h3 class="empty-state__title">${T('noRecipes')}</h3></div>`;
   }else{
     const cat=CATS.find(c=>c.id===CAT);
-    const grp=R.filter(r=>r.cat===CAT);
+    const grp=R.filter(r=>r.cat===CAT&&!r.blank&&r.name&&r.name.trim());
     if(cat)html+=rndDiv(cat,grp);
     html+=grp.map(r=>rndCard(r)).join('');
     if(!grp.length)html+=`<div class="empty-state"><div class="empty-state__icon">🍽️</div><h3 class="empty-state__title">${T('noRecipes')}</h3></div>`;
