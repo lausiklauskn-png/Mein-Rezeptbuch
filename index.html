@@ -251,7 +251,7 @@ body.nav-collapsed{padding-bottom:calc(16px + var(--sb))}
 .crop-close{background:rgba(255,255,255,.12);border:none;color:#fff;width:32px;height:32px;border-radius:50%;font-size:1rem;cursor:pointer;display:flex;align-items:center;justify-content:center}
 .crop-close:active{background:rgba(255,255,255,.25)}
 .crop-stage{flex:1;display:flex;align-items:center;justify-content:center;overflow:hidden;position:relative;touch-action:none}
-.crop-frame{width:calc(100% - 24px);max-width:496px;height:calc((100% - 24px) * 0.42);max-height:208px;border-radius:10px;overflow:hidden;position:relative;box-shadow:0 0 0 3px rgba(255,255,255,.18),0 8px 32px rgba(0,0,0,.6);cursor:grab;touch-action:none}
+.crop-frame{width:calc(100% - 24px);max-width:496px;height:calc((100% - 24px) * 0.42 * var(--ch,1));max-height:calc(208px * var(--ch,1));border-radius:10px;overflow:hidden;position:relative;box-shadow:0 0 0 3px rgba(255,255,255,.18),0 8px 32px rgba(0,0,0,.6);cursor:grab;touch-action:none}
 .crop-frame:active{cursor:grabbing}
 .crop-img{position:absolute;top:0;left:0;width:100%;height:100%;object-fit:cover;touch-action:none;user-select:none;pointer-events:none;-webkit-user-drag:none;will-change:transform}
 .crop-grid{position:absolute;inset:0;pointer-events:none;background:
@@ -3463,6 +3463,13 @@ Vielen Dank für deine Unterstützung.</div>
       <span class="crop-zoom-ico big">🔍</span>
       <span class="crop-zoom-val" id="cropZoomVal">1×</span>
     </div>
+    <div class="crop-zoom-row">
+      <span class="crop-zoom-ico">📐</span>
+      <input class="crop-slider" id="cropHeight" type="range" min="60" max="200" value="100" step="5"
+        oninput="onCropHeight(this.value)" title="Karten-Höhe"/>
+      <span class="crop-zoom-ico big">📐</span>
+      <span class="crop-zoom-val" id="cropHeightVal">1.00×</span>
+    </div>
     <div class="crop-presets" id="cropPresets">
       <button class="crop-preset" onclick="cropPreset('center')" id="cpCenter">⬛ Mitte</button>
       <button class="crop-preset" onclick="cropPreset('top')" id="cpTop">⬆ Oben</button>
@@ -5652,7 +5659,7 @@ async function boot(){
     if(!r.steps)r.steps=[];
     if(!r.flavors)r.flavors=[];
     if(!r.servings)r.servings=4; // base serving size
-    if(!r.imgCrop)r.imgCrop={x:50,y:50,scale:1}; // crop/pan/zoom
+    if(!r.imgCrop)r.imgCrop={x:50,y:50,scale:1,h:1}; else if(typeof r.imgCrop.h!=='number')r.imgCrop.h=1; // crop/pan/zoom/height
     if(r.prepTime===undefined)r.prepTime=null; // null = auto-detect from steps
   });
   // Bilder aus IDB wiederherstellen (werden nicht mehr in localStorage gespeichert)
@@ -7953,7 +7960,7 @@ function exportData(){
 }
 function _normalizeRecs(recs){
   const validCats=new Set(CATS.filter(c=>c.id!=='all').map(c=>c.id));
-  recs.forEach(r=>{if(!r.img)r.img='';if(r.folder===undefined)r.folder='';if(!r.rating)r.rating={stars:0,comment:'',imps:[]};if(!r.ings)r.ings=[];if(!r.steps)r.steps=[];if(!r.flavors)r.flavors=[];if(!r.servings)r.servings=4;if(!r.imgCrop)r.imgCrop={x:50,y:50,scale:1};if(!r.cat||(!validCats.has(r.cat)&&!String(r.cat).startsWith('fld_')))r.cat='fleisch';});
+  recs.forEach(r=>{if(!r.img)r.img='';if(r.folder===undefined)r.folder='';if(!r.rating)r.rating={stars:0,comment:'',imps:[]};if(!r.ings)r.ings=[];if(!r.steps)r.steps=[];if(!r.flavors)r.flavors=[];if(!r.servings)r.servings=4;if(!r.imgCrop)r.imgCrop={x:50,y:50,scale:1,h:1};else if(typeof r.imgCrop.h!=='number')r.imgCrop.h=1;if(!r.cat||(!validCats.has(r.cat)&&!String(r.cat).startsWith('fld_')))r.cat='fleisch';});
 }
 function _showImportChoiceDialog(recCount, onReplace, onMerge){
   const ov=document.createElement('div');
@@ -9912,7 +9919,7 @@ function render(){
     if(!grp.length)html+=`<div class="empty-state"><div class="empty-state__icon">🍽️</div><h3 class="empty-state__title">${T('noRecipes')}</h3></div>`;
   }
   c.innerHTML=html;renderCatNav();badge();restoreTranslPanels();setupTouchDrag();
-  const cw=c.offsetWidth;if(cw>=50){const h=Math.round(cw*4/3);const drkCats=new Set(['drk']);if(typeof FD!=='undefined'&&FD){FD.forEach(f=>{if(/getr|drink|bever|bevande|boisson|bebida|напит/i.test(f.name))drkCats.add('fld_'+f.id);});}document.querySelectorAll('.rcard').forEach(card=>{if(!drkCats.has(card.dataset.cat))return;const wrap=card.querySelector('.rcard-img-wrap');const img=card.querySelector('.rcard-img');if(wrap)wrap.style.setProperty('height',h+'px','important');if(img)img.style.setProperty('height',h+'px','important');});}
+  const cw=c.offsetWidth;if(cw>=50){const drkCats=new Set(['drk']);if(typeof FD!=='undefined'&&FD){FD.forEach(f=>{if(/getr|drink|bever|bevande|boisson|bebida|напит/i.test(f.name))drkCats.add('fld_'+f.id);});}document.querySelectorAll('.rcard').forEach(card=>{const ch=parseFloat(card.dataset.h)||1;if(drkCats.has(card.dataset.cat)){const h=Math.round(cw*4/3*ch);const wrap=card.querySelector('.rcard-img-wrap');const img=card.querySelector('.rcard-img');if(wrap)wrap.style.setProperty('height',h+'px','important');if(img)img.style.setProperty('height',h+'px','important');}else if(ch!==1){const h=Math.round(160*ch);const wrap=card.querySelector('.rcard-img-wrap');const img=card.querySelector('.rcard-img');if(wrap)wrap.style.setProperty('height',h+'px','important');if(img)img.style.setProperty('height',h+'px','important');}});}
 }
 function rndDiv(cat,grp){
   const filled=grp.filter(r=>r.name).length,name=cat[CL]||cat.de;
@@ -10022,14 +10029,15 @@ function rndCard(r){
   const stars=[1,2,3,4,5].map(n=>`<span class="star ${n<=rat.stars?'on':''}" onclick="setStars(${r.id},${n})" title="${n} Stern${n!==1?'e':''}">★</span>`).join('');
   const imps=(rat.imps||[]).map((t,i)=>`<li class="imp-li"><span class="impbull">→</span><span class="imptxt">${h(t)}</span><button class="xbtn" onclick="delImp(${r.id},${i})" title="${T('ttlDelImp')}">✕</button></li>`).join('')
     ||`<li style="padding:3px 0;color:#c4aa7a;font-size:.76rem;font-style:italic">…</li>`;
-  return`<div class="rcard ${isBlank?'blank':''}" id="c${r.id}" data-cat="${r.cat}"
+  const _ch=(r.imgCrop&&r.imgCrop.h)||1;
+  return`<div class="rcard ${isBlank?'blank':''}" id="c${r.id}" data-cat="${r.cat}" data-h="${_ch}"
     draggable="true"
     ondragstart="cardDragStart(event,${r.id})"
     ondragend="cardDragEnd(${r.id})"
     ondragover="cardDragOver(event,${r.id})"
     ondragleave="cardDragLeave(${r.id})"
     ondrop="cardDrop(event,${r.id})">
-    ${r.img?(()=>{const cr=r.imgCrop||{x:50,y:50,scale:1};return`<div class="rcard-img-wrap" onclick="event.stopPropagation();openCrop(${r.id})" title="${T('cropTitle')}"><img class="rcard-img" src="${r.img}" alt="${h(r.name)}" loading="lazy" style="transform:scale(${cr.scale});transform-origin:${cr.x}% ${cr.y}%"/><div class="crop-hint"><div class="crop-hint-lbl">${T('cropHint')}</div></div></div>`;})():''}
+    ${r.img?(()=>{const cr=r.imgCrop||{x:50,y:50,scale:1,h:1};const ch=cr.h||1;const hpx=Math.round(160*ch);return`<div class="rcard-img-wrap" style="height:${hpx}px" onclick="event.stopPropagation();openCrop(${r.id})" title="${T('cropTitle')}"><img class="rcard-img" src="${r.img}" alt="${h(r.name)}" loading="lazy" style="height:${hpx}px;transform:scale(${cr.scale});transform-origin:${cr.x}% ${cr.y}%"/><div class="crop-hint"><div class="crop-hint-lbl">${T('cropHint')}</div></div></div>`;})():''}
     <div class="rcard-hd" onclick="${isBlank?'openInlineEdit('+r.id+')':'togCard('+r.id+')'}">
       <div class="stripe" style="background:${cc}"></div>
       <div class="rcard-hd-content">
@@ -10694,26 +10702,30 @@ function delImp(rid,i){const r=R.find(r=>r.id===rid);if(r?.rating?.imps)r.rating
 // ═══════════════════════════════════════════════════════
 // CROP EDITOR
 // ═══════════════════════════════════════════════════════
-let CE={rid:null,x:50,y:50,scale:1,drag:false,lastX:0,lastY:0,pinchDist:0,lastScale:1};
+let CE={rid:null,x:50,y:50,scale:1,h:1,drag:false,lastX:0,lastY:0,pinchDist:0,lastScale:1};
 
 function openCrop(rid){
   const r=R.find(r=>r.id===rid);if(!r||!r.img)return;
   CE.rid=rid;
-  const cr=r.imgCrop||{x:50,y:50,scale:1};
-  CE.x=cr.x;CE.y=cr.y;CE.scale=cr.scale;
+  const cr=r.imgCrop||{x:50,y:50,scale:1,h:1};
+  CE.x=cr.x;CE.y=cr.y;CE.scale=cr.scale;CE.h=cr.h||1;
   CE.drag=false;
 
   // Set image
   const img=document.getElementById('cropImg');
   img.src=r.img;
 
-  // Sync slider and display
+  // Sync sliders and displays
   const sl=document.getElementById('cropZoom');
   sl.value=Math.round(CE.scale*100);
   document.getElementById('cropZoomVal').textContent=(CE.scale).toFixed(1)+'×';
+  const sh=document.getElementById('cropHeight');
+  sh.value=Math.round(CE.h*100);
+  document.getElementById('cropHeightVal').textContent=CE.h.toFixed(2)+'×';
 
-  // Apply initial transform
+  // Apply initial transform + frame height
   applyCropTransform();
+  applyCropFrameHeight();
 
   // Update translations
   applyLangToCrop();
@@ -10741,7 +10753,7 @@ function closeCrop(){
 function saveCrop(){
   const r=R.find(r=>r.id===CE.rid);
   if(r){
-    r.imgCrop={x:round2(CE.x),y:round2(CE.y),scale:round2(CE.scale)};
+    r.imgCrop={x:round2(CE.x),y:round2(CE.y),scale:round2(CE.scale),h:round2(CE.h)};
     sv();render();
   }
   // Close overlay first, then open next in queue (if any)
@@ -10789,6 +10801,17 @@ function onCropZoom(val){
   document.getElementById('cropZoomVal').textContent=CE.scale.toFixed(1)+'×';
 }
 
+function onCropHeight(val){
+  CE.h=Math.max(0.6,Math.min(2,val/100));
+  applyCropFrameHeight();
+  document.getElementById('cropHeightVal').textContent=CE.h.toFixed(2)+'×';
+}
+
+function applyCropFrameHeight(){
+  const cf=document.getElementById('cropFrame');
+  if(cf)cf.style.setProperty('--ch',CE.h);
+}
+
 function cropPreset(pos){
   const map={center:{x:50,y:50},top:{x:50,y:10},bottom:{x:50,y:90},left:{x:10,y:50},right:{x:90,y:50}};
   const p=map[pos];if(!p)return;
@@ -10801,11 +10824,14 @@ function cropPreset(pos){
 }
 
 function cropReset(){
-  CE.x=50;CE.y=50;CE.scale=1;
+  CE.x=50;CE.y=50;CE.scale=1;CE.h=1;
   applyCropTransform();
+  applyCropFrameHeight();
   const sl=document.getElementById('cropZoom');
   sl.value=100;
   document.getElementById('cropZoomVal').textContent='1×';
+  const sh=document.getElementById('cropHeight');
+  if(sh){sh.value=100;document.getElementById('cropHeightVal').textContent='1.00×';}
 }
 
 // ── Drag (mouse) ───────────────────────────────────────
