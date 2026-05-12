@@ -4982,6 +4982,204 @@ function rTr(r){return(r&&r.translations&&CL&&CL!=='de'&&r.translations[CL])||nu
 // Returns recipe name in current language (translated if available)
 function rName(r){const t=rTr(r);return(t&&t.name)||r.name||'';}
 
+// ─── Unit translation (Mengeneinheit) ──────────────────
+// Maps a canonical unit key → translations for de/en/ru/zh/es/fr/it/pt.
+// Used to keep amount units in sync with the chosen UI language, especially
+// for drinks (Tasse/cup/чашка, Glas/glass/стакан, Flasche/bottle/бутылка, etc.).
+const UNIT_MAP={
+  // Volume — kurze Abk. (sprachneutral)
+  ml:{de:'ml',en:'ml',ru:'мл',zh:'毫升',es:'ml',fr:'ml',it:'ml',pt:'ml'},
+  cl:{de:'cl',en:'cl',ru:'сл',zh:'厘升',es:'cl',fr:'cl',it:'cl',pt:'cl'},
+  dl:{de:'dl',en:'dl',ru:'дл',zh:'分升',es:'dl',fr:'dl',it:'dl',pt:'dl'},
+  l:{de:'l',en:'l',ru:'л',zh:'升',es:'l',fr:'l',it:'l',pt:'l'},
+  liter:{de:'Liter',en:'liter',ru:'литр',zh:'升',es:'litro',fr:'litre',it:'litro',pt:'litro'},
+  // Volume — Trinkgefäße (Getränke!)
+  tasse:{de:'Tasse',en:'cup',ru:'чашка',zh:'杯',es:'taza',fr:'tasse',it:'tazza',pt:'xícara'},
+  glas:{de:'Glas',en:'glass',ru:'стакан',zh:'杯',es:'vaso',fr:'verre',it:'bicchiere',pt:'copo'},
+  becher:{de:'Becher',en:'mug',ru:'кружка',zh:'马克杯',es:'tarro',fr:'mug',it:'tazzone',pt:'caneca'},
+  flasche:{de:'Flasche',en:'bottle',ru:'бутылка',zh:'瓶',es:'botella',fr:'bouteille',it:'bottiglia',pt:'garrafa'},
+  kanne:{de:'Kanne',en:'pot',ru:'кувшин',zh:'壶',es:'jarra',fr:'pichet',it:'caraffa',pt:'jarra'},
+  schluck:{de:'Schluck',en:'sip',ru:'глоток',zh:'口',es:'trago',fr:'gorgée',it:'sorso',pt:'gole'},
+  schuss:{de:'Schuss',en:'dash',ru:'капля',zh:'少许',es:'chorrito',fr:'trait',it:'goccio',pt:'salpico'},
+  spritzer:{de:'Spritzer',en:'splash',ru:'брызги',zh:'少许',es:'chorrito',fr:'goutte',it:'spruzzo',pt:'salpico'},
+  tropfen:{de:'Tropfen',en:'drop',ru:'капля',zh:'滴',es:'gota',fr:'goutte',it:'goccia',pt:'gota'},
+  // Weight
+  g:{de:'g',en:'g',ru:'г',zh:'克',es:'g',fr:'g',it:'g',pt:'g'},
+  kg:{de:'kg',en:'kg',ru:'кг',zh:'公斤',es:'kg',fr:'kg',it:'kg',pt:'kg'},
+  mg:{de:'mg',en:'mg',ru:'мг',zh:'毫克',es:'mg',fr:'mg',it:'mg',pt:'mg'},
+  gramm:{de:'Gramm',en:'gram',ru:'грамм',zh:'克',es:'gramo',fr:'gramme',it:'grammo',pt:'grama'},
+  pfund:{de:'Pfund',en:'pound',ru:'фунт',zh:'磅',es:'libra',fr:'livre',it:'libbra',pt:'libra'},
+  // Spoons
+  el:{de:'EL',en:'tbsp',ru:'ст.л.',zh:'汤匙',es:'cda',fr:'c. à s.',it:'cucchiaio',pt:'cs'},
+  tl:{de:'TL',en:'tsp',ru:'ч.л.',zh:'茶匙',es:'cdta',fr:'c. à c.',it:'cucchiaino',pt:'cc'},
+  esslöffel:{de:'Esslöffel',en:'tablespoon',ru:'столовая ложка',zh:'汤匙',es:'cucharada',fr:'cuillère à soupe',it:'cucchiaio',pt:'colher de sopa'},
+  teelöffel:{de:'Teelöffel',en:'teaspoon',ru:'чайная ложка',zh:'茶匙',es:'cucharadita',fr:'cuillère à café',it:'cucchiaino',pt:'colher de chá'},
+  msp:{de:'Msp.',en:'tip',ru:'на кончике ножа',zh:'刀尖',es:'punta',fr:'pointe',it:'punta',pt:'ponta'},
+  // Pieces / portions
+  stück:{de:'Stück',en:'pc',ru:'шт.',zh:'个',es:'pieza',fr:'pièce',it:'pezzo',pt:'peça'},
+  prise:{de:'Prise',en:'pinch',ru:'щепотка',zh:'撮',es:'pizca',fr:'pincée',it:'pizzico',pt:'pitada'},
+  zehe:{de:'Zehe',en:'clove',ru:'зубчик',zh:'瓣',es:'diente',fr:'gousse',it:'spicchio',pt:'dente'},
+  bund:{de:'Bund',en:'bunch',ru:'пучок',zh:'把',es:'manojo',fr:'botte',it:'mazzetto',pt:'maço'},
+  kopf:{de:'Kopf',en:'head',ru:'кочан',zh:'颗',es:'cabeza',fr:'tête',it:'testa',pt:'cabeça'},
+  dose:{de:'Dose',en:'can',ru:'банка',zh:'罐',es:'lata',fr:'boîte',it:'lattina',pt:'lata'},
+  päckchen:{de:'Päckchen',en:'packet',ru:'пакетик',zh:'袋',es:'paquete',fr:'sachet',it:'bustina',pt:'pacote'},
+  pck:{de:'Pck.',en:'pkg',ru:'упак.',zh:'包',es:'paq.',fr:'paq.',it:'conf.',pt:'emb.'},
+  scheibe:{de:'Scheibe',en:'slice',ru:'ломтик',zh:'片',es:'rebanada',fr:'tranche',it:'fetta',pt:'fatia'},
+  blatt:{de:'Blatt',en:'sheet',ru:'лист',zh:'片',es:'hoja',fr:'feuille',it:'foglio',pt:'folha'},
+  handvoll:{de:'Handvoll',en:'handful',ru:'горсть',zh:'把',es:'puñado',fr:'poignée',it:'manciata',pt:'punhado'},
+  portion:{de:'Portion',en:'portion',ru:'порция',zh:'份',es:'porción',fr:'portion',it:'porzione',pt:'porção'},
+  beutel:{de:'Beutel',en:'bag',ru:'пакет',zh:'袋',es:'bolsa',fr:'sachet',it:'sacchetto',pt:'saco'}
+};
+// Alias table: alle bekannten Schreibweisen (mehrsprachig, Plural, Abk.) → kanonischer Key
+const UNIT_ALIASES={
+  // ml
+  'мл':'ml','毫升':'ml',
+  // cl/dl
+  'сл':'cl','分升':'dl','дл':'dl',
+  // l / liter
+  'л':'l',
+  'litre':'liter','litres':'liter','liters':'liter','litro':'liter','litros':'liter','litri':'liter',
+  'литр':'liter','литра':'liter','литров':'liter',
+  // Tasse / cup
+  'tassen':'tasse','cup':'tasse','cups':'tasse','taza':'tasse','tazas':'tasse',
+  'tazza':'tasse','tazze':'tasse','xícara':'tasse','xicara':'tasse','xícaras':'tasse','xicaras':'tasse',
+  'чашка':'tasse','чашки':'tasse','чашек':'tasse','杯':'tasse',
+  // Glas / glass
+  'gläser':'glas','glaeser':'glas','glass':'glas','glasses':'glas',
+  'vaso':'glas','vasos':'glas','verre':'glas','verres':'glas',
+  'bicchiere':'glas','bicchieri':'glas','copo':'glas','copos':'glas',
+  'стакан':'glas','стакана':'glas','стаканов':'glas',
+  // Becher / mug
+  'mug':'becher','mugs':'becher','кружка':'becher','кружки':'becher',
+  'tarro':'becher','tazzone':'becher','caneca':'becher','canecas':'becher','马克杯':'becher',
+  // Flasche / bottle
+  'flaschen':'flasche','bottle':'flasche','bottles':'flasche',
+  'bouteille':'flasche','bouteilles':'flasche','botella':'flasche','botellas':'flasche',
+  'bottiglia':'flasche','bottiglie':'flasche','garrafa':'flasche','garrafas':'flasche',
+  'бутылка':'flasche','бутылки':'flasche','бутылок':'flasche','瓶':'flasche',
+  // Kanne / pot
+  'kannen':'kanne','pot':'kanne','pots':'kanne','jarra':'kanne','jarras':'kanne',
+  'pichet':'kanne','caraffa':'kanne','caraffe':'kanne','кувшин':'kanne','壶':'kanne',
+  // Schluck / sip
+  'sip':'schluck','sips':'schluck','глоток':'schluck','глотка':'schluck',
+  'trago':'schluck','tragos':'schluck','gorgée':'schluck','gorgee':'schluck',
+  'sorso':'schluck','sorsi':'schluck','gole':'schluck','goles':'schluck','口':'schluck',
+  // Schuss / dash
+  'dash':'schuss','dashes':'schuss','trait':'schuss','traits':'schuss',
+  'goccio':'schuss','salpico':'schuss','chorrito':'schuss',
+  // Spritzer / splash
+  'splash':'spritzer','splashes':'spritzer','spruzzo':'spritzer','spruzzi':'spritzer',
+  // Tropfen / drop
+  'drop':'tropfen','drops':'tropfen','капля':'tropfen','капли':'tropfen','капель':'tropfen',
+  'gota':'tropfen','gotas':'tropfen','goutte':'tropfen','gouttes':'tropfen',
+  'goccia':'tropfen','gocce':'tropfen','滴':'tropfen',
+  // g / Gramm
+  'gr':'g','г':'g','克':'g',
+  'gram':'gramm','grams':'gramm','grammes':'gramm','gramo':'gramm','gramos':'gramm',
+  'grammo':'gramm','grammi':'gramm','grama':'gramm','gramas':'gramm','грамм':'gramm','грамма':'gramm','граммов':'gramm',
+  // kg
+  'кг':'kg','公斤':'kg','千克':'kg','kilogramm':'kg','kilogram':'kg','kilo':'kg','kilos':'kg',
+  // mg
+  'мг':'mg','毫克':'mg',
+  // Pfund / pound
+  'pound':'pfund','pounds':'pfund','lb':'pfund','lbs':'pfund',
+  'фунт':'pfund','фунта':'pfund','libra':'pfund','libras':'pfund',
+  'livre':'pfund','livres':'pfund','libbra':'pfund','libbre':'pfund','磅':'pfund',
+  // EL / Esslöffel
+  'tbsp':'el','tbs':'el','tablespoon':'esslöffel','tablespoons':'esslöffel',
+  'essl':'el','essl.':'el','essloeffel':'esslöffel','esslöffel':'esslöffel',
+  'cda':'el','cdas':'el','cucharada':'esslöffel','cucharadas':'esslöffel',
+  'cucchiaio':'esslöffel','cucchiai':'esslöffel','colher de sopa':'esslöffel',
+  'cuillère à soupe':'esslöffel','cuillere a soupe':'esslöffel','c. à s.':'el','c. a s.':'el',
+  'ст.л.':'el','ст.л':'el','ст л':'el','столовая ложка':'esslöffel','столовые ложки':'esslöffel','столовых ложек':'esslöffel','汤匙':'el',
+  // TL / Teelöffel
+  'tsp':'tl','teaspoon':'teelöffel','teaspoons':'teelöffel',
+  'teel':'tl','teel.':'tl','teeloeffel':'teelöffel','teelöffel':'teelöffel',
+  'cdta':'tl','cdtas':'tl','cucharadita':'teelöffel','cucharaditas':'teelöffel',
+  'cucchiaino':'teelöffel','cucchiaini':'teelöffel','colher de chá':'teelöffel','colher de cha':'teelöffel',
+  'cuillère à café':'teelöffel','cuillere a cafe':'teelöffel','c. à c.':'tl','c. a c.':'tl',
+  'ч.л.':'tl','ч.л':'tl','ч л':'tl','чайная ложка':'teelöffel','чайные ложки':'teelöffel','чайных ложек':'teelöffel','茶匙':'tl',
+  // Msp / tip
+  'msp.':'msp','messerspitze':'msp','knife tip':'msp','刀尖':'msp',
+  // Stück / piece
+  'stk':'stück','stk.':'stück','st':'stück','st.':'stück','stck':'stück','stueck':'stück','stücke':'stück','stuecke':'stück',
+  'pc':'stück','pcs':'stück','piece':'stück','pieces':'stück',
+  'pieza':'stück','piezas':'stück','pièce':'stück','pièces':'stück',
+  'pezzo':'stück','pezzi':'stück','peça':'stück','peças':'stück',
+  'шт':'stück','шт.':'stück','штука':'stück','штуки':'stück','штук':'stück','个':'stück',
+  // Prise / pinch
+  'pinch':'prise','pinches':'prise','prisen':'prise','щепотка':'prise','щепотки':'prise','щепоток':'prise',
+  'pizca':'prise','pizcas':'prise','pincée':'prise','pincee':'prise','pincées':'prise','pincees':'prise',
+  'pizzico':'prise','pizzichi':'prise','pitada':'prise','pitadas':'prise','撮':'prise',
+  // Zehe / clove
+  'zehen':'zehe','clove':'zehe','cloves':'zehe','зубчик':'zehe','зубчика':'zehe','зубчиков':'zehe',
+  'diente':'zehe','dientes':'zehe','gousse':'zehe','gousses':'zehe',
+  'spicchio':'zehe','spicchi':'zehe','dente':'zehe','dentes':'zehe','瓣':'zehe',
+  // Bund / bunch
+  'bunch':'bund','bunches':'bund','пучок':'bund','пучка':'bund','пучков':'bund',
+  'manojo':'bund','manojos':'bund','botte':'bund','bottes':'bund',
+  'mazzetto':'bund','mazzetti':'bund','maço':'bund','maços':'bund','把':'bund',
+  // Kopf / head
+  'köpfe':'kopf','koepfe':'kopf','head':'kopf','heads':'kopf','кочан':'kopf','кочана':'kopf',
+  'cabeza':'kopf','cabezas':'kopf','tête':'kopf','tete':'kopf','têtes':'kopf','tetes':'kopf',
+  'testa':'kopf','teste':'kopf','cabeça':'kopf','cabeças':'kopf','颗':'kopf',
+  // Dose / can
+  'dosen':'dose','can':'dose','cans':'dose','банка':'dose','банки':'dose','банок':'dose',
+  'lata':'dose','latas':'dose','boîte':'dose','boite':'dose','boîtes':'dose','boites':'dose',
+  'lattina':'dose','lattine':'dose','罐':'dose',
+  // Päckchen / packet
+  'paeckchen':'päckchen','packet':'päckchen','packets':'päckchen','pack':'pck','packs':'pck','packung':'pck','packungen':'pck',
+  'pkg':'pck','paq':'pck','paq.':'pck','paquete':'päckchen','paquetes':'päckchen',
+  'sachet':'päckchen','sachets':'päckchen','bustina':'päckchen','bustine':'päckchen',
+  'pacote':'päckchen','pacotes':'päckchen','пакетик':'päckchen','пакетика':'päckchen',
+  'conf':'pck','conf.':'pck','emb':'pck','emb.':'pck','袋':'päckchen','包':'pck','упак':'pck','упак.':'pck',
+  // Scheibe / slice
+  'scheiben':'scheibe','slice':'scheibe','slices':'scheibe','ломтик':'scheibe','ломтика':'scheibe','ломтиков':'scheibe',
+  'rebanada':'scheibe','rebanadas':'scheibe','tranche':'scheibe','tranches':'scheibe',
+  'fetta':'scheibe','fette':'scheibe','fatia':'scheibe','fatias':'scheibe','片':'scheibe',
+  // Blatt / sheet
+  'blätter':'blatt','blaetter':'blatt','sheet':'blatt','sheets':'blatt','leaf':'blatt','leaves':'blatt',
+  'лист':'blatt','листа':'blatt','листов':'blatt','hoja':'blatt','hojas':'blatt',
+  'feuille':'blatt','feuilles':'blatt','foglio':'blatt','fogli':'blatt','folha':'blatt','folhas':'blatt',
+  // Handvoll / handful
+  'handful':'handvoll','handfuls':'handvoll','горсть':'handvoll','горсти':'handvoll',
+  'puñado':'handvoll','punado':'handvoll','poignée':'handvoll','poignee':'handvoll',
+  'manciata':'handvoll','manciate':'handvoll','punhado':'handvoll','punhados':'handvoll',
+  // Portion
+  'portionen':'portion','portions':'portion','порция':'portion','порции':'portion','порций':'portion',
+  'porción':'portion','porcion':'portion','porciones':'portion',
+  'porzione':'portion','porzioni':'portion','porção':'portion','porcao':'portion','porções':'portion','porcoes':'portion','份':'portion',
+  // Beutel / bag
+  'bag':'beutel','bags':'beutel','bolsa':'beutel','bolsas':'beutel',
+  'sacchetto':'beutel','sacchetti':'beutel','saco':'beutel','sacos':'beutel',
+  'пакет':'beutel','пакета':'beutel','пакетов':'beutel'
+};
+// Normalize a raw unit string to its canonical key in UNIT_MAP, or '' if unknown.
+function normUnit(s){
+  if(!s)return '';
+  let k=String(s).trim().toLowerCase().replace(/\.$/,'');
+  if(UNIT_MAP[k])return k;
+  if(UNIT_ALIASES[k])return UNIT_ALIASES[k];
+  const kp=k.replace(/[.,;:]+$/,'');
+  if(UNIT_MAP[kp])return kp;
+  if(UNIT_ALIASES[kp])return UNIT_ALIASES[kp];
+  return '';
+}
+// Translate a stored unit to the current UI language. Returns the original
+// string if no translation is known — so user-defined units stay intact.
+function trUnit(s){return _trUnitForLang(s,CL);}
+// Translate a stored unit to a specific target language code.
+function _trUnitForLang(s,lang){
+  if(!s)return '';
+  const k=normUnit(s);
+  if(!k)return s;
+  const e=UNIT_MAP[k];
+  if(!e)return s;
+  const fallback={tr:'en',pl:'en',ar:'en'};
+  const lc=fallback[lang]||lang||'de';
+  return e[lc]||e.en||e.de||s;
+}
+
 // ═══════════════════════════════════════════════════════
 // STATIC DATA
 // ═══════════════════════════════════════════════════════
@@ -7880,7 +8078,7 @@ function renderScanResult(rec){
   // Preview first 5 ingredients
   const ingPrev=(rec.ingredients||[]).slice(0,5).map(i=>`
     <div class="scan-prev-ing">
-      <span style="font-weight:700;color:${cc};min-width:52px;display:inline-block">${h(i.amt)} ${h(i.unit||'')}</span>
+      <span style="font-weight:700;color:${cc};min-width:52px;display:inline-block">${h(i.amt)} ${h(trUnit(i.unit||''))}</span>
       ${h(i.name)}
     </div>`).join('');
   const moreIng=ingCount>5?`<div class="scan-prev-more">+${ingCount-5} weitere …</div>`:'';
@@ -8211,7 +8409,7 @@ img.rphoto{width:100%;height:155pt;object-fit:cover;display:block;border-radius:
           const sc=scaleAmt(g.amt,factor);
           const nm=trIngs&&trIngs[idx]?trIngs[idx]:g.name;
           const amtTxt=sc.changed?`<span style="color:#a0401a;font-weight:800">${h(sc.scaled)}</span>`:`<span style="color:${cc};font-weight:700">${h(sc.original||g.amt)}</span>`;
-          return`<tr><td class="ibull">&#x2022;</td><td class="iamt">${amtTxt}</td><td class="iunit">${h(g.unit||'')}</td><td>${h(nm)}${g.note?`<div class="note">&#x270F; ${h(g.note)}</div>`:''}</td></tr>`;
+          return`<tr><td class="ibull">&#x2022;</td><td class="iamt">${amtTxt}</td><td class="iunit">${h(trUnit(g.unit||''))}</td><td>${h(nm)}${g.note?`<div class="note">&#x270F; ${h(g.note)}</div>`:''}</td></tr>`;
         }).join('')}</table>`;
       }
       // Helper: step list
@@ -8368,7 +8566,7 @@ function exportFlipbook(){
         const makeCol=(start,end)=>r2.ings.slice(start,end).map((g,idx)=>{
           const realIdx=start+idx;
           const ingName=trIngs&&trIngs[realIdx]?trIngs[realIdx]:g.name;
-          return`<tr><td style="font-weight:bold;color:${cc};font-size:.68rem;white-space:nowrap;padding:3px 6px 3px 0;vertical-align:top">${h(g.amt)}${g.unit?' '+h(g.unit):''}</td><td style="font-size:.68rem;padding:3px 0;vertical-align:top;border-bottom:1px dotted #ede5d8">${h(ingName)}</td></tr>`;
+          return`<tr><td style="font-weight:bold;color:${cc};font-size:.68rem;white-space:nowrap;padding:3px 6px 3px 0;vertical-align:top">${h(g.amt)}${g.unit?' '+h(trUnit(g.unit)):''}</td><td style="font-size:.68rem;padding:3px 0;vertical-align:top;border-bottom:1px dotted #ede5d8">${h(ingName)}</td></tr>`;
         }).join('');
         const ingsHtml=r2.ings.length?`<table style="width:100%;border-collapse:collapse"><tr>
           <td style="width:50%;vertical-align:top;padding-right:6px"><table style="width:100%">${makeCol(0,half)}</table></td>
@@ -8747,7 +8945,7 @@ function _kbBuildHtml(){
     const hasImg=!!r.img;
     const cr=hasImg?(r.imgCrop||{x:50,y:50}):{x:50,y:50};
     const half=Math.ceil(r.ings.length/2);
-    const makeCol=(s,e)=>r.ings.slice(s,e).map(g=>`<tr><td style="font-weight:bold;color:${cc};font-size:.66rem;white-space:nowrap;padding:3px 6px 3px 0;vertical-align:top">${h(g.amt)}${g.unit?' '+h(g.unit):''}</td><td style="font-size:.66rem;padding:3px 0;vertical-align:top;border-bottom:1px dotted #ede5d8">${h(g.name)}</td></tr>`).join('');
+    const makeCol=(s,e)=>r.ings.slice(s,e).map(g=>`<tr><td style="font-weight:bold;color:${cc};font-size:.66rem;white-space:nowrap;padding:3px 6px 3px 0;vertical-align:top">${h(g.amt)}${g.unit?' '+h(trUnit(g.unit)):''}</td><td style="font-size:.66rem;padding:3px 0;vertical-align:top;border-bottom:1px dotted #ede5d8">${h(g.name)}</td></tr>`).join('');
     const ingsHtml=r.ings.length?`<table style="width:100%;border-collapse:collapse"><tr><td style="width:50%;vertical-align:top;padding-right:6px"><table style="width:100%">${makeCol(0,half)}</table></td><td style="width:50%;vertical-align:top;padding-left:6px;border-left:1px solid #ede5d8"><table style="width:100%">${makeCol(half,r.ings.length)}</table></td></tr></table>`:'';
     const catBadge=`<div style="font-size:.56rem;text-transform:uppercase;letter-spacing:.07em;color:#9e7050;margin-bottom:3px">${catIco(r.cat)} ${catName(r.cat)}</div>`;
     const introCard=intro?`<div style="${dsnDef.ic};border-left:3px solid;border-radius:0 6px 6px 0;padding:6px 9px;margin-bottom:9px;font-size:.67rem;line-height:1.5;font-style:italic">${h(intro)}</div>`:'';
@@ -8790,7 +8988,7 @@ function _kbBuildScrollHtml(){
   const sections=_kbAiData.map(({r,intro,flavorNote,cookTip,servingIdea,health,eco})=>{
     const hasImg=!!r.img;
     const cr=hasImg?(r.imgCrop||{x:50,y:50}):{x:50,y:50};
-    const ingsHtml=(r.ings||[]).map(g=>`<li>${h((g.amt||'')+(g.unit?' '+h(g.unit):'')+(g.name?' '+h(g.name):''))}</li>`).join('');
+    const ingsHtml=(r.ings||[]).map(g=>`<li>${h((g.amt||'')+(g.unit?' '+trUnit(g.unit):'')+(g.name?' '+(g.name):''))}</li>`).join('');
     const stepsHtml=(r.steps||[]).map((s,n)=>`<li>${h(s.txt||s.text||String(s))}</li>`).join('');
     const introCard=intro?`<p class="sc-intro">${h(intro)}</p>`:'';
     const imgTag=hasImg?`<img class="sc-img" src="${r.img}" alt="${h(r.name)}" style="object-position:${cr.x}% ${cr.y}%">`:'';
@@ -9158,10 +9356,11 @@ function buildMV(){
     const trSteps=tr&&tr.steps;
     const dispName=rName(r);
     const ings=(r.ings||[]).map((i,idx)=>{
-      const ingTxt=trIngs&&trIngs[idx]?trIngs[idx]:(i.amt+(i.unit?' '+i.unit:'')+' '+i.name).trim();
+      const trU=trUnit(i.unit||'');
+      const ingTxt=trIngs&&trIngs[idx]?trIngs[idx]:(i.amt+(trU?' '+trU:'')+' '+i.name).trim();
       const ingHtml=trIngs&&trIngs[idx]
         ?`<span class="mv-itxt ${DoneI[r.id+'-'+i.id]?'ck':''}">${h(ingTxt)}</span>`
-        :`<span class="mv-amt">${h(i.amt)} ${h(i.unit||'')}</span><span class="mv-itxt ${DoneI[r.id+'-'+i.id]?'ck':''}">${h(i.name)}</span>`;
+        :`<span class="mv-amt">${h(i.amt)} ${h(trU)}</span><span class="mv-itxt ${DoneI[r.id+'-'+i.id]?'ck':''}">${h(i.name)}</span>`;
       return`<div class="mv-ing" onclick="togI('${r.id}-${i.id}',this)" data-ck="${DoneI[r.id+'-'+i.id]?'1':''}">
       <div class="mv-chk ${DoneI[r.id+'-'+i.id]?'on':''}"></div>
       ${ingHtml}
@@ -9200,8 +9399,8 @@ function buildMV(){
       return`<div class="mv-ing ${done?'ck':''}" id="mvi-${dk}" onclick="togI('${dk}',this)" style="cursor:pointer">
         <div class="mv-chk ${done?'on':''}"></div>
         ${ingTxt
-          ?`<span class="mv-itxt">${h(ingTxt)}</span><span style="font-size:.6rem;color:var(--br3);margin-left:4px">(${h(i.amt)} ${h(i.unit||'')} ${h(i.name)})</span>`
-          :`<span class="mv-amt">${h(i.amt)} ${h(i.unit||'')}</span><span class="mv-itxt">${h(i.name)}</span>`}
+          ?`<span class="mv-itxt">${h(ingTxt)}</span><span style="font-size:.6rem;color:var(--br3);margin-left:4px">(${h(i.amt)} ${h(trUnit(i.unit||''))} ${h(i.name)})</span>`
+          :`<span class="mv-amt">${h(i.amt)} ${h(trUnit(i.unit||''))}</span><span class="mv-itxt">${h(i.name)}</span>`}
       </div>`;}).join('');
     sh+=`<div style="background:#fff;border-radius:8px;border:1px solid var(--sand2);overflow:hidden;margin-bottom:9px;box-shadow:0 1px 3px var(--sh)">
       <div style="padding:7px 10px;display:flex;align-items:center;justify-content:space-between;background:var(--parch)">
@@ -9262,7 +9461,12 @@ function buildMV(){
               'el':['tl',3],'esslöffel':['tl',3],'essl.':['tl',3],'essl':['tl',3],'essl':['tl',3],
               'ml':['ml',1],'milliliter':['ml',1],'cl':['ml',10],'dl':['ml',100],'l':['ml',1000],'liter':['ml',1000],
               'g':['g',1],'gramm':['g',1],'gr':['g',1],'kg':['g',1000],'kilogramm':['g',1000]};
-  const _normU=(unit,amt)=>{const u=(unit||'').trim().toLowerCase();const r=_UF[u];return r?{base:r[0],val:amt*r[1]}:{base:u,val:amt};};
+  const _normU=(unit,amt)=>{
+    const u=(unit||'').trim().toLowerCase();
+    const r=_UF[u];if(r)return{base:r[0],val:amt*r[1]};
+    const can=normUnit(unit);if(can){const r2=_UF[can];if(r2)return{base:r2[0],val:amt*r2[1]};return{base:can,val:amt};}
+    return{base:u,val:amt};
+  };
   const _bestU=(base,val)=>{
     if(base==='tl'){if(val>=3)return{u:'el',v:Math.round(val/3*10)/10};return{u:'tl',v:Math.round(val*10)/10};}
     if(base==='ml'){if(val>=1000)return{u:'l',v:Math.round(val/100)/10};return{u:'ml',v:Math.round(val)};}
@@ -9311,7 +9515,7 @@ function buildMV(){
         const isCount=_COUNTABLE.includes(base.toLowerCase());
         const dispVal=isCount?Math.ceil(val):val;
         const {u,v}=_bestU(base,dispVal);
-        return`${fmtAmt(v)}${u?' '+u:''}`;
+        return`${fmtAmt(v)}${u?' '+trUnit(u):''}`;
       }).join(' + ');
       al+=`<div class="mv-ing ${done?'ck':''}" onclick="togAL(${idx},this)" style="cursor:pointer">
         <div class="mv-chk ${done?'on':''}"></div>
@@ -9394,7 +9598,7 @@ function printRecipe(rid){
         <span style="display:inline-block;width:10pt;height:10pt;border:1.5pt solid ${cc};border-radius:2pt"></span>
       </td>
       <td style="padding:5pt 10pt 5pt 0;vertical-align:top;width:90pt;font-size:9pt">
-        ${amtDisplay}${i.unit?` <span style="color:#888">${h(i.unit)}</span>`:''}
+        ${amtDisplay}${i.unit?` <span style="color:#888">${h(trUnit(i.unit))}</span>`:''}
       </td>
       <td style="padding:5pt 0;vertical-align:top;font-size:9pt;color:#2a1a0a">
         ${h(ingName)}${trIngs&&ingName!==i.name?`<span style="color:#bbb;font-size:7.5pt;margin-left:4pt">(${h(i.name)})</span>`:''}${ingNote}
@@ -9442,7 +9646,7 @@ function printRecipe(rid){
       const tIngName=tData.ingredients&&tData.ingredients[idx]?tData.ingredients[idx]:i.name;
       return`<tr>
         <td style="padding:5pt 8pt 5pt 0;vertical-align:top;width:12pt"><span style="display:inline-block;width:10pt;height:10pt;border:1.5pt solid ${cc};border-radius:2pt"></span></td>
-        <td style="padding:5pt 10pt 5pt 0;vertical-align:top;width:90pt;font-size:9pt">${amtDisplay}${i.unit?` <span style="color:#888">${h(i.unit)}</span>`:''}</td>
+        <td style="padding:5pt 10pt 5pt 0;vertical-align:top;width:90pt;font-size:9pt">${amtDisplay}${i.unit?` <span style="color:#888">${h(_trUnitForLang(i.unit,code))}</span>`:''}</td>
         <td style="padding:5pt 0;vertical-align:top;font-size:9pt;color:#2a1a0a">${h(tIngName)}</td>
       </tr>`;
     }).join('');
@@ -9537,7 +9741,7 @@ function doPrint(){
         if(trIngs&&trIngs[idx]){
           return`<tr><td style="width:10pt"><span style="display:inline-block;width:9pt;height:9pt;border:1pt solid #c9a882"></span></td><td colspan="2" style="font-size:9pt;padding:4pt 0">${h(trIngs[idx])}</td></tr>`;
         }
-        return`<tr><td style="width:10pt"><span style="display:inline-block;width:9pt;height:9pt;border:1pt solid #c9a882"></span></td><td style="font-weight:bold;color:${cc};width:80pt;font-size:9pt">${h(i.amt)} ${h(i.unit||'')}</td><td style="font-size:9pt">${h(i.name)}${(!trIngs&&i.note)?`<div style="background:#e2f0ee;border-left:2pt solid #36706a;padding:1pt 5pt;font-size:8pt;color:#1e4a45;margin-top:2pt">✏ ${h(i.note)}</div>`:''}</td></tr>`;
+        return`<tr><td style="width:10pt"><span style="display:inline-block;width:9pt;height:9pt;border:1pt solid #c9a882"></span></td><td style="font-weight:bold;color:${cc};width:80pt;font-size:9pt">${h(i.amt)} ${h(trUnit(i.unit||''))}</td><td style="font-size:9pt">${h(i.name)}${(!trIngs&&i.note)?`<div style="background:#e2f0ee;border-left:2pt solid #36706a;padding:1pt 5pt;font-size:8pt;color:#1e4a45;margin-top:2pt">✏ ${h(i.note)}</div>`:''}</td></tr>`;
       }).join('');
       const trSteps=tr&&tr.steps;
       const stepsHtml=(r.steps||[]).map((s,n)=>{
@@ -9586,7 +9790,7 @@ function doPrint(){
     body=`<h1 style="font-family:Georgia,serif;color:#7a5840;font-size:18pt;margin-bottom:4pt">${T('mvTabAl')}</h1><p style="font-size:9pt;color:#9e7050;margin-bottom:14pt">${h(dt)}</p>`;
     const arr=window._ALArr||[];
     const alRows=arr.map(it=>{
-      const amtStr=Object.entries(it.units).map(([u,v])=>`${fmtAmt(v)}${u?' '+u:''}`).join(' · ');
+      const amtStr=Object.entries(it.units||it.bases||{}).map(([u,v])=>`${fmtAmt(v)}${u?' '+trUnit(u):''}`).join(' · ');
       return`<tr>
         <td style="width:10pt;vertical-align:top;padding:3pt 0"><span style="display:inline-block;width:9pt;height:9pt;border:1pt solid #c9a882"></span></td>
         <td style="font-weight:bold;color:#7a5840;width:70pt;font-size:9pt;vertical-align:top;padding:3pt 6pt 3pt 0">${h(amtStr)}</td>
@@ -9983,7 +10187,7 @@ function rndCard(r){
       :`<div class="ing-row">
           <span class="ing-drag-hdl" data-hdl="ing" data-tip="${T('dragTip')}" onclick="event.stopPropagation()"><svg width="11" height="14" viewBox="0 0 11 14" fill="currentColor" style="display:block"><path d="M5.5 0L2 4h7z"/><rect x="1.5" y="5.5" width="8" height="1.3" rx=".65"/><rect x="1.5" y="7.2" width="8" height="1.3" rx=".65"/><path d="M5.5 14L2 10h7z"/></svg></span>
           <div class="chkbox" onclick="togIng(${r.id},${i.id})" role="checkbox" aria-checked="${i.ck}"></div>
-          <span class="ing-lbl">${amtHtml}${i.unit?` <span class="ing-unit">${h(i.unit)}</span>`:''} ${h(ingName)}${trIngs&&trIngs[idx]&&ingName!==i.name?`<span style="font-size:.6rem;color:var(--br3);margin-left:3px">(${h(i.name)})</span>`:''}</span>
+          <span class="ing-lbl">${amtHtml}${i.unit?` <span class="ing-unit">${h(trUnit(i.unit))}</span>`:''} ${h(ingName)}${trIngs&&trIngs[idx]&&ingName!==i.name?`<span style="font-size:.6rem;color:var(--br3);margin-left:3px">(${h(i.name)})</span>`:''}</span>
           <button class="ebtn" onclick="openIngEdit(${r.id},${i.id})" title="Bearbeiten">✏️</button>
           <button class="xbtn" onclick="delIng(${r.id},${i.id})" title="Zutat löschen">✕</button>
         </div>`;
@@ -11630,7 +11834,7 @@ function renderSpellModal(r, corrected) {
     if (changed) {
       return `<div style="display:flex;align-items:flex-start;gap:6px;padding:3px 0">
         <span style="font-size:.7rem;color:var(--gold);width:14px;padding-top:18px">✱</span>
-        <span style="font-size:.72rem;color:var(--br3);width:55px;flex-shrink:0;padding-top:18px">${h(orig.amt)} ${h(orig.unit||'')}</span>
+        <span style="font-size:.72rem;color:var(--br3);width:55px;flex-shrink:0;padding-top:18px">${h(orig.amt)} ${h(trUnit(orig.unit||''))}</span>
         <div class="spell-row" style="flex:1">
           <div class="spell-orig-col"><div class="spell-sbs-lbl">Vorher</div><div class="spell-orig" style="min-height:30px;font-size:.76rem;padding:4px 7px">${h(orig.name)}</div></div>
           <div class="spell-ki-col"><div class="spell-sbs-lbl">KI</div><input class="spell-field" id="sp-ing-${i}" value="${h(ci.name)}" style="height:30px;font-size:.76rem;padding:4px 7px"/></div>
@@ -11643,7 +11847,7 @@ function renderSpellModal(r, corrected) {
     }
     return `<div style="display:flex;align-items:center;gap:6px;padding:3px 0">
       <span style="width:14px"></span>
-      <span style="font-size:.72rem;color:var(--br3);width:55px;flex-shrink:0">${h(orig.amt)} ${h(orig.unit||'')}</span>
+      <span style="font-size:.72rem;color:var(--br3);width:55px;flex-shrink:0">${h(orig.amt)} ${h(trUnit(orig.unit||''))}</span>
       <input class="spell-field" id="sp-ing-${i}" value="${h(ci.name)}" style="height:30px;font-size:.76rem;padding:4px 7px;flex:1"/>
     </div>`;
   }).join('');
@@ -11958,7 +12162,7 @@ function renderTxtResult(rec) {
   const srvNum = parseInt(rec.servings) || 4;
   const ingPrev = (rec.ingredients || []).slice(0, 5).map(i => `
     <div class="scan-prev-ing">
-      <span style="font-weight:700;color:${cc};min-width:52px;display:inline-block">${h(i.amt)} ${h(i.unit || '')}</span>
+      <span style="font-weight:700;color:${cc};min-width:52px;display:inline-block">${h(i.amt)} ${h(trUnit(i.unit || ''))}</span>
       ${h(i.name)}
     </div>`).join('');
   const moreIng = ingCount > 5 ? `<div class="scan-prev-more">+${ingCount - 5} weitere …</div>` : '';
@@ -12106,7 +12310,7 @@ function _webRenderResult(rec,url,method){
   const catId=CATS.find(c=>c.id===rec.category)?rec.category:'fleisch';
   const cc=catCol(catId);
   const ings=rec.ings||[];
-  const ingPrev=ings.slice(0,5).map(i=>`<div class="scan-prev-ing"><span style="font-weight:700;color:${cc};min-width:52px;display:inline-block">${h(i.amt||'')} ${h(i.unit||'')}</span>${h(i.name||'')}</div>`).join('');
+  const ingPrev=ings.slice(0,5).map(i=>`<div class="scan-prev-ing"><span style="font-weight:700;color:${cc};min-width:52px;display:inline-block">${h(i.amt||'')} ${h(trUnit(i.unit||''))}</span>${h(i.name||'')}</div>`).join('');
   const more=ings.length>5?`<div class="scan-prev-more">+${ings.length-5} weitere…</div>`:'';
   let host='';try{host=new URL(url).hostname.replace('www.','');}catch(e){host=url;}
   document.getElementById('webResult').innerHTML=`
@@ -12535,7 +12739,7 @@ function renderTranslResult(rid,translated,sel){
       const orig=r.ings[idx];
       // Strip leading "amt unit " from translated text (legacy translations included amounts)
       const cleanTxt=txt.replace(/^[\d.,½¼¾⅓⅔]+\s*(?:g|kg|ml|l|tsp|tbsp|cup|TL|EL|Stück|pcs?|oz|lb|cl|dl)\.?\s+/i,'').trim();
-      const amtPart=orig&&orig.amt?`<span class="ing-amt">${h(orig.amt)}</span>${orig.unit?` <span class="ing-unit">${h(orig.unit)}</span> `:'  '}`:'';
+      const amtPart=orig&&orig.amt?`<span class="ing-amt">${h(orig.amt)}</span>${orig.unit?` <span class="ing-unit">${h(_trUnitForLang(orig.unit,code))}</span> `:'  '}`:'';
       const isCk=orig&&orig.ck;
       const ckOnclick=orig?`onclick="togIngLocal(this,${ridN},${orig.id})"`:'' ;
       return`<li class="ing-li ${isCk?'ck':''}"><div class="ing-row">
