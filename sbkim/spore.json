@@ -1,5 +1,5 @@
 {
-  "createdAt": "2026-05-16T15:50:51.758Z",
+  "createdAt": "2026-05-16T19:27:30.517Z",
   "domain": "lausiklauskn-png.github.io",
   "domainDescription": "Klaus Rezeptbuch - Hausgemachte Kochrezepte vom Hefeteig bis zur Sauce, plus Begleitgetränke und Knabbereien als Ueberraschungs-Plus.",
   "domainKeywords": [
@@ -412,7 +412,7 @@
     "Knabbereien",
     "Fingerfood"
   ],
-  "id": "yWyRk1b8cqY-x8_wRlHJOo_r-IqtZWIaouTvp_6NLao",
+  "id": "RHhposP0ZBXwUWDn71ffY7QISi_9LvGzlja8mAZ-LRI",
   "nodeName": "Rezeptbuch Klaus",
   "nodeType": "hybrid",
   "protocolVersion": "0.1",
@@ -424,9 +424,9 @@
       "verify"
     ],
     "kty": "OKP",
-    "x": "rWGQWsKAkgUbACyMwoh5fRV8rfwbhbNl4jPnHRWXAmI"
+    "x": "o7KshlHIK6dM8YemY6bGSrm3UY7kbqmXszYZarRivVM"
   },
-  "signature": "eGQ40egSpdxa6zQDIbM-pZHE9_VWe8CVE7XfeBfdfj9ypq5B-3bs-rKqUlZ5kl15LNp_PqjCnovK7XcNuh1iCw",
+  "signature": "MJHvHK5DEUhHZzOlZGsMcP0z9tsG4Jgu5zANNr7mQKjUlCN3nEgszquCaAldcJJ0KDmfVWcxs3C4ALieaApzDQ",
   "stammCategories": [
     "Vorspeisen",
     "Suppen",
