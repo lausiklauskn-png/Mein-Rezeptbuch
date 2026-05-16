@@ -4,6 +4,7 @@
 
 (async function () {
   try {
+  await SbkimStorage.init({ dbSuffix: "rezeptbuch" });
     await SbkimAnastomose.init();
     console.info("SBKIM-Init grün — Storage, Spore, Match bereit.");
     await SbkimApoptose.init();
