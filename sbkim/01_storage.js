@@ -2,13 +2,39 @@
  * SBKIM — Modul 01 — Storage
  *
  * IndexedDB wrapper for all sbkim_* stores. Promise-based API, no
- * callbacks. Database name: "sbkim", current version: 3 (additive
- * migrations: v=2 Bau-Sitzung 06 added `sbkim_hetero_inbox`,
+ * callbacks. Default database name: "sbkim", current version: 3
+ * (additive migrations: v=2 Bau-Sitzung 06 added `sbkim_hetero_inbox`,
  * v=3 Pflege Bau 06.1 added `sbkim_hetero_outbox` — Spec-Sitzung 08
  * specified the store; Pflege Bau 06.1 follows up the code anmelden).
  *
+ * Pflege PWA-Suffix (2026-05-16) — additive Konfig im init-Pfad:
+ *   init({ dbSuffix }) öffnet die DB als "sbkim_<dbSuffix>" statt der
+ *   Default-DB "sbkim". Pflicht-Anwendungsfall: GitHub-Pages-Project-
+ *   Sites teilen Origin und damit IndexedDB; ohne Suffix kollidieren
+ *   zwei Endknoten unter `lausiklauskn-png.github.io` auf der DB
+ *   `sbkim` und teilen sich die Identität (siehe Übergabeprotokoll
+ *   2026-05-16 Andock Mein-Rezeptbuch). Aufruf-Pflicht VOR dem ersten
+ *   anderen init()-Aufruf (Modul 05, 06, 07, 00 rufen Storage.init()
+ *   intern; idempotent — wer dbSuffix setzen will, muss zuerst).
+ *
+ * Pflege Storage-Persist (2026-05-16) — Stufe (1) der drei-stufigen
+ *   Identitäts-Persistenz-Architektur (PULS § Offene Querschnitts-
+ *   Fragen „Identitäts-Persistenz"). Nach erfolgreichem DB-Open ruft
+ *   Modul 01 navigator.storage.persist() auf (fail-soft):
+ *     - API nicht verfügbar           → _meta.storagePersisted = null
+ *     - persist() resolved true|false → _meta.storagePersisted = bool
+ *     - persist() rejected            → _meta.storagePersisted = null
+ *   Persist-Verweigerung ist KEIN SBKIM-Bruchgrund — Knoten läuft auch
+ *   bei false weiter; persist() ist eine Bitte an den Browser,
+ *   IndexedDB beim normalen Aufräumen nicht zu löschen. Chrome
+ *   gewährt es bei installierten PWAs automatisch; Firefox prompted;
+ *   Safari ist restriktiv. Idempotenz beim Re-Init: dbPromise-Cache
+ *   deckt das ab — persist() wird automatisch nur einmal pro Tab-
+ *   Session gerufen.
+ *
  * Public surface (registered on window.SbkimStorage):
- *   init() -> Promise<void>
+ *   init(options?) -> Promise<void>
+ *     options-Form: { dbSuffix?: string }   (^[a-z0-9_-]+$, sonst InvalidDbSuffixError sync)
  *   getStore(name) -> StoreHandle   (sync; throws UnknownStoreError)
  *   get(name, key) -> Promise<any | undefined>
  *   put(name, key, value) -> Promise<void>
@@ -22,9 +48,10 @@
 (function (global) {
   "use strict";
 
-  var DB_NAME = "sbkim";
+  var DB_NAME_DEFAULT = "sbkim";
   var DB_VERSION = 3;
   var SBKIM_STORE_PREFIX = "sbkim_";
+  var DB_SUFFIX_PATTERN = /^[a-z0-9_-]+$/;
 
   // Stores, die der initiale Migration-Pfad (v=1) anlegt.
   var STORES_V1 = [
@@ -104,9 +131,100 @@
   }
 
   var dbPromise = null;
+  var dbNameInUse = DB_NAME_DEFAULT;
+  // navigator.storage.persist()-Status nach init. Werte:
+  //   null  — vor init / API nicht verfügbar / persist() rejected (fail-soft)
+  //   true  — Browser hat den Speicher als persistent markiert
+  //   false — Browser hat verweigert (z.B. Safari restriktiv)
+  // Knoten bleibt in allen drei Fällen lauffähig.
+  var storagePersisted = null;
 
-  function init() {
-    if (dbPromise) return dbPromise;
+  function requestStoragePersist() {
+    if (
+      typeof navigator === "undefined" ||
+      !navigator.storage ||
+      typeof navigator.storage.persist !== "function"
+    ) {
+      storagePersisted = null;
+      if (typeof console !== "undefined" && console.info) {
+        console.info(
+          "Storage persist-Status: navigator.storage.persist nicht verfuegbar, fail-soft (null).",
+        );
+      }
+      return Promise.resolve(null);
+    }
+    var persistPromise;
+    try {
+      persistPromise = navigator.storage.persist();
+    } catch (e) {
+      storagePersisted = null;
+      if (typeof console !== "undefined" && console.info) {
+        console.info(
+          "Storage persist-Status: persist() warf synchron, fail-soft (null).",
+        );
+      }
+      return Promise.resolve(null);
+    }
+    return Promise.resolve(persistPromise).then(
+      function (result) {
+        if (result === true) {
+          storagePersisted = true;
+        } else if (result === false) {
+          storagePersisted = false;
+        } else {
+          storagePersisted = null;
+        }
+        if (typeof console !== "undefined" && console.info) {
+          console.info("Storage persist-Status: " + storagePersisted);
+        }
+        return storagePersisted;
+      },
+      function () {
+        // Persist-Rejection ist kein SBKIM-Bruchgrund — fail-soft.
+        storagePersisted = null;
+        if (typeof console !== "undefined" && console.info) {
+          console.info(
+            "Storage persist-Status: persist-Promise rejected, fail-soft (null).",
+          );
+        }
+        return null;
+      },
+    );
+  }
+
+  function init(options) {
+    // dbSuffix muss synchron, VOR dem Promise-Aufbau geprüft werden — sonst
+    // verschluckt das Promise einen Programmier-Fehler bis zur ersten
+    // `await SbkimStorage.init(...)`-Auswertung.
+    var explicitSuffix = null;
+    if (options && options.dbSuffix !== undefined && options.dbSuffix !== null) {
+      var suffix = options.dbSuffix;
+      if (typeof suffix !== "string" || !DB_SUFFIX_PATTERN.test(suffix)) {
+        throw makeError(
+          "InvalidDbSuffixError",
+          "Ungueltiger dbSuffix: '" + suffix + "'. Erlaubt sind nur Kleinbuchstaben, Ziffern, '_' und '-' (Pattern ^[a-z0-9_-]+$).",
+        );
+      }
+      explicitSuffix = SBKIM_STORE_PREFIX + suffix;
+    }
+    if (dbPromise) {
+      // Idempotenz: zweite init()-Aufrufe geben die gleiche DB-Promise zurück.
+      // Konflikt-Wurf nur, wenn der Folge-Aufruf EXPLIZIT einen abweichenden
+      // dbSuffix mitgibt — sonst (ohne Optionen, Module 05/06/07/00 rufen so
+      // intern nach) bleibt der zuerst gesetzte DB-Name aktiv. Wer den
+      // PWA-Suffix setzen will, muss zuerst kommen — das ist genau der
+      // Andocker-Pfad in Karte 09 Schritt 4.
+      if (explicitSuffix !== null && explicitSuffix !== dbNameInUse) {
+        return Promise.reject(makeError(
+          "InvalidDbSuffixError",
+          "Storage.init bereits mit DB-Namen '" + dbNameInUse +
+            "' geoeffnet — Folgeaufruf mit '" + explicitSuffix +
+            "' wuerde stillschweigend ignoriert. dbSuffix muss beim ERSTEN init-Aufruf gesetzt werden.",
+        ));
+      }
+      return dbPromise;
+    }
+    dbNameInUse = explicitSuffix !== null ? explicitSuffix : DB_NAME_DEFAULT;
     dbPromise = new Promise(function (resolve, reject) {
       if (typeof indexedDB === "undefined" || indexedDB === null) {
         reject(makeError(
@@ -117,7 +235,7 @@
       }
       var req;
       try {
-        req = indexedDB.open(DB_NAME, DB_VERSION);
+        req = indexedDB.open(dbNameInUse, DB_VERSION);
       } catch (err) {
         reject(makeError(
           "StorageOpenError",
@@ -135,7 +253,14 @@
         }
       };
       req.onsuccess = function () {
-        resolve(req.result);
+        var db = req.result;
+        // Pflege Storage-Persist (2026-05-16): persist()-Bitte nach
+        // erfolgreichem DB-Open, fail-soft. requestStoragePersist
+        // resolved IMMER (kein Throw, kein Reject) — Knoten bleibt
+        // lauffähig auch bei Verweigerung oder fehlender API.
+        requestStoragePersist().then(function () {
+          resolve(db);
+        });
       };
       req.onerror = function () {
         var err = req.error;
@@ -286,10 +411,19 @@
     all: all,
     clear: clear,
     _meta: {
-      dbName: DB_NAME,
+      // dbName: Live-Zustand. Vor dem ersten init()-Aufruf identisch mit
+      // dem Default; nach init({dbSuffix}) zeigt das Getter den effektiv
+      // verwendeten Namen ("sbkim_<dbSuffix>").
+      get dbName() { return dbNameInUse; },
+      dbNameDefault: DB_NAME_DEFAULT,
       dbVersion: DB_VERSION,
       storePrefix: SBKIM_STORE_PREFIX,
       knownStores: KNOWN_STORES.slice(),
+      // storagePersisted: null vor init bzw. wenn navigator.storage.persist
+      // nicht verfügbar / Promise rejected (fail-soft). true|false zeigt
+      // den Browser-Entscheid (Chrome auto-bei-PWA, Firefox prompt, Safari
+      // restriktiv). Pflege Storage-Persist 2026-05-16.
+      get storagePersisted() { return storagePersisted; },
     },
   };
 
