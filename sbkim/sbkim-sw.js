@@ -100,15 +100,15 @@ self.addEventListener("activate", (event) => {
 // Listener (App-SW-Cache-/Routing-Code) durch.
 self.addEventListener("fetch", (event) => {
   const url = new URL(event.request.url);
-  if (isPathSuffix(url.pathname, ANASTOMOSIS_PATH)) {
+  if (isOwnEndpoint(url.pathname, ANASTOMOSIS_PATH)) {
     event.respondWith(handleBridge(event.request, event.clientId, ANASTOMOSIS_REQUEST_TYPE));
     return;
   }
-  if (isPathSuffix(url.pathname, LEGACY_PATH)) {
+  if (isOwnEndpoint(url.pathname, LEGACY_PATH)) {
     event.respondWith(handleBridge(event.request, event.clientId, LEGACY_REQUEST_TYPE));
     return;
   }
-  if (isPathSuffix(url.pathname, HETEROKARYOSIS_PATH)) {
+  if (isOwnEndpoint(url.pathname, HETEROKARYOSIS_PATH)) {
     event.respondWith(handleBridge(event.request, event.clientId, HETEROKARYOSIS_REQUEST_TYPE));
     return;
   }
@@ -117,11 +117,33 @@ self.addEventListener("fetch", (event) => {
   // (Variante 3a) durch.
 });
 
-function isPathSuffix(pathname, endpointPath) {
-  // Erlaubt sowohl exakt /sbkim/<endpoint> als auch <scope>/sbkim/<endpoint>
-  // (z.B. /rezeptbuch/sbkim/legacy bei GitHub-Pages-Project-Sites).
-  if (pathname === endpointPath) return true;
-  return pathname.endsWith(endpointPath);
+// Scope-Hygiene (Fund 2026-05-17, A/B-Test-Sitzung):
+//
+// Subresource-Fetches von einem controlled client gehen durch DESSEN
+// kontrollierenden SW — NICHT durch den SW, dessen Scope die URL trifft.
+// Wenn Tab A (controlled von SW A, Scope /A/) `fetch('/B/sbkim/anastomosis')`
+// macht, feuert das fetch-Event in SW A — nicht in SW B. SW A muss diesen
+// Cross-Scope-Pfad durchfallen lassen, damit die Anfrage ans Netzwerk geht
+// (wo sie i.d.R. mit 404 endet — same-origin cross-PWA Handshake via
+// SW-Bridge ist konzeptuell nicht möglich, das ist Spec, kein Bug).
+//
+// Die vorherige Variante (`pathname.endsWith(endpointPath)`) war zu
+// permissiv und fing Cross-Scope-Pfade ab; dadurch antwortete der falsche
+// SW mit "toNodeId stimmt nicht zum Empfänger" und maskierte das echte
+// Problem. Wir prüfen jetzt streng: der URL-Pfad muss exakt im eigenen
+// Scope des SW liegen.
+//
+// Hinweis Variante 3c (`/<repo>/sbkim/`-Scope): wird durch diese Funktion
+// NICHT abgedeckt — dort wäre der erwartete Pfad scope + tail-of-endpoint
+// statt scope + endpoint. 3c ist in Karte 09 als nachrangige
+// Übergangslösung markiert und produktiv nicht im Einsatz; ein eventueller
+// Support gehört in eine eigene Spec-Sitzung, nicht in diese Pflege.
+function isOwnEndpoint(pathname, endpointPath) {
+  const scopePath = new URL(self.registration.scope).pathname;
+  const expected = (scopePath === "/")
+    ? endpointPath
+    : scopePath.replace(/\/$/, "") + endpointPath;
+  return pathname === expected;
 }
 
 async function handleBridge(request, originatingClientId, messageType) {
