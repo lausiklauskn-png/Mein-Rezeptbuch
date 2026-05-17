@@ -1,5 +1,5 @@
 self.SBKIM_SW_STANDALONE = false;
-importScripts("./sbkim-sw.js");
+importScripts("./sbkim-sw-v2.js");
 console.info("SBKIM-SW geladen via importScripts (Variante 3b)");
 // Service Worker for Mein Rezeptbuch (Hauptapp)
 const CACHE = 'mrz-v11';

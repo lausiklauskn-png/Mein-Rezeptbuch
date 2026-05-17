@@ -100,15 +100,15 @@ self.addEventListener("activate", (event) => {
 // Listener (App-SW-Cache-/Routing-Code) durch.
 self.addEventListener("fetch", (event) => {
   const url = new URL(event.request.url);
-  if (isPathSuffix(url.pathname, ANASTOMOSIS_PATH)) {
+  if (isOwnEndpoint(url.pathname, ANASTOMOSIS_PATH)) {
     event.respondWith(handleBridge(event.request, event.clientId, ANASTOMOSIS_REQUEST_TYPE));
     return;
   }
-  if (isPathSuffix(url.pathname, LEGACY_PATH)) {
+  if (isOwnEndpoint(url.pathname, LEGACY_PATH)) {
     event.respondWith(handleBridge(event.request, event.clientId, LEGACY_REQUEST_TYPE));
     return;
   }
-  if (isPathSuffix(url.pathname, HETEROKARYOSIS_PATH)) {
+  if (isOwnEndpoint(url.pathname, HETEROKARYOSIS_PATH)) {
     event.respondWith(handleBridge(event.request, event.clientId, HETEROKARYOSIS_REQUEST_TYPE));
     return;
   }
@@ -117,11 +117,33 @@ self.addEventListener("fetch", (event) => {
   // (Variante 3a) durch.
 });
 
-function isPathSuffix(pathname, endpointPath) {
-  // Erlaubt sowohl exakt /sbkim/<endpoint> als auch <scope>/sbkim/<endpoint>
-  // (z.B. /rezeptbuch/sbkim/legacy bei GitHub-Pages-Project-Sites).
-  if (pathname === endpointPath) return true;
-  return pathname.endsWith(endpointPath);
+// Scope-Hygiene (Fund 2026-05-17, A/B-Test-Sitzung):
+//
+// Subresource-Fetches von einem controlled client gehen durch DESSEN
+// kontrollierenden SW — NICHT durch den SW, dessen Scope die URL trifft.
+// Wenn Tab A (controlled von SW A, Scope /A/) `fetch('/B/sbkim/anastomosis')`
+// macht, feuert das fetch-Event in SW A — nicht in SW B. SW A muss diesen
+// Cross-Scope-Pfad durchfallen lassen, damit die Anfrage ans Netzwerk geht
+// (wo sie i.d.R. mit 404 endet — same-origin cross-PWA Handshake via
+// SW-Bridge ist konzeptuell nicht möglich, das ist Spec, kein Bug).
+//
+// Die vorherige Variante (`pathname.endsWith(endpointPath)`) war zu
+// permissiv und fing Cross-Scope-Pfade ab; dadurch antwortete der falsche
+// SW mit "toNodeId stimmt nicht zum Empfänger" und maskierte das echte
+// Problem. Wir prüfen jetzt streng: der URL-Pfad muss exakt im eigenen
+// Scope des SW liegen.
+//
+// Hinweis Variante 3c (`/<repo>/sbkim/`-Scope): wird durch diese Funktion
+// NICHT abgedeckt — dort wäre der erwartete Pfad scope + tail-of-endpoint
+// statt scope + endpoint. 3c ist in Karte 09 als nachrangige
+// Übergangslösung markiert und produktiv nicht im Einsatz; ein eventueller
+// Support gehört in eine eigene Spec-Sitzung, nicht in diese Pflege.
+function isOwnEndpoint(pathname, endpointPath) {
+  const scopePath = new URL(self.registration.scope).pathname;
+  const expected = (scopePath === "/")
+    ? endpointPath
+    : scopePath.replace(/\/$/, "") + endpointPath;
+  return pathname === expected;
 }
 
 async function handleBridge(request, originatingClientId, messageType) {
@@ -155,25 +177,64 @@ async function handleBridge(request, originatingClientId, messageType) {
     return jsonError(400, "Bad Request: kein gültiges JSON.");
   }
 
-  // Aktive Clients suchen. Bevorzugt den Tab, der den Request ausgelöst hat;
-  // wenn das (typisch Cross-Tab-POST) nicht klappt, irgendein offener.
-  const clientList = await self.clients.matchAll({ type: "window", includeUncontrolled: true });
+  // Aktive Clients suchen. Wir wollen NUR Pages, die diesen SW als
+  // Controller haben (`includeUncontrolled: false`) — sonst tauchen
+  // Phantom-Pages aus anderen Pfaden derselben Origin auf (z.B. das
+  // Sage-Protokol-Test-Panel oder die andere Endknoten-PWA), die mit
+  // ALTEN Modul-02-Identitäten antworten und „toNodeId stimmt nicht
+  // zum Empfänger" werfen, obwohl der tatsächlich angesprochene Tab
+  // sauber wäre. Bevorzugt der Tab, der den Request ausgelöst hat;
+  // wenn das (typisch Cross-Tab-POST) nicht klappt, irgendein offener
+  // CONTROLLED Tab. Bei mehreren CONTROLLED Tabs versuchen wir alle
+  // der Reihe nach, bis einer NICHT `rejected: toNodeId stimmt nicht`
+  // antwortet — der wahre Empfänger ist dann gefunden.
+  const clientList = await self.clients.matchAll({ type: "window", includeUncontrolled: false });
   if (clientList.length === 0) {
-    return jsonError(503, "Service Unavailable — keine aktive Page-Instanz.");
+    return jsonError(503, "Service Unavailable — keine aktive controlled Page-Instanz (Tab evtl. nicht vom SW kontrolliert).");
   }
-  const target = clientList.find((c) => c.id === originatingClientId) || clientList[0];
+  // Reihenfolge: erst originating-Client (falls in der Liste), dann der Rest.
+  const ordered = [];
+  const origin = clientList.find((c) => c.id === originatingClientId);
+  if (origin) ordered.push(origin);
+  for (const c of clientList) {
+    if (c !== origin) ordered.push(c);
+  }
 
   let pageResponse;
-  try {
-    pageResponse = await askPage(target, parsed, messageType);
-  } catch (err) {
-    return jsonError(503, "Service Unavailable — Page hat nicht geantwortet (" + (err && err.message ? err.message : err) + ").");
+  let lastError = null;
+  for (const target of ordered) {
+    try {
+      pageResponse = await askPage(target, parsed, messageType);
+    } catch (err) {
+      lastError = err;
+      continue; // nächster Client probieren
+    }
+    // Wenn der Empfänger sagt „toNodeId stimmt nicht zum Empfänger", ist
+    // er nicht der wahre Adressat — nächsten Client versuchen. Andere
+    // outcomes (established / rejected mit anderem Grund / accepted etc.)
+    // sind valide Antworten, die wir behalten.
+    if (
+      pageResponse &&
+      pageResponse.outcome === "rejected" &&
+      typeof pageResponse.reason === "string" &&
+      pageResponse.reason.indexOf("toNodeId") !== -1
+    ) {
+      lastError = null;
+      continue;
+    }
+    return new Response(JSON.stringify(pageResponse), {
+      status: 200,
+      headers: { "Content-Type": "application/json" },
+    });
   }
-
-  return new Response(JSON.stringify(pageResponse), {
-    status: 200,
-    headers: { "Content-Type": "application/json" },
-  });
+  // Alle Clients abgelehnt — letzte Page-Antwort (oder Fehler) zurückgeben.
+  if (pageResponse) {
+    return new Response(JSON.stringify(pageResponse), {
+      status: 200,
+      headers: { "Content-Type": "application/json" },
+    });
+  }
+  return jsonError(503, "Service Unavailable — Page hat nicht geantwortet (" + (lastError && lastError.message ? lastError.message : "unbekannt") + ").");
 }
 
 function askPage(client, sbkimRequest, messageType) {
