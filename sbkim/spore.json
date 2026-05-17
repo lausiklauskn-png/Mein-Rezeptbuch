@@ -1,5 +1,5 @@
 {
-  "createdAt": "2026-05-17T08:51:37.422Z",
+  "createdAt": "2026-05-17T09:31:09.436Z",
   "domain": "lausiklauskn-png.github.io",
   "domainDescription": "Klaus Rezeptbuch - Hausgemachte Kochrezepte vom Hefeteig bis zur Sauce, plus Begleitgetränke und Knabbereien als Ueberraschungs-Plus.",
   "domainKeywords": [
@@ -426,7 +426,7 @@
     "kty": "OKP",
     "x": "LuLbDZRzkHAxwN8ZKHHluDUyBT-CROKVy0CewBfVLvc"
   },
-  "signature": "zi6rs58R_4vxSy4Tar0EHMUUo2SmTrY05MAT8rTFILDYoPSald6g0L66oRIo7qgb7WZqTDhZF0d_3QvkBsuaBQ",
+  "signature": "zKCuhlZzmc8dlKXrSgmyGNV9_OTqrcDK4Nlakkx7qFRBKw-ZwOv9WRPOvADzSI6ZpKDeJ8RmIqrG6CnhDEQ-Bw",
   "stammCategories": [
     "Vorspeisen",
     "Suppen",
