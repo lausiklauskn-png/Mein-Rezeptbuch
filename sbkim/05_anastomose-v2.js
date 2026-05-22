@@ -6,6 +6,16 @@
  * itself never computes a cosine, never verifies a spore signature on
  * its own, never touches IndexedDB directly — it orchestrates.
  *
+ * Bau 05.Y transparenter Slot-Pfad (2026-05-20): Modul 05 schreibt
+ * identitäts-spezifisch in `sbkim_siblings_<key>` und
+ * `sbkim_anastomosis_log_<key>`. Receiver-Pfad nutzt eine
+ * `nodeId → key`-Map (im `init()` einmal aus `listIdentities()` ×
+ * `getOrCreateIdentity(key)` aufgebaut) zur Persona-Auflösung;
+ * Sender-Pfad nutzt den aktiven Slot (Cache in `init()` via
+ * `getActiveIdentityKey()`). Spec-Quelle: Brief 04 (PR #99,
+ * INTERFACES § 1 Modul 05 + § 9.2 + § 9.4) + Bau 02.Y (PR #104,
+ * Multi-Identitäts-API).
+ *
  * Public surface (registered on window.SbkimAnastomose):
  *   init() -> Promise<void>
  *   handshake(targetSpore, ownDomainVector, options?) -> Promise<HandshakeResult>
@@ -52,10 +62,13 @@
   var EMBEDDING_DIM = 384;
   var NONCE_BYTES = 16;
 
-  var SIBLINGS_STORE = "sbkim_siblings";
-  var LOG_STORE = "sbkim_anastomosis_log";
+  // Bau 05.Y: identitäts-spezifische Stores via Slot-Suffix —
+  // siblingsStoreName(slot) und anastomosisLogStoreName(slot) bauen
+  // den vollen Store-Namen aus den Basis-Konstanten + aktivem Slot.
+  var SIBLINGS_STORE_BASE = "sbkim_siblings";
+  var LOG_STORE_BASE = "sbkim_anastomosis_log";
   var KEYS_STORE = "sbkim_keys";
-  var IDENTITY_KEY = "main";
+  var DEFAULT_IDENTITY_KEY = "main";
 
   var REQUEST_REQUIRED_FIELDS = [
     "fromNodeId",
@@ -125,6 +138,28 @@
   function getStorage() { return global.SbkimStorage; }
   function getSpore() { return global.SbkimSpore; }
   function getMatch() { return global.SbkimMatch; }
+
+  // ---- Bau 05.Y: Slot-Helfer ----
+  //
+  // Modul 05 lebt nach Bau 05.Y in identitäts-spezifischen Stores
+  // (`sbkim_siblings_<key>` + `sbkim_anastomosis_log_<key>`). Die
+  // Closure-Helper bauen den vollen Namen aus Basis + Slot, und
+  // `ensureSlotStores` legt beide Stores defensiv via Bau-01.Y
+  // `ensureStore` an (idempotent — wer schon da war, bleibt da).
+
+  function siblingsStoreName(slotKey) {
+    return SIBLINGS_STORE_BASE + "_" + slotKey;
+  }
+
+  function anastomosisLogStoreName(slotKey) {
+    return LOG_STORE_BASE + "_" + slotKey;
+  }
+
+  async function ensureSlotStores(slotKey) {
+    var storage = getStorage();
+    await storage.ensureStore(siblingsStoreName(slotKey));
+    await storage.ensureStore(anastomosisLogStoreName(slotKey));
+  }
 
   // ---- base64url ohne Padding (RFC 4648 §5, dupliziert aus Modul 02) ----
 
@@ -228,11 +263,23 @@
   // ---- Modul-Zustand ----
 
   var ready = false;
-  var ownPrivateKeyCache = null;       // CryptoKey, re-importiert aus sbkim_keys["main"].privateKey (JWK)
+  // Bau 05.Y: pro Slot ein cached CryptoKey (statt einem globalen).
+  // Map<slotKey, CryptoKey> — wird lazy gefüllt bei loadOwnPrivateKey.
+  var ownPrivateKeyCacheBySlot = new Map();
   var ownDomainVectorOverride = null;  // Float32Array, nur Tests
   var bridgeRegistered = false;
   var channelBridgeRegistered = false; // BroadcastChannel-Receiver (Spec-Sitzung 2026-05-17)
   var transportDefault = "auto";       // ohne options.transport, von _setTransport überschreibbar
+  // Bau 05.Y: aktiver Slot wird im init() einmal aus
+  // `getActiveIdentityKey()` gecached. Operations cachen ihn nochmal
+  // lokal, um gegen Mid-Operation-Wechsel robust zu sein (Karte 02
+  // § Risiken: Mid-Operation-Identitäts-Wechsel ist nicht spezifiziert).
+  var activeSlotKey = null;
+  // Bau 05.Y: Receiver-Map nodeId → slotKey, im init() einmal aus
+  // `listIdentities()` × `getOrCreateIdentity(slot)` aufgebaut. Wer
+  // einen neuen Slot anlegt, muss Modul 05 re-initialisieren (Tab-
+  // Reload — Karte 05 § Receiver-Map-Schlank-Konvention).
+  var receiverMap = new Map();
 
   // Re-entry-friendly log key: ein Counter pro Millisekunde, damit
   // zwei schnell nacheinander geschriebene Log-Zeilen einander nicht
@@ -264,6 +311,24 @@
     // Identität sicherstellen — sonst kann Modul 05 später nicht signieren.
     // Modul 02 ist beim ersten Aufruf lazy.
     await getSpore().getOrCreateIdentity();
+
+    // Bau 05.Y: aktiven Slot cachen + slot-spezifische Stores anlegen.
+    var spore = getSpore();
+    activeSlotKey = await spore.getActiveIdentityKey();
+    await ensureSlotStores(activeSlotKey);
+
+    // Bau 05.Y: Receiver-Map nodeId → slotKey einmal aus
+    // listIdentities × getOrCreateIdentity(slot) bauen. Async-Crypto-
+    // Aufruf pro Slot ist ok, weil das einmal im init passiert
+    // (Karte 05 § Receiver-Map-Schlank-Konvention).
+    receiverMap = new Map();
+    var slots = await spore.listIdentities();
+    for (var i = 0; i < slots.length; i++) {
+      var slot = slots[i];
+      var ident = await spore.getOrCreateIdentity(slot);
+      receiverMap.set(ident.nodeId, slot);
+    }
+
     setupServiceWorkerBridge();
     setupBroadcastChannelBridge();
     ready = true;
@@ -273,14 +338,18 @@
     if (!ready) await init();
   }
 
-  async function loadOwnPrivateKey() {
-    if (ownPrivateKeyCache) return ownPrivateKeyCache;
+  async function loadOwnPrivateKey(slotKey) {
+    // Bau 05.Y: pro Slot ein cached CryptoKey. Sender ruft mit dem
+    // aktiven Slot, Receiver mit dem aus der receiverMap getroffenen.
+    var sk = slotKey || activeSlotKey || DEFAULT_IDENTITY_KEY;
+    if (ownPrivateKeyCacheBySlot.has(sk)) return ownPrivateKeyCacheBySlot.get(sk);
     var storage = getStorage();
-    var stored = await storage.get(KEYS_STORE, IDENTITY_KEY);
+    var stored = await storage.get(KEYS_STORE, sk);
     if (!stored || !stored.privateKey) {
       throw makeError(
         "AnastomoseDependenciesError",
-        "Keine Identität in sbkim_keys[\"main\"] — getOrCreateIdentity wurde nicht ausgeführt.",
+        "Keine Identität in sbkim_keys[\"" + sk + "\"] — getOrCreateIdentity('" + sk +
+          "') wurde nicht ausgeführt.",
       );
     }
     var subtle = getSubtle();
@@ -290,17 +359,20 @@
     } catch (err) {
       throw makeError(
         "AnastomoseDependenciesError",
-        "Privatschlüssel nicht importierbar: " + (err && err.message ? err.message : err),
+        "Privatschlüssel nicht importierbar (slot=" + sk + "): " +
+          (err && err.message ? err.message : err),
         err,
       );
     }
-    ownPrivateKeyCache = priv;
+    ownPrivateKeyCacheBySlot.set(sk, priv);
     return priv;
   }
 
-  async function loadOwnDomainVector() {
+  async function loadOwnDomainVector(slotKey) {
     if (ownDomainVectorOverride) return ownDomainVectorOverride;
-    var ownSpore = await getSpore().getOwnSpore();
+    // Bau 05.Y: pro Slot eigene Spore; ohne Argument fällt auf den
+    // aktiven Slot zurück (Bau-02.Y-Default).
+    var ownSpore = await getSpore().getOwnSpore(slotKey);
     if (!ownSpore || !Array.isArray(ownSpore.domainVector)) return null;
     if (ownSpore.domainVector.length !== EMBEDDING_DIM) return null;
     return new Float32Array(ownSpore.domainVector);
@@ -474,18 +546,18 @@
   // im Timeout-Fall, hängt einen optionalen HTTP-cause an die Fehler-
   // Kette (Auto-Fallback) und konsumiert die Response wie der HTTP-Pfad.
 
-  async function sendViaChannel(targetSpore, request, preScore, httpCause) {
+  async function sendViaChannel(targetSpore, request, preScore, httpCause, opSlot) {
     var responseJson;
     try {
       responseJson = await postChannelEnvelope(request);
     } catch (err) {
       if (err.name === "HandshakeTimeoutError") {
-        try { await logEntry(targetSpore.id, "timeout-channel"); } catch (e) {}
+        try { await logEntry(targetSpore.id, "timeout-channel", opSlot); } catch (e) {}
       }
       if (httpCause && err.cause === undefined) err.cause = httpCause;
       throw err;
     }
-    return await consumeResponse(targetSpore, responseJson, preScore);
+    return await consumeResponse(targetSpore, responseJson, preScore, opSlot);
   }
 
   function parseTransport(options) {
@@ -526,14 +598,17 @@
 
   // ---- Storage-Helfer ----
 
-  async function upsertSibling(entry) {
+  async function upsertSibling(entry, slotKey) {
+    // Bau 05.Y: schreibt slot-spezifisch in sbkim_siblings_<slot>.
+    var sk = slotKey || activeSlotKey || DEFAULT_IDENTITY_KEY;
     var storage = getStorage();
-    var existing = await storage.get(SIBLINGS_STORE, entry.nodeId);
+    var storeName = siblingsStoreName(sk);
+    var existing = await storage.get(storeName, entry.nodeId);
     if (existing) {
       // Reentry-Idempotenz: since bleibt eingefroren, kein Überschreiben.
       return true;
     }
-    await storage.put(SIBLINGS_STORE, entry.nodeId, {
+    await storage.put(storeName, entry.nodeId, {
       nodeId: entry.nodeId,
       domain: entry.domain,
       endpoint: entry.endpoint,
@@ -543,10 +618,12 @@
     return false;
   }
 
-  async function logEntry(peerId, outcome) {
+  async function logEntry(peerId, outcome, slotKey) {
+    // Bau 05.Y: schreibt slot-spezifisch in sbkim_anastomosis_log_<slot>.
+    var sk = slotKey || activeSlotKey || DEFAULT_IDENTITY_KEY;
     var storage = getStorage();
     var k = nextLogKey();
-    await storage.put(LOG_STORE, k.key, {
+    await storage.put(anastomosisLogStoreName(sk), k.key, {
       ts: k.ts,
       peerId: peerId,
       outcome: outcome,
@@ -560,6 +637,11 @@
     var transport = parseTransport(options);     // wirft InvalidTransportError bei bad value
     var spore = getSpore();
     var match = getMatch();
+
+    // Bau 05.Y: Operations-Slot zur Sender-Zeit cachen (gegen Mid-
+    // Operation-Wechsel — Karte 02 § Risiken). Defensiv ensureStore.
+    var opSlot = activeSlotKey || await spore.getActiveIdentityKey();
+    await ensureSlotStores(opSlot);
 
     if (!(ownDomainVector instanceof Float32Array) || ownDomainVector.length !== EMBEDDING_DIM) {
       throw makeError(
@@ -593,21 +675,23 @@
       var peerVec = new Float32Array(targetSpore.domainVector);
       preScore = match.match(ownDomainVector, peerVec);
       if (!match.isAboveProviderThreshold(preScore)) {
-        await logEntry(targetSpore.id, "abgelehnt: lokal");
+        await logEntry(targetSpore.id, "abgelehnt: lokal", opSlot);
         return { outcome: "rejected-local", score: preScore };
       }
     }
 
-    // 4. eigene Spore + privateKey laden
-    var ownSpore = await spore.getOwnSpore();
+    // 4. eigene Spore + privateKey laden (Bau 05.Y: für den aktiven Slot)
+    var ownSpore = await spore.getOwnSpore(opSlot);
     if (!ownSpore) {
       throw makeError(
         "AnastomoseDependenciesError",
-        "Eigene Spore noch nicht erzeugt — SbkimSpore.generateOwnSpore(meta) zuerst.",
+        "Eigene Spore noch nicht erzeugt (slot=" + opSlot + ") — " +
+          "SbkimSpore.generateOwnSpore(meta) zuerst.",
       );
     }
-    var privKey = await loadOwnPrivateKey();
-    var ownNodeId = await spore.getNodeId();
+    var privKey = await loadOwnPrivateKey(opSlot);
+    var ident = await spore.getOrCreateIdentity(opSlot);
+    var ownNodeId = ident.nodeId;
 
     // 5. HandshakeRequest bauen (kanonisch, signiert) — derselbe Request
     //    wird sowohl im HTTP- als auch im Channel-Pfad weitergereicht.
@@ -629,7 +713,7 @@
 
     // 5b. transport === "channel": HTTP-Pfad überspringen, direkt zum Channel.
     if (transport === "channel") {
-      return await sendViaChannel(targetSpore, request, preScore, null);
+      return await sendViaChannel(targetSpore, request, preScore, null, opSlot);
     }
 
     // 6. POST mit Abort-Timeout (transport ∈ {"http", "auto"})
@@ -655,7 +739,7 @@
     //     Channel chancenlos, sofort werfen). Auch bei transport:"http".
     if (fetchErr) {
       if (fetchErr.name === "AbortError") {
-        await logEntry(targetSpore.id, "timeout");
+        await logEntry(targetSpore.id, "timeout", opSlot);
         throw makeError(
           "HandshakeTimeoutError",
           "Anfrage an " + url + " > " + QUERY_TIMEOUT_MS + " ms abgebrochen.",
@@ -687,7 +771,7 @@
         "HTTP-Antwort nicht verwertbar (Status " + response.status +
           ", Content-Type " + ctHeader + ") — Auto-Fallback auf BroadcastChannel-Pfad.",
       );
-      return await sendViaChannel(targetSpore, request, preScore, httpCause);
+      return await sendViaChannel(targetSpore, request, preScore, httpCause, opSlot);
     }
 
     // 6d. transport === "http": altes Verhalten — bei 4xx/5xx oder
@@ -706,10 +790,10 @@
     }
 
     // 7. Antwort konsumieren (Verify, sibling-put, Log).
-    return await consumeResponse(targetSpore, httpJson, preScore);
+    return await consumeResponse(targetSpore, httpJson, preScore, opSlot);
   }
 
-  async function consumeResponse(targetSpore, responseJson, preScore) {
+  async function consumeResponse(targetSpore, responseJson, preScore, opSlot) {
     var spore = getSpore();
     if (!responseJson || typeof responseJson !== "object") {
       throw makeError("HandshakeNetworkError", "Antwort ist kein Objekt.");
@@ -721,7 +805,7 @@
     // receiverSpore prüfen
     var verifyReceiver = await spore.verifyForeignSpore(responseJson.receiverSpore);
     if (!verifyReceiver.valid) {
-      await logEntry(targetSpore.id, "abgelehnt: invalid-peer");
+      await logEntry(targetSpore.id, "abgelehnt: invalid-peer", opSlot);
       throw makeError(
         "InvalidPeerSporeError",
         "receiverSpore ungültig: " + verifyReceiver.reason,
@@ -732,7 +816,7 @@
     // Response-Signatur prüfen
     var sigOk = await verifyEnvelope(responseJson, responseJson.receiverSpore.publicKey);
     if (!sigOk) {
-      await logEntry(targetSpore.id, "abgelehnt: invalid-peer");
+      await logEntry(targetSpore.id, "abgelehnt: invalid-peer", opSlot);
       throw makeError(
         "HandshakeSignatureInvalidError",
         "Response-Signatur gegen receiverSpore.publicKey ungültig.",
@@ -746,8 +830,8 @@
         endpoint: responseJson.receiverSpore.endpoint,
         pubKey: responseJson.receiverSpore.publicKey,
         since: nowIso(),
-      });
-      await logEntry(responseJson.receiverSpore.id, "established");
+      }, opSlot);
+      await logEntry(responseJson.receiverSpore.id, "established", opSlot);
       return {
         outcome: "established",
         peerNodeId: responseJson.receiverSpore.id,
@@ -757,7 +841,7 @@
     }
 
     // outcome:"rejected" oder anderer Wert — als rejected behandeln
-    await logEntry(targetSpore.id, "abgelehnt: peer");
+    await logEntry(targetSpore.id, "abgelehnt: peer", opSlot);
     var result = {
       outcome: "rejected",
       reason: typeof responseJson.reason === "string" ? responseJson.reason : "(kein Grund mitgeschickt)",
@@ -774,7 +858,9 @@
       var spore = getSpore();
       var match = getMatch();
 
-      // 1. Form-Check
+      // 1. Form-Check (Slot noch nicht bestimmt — Antwort mit aktivem
+      //    Default signieren, das ist der konservative Pfad für
+      //    malformede Requests).
       var missing = checkRequestFields(request);
       if (missing) {
         return await buildResponse({ outcome: "rejected", reason: "Form ungültig: " + missing }, request);
@@ -800,43 +886,59 @@
         return await buildResponse({ outcome: "rejected", reason: "Request-Signatur ungültig" }, request);
       }
 
-      // 5. toNodeId (optional)
-      var myNodeId = await spore.getNodeId();
+      // 5. Bau 05.Y: Receiver-Map-Lookup. toNodeId → targetSlotKey.
+      //    - toNodeId in der Map → targetSlot ist die getroffene Persona.
+      //    - toNodeId angegeben, aber nicht in der Map → rejected.
+      //    - toNodeId fehlt/leer → Pre-Brief-04-Rückwärts-Kompat: aktiver
+      //      Slot wird verwendet (legacy single-identity-Flow).
+      var targetSlot;
       if (typeof request.toNodeId === "string" && request.toNodeId.length > 0) {
-        if (request.toNodeId !== myNodeId) {
-          return await buildResponse({ outcome: "rejected", reason: "toNodeId stimmt nicht zum Empfänger" }, request);
+        var mapped = receiverMap.get(request.toNodeId);
+        if (mapped === undefined) {
+          return await buildResponse(
+            { outcome: "rejected", reason: "toNodeId stimmt nicht zum Empfänger" },
+            request,
+          );
         }
+        targetSlot = mapped;
+      } else {
+        targetSlot = activeSlotKey || DEFAULT_IDENTITY_KEY;
       }
 
-      // 6. domainVector (request oder senderSpore)
+      // Bau 05.Y: ab hier alles im Kontext des targetSlot.
+      await ensureSlotStores(targetSlot);
+
+      // 6. domainVector (request oder senderSpore); eigener Vektor aus
+      //    der Spore des getroffenen Slots.
       var peerVec = pickPeerDomainVector(request);
       if (!peerVec) {
-        return await buildResponse({ outcome: "rejected", reason: "kein domainVector verfügbar" }, request);
+        return await buildResponse({ outcome: "rejected", reason: "kein domainVector verfügbar" }, request, targetSlot);
       }
-      var ownVec = await loadOwnDomainVector();
+      var ownVec = await loadOwnDomainVector(targetSlot);
       if (!ownVec) {
-        return await buildResponse({ outcome: "rejected", reason: "kein domainVector verfügbar (lokal)" }, request);
+        return await buildResponse({ outcome: "rejected", reason: "kein domainVector verfügbar (lokal)" }, request, targetSlot);
       }
 
       // 7. Match
       var score = match.match(ownVec, peerVec);
       if (!match.isAboveProviderThreshold(score)) {
-        await logEntry(request.senderSpore.id, "abgelehnt: score");
-        return await buildResponse({ outcome: "rejected", reason: "score unterhalb Schwelle", score: score }, request);
+        await logEntry(request.senderSpore.id, "abgelehnt: score", targetSlot);
+        return await buildResponse({ outcome: "rejected", reason: "score unterhalb Schwelle", score: score }, request, targetSlot);
       }
 
-      // 8. sibling speichern (Reentry idempotent)
+      // 8. sibling speichern (Reentry idempotent) — in den targetSlot-
+      //    Store, NICHT in den globalen aktiven (Brief 04 § 9.4).
       var reentered = await upsertSibling({
         nodeId: request.senderSpore.id,
         domain: request.senderSpore.domain,
         endpoint: request.senderSpore.endpoint,
         pubKey: request.senderSpore.publicKey,
         since: nowIso(),
-      });
-      await logEntry(request.senderSpore.id, reentered ? "re-handshake" : "established");
+      }, targetSlot);
+      await logEntry(request.senderSpore.id, reentered ? "re-handshake" : "established", targetSlot);
 
-      // 9. Antwort signieren
-      return await buildResponse({ outcome: "established", score: score }, request);
+      // 9. Antwort signieren mit der getroffenen Persona.
+      return await buildResponse({ outcome: "established", score: score }, request, targetSlot);
     } catch (err) {
       // Spec: receiveHandshake wirft niemals. Wenn doch (z.B. Storage-Crash),
       // versuchen wir eine signierte Rejection zu bauen — wenn auch das
@@ -884,17 +986,23 @@
     return null;
   }
 
-  async function buildResponse(extra, request) {
+  async function buildResponse(extra, request, slotKey) {
     var spore = getSpore();
-    var ownSpore = await spore.getOwnSpore();
+    // Bau 05.Y: ohne slot-Argument fällt buildResponse auf den
+    // aktiven Slot zurück (Pre-Receiver-Map-Pfad, z.B. malformede
+    // Requests). Mit Argument signiert die Antwort mit der GETROFFENEN
+    // Persona — Brief 04 § 9.4.
+    var sk = slotKey || activeSlotKey || DEFAULT_IDENTITY_KEY;
+    var ownSpore = await spore.getOwnSpore(sk);
     if (!ownSpore) {
       throw makeError(
         "AnastomoseDependenciesError",
-        "Eigene Spore fehlt — Antwort kann nicht signiert werden.",
+        "Eigene Spore fehlt (slot=" + sk + ") — Antwort kann nicht signiert werden.",
       );
     }
-    var privKey = await loadOwnPrivateKey();
-    var ownNodeId = await spore.getNodeId();
+    var privKey = await loadOwnPrivateKey(sk);
+    var ident = await spore.getOrCreateIdentity(sk);
+    var ownNodeId = ident.nodeId;
 
     var unsigned = {
       fromNodeId: ownNodeId,
@@ -919,8 +1027,11 @@
   // ---- listSiblings / forgetSibling ----
 
   async function listSiblings() {
+    // Bau 05.Y: liest aus dem Slot der AKTIVEN Identität. Persona-
+    // übergreifende Sicht ist Aufrufer-Pflicht (`listIdentities()`
+    // iterieren + `setActiveIdentity` + Re-Init).
     await ensureReady();
-    var rows = await getStorage().all(SIBLINGS_STORE);
+    var rows = await getStorage().all(siblingsStoreName(activeSlotKey));
     return rows.map(function (r) {
       return {
         nodeId: r.value.nodeId,
@@ -932,11 +1043,15 @@
   }
 
   async function forgetSibling(nodeId) {
+    // Bau 05.Y: vergisst aus dem Slot der AKTIVEN Identität. Wer
+    // einen Sibling aus einer anderen Persona vergessen will, muss
+    // vorher `setActiveIdentity` rufen + Modul 05 re-initialisieren.
     await ensureReady();
     var storage = getStorage();
-    var existing = await storage.get(SIBLINGS_STORE, nodeId);
+    var storeName = siblingsStoreName(activeSlotKey);
+    var existing = await storage.get(storeName, nodeId);
     if (existing === undefined) return; // idempotent
-    await storage.del(SIBLINGS_STORE, nodeId);
+    await storage.del(storeName, nodeId);
   }
 
   // ---- Test-Brücken (Unterstrich-Präfix, inoffiziell) ----
@@ -1048,8 +1163,13 @@
       queryTimeoutMs: QUERY_TIMEOUT_MS,
       endpointAnastomosis: ENDPOINT_ANASTOMOSIS,
       embeddingDim: EMBEDDING_DIM,
-      siblingsStore: SIBLINGS_STORE,
-      logStore: LOG_STORE,
+      // Bau 05.Y: Stores leben jetzt slot-suffixed. Die Basis-Namen
+      // bleiben als Read-Anker, der Live-Zustand kommt aus den
+      // Gettern unten.
+      siblingsStoreBase: SIBLINGS_STORE_BASE,
+      logStoreBase: LOG_STORE_BASE,
+      get activeSlotKey() { return activeSlotKey; },
+      get receiverMapSize() { return receiverMap ? receiverMap.size : 0; },
       requestRequiredFields: REQUEST_REQUIRED_FIELDS.slice(),
       responseRequiredFields: RESPONSE_REQUIRED_FIELDS.slice(),
       allowedTransports: ALLOWED_TRANSPORTS.slice(),
