@@ -31,6 +31,17 @@
  *                                im Panel-Markup, _dispatchClick simuliert
  *                                automatisch.
  *
+ * Pflege Persistenz-Strategie verbinden (2026-05-16) — Stufe (3) der drei-
+ * stufigen Identitäts-Persistenz-Architektur:
+ *   - getStatusSnapshot() liest SbkimStorage._meta.storagePersisted fail-soft
+ *     und spiegelt den Live-Zustand als snapshot.storagePersisted
+ *     (true | false | null).
+ *   - Modal-Render-Pfad zeigt zusätzlich eine Backup-Tipp-Zeile, wenn
+ *     snapshot.storagePersisted === false ODER snapshot.quota.warningLevel
+ *     !== "none". Wortlaut steht in DOKU_BACKUP_TIP_TEXT (modul-lokal).
+ *     Hinweis-only, kein Direkt-Aufruf von Modul 02 (Aufrufer-Pflicht-
+ *     Trennung — Karte 00 § Verantwortlichkeiten).
+ *
  * Self-check: emits a console.info line on script load (synchronous,
  * before any call). See INTERFACES.md §0 / §1 Modul 00 und
  * docs/components/00_doku_fenster.md für den verbindlichen Vertrag.
@@ -54,6 +65,16 @@
   var META_SCHEMA_VERSION = 1;
 
   var MOUNT_OBSERVER_TIMEOUT_MS = 10000;        // Safety-Timeout für späte DOM-Mounts
+
+  // Pflege Persistenz-Strategie verbinden (2026-05-16) — Stufe (3) der drei-
+  // stufigen Identitäts-Persistenz. Textliche Brücke zu Stufe (2) Backup-Export
+  // (Modul 02): Wortlaut steht modul-lokal an einer Stelle, damit ein späterer
+  // Pflege-Zyklus den Text zentral nachpolieren kann.
+  var DOKU_BACKUP_TIP_TEXT =
+    "Tipp: Speicher-Schutz für diesen Knoten ist nicht bestätigt. Lege ein " +
+    "Backup an (Panel 02, „Backup exportieren“ — " +
+    "passwort-verschlüsselte .json-Datei), damit die Identität einen " +
+    "Browser-Wechsel oder ein Aufräumen des Browserspeichers überlebt.";
 
   // ---- Fehler-Erzeugung ----
 
@@ -469,6 +490,22 @@
       errors.push({ source: "navigator.storage.estimate", reason: "API nicht verfügbar" });
     }
 
+    // ---- Persist-Status (Stufe 1 der Identitäts-Persistenz, fail-soft) ----
+    // Modul 01 setzt _meta.storagePersisted nach erfolgreichem DB-Open auf
+    // true / false / null. Wir lesen rein lesend, behandeln `null` und `true`
+    // gleich (kein Warn-Trigger). Nur explizites `false` triggert die
+    // Backup-Tipp-Zeile im Modal-Render-Pfad.
+    var storagePersisted = null;
+    try {
+      var stor = getStorage();
+      if (stor && stor._meta &&
+          typeof stor._meta.storagePersisted !== "undefined") {
+        storagePersisted = stor._meta.storagePersisted;
+      }
+    } catch (err) {
+      storagePersisted = null;
+    }
+
     return {
       nodeId: nodeId,
       nodeIdShort: nodeIdShort,
@@ -482,6 +519,7 @@
       legacyCount: legacy.length,
       modules: modules,
       quota: quota,
+      storagePersisted: storagePersisted,
       openedAt: null,         // wird in open() überschrieben
       lastOpenedAt: lastOpenedAt,
       errors: errors,
@@ -609,6 +647,9 @@
     if (snapshot.quota && snapshot.quota.warningLevel !== "none") {
       box.appendChild(renderQuotaWarning(snapshot.quota));
     }
+    if (isBackupTipActive(snapshot)) {
+      box.appendChild(renderBackupTip());
+    }
     box.appendChild(renderModuleSection(snapshot));
     box.appendChild(renderSiblingSection(snapshot));
     box.appendChild(renderLegacySection(snapshot));
@@ -694,6 +735,27 @@
         "background:#fff3cd;color:#6b5500;border:1px solid #f0c36d;" +
         "border-radius:4px;padding:0.4rem 0.6rem;margin-bottom:0.6rem;font-size:0.9rem;",
       "text": "⚠ " + note,
+    });
+  }
+
+  // Pflege Persistenz-Strategie verbinden (2026-05-16): Tipp-Zeile erscheint,
+  // wenn Stufe (1) Persist explizit verweigert wurde ODER Stufe (3) Quota-
+  // Frühwarnung greift. `null` / `true` triggern nicht (kein Trigger bei
+  // API-Verweigerung — fail-soft-Konvention aus Modul 01).
+  function isBackupTipActive(snapshot) {
+    if (!snapshot) return false;
+    var persistFalse = snapshot.storagePersisted === false;
+    var quotaWarn = !!(snapshot.quota && snapshot.quota.warningLevel !== "none");
+    return persistFalse || quotaWarn;
+  }
+
+  function renderBackupTip() {
+    return el("div", {
+      "class": "sbkim-doku-backup-tip",
+      "style":
+        "background:#e0f2fe;color:#075985;border:1px solid #7dd3fc;" +
+        "border-radius:4px;padding:0.4rem 0.6rem;margin-bottom:0.6rem;font-size:0.9rem;",
+      "text": DOKU_BACKUP_TIP_TEXT,
     });
   }
 
@@ -1022,6 +1084,13 @@
       windowTitleDefault: WINDOW_TITLE_DEFAULT,
       nodeIdShortLen: NODE_ID_SHORT_LEN,
       dokuMetaStore: DOKU_META_STORE,
+      dokuBackupTipText: DOKU_BACKUP_TIP_TEXT,
+      // Pflege Persistenz-Strategie verbinden (2026-05-16): Test-Helper, der
+      // einen frischen Snapshot zieht und prüft, ob die Backup-Tipp-Zeile beim
+      // nächsten open() gerendert würde.
+      backupTipActive: function () {
+        return getStatusSnapshot().then(isBackupTipActive);
+      },
     },
   };
 

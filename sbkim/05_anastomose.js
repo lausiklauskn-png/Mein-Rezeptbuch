@@ -6,9 +6,23 @@
  * itself never computes a cosine, never verifies a spore signature on
  * its own, never touches IndexedDB directly — it orchestrates.
  *
+ * Bau 05.Y transparenter Slot-Pfad (2026-05-20): Modul 05 schreibt
+ * identitäts-spezifisch in `sbkim_siblings_<key>` und
+ * `sbkim_anastomosis_log_<key>`. Receiver-Pfad nutzt eine
+ * `nodeId → key`-Map (im `init()` einmal aus `listIdentities()` ×
+ * `getOrCreateIdentity(key)` aufgebaut) zur Persona-Auflösung;
+ * Sender-Pfad nutzt den aktiven Slot (Cache in `init()` via
+ * `getActiveIdentityKey()`). Spec-Quelle: Brief 04 (PR #99,
+ * INTERFACES § 1 Modul 05 + § 9.2 + § 9.4) + Bau 02.Y (PR #104,
+ * Multi-Identitäts-API).
+ *
  * Public surface (registered on window.SbkimAnastomose):
  *   init() -> Promise<void>
- *   handshake(targetSpore, ownDomainVector) -> Promise<HandshakeResult>
+ *   handshake(targetSpore, ownDomainVector, options?) -> Promise<HandshakeResult>
+ *     options.transport ∈ {"auto","http","channel"}, Default "auto"
+ *     (Spec-Sitzung BroadcastChannel-Bridge 2026-05-17 — additiv, der
+ *      bestehende HTTP-Pfad bleibt unverändert; same-origin-Fallback auf
+ *      BroadcastChannel('sbkim') bei klaren HTTP-Defekt-Signalen.)
  *   receiveHandshake(request) -> Promise<HandshakeResponse>
  *   listSiblings() -> Promise<Array<{nodeId, domain, since, pubKey}>>
  *   forgetSibling(nodeId) -> Promise<void>
@@ -18,6 +32,12 @@
  *   _setOwnDomainVector(vec|null)     -> setzt Empfänger-Vektor-Override
  *                                        (umgeht das domainVector-Feld
  *                                        in der eigenen Spore)
+ *   _setTransport(t)                  -> forciert Default-Transport
+ *                                        ("auto"|"http"|"channel"|null)
+ *   _clearChannelState()              -> setzt Default-Transport zurück
+ *                                        auf "auto"
+ *   _postChannelEnvelope(request)     -> roher Channel-Sender für Panel
+ *                                        (kein consume, kein sibling-put)
  *   _buildSignedRequest(...)          -> Test-Brücke für In-Memory-Peer
  *   _verifyResponseSignature(...)     -> Test-Brücke für Bidirektion
  *   _canonicalize / _base64urlEncode  -> Krypto-Helfer (Panel)
@@ -42,10 +62,13 @@
   var EMBEDDING_DIM = 384;
   var NONCE_BYTES = 16;
 
-  var SIBLINGS_STORE = "sbkim_siblings";
-  var LOG_STORE = "sbkim_anastomosis_log";
+  // Bau 05.Y: identitäts-spezifische Stores via Slot-Suffix —
+  // siblingsStoreName(slot) und anastomosisLogStoreName(slot) bauen
+  // den vollen Store-Namen aus den Basis-Konstanten + aktivem Slot.
+  var SIBLINGS_STORE_BASE = "sbkim_siblings";
+  var LOG_STORE_BASE = "sbkim_anastomosis_log";
   var KEYS_STORE = "sbkim_keys";
-  var IDENTITY_KEY = "main";
+  var DEFAULT_IDENTITY_KEY = "main";
 
   var REQUEST_REQUIRED_FIELDS = [
     "fromNodeId",
@@ -55,6 +78,25 @@
     "signature",
     "timestamp",
   ];
+
+  // Pflichtfelder einer regulären HandshakeResponse — für Auto-Fallback-
+  // Erkennung (Spec-Sitzung BroadcastChannel-Bridge 2026-05-17, Karte 05
+  // § Auto-Fallback-Logik). Eine Antwort, der eines dieser Felder fehlt,
+  // löst (bei transport:"auto") den Channel-Fallback aus.
+  var RESPONSE_REQUIRED_FIELDS = [
+    "fromNodeId",
+    "nonceEcho",
+    "outcome",
+    "protocolVersion",
+    "receiverSpore",
+    "signature",
+    "timestamp",
+    "toNodeId",
+  ];
+
+  var ALLOWED_TRANSPORTS = ["auto", "http", "channel"];
+  var BROADCAST_CHANNEL_NAME = "sbkim";
+  var REPLY_CHANNEL_PREFIX = "sbkim:reply:";
 
   // ---- Fehler-Erzeugung ----
 
@@ -96,6 +138,28 @@
   function getStorage() { return global.SbkimStorage; }
   function getSpore() { return global.SbkimSpore; }
   function getMatch() { return global.SbkimMatch; }
+
+  // ---- Bau 05.Y: Slot-Helfer ----
+  //
+  // Modul 05 lebt nach Bau 05.Y in identitäts-spezifischen Stores
+  // (`sbkim_siblings_<key>` + `sbkim_anastomosis_log_<key>`). Die
+  // Closure-Helper bauen den vollen Namen aus Basis + Slot, und
+  // `ensureSlotStores` legt beide Stores defensiv via Bau-01.Y
+  // `ensureStore` an (idempotent — wer schon da war, bleibt da).
+
+  function siblingsStoreName(slotKey) {
+    return SIBLINGS_STORE_BASE + "_" + slotKey;
+  }
+
+  function anastomosisLogStoreName(slotKey) {
+    return LOG_STORE_BASE + "_" + slotKey;
+  }
+
+  async function ensureSlotStores(slotKey) {
+    var storage = getStorage();
+    await storage.ensureStore(siblingsStoreName(slotKey));
+    await storage.ensureStore(anastomosisLogStoreName(slotKey));
+  }
 
   // ---- base64url ohne Padding (RFC 4648 §5, dupliziert aus Modul 02) ----
 
@@ -199,9 +263,23 @@
   // ---- Modul-Zustand ----
 
   var ready = false;
-  var ownPrivateKeyCache = null;       // CryptoKey, re-importiert aus sbkim_keys["main"].privateKey (JWK)
+  // Bau 05.Y: pro Slot ein cached CryptoKey (statt einem globalen).
+  // Map<slotKey, CryptoKey> — wird lazy gefüllt bei loadOwnPrivateKey.
+  var ownPrivateKeyCacheBySlot = new Map();
   var ownDomainVectorOverride = null;  // Float32Array, nur Tests
   var bridgeRegistered = false;
+  var channelBridgeRegistered = false; // BroadcastChannel-Receiver (Spec-Sitzung 2026-05-17)
+  var transportDefault = "auto";       // ohne options.transport, von _setTransport überschreibbar
+  // Bau 05.Y: aktiver Slot wird im init() einmal aus
+  // `getActiveIdentityKey()` gecached. Operations cachen ihn nochmal
+  // lokal, um gegen Mid-Operation-Wechsel robust zu sein (Karte 02
+  // § Risiken: Mid-Operation-Identitäts-Wechsel ist nicht spezifiziert).
+  var activeSlotKey = null;
+  // Bau 05.Y: Receiver-Map nodeId → slotKey, im init() einmal aus
+  // `listIdentities()` × `getOrCreateIdentity(slot)` aufgebaut. Wer
+  // einen neuen Slot anlegt, muss Modul 05 re-initialisieren (Tab-
+  // Reload — Karte 05 § Receiver-Map-Schlank-Konvention).
+  var receiverMap = new Map();
 
   // Re-entry-friendly log key: ein Counter pro Millisekunde, damit
   // zwei schnell nacheinander geschriebene Log-Zeilen einander nicht
@@ -233,7 +311,26 @@
     // Identität sicherstellen — sonst kann Modul 05 später nicht signieren.
     // Modul 02 ist beim ersten Aufruf lazy.
     await getSpore().getOrCreateIdentity();
+
+    // Bau 05.Y: aktiven Slot cachen + slot-spezifische Stores anlegen.
+    var spore = getSpore();
+    activeSlotKey = await spore.getActiveIdentityKey();
+    await ensureSlotStores(activeSlotKey);
+
+    // Bau 05.Y: Receiver-Map nodeId → slotKey einmal aus
+    // listIdentities × getOrCreateIdentity(slot) bauen. Async-Crypto-
+    // Aufruf pro Slot ist ok, weil das einmal im init passiert
+    // (Karte 05 § Receiver-Map-Schlank-Konvention).
+    receiverMap = new Map();
+    var slots = await spore.listIdentities();
+    for (var i = 0; i < slots.length; i++) {
+      var slot = slots[i];
+      var ident = await spore.getOrCreateIdentity(slot);
+      receiverMap.set(ident.nodeId, slot);
+    }
+
     setupServiceWorkerBridge();
+    setupBroadcastChannelBridge();
     ready = true;
   }
 
@@ -241,14 +338,18 @@
     if (!ready) await init();
   }
 
-  async function loadOwnPrivateKey() {
-    if (ownPrivateKeyCache) return ownPrivateKeyCache;
+  async function loadOwnPrivateKey(slotKey) {
+    // Bau 05.Y: pro Slot ein cached CryptoKey. Sender ruft mit dem
+    // aktiven Slot, Receiver mit dem aus der receiverMap getroffenen.
+    var sk = slotKey || activeSlotKey || DEFAULT_IDENTITY_KEY;
+    if (ownPrivateKeyCacheBySlot.has(sk)) return ownPrivateKeyCacheBySlot.get(sk);
     var storage = getStorage();
-    var stored = await storage.get(KEYS_STORE, IDENTITY_KEY);
+    var stored = await storage.get(KEYS_STORE, sk);
     if (!stored || !stored.privateKey) {
       throw makeError(
         "AnastomoseDependenciesError",
-        "Keine Identität in sbkim_keys[\"main\"] — getOrCreateIdentity wurde nicht ausgeführt.",
+        "Keine Identität in sbkim_keys[\"" + sk + "\"] — getOrCreateIdentity('" + sk +
+          "') wurde nicht ausgeführt.",
       );
     }
     var subtle = getSubtle();
@@ -258,17 +359,20 @@
     } catch (err) {
       throw makeError(
         "AnastomoseDependenciesError",
-        "Privatschlüssel nicht importierbar: " + (err && err.message ? err.message : err),
+        "Privatschlüssel nicht importierbar (slot=" + sk + "): " +
+          (err && err.message ? err.message : err),
         err,
       );
     }
-    ownPrivateKeyCache = priv;
+    ownPrivateKeyCacheBySlot.set(sk, priv);
     return priv;
   }
 
-  async function loadOwnDomainVector() {
+  async function loadOwnDomainVector(slotKey) {
     if (ownDomainVectorOverride) return ownDomainVectorOverride;
-    var ownSpore = await getSpore().getOwnSpore();
+    // Bau 05.Y: pro Slot eigene Spore; ohne Argument fällt auf den
+    // aktiven Slot zurück (Bau-02.Y-Default).
+    var ownSpore = await getSpore().getOwnSpore(slotKey);
     if (!ownSpore || !Array.isArray(ownSpore.domainVector)) return null;
     if (ownSpore.domainVector.length !== EMBEDDING_DIM) return null;
     return new Float32Array(ownSpore.domainVector);
@@ -306,16 +410,205 @@
     }
   }
 
+  // ---- BroadcastChannel-Bridge (same-origin Fallback, Spec 2026-05-17) ----
+  //
+  // Receiver-Seite: ein einziger Main-Channel-Listener pro Tab, eager in
+  // init() registriert (Karte 05 § BroadcastChannel-Bridge, E3). Akzeptiert
+  // nur Requests, die explizit an die eigene nodeId adressiert sind, und
+  // antwortet auf einem dedizierten Reply-Channel, dessen Name aus der
+  // request-nonce abgeleitet ist. Self-Hit-Schutz blockt Sender-im-selben-
+  // Tab (E7). Wer-nicht-da-ist-schweigt: kein Wake-Lock, kein Auto-Start.
+
+  function setupBroadcastChannelBridge() {
+    if (channelBridgeRegistered) return;
+    if (typeof BroadcastChannel === "undefined") return;
+    try {
+      var chan = new BroadcastChannel(BROADCAST_CHANNEL_NAME);
+      chan.addEventListener("message", async function (event) {
+        if (!event || !event.data) return;
+        if (event.data.type !== "SBKIM_ANASTOMOSE_REQUEST") return;
+        var payload = event.data.payload;
+        if (!payload || typeof payload !== "object") return;
+        var reply = event.data.replyChannelName;
+        if (typeof reply !== "string" || reply.indexOf(REPLY_CHANNEL_PREFIX) !== 0) return;
+        var ownId;
+        try { ownId = await getSpore().getNodeId(); } catch (e1) { return; }
+        if (payload.toNodeId !== ownId) return;       // an wen anders gerichtet
+        if (payload.fromNodeId === ownId) return;     // Self-Hit-Schutz (E7)
+        var response;
+        try {
+          response = await receiveHandshake(payload);
+        } catch (err) {
+          response = { outcome: "rejected", reason: "Interner Fehler: " + (err && err.message ? err.message : err) };
+        }
+        var replyChan = null;
+        try {
+          replyChan = new BroadcastChannel(reply);
+          replyChan.postMessage({ type: "SBKIM_ANASTOMOSE_RESPONSE", payload: response });
+        } catch (e2) {
+          // wer-nicht-da-ist-schweigt — kein Log-Spam.
+        } finally {
+          if (replyChan) { try { replyChan.close(); } catch (e3) {} }
+        }
+      });
+      channelBridgeRegistered = true;
+    } catch (err) {
+      channelBridgeRegistered = false;
+    }
+  }
+
+  // Sender-Seite: postet ein Request-Envelope auf dem Main-Channel und
+  // wartet mit Timeout auf das Reply auf dem dedizierten Reply-Channel.
+  // Wirft synchron MissingToNodeIdError vor jedem Channel-Bau, wenn der
+  // Request keine toNodeId trägt (Channel-Pfad kann ohne den Filter
+  // nicht antworten — Karte 05 § Pflichtfeld-Schärfung).
+  //
+  // Liefert das rohe HandshakeResponse-Payload zurück; consume/verify ist
+  // Sache des Aufrufers (consumeResponse für den regulären Handshake-Pfad).
+
+  async function postChannelEnvelope(request) {
+    if (!request || typeof request !== "object") {
+      throw makeError("HandshakeNetworkError", "request fehlt für Channel-Pfad.");
+    }
+    if (typeof request.toNodeId !== "string" || request.toNodeId.length === 0) {
+      throw makeError(
+        "MissingToNodeIdError",
+        "Channel-Pfad erfordert request.toNodeId — ohne ihn kann der Receiver " +
+          "den Request nicht filtern (Karte 05 § Pflichtfeld-Schärfung).",
+      );
+    }
+    if (typeof request.nonce !== "string" || request.nonce.length === 0) {
+      throw makeError(
+        "HandshakeNetworkError",
+        "request.nonce fehlt — Reply-Channel-Name nicht ableitbar.",
+      );
+    }
+    if (typeof BroadcastChannel === "undefined") {
+      throw makeError(
+        "HandshakeNetworkError",
+        "BroadcastChannel-API in dieser Umgebung nicht verfügbar.",
+      );
+    }
+
+    var replyChannelName = REPLY_CHANNEL_PREFIX + request.nonce;
+    var replyChan = new BroadcastChannel(replyChannelName);
+    var settled = false;
+
+    var responsePromise = new Promise(function (resolve, reject) {
+      var timer = setTimeout(function () {
+        if (settled) return;
+        settled = true;
+        try { replyChan.close(); } catch (e) {}
+        reject(makeError(
+          "HandshakeTimeoutError",
+          "Channel-Reply > " + QUERY_TIMEOUT_MS + " ms ausgeblieben.",
+        ));
+      }, QUERY_TIMEOUT_MS);
+
+      replyChan.addEventListener("message", function (event) {
+        if (settled) return;
+        if (!event || !event.data) return;
+        if (event.data.type !== "SBKIM_ANASTOMOSE_RESPONSE") return;
+        var payload = event.data.payload;
+        if (!payload || typeof payload !== "object") return;
+        if (payload.nonceEcho !== request.nonce) {
+          settled = true;
+          clearTimeout(timer);
+          try { replyChan.close(); } catch (e) {}
+          reject(makeError(
+            "HandshakeSignatureInvalidError",
+            "Channel-Reply nonceEcho weicht ab.",
+          ));
+          return;
+        }
+        settled = true;
+        clearTimeout(timer);
+        try { replyChan.close(); } catch (e) {}
+        resolve(payload);
+      });
+    });
+
+    var mainChan = new BroadcastChannel(BROADCAST_CHANNEL_NAME);
+    try {
+      mainChan.postMessage({
+        type: "SBKIM_ANASTOMOSE_REQUEST",
+        payload: request,
+        replyChannelName: replyChannelName,
+      });
+    } finally {
+      try { mainChan.close(); } catch (e) {}
+    }
+
+    return await responsePromise;
+  }
+
+  // Vollständiger Channel-Sender für handshake(): postet, wartet, loggt
+  // im Timeout-Fall, hängt einen optionalen HTTP-cause an die Fehler-
+  // Kette (Auto-Fallback) und konsumiert die Response wie der HTTP-Pfad.
+
+  async function sendViaChannel(targetSpore, request, preScore, httpCause, opSlot) {
+    var responseJson;
+    try {
+      responseJson = await postChannelEnvelope(request);
+    } catch (err) {
+      if (err.name === "HandshakeTimeoutError") {
+        try { await logEntry(targetSpore.id, "timeout-channel", opSlot); } catch (e) {}
+      }
+      if (httpCause && err.cause === undefined) err.cause = httpCause;
+      throw err;
+    }
+    return await consumeResponse(targetSpore, responseJson, preScore, opSlot);
+  }
+
+  function parseTransport(options) {
+    if (options === undefined || options === null) return transportDefault;
+    if (typeof options !== "object" || Array.isArray(options)) {
+      throw makeError(
+        "InvalidTransportError",
+        "handshake options muss ein Objekt sein, war: " +
+          (Array.isArray(options) ? "Array" : typeof options),
+      );
+    }
+    if (options.transport === undefined) return transportDefault;
+    if (typeof options.transport !== "string" ||
+        ALLOWED_TRANSPORTS.indexOf(options.transport) === -1) {
+      throw makeError(
+        "InvalidTransportError",
+        "handshake options.transport unbekannt: '" + options.transport +
+          "'. Erlaubt: 'auto' | 'http' | 'channel'.",
+      );
+    }
+    return options.transport;
+  }
+
+  function shouldAutoFallback(httpResponse, parsedJson) {
+    if (!httpResponse) return false;                     // Netz-/DNS-/Abort-Fehler → kein Channel
+    if (httpResponse.status >= 400) return true;         // 4xx/5xx
+    var ct = "";
+    try { ct = httpResponse.headers.get("Content-Type") || ""; } catch (e) {}
+    if (ct.indexOf("application/json") === -1) return true;
+    if (!parsedJson || typeof parsedJson !== "object") return true;
+    for (var i = 0; i < RESPONSE_REQUIRED_FIELDS.length; i++) {
+      var f = RESPONSE_REQUIRED_FIELDS[i];
+      if (parsedJson[f] === undefined || parsedJson[f] === null) return true;
+    }
+    if (parsedJson.outcome !== "established" && parsedJson.outcome !== "rejected") return true;
+    return false;
+  }
+
   // ---- Storage-Helfer ----
 
-  async function upsertSibling(entry) {
+  async function upsertSibling(entry, slotKey) {
+    // Bau 05.Y: schreibt slot-spezifisch in sbkim_siblings_<slot>.
+    var sk = slotKey || activeSlotKey || DEFAULT_IDENTITY_KEY;
     var storage = getStorage();
-    var existing = await storage.get(SIBLINGS_STORE, entry.nodeId);
+    var storeName = siblingsStoreName(sk);
+    var existing = await storage.get(storeName, entry.nodeId);
     if (existing) {
       // Reentry-Idempotenz: since bleibt eingefroren, kein Überschreiben.
       return true;
     }
-    await storage.put(SIBLINGS_STORE, entry.nodeId, {
+    await storage.put(storeName, entry.nodeId, {
       nodeId: entry.nodeId,
       domain: entry.domain,
       endpoint: entry.endpoint,
@@ -325,10 +618,12 @@
     return false;
   }
 
-  async function logEntry(peerId, outcome) {
+  async function logEntry(peerId, outcome, slotKey) {
+    // Bau 05.Y: schreibt slot-spezifisch in sbkim_anastomosis_log_<slot>.
+    var sk = slotKey || activeSlotKey || DEFAULT_IDENTITY_KEY;
     var storage = getStorage();
     var k = nextLogKey();
-    await storage.put(LOG_STORE, k.key, {
+    await storage.put(anastomosisLogStoreName(sk), k.key, {
       ts: k.ts,
       peerId: peerId,
       outcome: outcome,
@@ -337,10 +632,16 @@
 
   // ---- handshake() ----
 
-  async function handshake(targetSpore, ownDomainVector) {
+  async function handshake(targetSpore, ownDomainVector, options) {
     await ensureReady();
+    var transport = parseTransport(options);     // wirft InvalidTransportError bei bad value
     var spore = getSpore();
     var match = getMatch();
+
+    // Bau 05.Y: Operations-Slot zur Sender-Zeit cachen (gegen Mid-
+    // Operation-Wechsel — Karte 02 § Risiken). Defensiv ensureStore.
+    var opSlot = activeSlotKey || await spore.getActiveIdentityKey();
+    await ensureSlotStores(opSlot);
 
     if (!(ownDomainVector instanceof Float32Array) || ownDomainVector.length !== EMBEDDING_DIM) {
       throw makeError(
@@ -374,23 +675,26 @@
       var peerVec = new Float32Array(targetSpore.domainVector);
       preScore = match.match(ownDomainVector, peerVec);
       if (!match.isAboveProviderThreshold(preScore)) {
-        await logEntry(targetSpore.id, "abgelehnt: lokal");
+        await logEntry(targetSpore.id, "abgelehnt: lokal", opSlot);
         return { outcome: "rejected-local", score: preScore };
       }
     }
 
-    // 4. eigene Spore + privateKey laden
-    var ownSpore = await spore.getOwnSpore();
+    // 4. eigene Spore + privateKey laden (Bau 05.Y: für den aktiven Slot)
+    var ownSpore = await spore.getOwnSpore(opSlot);
     if (!ownSpore) {
       throw makeError(
         "AnastomoseDependenciesError",
-        "Eigene Spore noch nicht erzeugt — SbkimSpore.generateOwnSpore(meta) zuerst.",
+        "Eigene Spore noch nicht erzeugt (slot=" + opSlot + ") — " +
+          "SbkimSpore.generateOwnSpore(meta) zuerst.",
       );
     }
-    var privKey = await loadOwnPrivateKey();
-    var ownNodeId = await spore.getNodeId();
+    var privKey = await loadOwnPrivateKey(opSlot);
+    var ident = await spore.getOrCreateIdentity(opSlot);
+    var ownNodeId = ident.nodeId;
 
-    // 5. HandshakeRequest bauen
+    // 5. HandshakeRequest bauen (kanonisch, signiert) — derselbe Request
+    //    wird sowohl im HTTP- als auch im Channel-Pfad weitergereicht.
     var unsigned = {
       domainVector: Array.from(ownDomainVector),
       fromNodeId: ownNodeId,
@@ -407,11 +711,17 @@
     signedUnsorted.signature = sig;
     var request = canonicalize(signedUnsorted);
 
-    // 6. POST mit Abort-Timeout
+    // 5b. transport === "channel": HTTP-Pfad überspringen, direkt zum Channel.
+    if (transport === "channel") {
+      return await sendViaChannel(targetSpore, request, preScore, null, opSlot);
+    }
+
+    // 6. POST mit Abort-Timeout (transport ∈ {"http", "auto"})
     var url = String(targetSpore.endpoint).replace(/\/$/, "") + ENDPOINT_ANASTOMOSIS;
     var controller = new AbortController();
     var timeoutId = setTimeout(function () { controller.abort(); }, QUERY_TIMEOUT_MS);
-    var response;
+    var response = null;
+    var fetchErr = null;
     try {
       response = await fetch(url, {
         method: "POST",
@@ -420,44 +730,70 @@
         signal: controller.signal,
       });
     } catch (err) {
-      clearTimeout(timeoutId);
-      if (err && err.name === "AbortError") {
-        await logEntry(targetSpore.id, "timeout");
+      fetchErr = err;
+    }
+    clearTimeout(timeoutId);
+
+    // 6a. Netz-/DNS-/Abort-Fehler ohne HTTP-Status — KEIN Auto-Fallback
+    //     (Karte 05 § Auto-Fallback-Logik Punkt 3: bei DNS-Fehler ist
+    //     Channel chancenlos, sofort werfen). Auch bei transport:"http".
+    if (fetchErr) {
+      if (fetchErr.name === "AbortError") {
+        await logEntry(targetSpore.id, "timeout", opSlot);
         throw makeError(
           "HandshakeTimeoutError",
           "Anfrage an " + url + " > " + QUERY_TIMEOUT_MS + " ms abgebrochen.",
-          err,
+          fetchErr,
         );
       }
       throw makeError(
         "HandshakeNetworkError",
-        "Netz-Fehler bei " + url + ": " + (err && err.message ? err.message : err),
-        err,
+        "Netz-Fehler bei " + url + ": " + (fetchErr && fetchErr.message ? fetchErr.message : fetchErr),
+        fetchErr,
       );
     }
-    clearTimeout(timeoutId);
 
+    // 6b. Body als JSON parsen (für Schema-Check). Bei Parse-Fehler bleibt
+    //     httpJson null — shouldAutoFallback erkennt das als „non-JSON".
+    var httpJson = null;
+    try {
+      httpJson = await response.json();
+    } catch (e) {
+      httpJson = null;
+    }
+
+    // 6c. Auto-Fallback-Entscheidung (nur bei transport:"auto").
+    if (transport === "auto" && shouldAutoFallback(response, httpJson)) {
+      var ctHeader = "";
+      try { ctHeader = response.headers.get("Content-Type") || "(kein)"; } catch (e2) {}
+      var httpCause = makeError(
+        "HandshakeNetworkError",
+        "HTTP-Antwort nicht verwertbar (Status " + response.status +
+          ", Content-Type " + ctHeader + ") — Auto-Fallback auf BroadcastChannel-Pfad.",
+      );
+      return await sendViaChannel(targetSpore, request, preScore, httpCause, opSlot);
+    }
+
+    // 6d. transport === "http": altes Verhalten — bei 4xx/5xx oder
+    //     defektem Body werfen.
     if (!response.ok) {
       throw makeError(
         "HandshakeNetworkError",
         "HTTP " + response.status + " " + response.statusText + " bei " + url + ".",
       );
     }
-
-    var responseJson;
-    try {
-      responseJson = await response.json();
-    } catch (err) {
+    if (!httpJson) {
       throw makeError(
         "HandshakeNetworkError",
-        "Antwort kein gültiges JSON: " + (err && err.message ? err.message : err),
-        err,
+        "Antwort kein gültiges JSON bei " + url + ".",
       );
     }
-    return await consumeResponse(targetSpore, responseJson, preScore);
+
+    // 7. Antwort konsumieren (Verify, sibling-put, Log).
+    return await consumeResponse(targetSpore, httpJson, preScore, opSlot);
   }
 
-  async function consumeResponse(targetSpore, responseJson, preScore) {
+  async function consumeResponse(targetSpore, responseJson, preScore, opSlot) {
     var spore = getSpore();
     if (!responseJson || typeof responseJson !== "object") {
       throw makeError("HandshakeNetworkError", "Antwort ist kein Objekt.");
@@ -469,7 +805,7 @@
     // receiverSpore prüfen
     var verifyReceiver = await spore.verifyForeignSpore(responseJson.receiverSpore);
     if (!verifyReceiver.valid) {
-      await logEntry(targetSpore.id, "abgelehnt: invalid-peer");
+      await logEntry(targetSpore.id, "abgelehnt: invalid-peer", opSlot);
       throw makeError(
         "InvalidPeerSporeError",
         "receiverSpore ungültig: " + verifyReceiver.reason,
@@ -480,7 +816,7 @@
     // Response-Signatur prüfen
     var sigOk = await verifyEnvelope(responseJson, responseJson.receiverSpore.publicKey);
     if (!sigOk) {
-      await logEntry(targetSpore.id, "abgelehnt: invalid-peer");
+      await logEntry(targetSpore.id, "abgelehnt: invalid-peer", opSlot);
       throw makeError(
         "HandshakeSignatureInvalidError",
         "Response-Signatur gegen receiverSpore.publicKey ungültig.",
@@ -494,8 +830,8 @@
         endpoint: responseJson.receiverSpore.endpoint,
         pubKey: responseJson.receiverSpore.publicKey,
         since: nowIso(),
-      });
-      await logEntry(responseJson.receiverSpore.id, "established");
+      }, opSlot);
+      await logEntry(responseJson.receiverSpore.id, "established", opSlot);
       return {
         outcome: "established",
         peerNodeId: responseJson.receiverSpore.id,
@@ -505,7 +841,7 @@
     }
 
     // outcome:"rejected" oder anderer Wert — als rejected behandeln
-    await logEntry(targetSpore.id, "abgelehnt: peer");
+    await logEntry(targetSpore.id, "abgelehnt: peer", opSlot);
     var result = {
       outcome: "rejected",
       reason: typeof responseJson.reason === "string" ? responseJson.reason : "(kein Grund mitgeschickt)",
@@ -522,7 +858,9 @@
       var spore = getSpore();
       var match = getMatch();
 
-      // 1. Form-Check
+      // 1. Form-Check (Slot noch nicht bestimmt — Antwort mit aktivem
+      //    Default signieren, das ist der konservative Pfad für
+      //    malformede Requests).
       var missing = checkRequestFields(request);
       if (missing) {
         return await buildResponse({ outcome: "rejected", reason: "Form ungültig: " + missing }, request);
@@ -548,43 +886,59 @@
         return await buildResponse({ outcome: "rejected", reason: "Request-Signatur ungültig" }, request);
       }
 
-      // 5. toNodeId (optional)
-      var myNodeId = await spore.getNodeId();
+      // 5. Bau 05.Y: Receiver-Map-Lookup. toNodeId → targetSlotKey.
+      //    - toNodeId in der Map → targetSlot ist die getroffene Persona.
+      //    - toNodeId angegeben, aber nicht in der Map → rejected.
+      //    - toNodeId fehlt/leer → Pre-Brief-04-Rückwärts-Kompat: aktiver
+      //      Slot wird verwendet (legacy single-identity-Flow).
+      var targetSlot;
       if (typeof request.toNodeId === "string" && request.toNodeId.length > 0) {
-        if (request.toNodeId !== myNodeId) {
-          return await buildResponse({ outcome: "rejected", reason: "toNodeId stimmt nicht zum Empfänger" }, request);
+        var mapped = receiverMap.get(request.toNodeId);
+        if (mapped === undefined) {
+          return await buildResponse(
+            { outcome: "rejected", reason: "toNodeId stimmt nicht zum Empfänger" },
+            request,
+          );
         }
+        targetSlot = mapped;
+      } else {
+        targetSlot = activeSlotKey || DEFAULT_IDENTITY_KEY;
       }
 
-      // 6. domainVector (request oder senderSpore)
+      // Bau 05.Y: ab hier alles im Kontext des targetSlot.
+      await ensureSlotStores(targetSlot);
+
+      // 6. domainVector (request oder senderSpore); eigener Vektor aus
+      //    der Spore des getroffenen Slots.
       var peerVec = pickPeerDomainVector(request);
       if (!peerVec) {
-        return await buildResponse({ outcome: "rejected", reason: "kein domainVector verfügbar" }, request);
+        return await buildResponse({ outcome: "rejected", reason: "kein domainVector verfügbar" }, request, targetSlot);
       }
-      var ownVec = await loadOwnDomainVector();
+      var ownVec = await loadOwnDomainVector(targetSlot);
       if (!ownVec) {
-        return await buildResponse({ outcome: "rejected", reason: "kein domainVector verfügbar (lokal)" }, request);
+        return await buildResponse({ outcome: "rejected", reason: "kein domainVector verfügbar (lokal)" }, request, targetSlot);
       }
 
       // 7. Match
       var score = match.match(ownVec, peerVec);
       if (!match.isAboveProviderThreshold(score)) {
-        await logEntry(request.senderSpore.id, "abgelehnt: score");
-        return await buildResponse({ outcome: "rejected", reason: "score unterhalb Schwelle", score: score }, request);
+        await logEntry(request.senderSpore.id, "abgelehnt: score", targetSlot);
+        return await buildResponse({ outcome: "rejected", reason: "score unterhalb Schwelle", score: score }, request, targetSlot);
       }
 
-      // 8. sibling speichern (Reentry idempotent)
+      // 8. sibling speichern (Reentry idempotent) — in den targetSlot-
+      //    Store, NICHT in den globalen aktiven (Brief 04 § 9.4).
       var reentered = await upsertSibling({
         nodeId: request.senderSpore.id,
         domain: request.senderSpore.domain,
         endpoint: request.senderSpore.endpoint,
         pubKey: request.senderSpore.publicKey,
         since: nowIso(),
-      });
-      await logEntry(request.senderSpore.id, reentered ? "re-handshake" : "established");
+      }, targetSlot);
+      await logEntry(request.senderSpore.id, reentered ? "re-handshake" : "established", targetSlot);
 
-      // 9. Antwort signieren
-      return await buildResponse({ outcome: "established", score: score }, request);
+      // 9. Antwort signieren mit der getroffenen Persona.
+      return await buildResponse({ outcome: "established", score: score }, request, targetSlot);
     } catch (err) {
       // Spec: receiveHandshake wirft niemals. Wenn doch (z.B. Storage-Crash),
       // versuchen wir eine signierte Rejection zu bauen — wenn auch das
@@ -632,17 +986,23 @@
     return null;
   }
 
-  async function buildResponse(extra, request) {
+  async function buildResponse(extra, request, slotKey) {
     var spore = getSpore();
-    var ownSpore = await spore.getOwnSpore();
+    // Bau 05.Y: ohne slot-Argument fällt buildResponse auf den
+    // aktiven Slot zurück (Pre-Receiver-Map-Pfad, z.B. malformede
+    // Requests). Mit Argument signiert die Antwort mit der GETROFFENEN
+    // Persona — Brief 04 § 9.4.
+    var sk = slotKey || activeSlotKey || DEFAULT_IDENTITY_KEY;
+    var ownSpore = await spore.getOwnSpore(sk);
     if (!ownSpore) {
       throw makeError(
         "AnastomoseDependenciesError",
-        "Eigene Spore fehlt — Antwort kann nicht signiert werden.",
+        "Eigene Spore fehlt (slot=" + sk + ") — Antwort kann nicht signiert werden.",
       );
     }
-    var privKey = await loadOwnPrivateKey();
-    var ownNodeId = await spore.getNodeId();
+    var privKey = await loadOwnPrivateKey(sk);
+    var ident = await spore.getOrCreateIdentity(sk);
+    var ownNodeId = ident.nodeId;
 
     var unsigned = {
       fromNodeId: ownNodeId,
@@ -667,8 +1027,11 @@
   // ---- listSiblings / forgetSibling ----
 
   async function listSiblings() {
+    // Bau 05.Y: liest aus dem Slot der AKTIVEN Identität. Persona-
+    // übergreifende Sicht ist Aufrufer-Pflicht (`listIdentities()`
+    // iterieren + `setActiveIdentity` + Re-Init).
     await ensureReady();
-    var rows = await getStorage().all(SIBLINGS_STORE);
+    var rows = await getStorage().all(siblingsStoreName(activeSlotKey));
     return rows.map(function (r) {
       return {
         nodeId: r.value.nodeId,
@@ -680,11 +1043,15 @@
   }
 
   async function forgetSibling(nodeId) {
+    // Bau 05.Y: vergisst aus dem Slot der AKTIVEN Identität. Wer
+    // einen Sibling aus einer anderen Persona vergessen will, muss
+    // vorher `setActiveIdentity` rufen + Modul 05 re-initialisieren.
     await ensureReady();
     var storage = getStorage();
-    var existing = await storage.get(SIBLINGS_STORE, nodeId);
+    var storeName = siblingsStoreName(activeSlotKey);
+    var existing = await storage.get(storeName, nodeId);
     if (existing === undefined) return; // idempotent
-    await storage.del(SIBLINGS_STORE, nodeId);
+    await storage.del(storeName, nodeId);
   }
 
   // ---- Test-Brücken (Unterstrich-Präfix, inoffiziell) ----
@@ -741,6 +1108,33 @@
     ownDomainVectorOverride = vec;
   }
 
+  // Setzt den Default-Transport für handshake()-Aufrufe ohne explizite
+  // options.transport. Nur Tests — Panel 05 forciert damit den
+  // Channel-Pfad oder den reinen HTTP-Pfad ohne API-Eingriff am
+  // handshake-Aufruf selbst.
+  function _setTransport(t) {
+    if (t === null || t === undefined) {
+      transportDefault = "auto";
+      return;
+    }
+    if (typeof t !== "string" || ALLOWED_TRANSPORTS.indexOf(t) === -1) {
+      throw makeError(
+        "InvalidTransportError",
+        "_setTransport: '" + t + "' ist kein erlaubter Transport. " +
+          "Erlaubt: 'auto' | 'http' | 'channel'.",
+      );
+    }
+    transportDefault = t;
+  }
+
+  // Setzt den Default-Transport auf "auto" zurück. Reine Test-Cleanup-
+  // Hilfe (z.B. nach Test 9a/9b/9c, damit Folge-Tests nicht still im
+  // Channel-Pfad hängen). Der Main-Channel-Listener bleibt bestehen —
+  // BroadcastChannel-Receiver-Disziplin lebt über die Tab-Lebensdauer.
+  function _clearChannelState() {
+    transportDefault = "auto";
+  }
+
   // ---- public surface ----
 
   var SbkimAnastomose = {
@@ -755,6 +1149,9 @@
     _buildSignedRequest: _buildSignedRequest,
     _verifyResponseSignature: _verifyResponseSignature,
     _setOwnDomainVector: _setOwnDomainVector,
+    _setTransport: _setTransport,
+    _clearChannelState: _clearChannelState,
+    _postChannelEnvelope: postChannelEnvelope,
     _canonicalize: canonicalize,
     _base64urlEncode: base64urlEncode,
     _base64urlDecode: base64urlDecode,
@@ -766,9 +1163,18 @@
       queryTimeoutMs: QUERY_TIMEOUT_MS,
       endpointAnastomosis: ENDPOINT_ANASTOMOSIS,
       embeddingDim: EMBEDDING_DIM,
-      siblingsStore: SIBLINGS_STORE,
-      logStore: LOG_STORE,
+      // Bau 05.Y: Stores leben jetzt slot-suffixed. Die Basis-Namen
+      // bleiben als Read-Anker, der Live-Zustand kommt aus den
+      // Gettern unten.
+      siblingsStoreBase: SIBLINGS_STORE_BASE,
+      logStoreBase: LOG_STORE_BASE,
+      get activeSlotKey() { return activeSlotKey; },
+      get receiverMapSize() { return receiverMap ? receiverMap.size : 0; },
       requestRequiredFields: REQUEST_REQUIRED_FIELDS.slice(),
+      responseRequiredFields: RESPONSE_REQUIRED_FIELDS.slice(),
+      allowedTransports: ALLOWED_TRANSPORTS.slice(),
+      broadcastChannelName: BROADCAST_CHANNEL_NAME,
+      replyChannelPrefix: REPLY_CHANNEL_PREFIX,
     },
   };
 
