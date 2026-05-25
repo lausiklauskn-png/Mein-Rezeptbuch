@@ -63,26 +63,6 @@ const ANASTOMOSIS_REQUEST_TYPE = "SBKIM_ANASTOMOSIS_REQUEST";
 const LEGACY_REQUEST_TYPE = "SBKIM_LEGACY_REQUEST";
 const HETEROKARYOSIS_REQUEST_TYPE = "SBKIM_HETEROKARYOSIS_REQUEST";
 
-// Sub-(e)-Hook (Bau-Sitzung 15.SW, 2026-05-24) — Fremdzugriff-Detektor
-// für endpoint-probes. Der SW bewertet eingehende Fetches auf SBKIM-
-// Endpunkte fail-soft als "fremd" oder "same-origin" und postet
-// fremde Versuche via BroadcastChannel an die Page-Membran-Schicht
-// (Modul 15, subscribeBroadcastChannel-Closure). Der Hook ist BEOBACHTEND
-// — kein respondWith, kein Eingriff in den Response-Pfad. Bedient wird
-// der Request weiterhin von den drei bestehenden Bridge-Branches
-// (ANASTOMOSIS / LEGACY / HETEROKARYOSIS) bzw. fällt durch ins Netz.
-// /sbkim/query bewusst nicht aufgeführt — Endpunkt existiert serverseitig
-// noch nicht (Modul 04.C Search-API ausstehend), der Detektor würde sonst
-// sinnlos feuern.
-const MEMBRANE_PROBE_CHANNEL = "sbkim-membrane";
-const MEMBRANE_PROBE_MESSAGE_TYPE = "SBKIM_MEMBRANE_PROBE";
-const SBKIM_ENDPOINT_PATHS = [
-  "/sbkim/spore.json",
-  ANASTOMOSIS_PATH,
-  LEGACY_PATH,
-  HETEROKARYOSIS_PATH,
-];
-
 // Lebenszyklus-Schalter (App-SW-Koexistenz, Karte 09 § Service-Worker-
 // Hinweis). Default `true` → Variante 3a (alleinstehend): SBKIM-SW wird
 // per `register('sbkim-sw.js')` registriert und übernimmt aktive Tabs
@@ -119,11 +99,6 @@ self.addEventListener("activate", (event) => {
 // aufruft, gewinnt; ohne respondWith fällt das Event an den nächsten
 // Listener (App-SW-Cache-/Routing-Code) durch.
 self.addEventListener("fetch", (event) => {
-  // Sub-(e)-Hook ZUERST: beobachtet jeden Request auf einen SBKIM-
-  // Endpunkt synchron + fail-soft (kein await, kein respondWith). Die
-  // drei Bridge-Branches unten bleiben unberührt.
-  maybeRecordMembraneProbe(event.request);
-
   const url = new URL(event.request.url);
   if (isOwnEndpoint(url.pathname, ANASTOMOSIS_PATH)) {
     event.respondWith(handleBridge(event.request, event.clientId, ANASTOMOSIS_REQUEST_TYPE));
@@ -297,121 +272,3 @@ function jsonError(status, reason, extraHeaders) {
   return new Response(body, { status: status, headers: headers });
 }
 
-// ---- Sub-(e)-Hilfsfunktionen (Bau 15.SW) ----
-//
-// Bewertet einen eingehenden Request fail-soft als endpoint-probe und
-// postet bei Fremd-Diagnose einen Eintrag via BroadcastChannel an die
-// Page-Membran-Schicht. Wird synchron aus dem fetch-Listener gerufen;
-// jeder Pfad ist try/catch-gekapselt — der Hook darf den Response-Pfad
-// nie brechen.
-function maybeRecordMembraneProbe(request) {
-  try {
-    const url = new URL(request.url);
-    if (!pathMatchesSbkimEndpoint(url.pathname)) return;
-
-    const secFetchSite = request.headers.get("Sec-Fetch-Site");
-    const referer = request.headers.get("Referer");
-    const verdict = classifyOrigin(url, secFetchSite, referer);
-    if (verdict.foreign !== true) return;
-
-    const entry = {
-      at: new Date().toISOString(),
-      kind: "endpoint-probe",
-      origin: verdict.origin,
-      // SW hat keinen zuverlässigen navigator.userAgent zur Hand
-      // (Sub-Resource-Fetches tragen häufig keinen UA-Header weiter);
-      // die Page-Schicht setzt agentHint NICHT nach (Schema-konform).
-      agentHint: null,
-      endpoint: url.pathname,
-      // SW erkennt nur, bedient nicht — die Bridge-Branches (Modul
-      // 05/06/07) entscheiden später, was sie tun. "accepted" heißt
-      // hier: aus Sicht der Membran wurde der Versuch wahrgenommen
-      // und an die Page durchgelassen (kein Sub-(e)-eigenes Filtern).
-      decision: "accepted",
-      details: {
-        method: request.method,
-        secFetchSite: secFetchSite || null,
-      },
-    };
-
-    postProbeViaBroadcastChannel(entry);
-  } catch (err) {
-    try { console.warn("[sbkim-sw] Membran-Probe-Hook hat geworfen — fail-soft.", err); }
-    catch (_e) { /* nb */ }
-  }
-}
-
-function pathMatchesSbkimEndpoint(pathname) {
-  for (let i = 0; i < SBKIM_ENDPOINT_PATHS.length; i += 1) {
-    if (isOwnEndpoint(pathname, SBKIM_ENDPOINT_PATHS[i])) return true;
-  }
-  return false;
-}
-
-// Verbindliche „Fremd"-Bewertungs-Reihenfolge aus Karte 15
-// § Fremd-Definition (endpoint-probe):
-//   1. request.url-Origin ≠ self.location.origin              → Fremd
-//   2. Sec-Fetch-Site ∈ {"cross-site", "same-site"}           → Fremd
-//   3. Sec-Fetch-Site === "same-origin" oder fehlend          → same-origin
-//   4. Fallback: Referer-Origin parsen, ≠ self.location.origin → Fremd
-function classifyOrigin(url, secFetchSite, referer) {
-  let ownOrigin = null;
-  try { ownOrigin = self.location && self.location.origin ? self.location.origin : null; }
-  catch (_e) { ownOrigin = null; }
-
-  if (ownOrigin && url.origin !== ownOrigin) {
-    return { foreign: true, origin: url.origin };
-  }
-
-  if (secFetchSite === "cross-site" || secFetchSite === "same-site") {
-    const refOrigin = parseRefererOrigin(referer);
-    return { foreign: true, origin: refOrigin };
-  }
-
-  if (secFetchSite === "same-origin" || secFetchSite === "none" || !secFetchSite) {
-    // Fallback nur, wenn Sec-Fetch-Site fehlt: Referer kann trotzdem
-    // auf eine fremde Origin zeigen (alte Browser, Cross-Origin-Iframes
-    // ohne Sec-Fetch-Site-Header).
-    if (!secFetchSite) {
-      const refOrigin = parseRefererOrigin(referer);
-      if (refOrigin && ownOrigin && refOrigin !== ownOrigin) {
-        return { foreign: true, origin: refOrigin };
-      }
-    }
-    return { foreign: false, origin: null };
-  }
-
-  // Unbekannter Sec-Fetch-Site-Wert — defensiv als same-origin werten.
-  return { foreign: false, origin: null };
-}
-
-function parseRefererOrigin(referer) {
-  if (!referer || typeof referer !== "string") return null;
-  try {
-    return new URL(referer).origin;
-  } catch (_e) {
-    return null;
-  }
-}
-
-// Eine BroadcastChannel-Instanz pro Aufruf: open → post → close. Long-
-// lived Channel im SW bräuchte eigene Lebenszyklus-Logik (idle-Tear-Down,
-// Reactivation nach Suspension) — Per-Probe-Channel ist die einfache,
-// thread-sichere Variante. BroadcastChannel ist billig. Folge-Pflege
-// kann auf long-lived umstellen, falls Probe-Volumen je zum Bottleneck
-// wird (vermutlich nie).
-function postProbeViaBroadcastChannel(entry) {
-  if (typeof self.BroadcastChannel !== "function") return;
-  let ch = null;
-  try {
-    ch = new self.BroadcastChannel(MEMBRANE_PROBE_CHANNEL);
-    ch.postMessage({ type: MEMBRANE_PROBE_MESSAGE_TYPE, entry: entry });
-  } catch (err) {
-    try { console.warn("[sbkim-sw] Membran-Probe BroadcastChannel-Post fehlgeschlagen — fail-soft.", err); }
-    catch (_e) { /* nb */ }
-  } finally {
-    if (ch) {
-      try { ch.close(); } catch (_e) { /* nb */ }
-    }
-  }
-}
