@@ -81,13 +81,6 @@
   --ease-out-cubic:cubic-bezier(0.33,1,0.68,1);
   --ease-liquid:cubic-bezier(0.4,0,0.2,1);
   --t-fast:120ms;--t-base:200ms;--t-slow:320ms;
-  /* ── SBKIM Modul 15 (Membran) + Modul 16 (Siegel) — Lampen + Badge ── */
-  --lamp-alert:#DC2626;
-  --lamp-pulse-ms:600ms;
-  --siegel-gold:#C9A961;
-  --siegel-gold-glow:rgba(201,169,97,0.55);
-  --siegel-ink:#1A1306;
-  --siegel-line:rgba(201,169,97,0.45);
 }
 [data-theme=spring]{--sand:#f4f9f0;--sand2:#d4e8c8;--parch:#f8fdf4;--ink:#162810;--br:#437230;--br2:#5e9448;--br3:#90bc70;--rust:#c05858;--rusts:#fae8e8;--grn:#347028;--grns:#d8f0d0;--teal:#287858;--teals:#d0eee0;--gold:#708020;--golds:#eaf2cc}
 [data-theme=night]{--sand:#181410;--sand2:#2a2018;--parch:#201810;--ink:#ecdcc8;--br:#c8a480;--br2:#a88060;--br3:#b09060;--rust:#e07050;--rusts:#381808;--grn:#68a848;--grns:#182808;--teal:#50a89a;--teals:#0c2420;--gold:#d4a030;--golds:#281e04}
@@ -2022,33 +2015,6 @@ body:not([data-theme]) #bnav{
 }
 .mx-btn-icon:active{transform:translateY(0);filter:brightness(.96)}
 
-/* ════════════════════════════════════════════════════════════════
-   SBKIM-Topbar — Modul 15 (Membran/FREMD-Lampe) + Modul 16 (Siegel)
-   1:1 aus Sage-Protokol src/index.html Z. 41-45, 108-134.
-   ──────────────────────────────────────────────────────────────── */
-.sbkim-topbar{position:sticky;top:0;z-index:40;background:rgba(8,8,26,0.72);backdrop-filter:saturate(1.6) blur(14px);-webkit-backdrop-filter:saturate(1.6) blur(14px);border-bottom:1px solid rgba(255,255,255,0.08);padding-top:env(safe-area-inset-top,0px);}
-.sbkim-topbar-inner{max-width:1280px;margin:0 auto;padding:.5rem 1rem;display:flex;align-items:center;gap:1rem;flex-wrap:wrap;}
-.sbkim-topbar-spacer{flex:1;}
-.lamps{display:flex;align-items:center;gap:0.45rem;padding:0.32rem 0.7rem;background:rgba(0,0,0,0.45);border:1px solid rgba(255,255,255,0.10);border-radius:999px;}
-.lamp{position:relative;width:9px;height:9px;border-radius:50%;background:rgba(255,255,255,0.12);transition:background .2s;}
-.lamp.alive{background:#6EE7D3;box-shadow:0 0 8px rgba(110,231,211,0.7);}
-.lamp.alive::after{content:"";position:absolute;inset:-4px;border-radius:50%;border:1px solid #6EE7D3;opacity:0.45;animation:lamp-breath 3.2s ease-in-out infinite;}
-.lamp.traffic-pulse{background:#F4B435;animation:lamp-pulse var(--lamp-pulse-ms) ease-out;}
-.lamp.fremd-alert{background:var(--lamp-alert);box-shadow:0 0 8px rgba(220,38,38,0.7);}
-.lamp.fremd-alert::after{content:"";position:absolute;inset:-4px;border-radius:50%;border:1px solid var(--lamp-alert);opacity:0.45;animation:lamp-breath 3.2s ease-in-out infinite;}
-.lamp.fremd-pulse{animation:lamp-alert-pulse var(--lamp-pulse-ms) ease-out;}
-.lamp-label{color:rgba(255,255,255,0.55);font-family:"Geist Mono",ui-monospace,SFMono-Regular,Menlo,Monaco,Consolas,monospace;font-size:0.66rem;letter-spacing:0.06em;text-transform:uppercase;}
-@keyframes lamp-breath{0%,100%{transform:scale(1);opacity:0.45;}50%{transform:scale(1.5);opacity:0;}}
-@keyframes lamp-pulse{0%{box-shadow:0 0 0 0 rgba(244,180,53,0.7);transform:scale(1);}50%{transform:scale(1.45);}100%{box-shadow:0 0 0 14px rgba(244,180,53,0);transform:scale(1);}}
-@keyframes lamp-alert-pulse{0%{box-shadow:0 0 0 0 rgba(220,38,38,0.75);transform:scale(1);}50%{transform:scale(1.45);}100%{box-shadow:0 0 0 14px rgba(220,38,38,0);transform:scale(1);}}
-/* Modul 16 — Siegel-Badge: Modul fügt das Span selbst in .lamps ein, NUR wenn isCertified()===true (Anti-Greenwashing). */
-#sbkim-siegel-badge{width:40px;height:40px;border-radius:50%;margin-left:0.4rem;background:transparent;border:none;cursor:pointer;display:inline-flex;align-items:center;justify-content:center;overflow:visible;transition:filter .25s ease-out, transform .25s ease-out;}
-#sbkim-siegel-badge svg{width:40px;height:40px;display:block;overflow:visible;}
-#sbkim-siegel-badge:hover{filter:drop-shadow(0 0 8px var(--siegel-gold-glow));transform:scale(1.06);}
-#sbkim-siegel-badge:focus-visible{outline:2px solid var(--siegel-gold);outline-offset:3px;}
-#sbkim-siegel-badge.first-boot{animation:siegel-first-boot 600ms ease-out;}
-@keyframes siegel-first-boot{0%{transform:scale(0.7);opacity:0;}60%{transform:scale(1.12);opacity:1;filter:drop-shadow(0 0 14px var(--siegel-gold-glow));}100%{transform:scale(1.00);opacity:1;}}
-
 </style>
 <link rel="apple-touch-icon" href="data:image/png;base64,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">
 
@@ -2072,23 +2038,6 @@ const _CR=Object.freeze({c:'© 2026 Klaus Nitzsche',r:'All rights reserved',v:'v
     _showBootErr('Promise: '+(e.reason&&e.reason.message?e.reason.message:String(e.reason)));
   });
 })();</script>
-
-<!-- SBKIM-Topbar (Karte 09 § Schritt 10 + 11) — Lampe lebt / verkehr / fremd + Siegel-Badge.
-     Modul 15 (Membran) füllt #lamp-fremd; Modul 16 (Siegel) hängt #sbkim-siegel-badge
-     in den .lamps-Container, NUR wenn isCertified()===true (Anti-Greenwashing). -->
-<header class="sbkim-topbar">
-  <div class="sbkim-topbar-inner">
-    <div class="sbkim-topbar-spacer"></div>
-    <div class="lamps" title="SBKIM-Status — lebt / Verkehr / Fremdzugriff">
-      <span class="lamp alive" id="lamp-alive" title="Knoten lebt — Identität geladen, Storage offen"></span>
-      <span class="lamp-label">lebt</span>
-      <span class="lamp" id="lamp-traffic" title="Verkehr — pulst kurz bei SBKIM-Handshakes"></span>
-      <span class="lamp-label">verkehr</span>
-      <span class="lamp" id="lamp-fremd" title="Fremdzugriff — rot bei Zugriff von außen (Klick öffnet Liste)"></span>
-      <span class="lamp-label">fremd</span>
-    </div>
-  </div>
-</header>
 
 
 <div id="boot-splash">
@@ -14867,8 +14816,6 @@ function saveZinePage(idx){
 <script src="sbkim/00_doku_fenster.js"></script>
 <script src="sbkim/06_heterokaryose.js"></script>
 <script src="sbkim/08_ui_demo.js"></script>
-<script src="sbkim/15_membran.js"></script>
-<script src="sbkim/16_siegel.js"></script>
 <script src="sbkim/sbkim-init.js"></script>
 
 </body>

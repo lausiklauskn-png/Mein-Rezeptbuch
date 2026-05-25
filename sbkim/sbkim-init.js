@@ -1,7 +1,7 @@
 // sbkim-init.js — Rezeptbuch Klaus
 // Endknoten-Init-Kette nach Karte 09 § Schritt 4 + 9a + 10 + 11.
 // Reihenfolge analog Sage-Init: 01 → 02 → (03 lazy) → 05 → 06 → 07 → 08 →
-// 15 → 16 → 00. Service-Worker läuft separat über ./app-sw.js (Variante 3b,
+// 00. Service-Worker läuft separat über ./app-sw.js (Variante 3b,
 // importScripts("./sbkim-sw-v3.js")).
 //
 // Fail-soft pro Modul: ein fehlschlagender init() bricht die Kette NICHT —
@@ -91,28 +91,6 @@
       return window.SbkimUiDemo && window.SbkimUiDemo.init();
     });
 
-    // 15 Membran — Fremdzugriff-Detektor + FREMD-Lampe (Sub (e)).
-    // KEIN enableTestButton:true — Endknoten-Konvention (Karte 15
-    // § Endknoten-Sichttest-Workaround).
-    await initModule("SbkimMembrane", function () {
-      return window.SbkimMembrane && window.SbkimMembrane.init({
-        lampSelector:   "#lamp-fremd",
-        allowedOrigins: ["https://lausiklauskn-png.github.io"],
-      });
-    });
-
-    // 16 SBKIM-Siegel — Self-Inscribing-Selbst-Zertifikat. Badge erscheint
-    // im .lamps-Container NUR wenn alle sieben Pflicht-Module geladen sind
-    // (Anti-Greenwashing). repoUrl explizit gesetzt, weil Auto-Erkennung
-    // die Pages-URL liefert (NICHT das Quell-Repo, Karte 16 § repoUrl-
-    // Override-Pflicht pro Endknoten).
-    await initModule("SbkimSiegel", function () {
-      return window.SbkimSiegel && window.SbkimSiegel.init({
-        badgeSelector: ".lamps",
-        repoUrl:       "https://github.com/lausiklauskn-png/Mein-Rezeptbuch",
-      });
-    });
-
     // 00 Doku-Fenster zuletzt — liest die anderen Module als optionale
     // Quellen. Rezeptbuch hat aktuell kein eindeutig ID-versehenes Such-
     // Symbol; Modul 00 läuft fail-soft (MutationObserver-Re-Try gibt nach
@@ -123,46 +101,6 @@
         searchIconSelector: "#sbkim-doku-trigger",
       });
     });
-
-    // ── LAMP-VERDRAHTUNG (Endknoten-Hook, NICHT Modul-15-Spec) ──
-    //
-    // lamp-alive: Sage macht das statisch im HTML (Klasse .alive hartcodiert,
-    //   siehe Sage index.html Z. 717). Hier nur eine Robustheits-Garantie —
-    //   falls die Klasse aus irgendeinem Grund nicht im Markup ist, wird sie
-    //   nach erfolgreichem Storage-Init gesetzt. Wenn Storage fehlschlägt,
-    //   wäre die Kette in Z. 60-62 bereits ge-return-t — wir kommen hier nur
-    //   an, wenn Storage grün ist.
-    try {
-      var aliveEl = document.getElementById("lamp-alive");
-      if (aliveEl && !aliveEl.classList.contains("alive")) {
-        aliveEl.classList.add("alive");
-      }
-    } catch (_e) { /* nb */ }
-
-    // lamp-traffic: pulst bei jedem ein-/ausgehenden Anastomose-Envelope
-    //   auf BroadcastChannel('sbkim'). Semantisch dichter dran am "verkehr"-
-    //   Label als Sage's status.json-Pulse (Sage index.html Z. 1471-1475) —
-    //   das Rezeptbuch hat kein status.json, aber lebende Geschwister-
-    //   Kommunikation über den BroadcastChannel-Bridge-Kanal von Modul 05.
-    //   Same-origin: greift nur wenn ein zweites Endknoten-Tab oder ein
-    //   Selbst-Test postet. Listener-Throws werden still verworfen
-    //   (Modul-15-Sub-(e)-Pattern: Lampe blockiert nicht).
-    try {
-      if (typeof BroadcastChannel === "function") {
-        var trafficCh = new BroadcastChannel("sbkim");
-        trafficCh.addEventListener("message", function (_ev) {
-          try {
-            var t = document.getElementById("lamp-traffic");
-            if (!t) return;
-            t.classList.remove("traffic-pulse");
-            // Reflow-Trick für Animation-Restart — siehe Sage index.html Z. 1474.
-            void t.offsetWidth;
-            t.classList.add("traffic-pulse");
-          } catch (_e) { /* nb */ }
-        });
-        info("VERKEHR-Lampe an BroadcastChannel('sbkim') verdrahtet.");
-      }
-    } catch (_e) { /* nb */ }
 
     info("Init-Kette abgeschlossen (dbSuffix=" + DB_SUFFIX + ").");
     info("Spore manuell erzeugen mit __sbkimErzeugeSpore() in der DevTools-Konsole.");
