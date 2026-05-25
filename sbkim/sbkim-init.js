@@ -124,6 +124,46 @@
       });
     });
 
+    // ── LAMP-VERDRAHTUNG (Endknoten-Hook, NICHT Modul-15-Spec) ──
+    //
+    // lamp-alive: Sage macht das statisch im HTML (Klasse .alive hartcodiert,
+    //   siehe Sage index.html Z. 717). Hier nur eine Robustheits-Garantie —
+    //   falls die Klasse aus irgendeinem Grund nicht im Markup ist, wird sie
+    //   nach erfolgreichem Storage-Init gesetzt. Wenn Storage fehlschlägt,
+    //   wäre die Kette in Z. 60-62 bereits ge-return-t — wir kommen hier nur
+    //   an, wenn Storage grün ist.
+    try {
+      var aliveEl = document.getElementById("lamp-alive");
+      if (aliveEl && !aliveEl.classList.contains("alive")) {
+        aliveEl.classList.add("alive");
+      }
+    } catch (_e) { /* nb */ }
+
+    // lamp-traffic: pulst bei jedem ein-/ausgehenden Anastomose-Envelope
+    //   auf BroadcastChannel('sbkim'). Semantisch dichter dran am "verkehr"-
+    //   Label als Sage's status.json-Pulse (Sage index.html Z. 1471-1475) —
+    //   das Rezeptbuch hat kein status.json, aber lebende Geschwister-
+    //   Kommunikation über den BroadcastChannel-Bridge-Kanal von Modul 05.
+    //   Same-origin: greift nur wenn ein zweites Endknoten-Tab oder ein
+    //   Selbst-Test postet. Listener-Throws werden still verworfen
+    //   (Modul-15-Sub-(e)-Pattern: Lampe blockiert nicht).
+    try {
+      if (typeof BroadcastChannel === "function") {
+        var trafficCh = new BroadcastChannel("sbkim");
+        trafficCh.addEventListener("message", function (_ev) {
+          try {
+            var t = document.getElementById("lamp-traffic");
+            if (!t) return;
+            t.classList.remove("traffic-pulse");
+            // Reflow-Trick für Animation-Restart — siehe Sage index.html Z. 1474.
+            void t.offsetWidth;
+            t.classList.add("traffic-pulse");
+          } catch (_e) { /* nb */ }
+        });
+        info("VERKEHR-Lampe an BroadcastChannel('sbkim') verdrahtet.");
+      }
+    } catch (_e) { /* nb */ }
+
     info("Init-Kette abgeschlossen (dbSuffix=" + DB_SUFFIX + ").");
     info("Spore manuell erzeugen mit __sbkimErzeugeSpore() in der DevTools-Konsole.");
   }
