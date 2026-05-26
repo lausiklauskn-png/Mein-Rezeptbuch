@@ -79,6 +79,7 @@
       allowedOrigins: ["https://lausiklauskn-png.github.io"],
     });
     SbkimSiegel.init({
+      badgeSelector: "#sbkim-siegel-badge",
       repoUrl: "https://github.com/lausiklauskn-png/Mein-Rezeptbuch",
     });
 
