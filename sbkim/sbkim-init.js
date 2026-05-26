@@ -75,6 +75,13 @@
       });
     });
 
+    await SbkimMembrane.init({
+      allowedOrigins: ["https://lausiklauskn-png.github.io"],
+    });
+    SbkimSiegel.init({
+      repoUrl: "https://github.com/lausiklauskn-png/Mein-Rezeptbuch",
+    });
+
     // 02 Spore — Identitäts-Schicht. KEIN getOrCreateIdentity hier; das
     // läuft manuell via __sbkimErzeugeSpore() (DevTools) — Spore-Generierung
     // ist eine bewusste Klaus-Geste, nicht ein Boot-Schritt.
