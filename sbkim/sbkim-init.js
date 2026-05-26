@@ -61,6 +61,20 @@
       return;
     }
 
+    // 17 Floating-Widget — Endknoten-Standard-Render-Schicht (Karte 09
+    // Schritt 12). MUSS VOR Modul 15/16 init laufen, damit die Proxy-
+    // Spans #lamp-fremd + #sbkim-siegel-badge im DOM sind, bevor Modul
+    // 15/16 ihre Click-Handler attachen. Module 15+16 sind im
+    // Rezeptbuch-Endknoten aktuell zurückgebaut — das Widget bleibt
+    // trotzdem als Vier-Slot-Live-Status-Dashboard sichtbar (LEBT/
+    // VERKEHR/FREMD/SIEGEL).
+    await initModule("SbkimWidget", function () {
+      return window.SbkimWidget && window.SbkimWidget.init({
+        allowedOrigins: ["https://lausiklauskn-png.github.io"],
+        repoUrl:        "https://github.com/lausiklauskn-png/Mein-Rezeptbuch",
+      });
+    });
+
     // 02 Spore — Identitäts-Schicht. KEIN getOrCreateIdentity hier; das
     // läuft manuell via __sbkimErzeugeSpore() (DevTools) — Spore-Generierung
     // ist eine bewusste Klaus-Geste, nicht ein Boot-Schritt.
