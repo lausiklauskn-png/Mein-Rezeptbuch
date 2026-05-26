@@ -406,7 +406,10 @@
       // Button-Touch-Target ist die ganze Lampe+Label-Gruppe.
       // max-width + overflow + erweiterte transition für die Slide-Animation
       // beim Minimieren (siehe oben).
-      ".sbkim-widget-slot {",
+      // Pflege CSS-Spezifität 2026-05-26: `#sbkim-widget`-Prefix schlägt
+      // PWA-`button { padding: ... }`-User-Agent-Overrides — sonst
+      // verschoben sich Lampe + Label durch fremde Button-Defaults.
+      "#" + WIDGET_ID + " .sbkim-widget-slot {",
       "  position: relative;",
       "  background: transparent;",
       "  border: none;",
@@ -432,13 +435,13 @@
       "#" + WIDGET_ID + "[data-minimized=\"true\"] .sbkim-widget-slot {",
       "  overflow: hidden;",
       "}",
-      ".sbkim-widget-slot:hover { background: rgba(255, 255, 255, 0.06); }",
-      ".sbkim-widget-slot:focus-visible {",
+      "#" + WIDGET_ID + " .sbkim-widget-slot:hover { background: rgba(255, 255, 255, 0.06); }",
+      "#" + WIDGET_ID + " .sbkim-widget-slot:focus-visible {",
       "  outline: 1px solid var(--sbkim-widget-accent-gold);",
       "  outline-offset: 2px;",
       "}",
       // Innere Lampe via ::before — exakt 9 px wie auf der Sage-Page.
-      ".sbkim-widget-slot::before {",
+      "#" + WIDGET_ID + " .sbkim-widget-slot::before {",
       "  content: \"\";",
       "  display: block;",
       "  width: 9px;",
@@ -449,7 +452,7 @@
       "  flex-shrink: 0;",
       "}",
       // Text-Label rechts neben der Lampe (Sage-Page `.lamp-label`).
-      ".sbkim-widget-label {",
+      "#" + WIDGET_ID + " .sbkim-widget-label {",
       "  font-family: 'Geist Mono', ui-monospace, monospace;",
       "  font-size: 0.66rem;",
       "  letter-spacing: 0.06em;",
@@ -460,67 +463,49 @@
       "}",
       // LEBT aktiv: grünes Glow + Atmungs-Ring (Sage-Page `.lamp.alive`).
       // Plus: kontinuierlicher `box-shadow`-Pulse direkt auf der Lampe
-      // (Pflege 17 lamp-breath 2026-05-26 — Klaus' Sichttest: dünner
-      // border-Ring war auf High-DPI-Tablet zu subtil sichtbar).
-      ".sbkim-widget-slot.lebt.active::before {",
+      // Pflege 17 CSS-Spezifität 2026-05-26: Atmungs-Ring umgebaut von
+      // `.sbkim-widget-slot::after` (Slot-relativ mit hardcoded left:calc(...))
+      // auf box-shadow-spread auf `::before` (Lampe-relativ). Vorteil: Ring
+      // ist immer um die Lampe zentriert, unabhängig vom Slot-Padding —
+      // schützt gegen PWA-`button { padding: ... }`-Overrides (Klaus' MR-
+      // Befund: Ring rechtsversetzt + grauer Rand vom button-default).
+      // Plus `#sbkim-widget`-Spezifitäts-Prefix schlägt PWA-Klassen-Overrides.
+      "#" + WIDGET_ID + " .sbkim-widget-slot.lebt.active::before {",
       "  background: var(--sbkim-widget-accent-green);",
-      "  box-shadow: 0 0 8px rgba(110, 231, 211, 0.7);",
-      "  animation: sbkim-widget-lamp-alive-pulse 2.4s ease-in-out infinite;",
+      "  box-shadow:",
+      "    0 0 8px rgba(110, 231, 211, 0.7),",
+      "    0 0 0 0 rgba(110, 231, 211, 0.6);",
+      "  animation: sbkim-widget-lamp-alive-pulse 2.6s ease-in-out infinite;",
       "}",
-      ".sbkim-widget-slot.lebt.active::after {",
-      "  content: \"\";",
-      "  position: absolute;",
-      "  left: calc(6px + 4.5px - 8.5px);",   // Mittelpunkt der Lampe = padding-left + lampWidth/2
-      "  top: 50%;",
-      "  transform: translateY(-50%);",
-      "  width: 17px;",
-      "  height: 17px;",
-      "  border-radius: 50%;",
-      "  border: 2px solid var(--sbkim-widget-accent-green);",
-      "  opacity: 0.5;",
-      "  animation: sbkim-widget-lamp-breath 3.2s ease-in-out infinite;",
-      "  pointer-events: none;",
-      "}",
-      ".sbkim-widget-slot.verkehr.active::before {",
+      "#" + WIDGET_ID + " .sbkim-widget-slot.verkehr.active::before {",
       "  background: var(--sbkim-widget-accent-gold);",
       "  box-shadow: 0 0 6px rgba(244, 180, 53, 0.55);",
       "}",
-      ".sbkim-widget-slot.verkehr.verkehr-pulse::before {",
+      "#" + WIDGET_ID + " .sbkim-widget-slot.verkehr.verkehr-pulse::before {",
       "  animation: sbkim-widget-lamp-pulse var(--sbkim-widget-pulse-ms) ease-out;",
       "}",
-      ".sbkim-widget-slot.fremd.active::before, .sbkim-widget-slot.fremd.fremd-alert::before {",
+      "#" + WIDGET_ID + " .sbkim-widget-slot.fremd.active::before, #" + WIDGET_ID + " .sbkim-widget-slot.fremd.fremd-alert::before {",
       "  background: var(--sbkim-widget-accent-red);",
-      "  box-shadow: 0 0 8px rgba(220, 38, 38, 0.75);",
+      "  box-shadow:",
+      "    0 0 8px rgba(220, 38, 38, 0.75),",
+      "    0 0 0 0 rgba(220, 38, 38, 0.6);",
+      "  animation: sbkim-widget-lamp-fremd-breath 3.2s ease-in-out infinite;",
       "}",
-      ".sbkim-widget-slot.fremd.active::after, .sbkim-widget-slot.fremd.fremd-alert::after {",
-      "  content: \"\";",
-      "  position: absolute;",
-      "  left: calc(6px + 4.5px - 8.5px);",
-      "  top: 50%;",
-      "  transform: translateY(-50%);",
-      "  width: 17px;",
-      "  height: 17px;",
-      "  border-radius: 50%;",
-      "  border: 1px solid var(--sbkim-widget-accent-red);",
-      "  opacity: 0.45;",
-      "  animation: sbkim-widget-lamp-breath 3.2s ease-in-out infinite;",
-      "  pointer-events: none;",
-      "}",
-      ".sbkim-widget-slot.fremd.fremd-pulse::before {",
+      "#" + WIDGET_ID + " .sbkim-widget-slot.fremd.fremd-pulse::before {",
       "  animation: sbkim-widget-lamp-alert-pulse var(--sbkim-widget-pulse-ms) ease-out;",
       "}",
       // Aktive Slots: Label etwas heller anzeigen (Sage-Page-Pattern).
-      ".sbkim-widget-slot.active .sbkim-widget-label, .sbkim-widget-slot.fremd-alert .sbkim-widget-label {",
+      "#" + WIDGET_ID + " .sbkim-widget-slot.active .sbkim-widget-label, #" + WIDGET_ID + " .sbkim-widget-slot.fremd-alert .sbkim-widget-label {",
       "  color: var(--sbkim-widget-fg);",
       "}",
       // SIEGEL: kleines Gold-Medaillon mit ★ — Sage-Page hat hier ein
       // großes Wappen-SVG (#sbkim-siegel-badge 40 px). Im Widget halten
       // wir es kleiner (22 px), das Wappen-Modal von Modul 16 bleibt das
       // volle Identitäts-Symbol beim Click.
-      ".sbkim-widget-slot.siegel {",
+      "#" + WIDGET_ID + " .sbkim-widget-slot.siegel {",
       "  padding: 2px 4px 2px 6px;",
       "}",
-      ".sbkim-widget-slot.siegel::before {",
+      "#" + WIDGET_ID + " .sbkim-widget-slot.siegel::before {",
       "  width: 22px;",
       "  height: 22px;",
       "  border-radius: 50%;",
@@ -538,11 +523,11 @@
       // Stern-Glyph via ::before-content nicht möglich (würde content="" überschreiben).
       // Stattdessen: das Slot-Element bekommt den ★ als zusätzliches Element. Siehe buildSlotButton.
       "}",
-      ".sbkim-widget-slot.siegel.siegel-first-boot::before {",
+      "#" + WIDGET_ID + " .sbkim-widget-slot.siegel.siegel-first-boot::before {",
       "  animation: sbkim-widget-siegel-first-boot 600ms ease-out;",
       "}",
       // Stern-Glyph zentriert über der Lampe-::before (per absoluten Span).
-      ".sbkim-widget-siegel-glyph {",
+      "#" + WIDGET_ID + " .sbkim-widget-siegel-glyph {",
       "  position: absolute;",
       "  left: 6px;",                 // selber Wert wie padding-left vom Slot
       "  top: 50%;",
@@ -560,17 +545,36 @@
       "}",
       // Atmungs-Ring auf .sbkim-widget-slot.{lebt,fremd}.active::after.
       // Beachte: die ::after-Regeln nutzen `top:50%; transform:translateY(-50%);`
-      // zur vertikalen Zentrierung — die Animation muss diesen translateY
-      // bewahren, sonst springt der Ring beim Start in die Ecke.
-      "@keyframes sbkim-widget-lamp-breath {",
-      "  0%, 100% { transform: translateY(-50%) scale(1); opacity: 0.5; }",
-      "  50% { transform: translateY(-50%) scale(1.7); opacity: 0; }",
-      "}",
-      // Kontinuierlicher box-shadow-Pulse auf der Lampe selbst — gut sichtbar
-      // auf High-DPI-Tablets. Analog Sage-Page traffic-pulse, aber infinite.
+      // Pflege 17 CSS-Spezifität 2026-05-26: Atmungs-Ring jetzt als
+      // box-shadow-Spread auf `::before` (Lampe selbst). Box-shadow-
+      // Position ist immer relativ zur Lampe — robust gegen PWA-CSS-
+      // Konflikte (Slot-Padding-Overrides hätten sonst den `::after`-
+      // left:calc(...) verschoben).
+      // LEBT: ein-und-aus mit fade-in beim 100%-Ende (smooth loop).
       "@keyframes sbkim-widget-lamp-alive-pulse {",
-      "  0% { box-shadow: 0 0 0 0 rgba(110, 231, 211, 0.75), 0 0 8px rgba(110, 231, 211, 0.7); }",
-      "  100% { box-shadow: 0 0 0 9px rgba(110, 231, 211, 0), 0 0 8px rgba(110, 231, 211, 0.7); }",
+      "  0%, 100% {",
+      "    box-shadow:",
+      "      0 0 8px rgba(110, 231, 211, 0.7),",
+      "      0 0 0 0 rgba(110, 231, 211, 0.6);",
+      "  }",
+      "  50% {",
+      "    box-shadow:",
+      "      0 0 8px rgba(110, 231, 211, 0.7),",
+      "      0 0 0 6px rgba(110, 231, 211, 0);",
+      "  }",
+      "}",
+      // FREMD: dauer-rotes Glow + Atmungs-Ring analog LEBT, aber rot.
+      "@keyframes sbkim-widget-lamp-fremd-breath {",
+      "  0%, 100% {",
+      "    box-shadow:",
+      "      0 0 8px rgba(220, 38, 38, 0.75),",
+      "      0 0 0 0 rgba(220, 38, 38, 0.6);",
+      "  }",
+      "  50% {",
+      "    box-shadow:",
+      "      0 0 8px rgba(220, 38, 38, 0.75),",
+      "      0 0 0 6px rgba(220, 38, 38, 0);",
+      "  }",
       "}",
       "@keyframes sbkim-widget-lamp-pulse {",
       "  0% { box-shadow: 0 0 0 0 rgba(244, 180, 53, 0.7); transform: scale(1); }",
