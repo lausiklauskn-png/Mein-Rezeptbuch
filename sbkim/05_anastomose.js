@@ -287,6 +287,28 @@
   var lastLogTs = "";
   var logSubCounter = 0;
 
+  // Bau 17: sbkim:handshake-Custom-Event-Dispatcher (Karte 17 §
+  // Event-Bus-Schema). Wird in den Public-Wrappern handshake/
+  // receiveHandshake nach Result-Resolve pro Aufruf einmal gefeuert.
+  // Fail-soft — Modul 17 ist optionaler Konsument.
+  function dispatchHandshakeEvent(outcome, peerNodeId, direction) {
+    try {
+      if (typeof global.dispatchEvent === "function" && typeof global.CustomEvent === "function") {
+        global.dispatchEvent(new global.CustomEvent("sbkim:handshake", {
+          detail: {
+            outcome:    typeof outcome === "string" ? outcome : "rejected",
+            peerNodeId: typeof peerNodeId === "string" && peerNodeId.length > 0 ? peerNodeId : null,
+            direction:  direction === "incoming" ? "incoming" : "outgoing",
+          },
+          bubbles:    false,
+          cancelable: false,
+        }));
+      }
+    } catch (_e) {
+      // fail-soft — Render-Schicht.
+    }
+  }
+
   function nextLogKey() {
     var ts = nowIso();
     var key;
@@ -631,8 +653,23 @@
   }
 
   // ---- handshake() ----
+  //
+  // Bau 17: handshake() ist ein Wrapper um _doHandshake(), der nach
+  // Result-Resolve einmal `sbkim:handshake` mit direction:"outgoing"
+  // dispatcht. Throws aus _doHandshake werden ungekapselt weitergereicht
+  // (keine Wertung). Result-Form bleibt unverändert.
 
   async function handshake(targetSpore, ownDomainVector, options) {
+    var result = await _doHandshake(targetSpore, ownDomainVector, options);
+    var outcome = (result && typeof result.outcome === "string") ? result.outcome : "rejected";
+    var peerNodeId = (result && typeof result.peerNodeId === "string" && result.peerNodeId.length > 0)
+      ? result.peerNodeId
+      : (targetSpore && typeof targetSpore.id === "string" ? targetSpore.id : null);
+    dispatchHandshakeEvent(outcome, peerNodeId, "outgoing");
+    return result;
+  }
+
+  async function _doHandshake(targetSpore, ownDomainVector, options) {
     await ensureReady();
     var transport = parseTransport(options);     // wirft InvalidTransportError bei bad value
     var spore = getSpore();
@@ -851,8 +888,29 @@
   }
 
   // ---- receiveHandshake() ---- (wirft NIEMALS)
+  //
+  // Bau 17: receiveHandshake() ist ein Wrapper um _doReceiveHandshake(),
+  // der nach Result-Resolve einmal `sbkim:handshake` mit
+  // direction:"incoming" dispatcht. _doReceiveHandshake wirft per Spec
+  // niemals — der Wrapper braucht kein try/catch.
 
   async function receiveHandshake(request) {
+    var response = await _doReceiveHandshake(request);
+    var outcome = (response && typeof response.outcome === "string") ? response.outcome : "rejected";
+    var peerNodeId = null;
+    // Eingehender Handshake: Peer ist Sender. Bei established/re-handshake
+    // ist response.toNodeId der Sender (an wen wir antworten). Bei
+    // rejected ohne Sender-Kontext kann das leer bleiben.
+    if (response && typeof response.toNodeId === "string" && response.toNodeId.length > 0) {
+      peerNodeId = response.toNodeId;
+    } else if (request && request.senderSpore && typeof request.senderSpore.id === "string") {
+      peerNodeId = request.senderSpore.id;
+    }
+    dispatchHandshakeEvent(outcome, peerNodeId, "incoming");
+    return response;
+  }
+
+  async function _doReceiveHandshake(request) {
     try {
       await ensureReady();
       var spore = getSpore();
