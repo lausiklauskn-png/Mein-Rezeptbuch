@@ -14792,9 +14792,13 @@ function saveZinePage(idx){
 <script src="https://cdn.jsdelivr.net/npm/eruda@3"></script>
 <script>eruda.init();</script>
 
-<!-- SBKIM-Module — Reihenfolge nach Karte 09 § Schritt 2.
+<!-- SBKIM-Module — Reihenfolge nach Karte 09 § Schritt 2 + Schritt 12.
      06 NACH 00 (Outbox-Lese-Pfad aus 08 / Spore-Single-Anker-Fallback);
-     08 vor 15; 15 nach 08; 16 ZULETZT (surface-checkt alle Pflicht-Module). -->
+     08 vor 15; 15 nach 08; 16 ZULETZT (surface-checkt alle Pflicht-Module).
+     Modul 17 (Floating-Widget) ist Endknoten-Standard-Render-Schicht und
+     MUSS VOR Modul 15/16 geladen werden, damit die Proxy-Spans
+     #lamp-fremd + #sbkim-siegel-badge im DOM sind, bevor Modul 15/16
+     ihre Click-Handler attachen. -->
 <script src="sbkim/01_storage.js"></script>
 <script src="sbkim/02_spore.js"></script>
 <script src="sbkim/03_embedding.js"></script>
@@ -14804,6 +14808,7 @@ function saveZinePage(idx){
 <script src="sbkim/00_doku_fenster.js"></script>
 <script src="sbkim/06_heterokaryose.js"></script>
 <script src="sbkim/08_ui_demo.js"></script>
+<script src="sbkim/17_floating_widget.js" defer></script>
 <script src="sbkim/sbkim-init.js"></script>
 
 </body>
