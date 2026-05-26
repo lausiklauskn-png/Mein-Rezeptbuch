@@ -95,3 +95,115 @@ funktioniert die Render-Schicht ohne weiteren Eingriff.
 9. KEINE alten Navleisten-Lampen mehr in der Navleiste (waren in PR #244
    bereits entfernt).
 10. DevTools-Konsole: keine Errors.
+
+---
+
+## Sichttest-Ergebnis 2026-05-26 (Klaus, DeX-Chrome, Galaxy Tab S6)
+
+PR #245 gemerged 2026-05-26 ~08:00 (Merge-Commit `0da92cc`). Sichttest
+unmittelbar danach via Eruda-Konsole + visueller App-Check:
+
+| # | Punkt | Status | Notiz |
+|---|---|---|---|
+| 1 | Hard-Reload + Init-Kette in Konsole | ✅ | Alle 8 Module + Modul 17 grün, `SBKIM-Init: Init-Kette abgeschlossen` |
+| 2 | Pille bottom-right mit Slots | ✅ | 3 Slots sichtbar (LEBT/VERKEHR/FREMD) — SIEGEL aufgeschoben |
+| 3 | LEBT pulst grün | ⏸ stumm | Befund 2 (siehe unten) |
+| 4 | SIEGEL Gold-Medaillon ★ | ⏸ | Modul 16 zurückgebaut — Slot nicht im DOM |
+| 5 | FREMD-Klick → Sub-(e)-Modal | ⏸ | Modul 15 zurückgebaut — Klick ist no-op |
+| 6 | SIEGEL-Klick → Sub-(c)-Modal | ⏸ | Modul 16 zurückgebaut — Slot fehlt |
+| 7 | Drag + Minimize + Maximize + X + `SbkimWidget.show()` | ✅ | Alle vier Interaktionen funktionieren |
+| 8 | Keine alten Navleisten-Lampen | ✅ | War in PR #244 bereits raus |
+| 9 | Konsole sauber | ✅ | Nur erwartete fail-soft-Warnungen zu `#sbkim-doku-trigger` |
+
+**Bonus:** Klick auf LEBT- und VERKEHR-Slot öffnet die Widget-internen
+Modul-17-Modals — funktioniert auch ohne Modul 15/16 (Modul 17 baut
+diese Modals selbst, siehe Header-Kommentar `17_floating_widget.js`
+Zeile 28).
+
+**Persistenz-Check:** Pille an Bildschirm-Mitte gezogen → Tab-Reload →
+Pille erscheint an gleicher Position. `localStorage`-Schlüssel
+`sbkim_widget_position` + `sbkim_widget_minimized` + `sbkim_widget_hidden`
+funktionieren.
+
+---
+
+## Befunde für die nächste Sage-Protokol-Pflege
+
+Beide Befunde betreffen **Modul-17-Code** und gehören nach Sage-Protokol-
+Repo (nicht hier — Endknoten greift nicht in Modul-Code ein).
+
+### Befund 1 — Doppel-Tooltips auf rechten Pille-Slots
+
+Auf DeX-Chrome (Android-Chrome im Desktop-Modus) erscheinen Tooltips
+**doppelt** an den Pille-Elementen FREMD, Minimize-Knopf, X-Knopf:
+
+- Ein Tooltip in „Über-Position" (gestaffelt nach links/oben)
+- Ein zweiter Tooltip am Element direkt (rechts/näher)
+
+Beide Tooltips zeigen identischen Text im gleichen braun-gerundeten
+Stil — sieht nicht aus wie HTML-`title=""`-Native vs. JS-Custom,
+sondern wie zwei JS-Custom-Tooltip-Instanzen.
+
+Auf LEBT + VERKEHR (linke Pille-Slots) wird der Doppel-Tooltip
+**nicht** beobachtet — vermutlich weil der zweite Tooltip dort
+außerhalb des Viewport landet oder anders positioniert ist.
+
+**Reproduktion:** Mein-Rezeptbuch auf DeX-Chrome (Samsung Galaxy
+Tab S6), Pille bottom-right, Finger auf FREMD-Slot halten.
+
+**Vermutete Ursache:** Touch-Event triggert sowohl `pointerenter`
+als auch `touchstart` → Tooltip-Handler läuft zweimal. Oder doppelte
+Listener-Registrierung in `init()`.
+
+**Workaround (Endknoten):** keiner möglich — Modul-Code ist in
+Sage-Protokol-main gepflegt.
+
+### Befund 2 — LEBT-Slot bleibt grau (kein Event-Sender)
+
+Im Mein-Rezeptbuch-Endknoten dispatcht **kein Modul** das
+`sbkim:alive`-Event, das Modul 17 Zeile 1115 `onAlive(ev)` triggert.
+Konsequenz: LEBT-Slot bleibt dauerhaft grau, der Sichttest-Schritt 3
+„LEBT pulsiert grün" ist faktisch nicht erfüllbar.
+
+**Quellen-Inventur Mein-Rezeptbuch (per `grep -rn "sbkim:alive"`):**
+
+- `sbkim/01_storage.js` — kein dispatch
+- `sbkim/02_spore.js` — kein dispatch
+- `sbkim/05_anastomose-v2.js` — kein dispatch
+- `sbkim/06_heterokaryose.js` — kein dispatch
+- `sbkim/07_apoptose.js` — kein dispatch
+- `sbkim/08_ui_demo.js` — kein dispatch
+- `sbkim/00_doku_fenster.js` — kein dispatch
+
+Nur Modul 17 selbst kennt den Event-Namen (als Listener).
+
+**Quellen lt. Modul-17-Doku-Header:** Module 02 (LEBT) + Modul 15
+Sub (b) (VERKEHR). Modul 15 ist zurückgebaut → kein VERKEHR-Sender;
+Modul 02 dispatcht das Event in dieser Version nicht.
+
+**Sage-Protokol-Optionen:**
+
+- (a) Modul 02 ein `sbkim:alive` beim erfolgreichen `init()` dispatchen
+  lassen (Heartbeat alle N Sekunden optional).
+- (b) Modul 17 einen Self-Heartbeat-Fallback einbauen: wenn nach 5 s
+  kein `sbkim:alive` reinkommt aber `window.SbkimSpore` existiert,
+  selbst einen synthetischen `sbkim:alive` mit `since = init-Zeit`
+  emittieren.
+- (c) Doku-Klarstellung: LEBT-Slot ist nur aktiv wenn Modul 02
+  explizit dispatcht — Endknoten ohne diesen Patch zeigen LEBT
+  grau. Sichttest-Schritt 3 dann als „nur Sage-Page" markieren.
+
+**Workaround (Endknoten):** keiner möglich — Modul-Code-Eingriff
+ist in dieser Sitzungs-Rolle verboten.
+
+---
+
+## Sitzungs-Abschluss
+
+Re-Migration ist **funktional vollständig** für den Teil der prüfbar
+ist (Pille, Interaktion, Persistenz, alte Lampen weg). Die vier
+aufgeschobenen Punkte (3, 4, 5, 6) hängen an Modul 15+16-Wiederandock
+bzw. dem Modul-02-Heartbeat-Patch in Sage-Protokol.
+
+**Nächste Sitzung:** Mein-Mixarium (zweite Endknoten-Re-Migration),
+analog mit `repoUrl: "https://github.com/lausiklauskn-png/Mein-Mixarium"`.
