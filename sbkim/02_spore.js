@@ -230,6 +230,31 @@
   // nicht gelesen. setActiveIdentity / removeIdentity / resetIdentityCache
   // invalidieren bzw. setzen ihn.
   var activeIdentityKeyCache = null;
+  // Bau 17: sbkim:alive-Custom-Event wird nach erfolgreichem
+  // getOrCreateIdentity() einmal pro Sitzung gefeuert (Karte 17 §
+  // Event-Bus-Schema). Flag-Schutz, damit jeder weitere
+  // getOrCreateIdentity-Aufruf (z.B. für Sekundär-Persona) den Event
+  // NICHT erneut dispatcht — Modul 17 LEBT-Slot reagiert auf den ersten.
+  var aliveDispatched = false;
+
+  function dispatchAliveOnce(nodeId) {
+    if (aliveDispatched) return;
+    aliveDispatched = true;
+    try {
+      if (typeof global.dispatchEvent === "function" && typeof global.CustomEvent === "function") {
+        global.dispatchEvent(new global.CustomEvent("sbkim:alive", {
+          detail: {
+            since:  new Date().toISOString(),
+            nodeId: nodeId,
+          },
+          bubbles:    false,
+          cancelable: false,
+        }));
+      }
+    } catch (_e) {
+      // fail-soft — Render-Schicht (Modul 17) ist optional.
+    }
+  }
 
   async function init() {
     // Probe WebCrypto and storage but do not generate keys.
@@ -292,7 +317,18 @@
 
   async function loadIdentity(key) {
     var slotKey = key || DEFAULT_IDENTITY_KEY;
-    if (identityCache.has(slotKey)) return identityCache.get(slotKey);
+    if (identityCache.has(slotKey)) {
+      var cached = identityCache.get(slotKey);
+      // Pflege 17 Heartbeat 2026-05-26: jeder Pfad, der eine geladene
+      // Identität liefert, soll `sbkim:alive` dispatchen. Bisher war
+      // das nur in getOrCreateIdentity — Aufrufer wie generateOwnSpore
+      // mit existing-Identity oder getNodeId/getPublicKeyJwk lösten das
+      // nicht aus. Klaus' Sichttest 2026-05-26: LEBT bleibt grau wenn
+      // die Identität schon im Storage liegt. Once-Flag im
+      // dispatchAliveOnce schützt vor Doppel-Feuer.
+      dispatchAliveOnce(cached.nodeId);
+      return cached;
+    }
     await ensureReady();
     var storage = getStorage();
     var subtle = getSubtle();
@@ -321,6 +357,7 @@
       publicKey: publicKey,
     };
     identityCache.set(slotKey, snapshot);
+    dispatchAliveOnce(nodeId);
     return snapshot;
   }
 
@@ -328,6 +365,7 @@
     var slotKey = key || DEFAULT_IDENTITY_KEY;
     var existing = await loadIdentity(slotKey);
     if (existing) {
+      dispatchAliveOnce(existing.nodeId);
       return { nodeId: existing.nodeId, publicKeyJwk: existing.publicKeyJwk };
     }
 
@@ -370,6 +408,7 @@
       privateKey: keyPair.privateKey,
       publicKey: keyPair.publicKey,
     });
+    dispatchAliveOnce(nodeId);
     return { nodeId: nodeId, publicKeyJwk: publicKeyJwk };
   }
 
@@ -1093,6 +1132,10 @@
     UnknownIdentityError: UnknownIdentityError,
     RemoveActiveIdentityError: RemoveActiveIdentityError,
     _meta: {
+      // Pflege 17 Self-Heartbeat 2026-05-26: `ready`-Getter exponiert
+      // den internen Closure-Flag — Modul 17 prüft das beim Self-
+      // Heartbeat-Fallback (Karte 17 § Anti-Greenwashing-Klausel).
+      get ready() { return ready; },
       protocolVersion: PROTOCOL_VERSION,
       defaultIdentityKey: DEFAULT_IDENTITY_KEY,
       keysStore: KEYS_STORE,

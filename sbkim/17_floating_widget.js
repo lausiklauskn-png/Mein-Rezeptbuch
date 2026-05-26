@@ -62,6 +62,16 @@
   var TRAFFIC_LOG_MAX = 10;
   var MOUNT_OBSERVER_TIMEOUT_MS = 10000;
   var SHOW_WARN_THROTTLE_MS = 60000;
+  // Pflege 17 Heartbeat 2026-05-26: Self-Heartbeat-Fallback für LEBT.
+  // Wenn 5 s nach `init()` kein `sbkim:alive`-Event eingegangen ist UND
+  // `window.SbkimSpore._meta.ready === true`, dispatcht Modul 17 selbst
+  // ein synthetisches `sbkim:alive` mit `nodeId:null` und `synthetic:true`-
+  // Marker. Anti-Greenwashing intakt: das Modul-02-`init()`-Lauf IST ein
+  // realer Event — die Lampe leuchtet nur, wenn Modul 02 tatsächlich
+  // geladen + initialisiert ist. Für Endknoten-PWAs, die keinen explizit
+  // `getOrCreateIdentity()`-Aufruf im Init-Pfad haben (Identität wird erst
+  // beim Andock-Wizard erzeugt).
+  var SELF_HEARTBEAT_DELAY_MS = 5000;
 
   // localStorage-Schlüssel (Karte 17 § Persistenz / § localStorage-Schema).
   // Pflege 17 UX 2026-05-25: dritter Schlüssel `sbkim_widget_minimized`
@@ -165,6 +175,8 @@
   var lastShowWarnAt = 0;
   var mountObserver = null;
   var mountObserverTimeoutId = null;
+  var selfHeartbeatTimerId = null;
+  var selfHeartbeatFired = false;
   var lebtSince = null;        // ISO-String, aus sbkim:alive
   var lebtNodeIdPrefix = null; // Erste 12 Zeichen
   var siegelCertifiedAt = null;
@@ -407,8 +419,18 @@
       "  outline: none;",
       "  border-radius: 999px;",
       "  max-width: 220px;",
-      "  overflow: hidden;",
+      // Pflege 17 lamp-breath 2026-05-26: overflow:visible explizit
+      // überschreibt Chrome's User-Agent-`button { overflow: hidden }`-
+      // Default, sonst clippt der Browser den `::after`-Atmungs-Ring an
+      // den Button-Kanten (Klaus' Sichttest: Ring nur als Halbbögen
+      // oben/unten sichtbar). overflow:hidden wird nur im minimized-
+      // State unten gesetzt.
+      "  overflow: visible;",
       "  transition: background 180ms ease, max-width 280ms ease, opacity 220ms ease, margin 280ms ease, padding 280ms ease, transform 280ms ease;",
+      "}",
+      // overflow:hidden NUR im minimierten Zustand, damit max-width:0 sauber clippt.
+      "#" + WIDGET_ID + "[data-minimized=\"true\"] .sbkim-widget-slot {",
+      "  overflow: hidden;",
       "}",
       ".sbkim-widget-slot:hover { background: rgba(255, 255, 255, 0.06); }",
       ".sbkim-widget-slot:focus-visible {",
@@ -437,9 +459,13 @@
       "  white-space: nowrap;",
       "}",
       // LEBT aktiv: grünes Glow + Atmungs-Ring (Sage-Page `.lamp.alive`).
+      // Plus: kontinuierlicher `box-shadow`-Pulse direkt auf der Lampe
+      // (Pflege 17 lamp-breath 2026-05-26 — Klaus' Sichttest: dünner
+      // border-Ring war auf High-DPI-Tablet zu subtil sichtbar).
       ".sbkim-widget-slot.lebt.active::before {",
       "  background: var(--sbkim-widget-accent-green);",
       "  box-shadow: 0 0 8px rgba(110, 231, 211, 0.7);",
+      "  animation: sbkim-widget-lamp-alive-pulse 2.4s ease-in-out infinite;",
       "}",
       ".sbkim-widget-slot.lebt.active::after {",
       "  content: \"\";",
@@ -450,8 +476,8 @@
       "  width: 17px;",
       "  height: 17px;",
       "  border-radius: 50%;",
-      "  border: 1px solid var(--sbkim-widget-accent-green);",
-      "  opacity: 0.45;",
+      "  border: 2px solid var(--sbkim-widget-accent-green);",
+      "  opacity: 0.5;",
       "  animation: sbkim-widget-lamp-breath 3.2s ease-in-out infinite;",
       "  pointer-events: none;",
       "}",
@@ -532,9 +558,19 @@
       "  line-height: 1;",
       "  pointer-events: none;",
       "}",
+      // Atmungs-Ring auf .sbkim-widget-slot.{lebt,fremd}.active::after.
+      // Beachte: die ::after-Regeln nutzen `top:50%; transform:translateY(-50%);`
+      // zur vertikalen Zentrierung — die Animation muss diesen translateY
+      // bewahren, sonst springt der Ring beim Start in die Ecke.
       "@keyframes sbkim-widget-lamp-breath {",
-      "  0%, 100% { transform: translate(-50%, -50%) scale(1); opacity: 0.45; }",
-      "  50% { transform: translate(-50%, -50%) scale(1.5); opacity: 0; }",
+      "  0%, 100% { transform: translateY(-50%) scale(1); opacity: 0.5; }",
+      "  50% { transform: translateY(-50%) scale(1.7); opacity: 0; }",
+      "}",
+      // Kontinuierlicher box-shadow-Pulse auf der Lampe selbst — gut sichtbar
+      // auf High-DPI-Tablets. Analog Sage-Page traffic-pulse, aber infinite.
+      "@keyframes sbkim-widget-lamp-alive-pulse {",
+      "  0% { box-shadow: 0 0 0 0 rgba(110, 231, 211, 0.75), 0 0 8px rgba(110, 231, 211, 0.7); }",
+      "  100% { box-shadow: 0 0 0 9px rgba(110, 231, 211, 0), 0 0 8px rgba(110, 231, 211, 0.7); }",
       "}",
       "@keyframes sbkim-widget-lamp-pulse {",
       "  0% { box-shadow: 0 0 0 0 rgba(244, 180, 53, 0.7); transform: scale(1); }",
@@ -668,7 +704,13 @@
     btn.className = "sbkim-widget-slot " + slotId;
     btn.setAttribute("data-slot", slotId);
     btn.setAttribute("aria-label", SLOT_TOOLTIPS[slotId] || slotId);
-    btn.title = SLOT_TOOLTIPS[slotId] || slotId;
+    // Pflege 17 Tooltips 2026-05-26 (Klaus' Sichttest-Befund DeX-Chrome):
+    // Browser-Standard-`title`-Tooltip auf rechten Slots (FREMD/SIEGEL/
+    // Minimize/Close) zeigte sich doppelt auf Touch-Devices (Browser-
+    // Tooltip via title + Android-Touch-Action-Bubble). Fix: title-Attribut
+    // weggelassen, aria-label trägt den Tooltip-Text weiter für A11y +
+    // Screenreader. Tap öffnet das jeweilige Modal — das ist der Kontext-
+    // Pfad am Touch-Tablet.
     if (slotId === "siegel") {
       // ★-Glyph zentriert auf der Gold-Lampe (Idee Klaus 2026-05-25:
       // SIEGEL wird später als Tool-PWA-Container für Andocken + Sporen-
@@ -751,8 +793,8 @@
     minimizeBtnEl = doc.createElement("button");
     minimizeBtnEl.type = "button";
     minimizeBtnEl.className = "sbkim-widget-btn sbkim-widget-minimize";
-    minimizeBtnEl.setAttribute("aria-label", "Widget minimieren (nur SBKIM-Siegel zeigen)");
-    minimizeBtnEl.title = "Minimieren — zeigt nur das SBKIM-Siegel. Erneuter Klick maximiert.";
+    minimizeBtnEl.setAttribute("aria-label", "Widget minimieren — zeigt nur das SBKIM-Siegel. Erneuter Klick maximiert.");
+    // Pflege 17 Tooltips 2026-05-26: kein title-Attribut (siehe buildSlotButton-Kommentar).
     minimizeBtnEl.textContent = minimizedFlag ? "+" : "−";
     minimizeBtnEl.addEventListener("click", function (ev) {
       if (ev && typeof ev.stopPropagation === "function") ev.stopPropagation();
@@ -765,8 +807,8 @@
       var closeBtn = doc.createElement("button");
       closeBtn.type = "button";
       closeBtn.className = "sbkim-widget-btn sbkim-widget-close";
-      closeBtn.setAttribute("aria-label", "Widget schließen");
-      closeBtn.title = "Schließen — wiederherstellbar via SbkimWidget.show()";
+      closeBtn.setAttribute("aria-label", "Widget schließen — wiederherstellbar via SbkimWidget.show()");
+      // Pflege 17 Tooltips 2026-05-26: kein title-Attribut.
       closeBtn.textContent = "✕";
       closeBtn.addEventListener("click", function (ev) {
         if (ev && typeof ev.stopPropagation === "function") ev.stopPropagation();
@@ -1047,13 +1089,17 @@
     }
     if (minimizeBtnEl) {
       minimizeBtnEl.textContent = minimizedFlag ? "+" : "−";
+      // Pflege 17 Tooltips 2026-05-26: aria-label trägt Tooltip-Text;
+      // title-Attribut weggelassen (Touch-Devices zeigten doppel-Tooltips).
       minimizeBtnEl.setAttribute(
         "aria-label",
-        minimizedFlag ? "Widget maximieren (alle Slots zeigen)" : "Widget minimieren (nur SBKIM-Siegel zeigen)"
+        minimizedFlag
+          ? "Widget maximieren — zeigt alle vier Slots."
+          : "Widget minimieren — zeigt nur das SBKIM-Siegel. Erneuter Klick maximiert."
       );
-      minimizeBtnEl.title = minimizedFlag
-        ? "Maximieren — zeigt alle vier Slots."
-        : "Minimieren — zeigt nur das SBKIM-Siegel. Erneuter Klick maximiert.";
+      // Idempotent: removeAttribute ist no-op wenn nicht gesetzt.
+      try { minimizeBtnEl.removeAttribute("title"); }
+      catch (_e) { /* nb */ }
     }
   }
 
@@ -1093,6 +1139,40 @@
   }
 
   // ---- Event-Listener (window) ----
+
+  // Pflege 17 Heartbeat 2026-05-26: Self-Heartbeat-Fallback für LEBT.
+  function scheduleSelfHeartbeat() {
+    if (selfHeartbeatTimerId !== null) return;        // idempotent
+    if (selfHeartbeatFired) return;
+    selfHeartbeatTimerId = setTimeout(function () {
+      selfHeartbeatTimerId = null;
+      if (eventCounts.alive > 0) {
+        // Modul 02 hat schon einen echten `sbkim:alive` gefeuert —
+        // Self-Heartbeat nicht mehr nötig.
+        return;
+      }
+      var spore = global.SbkimSpore;
+      if (!spore || !spore._meta || spore._meta.ready !== true) {
+        // Modul 02 ist NICHT initialisiert — Anti-Greenwashing: keine
+        // synthetische LEBT-Aktivierung. LEBT bleibt grau.
+        return;
+      }
+      selfHeartbeatFired = true;
+      try {
+        if (typeof global.dispatchEvent === "function" && typeof global.CustomEvent === "function") {
+          global.dispatchEvent(new global.CustomEvent("sbkim:alive", {
+            detail: {
+              since:     new Date().toISOString(),
+              nodeId:    null,
+              synthetic: true,
+            },
+            bubbles:    false,
+            cancelable: false,
+          }));
+        }
+      } catch (_e) { /* fail-soft */ }
+    }, SELF_HEARTBEAT_DELAY_MS);
+  }
 
   function registerEventListeners() {
     if (listeners.alive) return; // idempotent
@@ -1526,6 +1606,8 @@
         registerEventListeners();
         try { global.addEventListener("keydown", onGlobalKeydown); }
         catch (_e) { /* nb */ }
+        // Pflege 17 Heartbeat 2026-05-26: 5-s-Fallback-Timer starten.
+        scheduleSelfHeartbeat();
 
         ready = true;
       } catch (err) {
@@ -1669,6 +1751,8 @@
         return copy;
       },
       get fremdBufferSize()    { return fremdBufferSize; },
+      get selfHeartbeatFired() { return selfHeartbeatFired; },
+      selfHeartbeatDelayMs:    SELF_HEARTBEAT_DELAY_MS,
       get lebtSince()          { return lebtSince; },
       get lebtNodeIdPrefix()   { return lebtNodeIdPrefix; },
       get siegelCertifiedAt()  { return siegelCertifiedAt; },
