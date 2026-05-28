@@ -83,6 +83,17 @@
       repoUrl: "https://github.com/lausiklauskn-png/Mein-Rezeptbuch",
     });
 
+    // 18 Tool-PWA Sub (a) Vorab — Andock-Wizard. Wird vom Bronze-SIEGEL-
+    // Klick (Modul 16 Sub (e) Hook) geöffnet, NICHT von selbst.
+    await SbkimToolPwa.init({
+      endpoint:        "https://lausiklauskn-png.github.io/Mein-Rezeptbuch/",
+      domain:          "rezeptbuch",
+      domainKeywords:  ["Rezept", "Kochen", "Essen", "Hauptgang", "Beilage", "Backen", "Saucen"],
+      stammCategories: ["Vorspeisen", "Suppen", "Fleisch", "Fisch", "Vegetarisch", "Kuchen", "Desserts"],
+      guestCategories: ["Getränke", "Smoothies & Shakes", "Mocktails", "Alkfr. Cocktails", "Limonaden", "Tees & Kaffees", "Cocktails", "Bowlen", "Sirup & Basis", "Knabbereien", "Fingerfood"],
+      repoUrl:         "https://github.com/lausiklauskn-png/Mein-Rezeptbuch",
+    });
+
     // 02 Spore — Identitäts-Schicht. KEIN getOrCreateIdentity hier; das
     // läuft manuell via __sbkimErzeugeSpore() (DevTools) — Spore-Generierung
     // ist eine bewusste Klaus-Geste, nicht ein Boot-Schritt.
