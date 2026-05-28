@@ -836,17 +836,51 @@
       "cursor:pointer",
     ].join(";");
     andockBtn.addEventListener("click", function () {
-      // Fail-soft Modul-18-Check (Karte 16 § Sub (e) Klick-Verhalten):
-      // wenn SbkimToolPwa.openAndockTab existiert, aufrufen; sonst Info-
-      // Notiz im Modal anzeigen.
+      // Drei-Pfad-Logik (Pflege 2026-05-28 Refinement von PR #197):
+      //   Pfad 1 — toolPwa.openAndockTab existiert + Aufruf wirft NICHT
+      //            → Wizard startet → Bronze-Modal schließt sich.
+      //   Pfad 2 — toolPwa.openAndockTab existiert + Aufruf wirft (z.B.
+      //            ToolPwaNotReadyError weil init() im Andocker fehlt)
+      //            → Bronze-Modal BLEIBT OFFEN + Info-Hinweis im Block.
+      //   Pfad 3 — toolPwa fehlt komplett (Modul 18 nicht geladen)
+      //            → Fallback BRONZE_HINWEIS_HTML_FALLBACK.
       var toolPwa = global.SbkimToolPwa;
       if (toolPwa && typeof toolPwa.openAndockTab === "function") {
+        var threw = false;
+        var thrownErr = null;
         try { toolPwa.openAndockTab(); }
-        catch (err) { warn("Modul 18 openAndockTab fehlgeschlagen.", err); }
+        catch (err) {
+          threw = true;
+          thrownErr = err;
+          warn("Modul 18 openAndockTab fehlgeschlagen.", err);
+        }
+        if (!threw) {
+          // Pfad 1 — Erfolg: Wizard ist im Mount, Bronze-Modal weg.
+          closeModal();
+          return;
+        }
+        // Pfad 2 — Throw: Modal bleibt offen, Info-Hinweis im Block.
+        var existing2 = block.querySelector("[data-siegel-andock-info]");
+        if (existing2) return;
+        var info2 = doc.createElement("p");
+        info2.setAttribute("data-siegel-andock-info", "");
+        var errName = (thrownErr && thrownErr.name) || "Error";
+        if (errName === "ToolPwaNotReadyError") {
+          info2.textContent =
+            "Modul 18 ist geladen, aber im Andocker nicht initialisiert " +
+            "(SbkimToolPwa.init() fehlt). Bauer muss init() im sbkim-init " +
+            "nach SbkimSiegel.init ergänzen.";
+        } else {
+          info2.textContent =
+            "Andock-Wizard konnte nicht starten — " +
+            (thrownErr && thrownErr.message ? thrownErr.message : errName) +
+            ".";
+        }
+        info2.style.cssText = "margin:0.6rem 0 0;font-size:0.82rem;color:rgba(245,245,255,0.7);font-style:italic;";
+        block.appendChild(info2);
         return;
       }
-      // Info-Notiz im Block einblenden (analog Spec § Klick-Verhalten in
-      // Bronze, Z. 569-571).
+      // Pfad 3 — Fallback: Modul 18 fehlt komplett.
       var existing = block.querySelector("[data-siegel-andock-info]");
       if (existing) return;        // idempotent
       var info = doc.createElement("p");
@@ -869,12 +903,26 @@
     var dateLine = modalRoot.querySelector("[data-siegel-date]");
     if (dateLine) {
       if (snap.certifiedAt) {
-        // ISO "2026-05-24T18:42:31.123Z" → "2026-05-24 HH:MM" lokal.
+        // Pflege Modal-Local-Time 2026-05-26 (Sub-(e)-Folge-Pflege 3/3):
+        // certifiedAt ist UTC-ISO ("2026-05-24T18:42:31.123Z"). Vor der
+        // Pflege wurden die ISO-Slices direkt angezeigt — Klaus' Befund
+        // DeX-Chrome (MESZ, UTC+2): „Datum/Uhrzeit ist nicht aktuell,
+        // ich vermute nicht Mitteleuropäische Zeit, eher Amerikan."
+        // Fix: lokale Date-Methoden (getFullYear/getMonth/getDate/
+        // getHours/getMinutes) statt UTC-ISO-Split. ISO-Datum-Format
+        // (YYYY-MM-DD) bleibt, weil Klaus' Doku-Stil das überall nutzt
+        // (Aspekte-since-Feld, Übergabeprotokoll-Dateinamen).
         var date = new Date(snap.certifiedAt);
-        var iso = isNaN(date.getTime()) ? snap.certifiedAt : date.toISOString();
-        var datePart = iso.slice(0, 10);
-        var timePart = iso.slice(11, 16);
-        dateLine.textContent = "Bezeugt seit " + datePart + ", " + timePart + " Uhr.";
+        if (isNaN(date.getTime())) {
+          dateLine.textContent = "Bezeugt seit " + snap.certifiedAt;
+        } else {
+          var yyyy = date.getFullYear();
+          var mm = String(date.getMonth() + 1).padStart(2, "0");
+          var dd = String(date.getDate()).padStart(2, "0");
+          var HH = String(date.getHours()).padStart(2, "0");
+          var MM = String(date.getMinutes()).padStart(2, "0");
+          dateLine.textContent = "Bezeugt seit " + yyyy + "-" + mm + "-" + dd + ", " + HH + ":" + MM + " Uhr.";
+        }
       } else {
         dateLine.textContent = "Bezeugt: —";
       }
