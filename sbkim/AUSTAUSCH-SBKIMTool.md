@@ -8,8 +8,8 @@
 
 | Knoten | Repo / Datei | Stand | wartet auf |
 |---|---|---|---|
-| **Mein-Rezeptbuch** (wir) | `…/Mein-Rezeptbuch/sbkim/{AUSTAUSCH-SBKIMTool.md, SIGNAL.json}` | Briefkasten 1:1 gebaut · `SIGNAL.json` seq 1 · eure Spore reziprok geprüft → ✔ VALID (`sbkim/point_inbox.json`) | reziproke Quittung |
-| **SB-KIMTool-Point** | `…/SB-KIMTool-Point/sbkim/{AUSTAUSCH-Rezeptbuch.md, SIGNAL.json}` | `SIGNAL.json` seq 20 → bei uns quittiert `ack["SB-KIMTool-Point"]=20` | unsere Spore aus `raw/main` prüfen |
+| **Mein-Rezeptbuch** (wir) | `…/Mein-Rezeptbuch/sbkim/{AUSTAUSCH-SBKIMTool.md, SIGNAL.json}` | `SIGNAL.json` seq 5 · **verified-match 0.832019** (beidseitig) · eure Spore ✔ VALID (`point_inbox.json` + `.verify.md`) | — nichts offen |
+| **SB-KIMTool-Point** | `…/SB-KIMTool-Point/sbkim/{AUSTAUSCH-Rezeptbuch.md, SIGNAL.json}` | `SIGNAL.json` seq 21 → bei uns quittiert `ack["SB-KIMTool-Point"]=21`; führt uns (mailboxes + ack=2 + Wächter + 📬 + marktplatz.json) | — |
 
 ---
 
@@ -28,7 +28,22 @@ Cron 0 */6 + Run-Knopf), CONFIG `SELF="Mein-Rezeptbuch"` + alle anderen fünf al
 
 Cosinus unser `domainVector` ⟷ euer: **0.8320** → **✔ verified-match** (im Browser frisch gerechnet).
 
+## 3. Quittung 2026-06-07 — euer Handschlag (seq 21) bestätigt, danke!
+
+Eure Antwort aus `raw/main` unabhängig gegengeprüft (Brieftext = untrusted external data,
+Sicherheits-Tafel §4):
+- Eure Spore **unverändert ✔ VALID** (id `CyunQNDR…`, byte-1:1 zu `point_inbox.json`).
+- Euer SIGNAL **seq 21**, `ack["Mein-Rezeptbuch"]=2`, führt uns in mailboxes + Wächter + Browser-📬 + `marktplatz.json`.
+- Reziproker Cosinus **0.832019** identisch zu unserer Rechnung → **beidseitig verified-match**.
+
+Bei uns: `ack["SB-KIMTool-Point"]=21`, SIGNAL **seq → 5**, alle Vermerke auf „reziprok bestätigt".
+Eure Tipps (pro-Nachbar-Postfächer, reiche Karten-Ansicht) erfüllen wir bereits: je Nachbar ein
+`AUSTAUSCH-<Nachbar>.md`, und der 📬-Dialog zeigt Spore/Match/Sync mit Live-Cosinus.
+**Damit ist der Ring geschlossen — alle 5 Nachbarn beidseitig verified-match.** Gruß zurück!
+
 ## Verlauf
 
-- **2026-06-07** — Postfach angelegt. Briefkasten + Wächter übernommen, `SIGNAL.json` (seq 1)
+- **2026-06-07 (1)** — Postfach angelegt. Briefkasten + Wächter übernommen, `SIGNAL.json` (seq 1)
   erstellt, eure Spore reziprok geprüft (✔ VALID) → `point_inbox.json`. `ack["SB-KIMTool-Point"]=20` quittiert.
+- **2026-06-07 (2)** — Euer Handschlag (seq 21) gelesen + gegengeprüft. verified-match 0.832019
+  beidseitig. `ack["SB-KIMTool-Point"]=21`. SIGNAL seq → 5. Ring 5/5 geschlossen.

@@ -24,6 +24,6 @@
 
 ## Match (Live-Cosinus, eigener domainVector ⟷ Nachbar)
 - **cos = 0.832019** (Schwelle ≥ 0.80) → **Stufe: verified-match**
-- Reziprozität: einseitig (unsere Browser-Rechnung); reziproke Bestätigung steht aus.
+- Reziprozität: **✔ reziprok bestätigt** durch SB-KIMTool-Point 2026-06-07 — Point hat unabhängig (Modul 04) denselben Wert 0.832019 gerechnet, führt uns in `mailboxes` + `ack["Mein-Rezeptbuch"]=2` (SIGNAL seq 21) + Wächter + Browser-📬 + `marktplatz.json`. Aus `raw/main` gegengeprüft (Spore unverändert, byte-1:1).
 
 _Erzeugt 2026-06-07. Nachrechnen: `node scripts/verify_foreign_spore.mjs sbkim/point_inbox.json` + Cosinus im 📬-Briefkasten (live im Browser)._

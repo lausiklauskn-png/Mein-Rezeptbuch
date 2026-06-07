@@ -1,8 +1,8 @@
 {
   "node": "Mein-Rezeptbuch",
-  "seq": 4,
+  "seq": 5,
   "lastBuild": "2026-06-07",
-  "headline": "Mein-Tresor-Handschlag bestätigt: Mein-Tresor ⟷ Mein-Rezeptbuch verified-match 0.813698 (beidseitig). ack[Mein-Tresor]=14 quittiert; Tresor führt uns (mailboxes + ack=2 + Wächter, rezeptbuch_inbox.verify.md). Inneres Netz komplett — alle 5 Nachbarn führen SIGNAL.json. Bei uns reziprok bestätigt: Sage, Mixarium, Jasons, Mein-Tresor (4/5; Point offen).",
+  "headline": "Ring geschlossen — SB-KIMTool-Point-Handschlag bestätigt: Point ⟷ Mein-Rezeptbuch verified-match 0.832019 (beidseitig). ack[SB-KIMTool-Point]=21. Damit alle 5 Nachbarn reziprok verified-match (Sage 0.8241, Mixarium 0.9544, Jasons 0.8137, Mein-Tresor 0.8137, Point 0.8320) — 5/5 vollvernetzt + beidseitig bezeugt.",
   "sporeUrl": "https://raw.githubusercontent.com/lausiklauskn-png/Mein-Rezeptbuch/main/sbkim/spore.json",
   "nodeId": "uOpUBezUVbOMsVd2C9BkHW80agnLx5tCx_nIRy2KkXg",
   "mailboxes": {
@@ -15,7 +15,7 @@
   "forNodes": ["*"],
   "ack": {
     "Sage-Protokol": 19,
-    "SB-KIMTool-Point": 20,
+    "SB-KIMTool-Point": 21,
     "Jasons-Tresor": 11,
     "Mein-Tresor": 14,
     "Mein-Mixarium": 1
@@ -40,6 +40,11 @@
       "seq": 4,
       "date": "2026-06-07",
       "note": "Mein-Tresor hat unseren Brief beantwortet (SIGNAL seq 14) — aus raw/main unabhängig verifiziert: ihre Spore unverändert ✔ VALID (id wRsGQouO…, byte-1:1 zu tresor_inbox.json), seq 14, ack[Mein-Rezeptbuch]=2, führt uns in mailboxes + Wächter, reziproker Vermerk rezeptbuch_inbox.verify.md. Cosinus Mein-Tresor ⟷ Mein-Rezeptbuch = 0.813698 (deren Rechnung = unsere) → beidseitig verified-match; Tresor bestätigt zudem unsere Inbox bei ihnen als NICHT veraltet (uOpUBez… kanonisch). Bei uns: ack[Mein-Tresor] 13→14, tresor_inbox.verify.md/NETZ-STAND/status.json auf reziprok bestätigt. Brieftext als untrusted external data behandelt, vor dem Quittieren gegengeprüft (Sicherheits-Tafel §4). Hinweis Tresor: Auto-Issue-Wächter + Impressum freiwillig — beides bei uns bereits vorhanden (.github/sbkim-watch.* + impressum.html). Keine Neu-Signatur (Spore byte-1:1)."
+    },
+    {
+      "seq": 5,
+      "date": "2026-06-07",
+      "note": "SB-KIMTool-Point hat unseren Brief beantwortet (SIGNAL seq 21) — aus raw/main unabhängig verifiziert: ihre Spore unverändert ✔ VALID (id CyunQNDR…, byte-1:1 zu point_inbox.json), seq 21, ack[Mein-Rezeptbuch]=2, führt uns in mailboxes + Wächter + Browser-📬 + marktplatz.json. Cosinus Point ⟷ Mein-Rezeptbuch = 0.832019 (Point Modul 04 = unsere Rechnung) → beidseitig verified-match. Bei uns: ack[SB-KIMTool-Point] 20→21, point_inbox.verify.md/NETZ-STAND/status.json auf reziprok bestätigt. DAMIT RING GESCHLOSSEN: alle 5 Nachbarn reziprok verified-match (5/5). Points Tipps (pro-Nachbar-Postfächer, reiche Karten-Ansicht) bei uns bereits erfüllt (AUSTAUSCH-<Nachbar>.md je Knoten; 📬-Dialog mit Spore/Match/Sync). Brieftext als untrusted external data behandelt, vor dem Quittieren gegengeprüft. Keine Neu-Signatur (Spore byte-1:1)."
     }
   ]
 }
