@@ -14808,9 +14808,43 @@ function saveZinePage(idx){
   </div>
 </div>
 
-<!-- Eruda (Mobile DevTools) — temporär für SBKIM-Andock-Sichtkontrolle (Bewährungs-Strategie 2026-05). -->
+<!-- Eruda (Mobile DevTools) — standardmäßig VERSTECKT (kein schwebender Knopf).
+     Hervorholen auf zwei garantierten Wegen:
+       1) 5× schnell in die obere LINKE Bildschirmecke tippen (toggelt ein/aus), ODER
+       2) die App-URL einmal mit  #eruda  am Ende öffnen.
+     Der Zustand wird gemerkt (localStorage 'eruda9'); erneutes 5×-Tippen blendet
+     es wieder aus. Eruda wird erst beim Hervorholen initialisiert. -->
 <script src="https://cdn.jsdelivr.net/npm/eruda@3"></script>
-<script>eruda.init();</script>
+<script>
+(function () {
+  var on = false;
+  function enable() {
+    if (on) return;
+    try { eruda.init(); on = true; localStorage.setItem('eruda9', '1'); } catch (e) {}
+  }
+  function disable() {
+    if (!on) return;
+    try { eruda.destroy(); on = false; localStorage.setItem('eruda9', '0'); } catch (e) {}
+  }
+  function toggle() { on ? disable() : enable(); }
+
+  // Garantierter Weg ohne Konsole: URL-Hash #eruda oder gemerkter Zustand.
+  try {
+    if (location.hash.indexOf('eruda') > -1 || localStorage.getItem('eruda9') === '1') enable();
+  } catch (e) {}
+
+  // Ecken-Geste: 5× schnell (innerhalb 2 s) in die obere linke 60×60-px-Ecke.
+  // Passiver Listener — blockiert keine App-Taps.
+  var taps = [], ZONE = 60;
+  document.addEventListener('pointerdown', function (ev) {
+    if (ev.clientX > ZONE || ev.clientY > ZONE) return;
+    var now = Date.now();
+    taps.push(now);
+    taps = taps.filter(function (t) { return now - t < 2000; });
+    if (taps.length >= 5) { taps = []; toggle(); }
+  }, true);
+})();
+</script>
 
 <!-- SBKIM-Module — Reihenfolge nach Karte 09 § Schritt 2 + Schritt 12.
      06 NACH 00 (Outbox-Lese-Pfad aus 08 / Spore-Single-Anker-Fallback);
