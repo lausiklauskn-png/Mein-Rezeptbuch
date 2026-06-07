@@ -1,0 +1,52 @@
+{
+  "node": "Mein-Rezeptbuch",
+  "updated": "2026-06-07",
+  "identity": {
+    "nodeId": "uOpUBezUVbOMsVd2C9BkHW80agnLx5tCx_nIRy2KkXg",
+    "stage": "verified-spore",
+    "spore": "sbkim/spore.json",
+    "domainVectorDims": 384,
+    "embeddingModel": "Xenova/multilingual-e5-small",
+    "verified": true,
+    "freshlySigned": false,
+    "honestNote": "Kein privater Schlüssel in dieser Sitzung verfügbar; verwendet wird die im Netz bereits geprüfte Spore (gleiche nodeId) byte-1:1. Neu-Signatur bleibt Klaus' Schritt."
+  },
+  "mailbox": {
+    "built": true,
+    "logicByteEqualToBauplan": true,
+    "goldCounter": true,
+    "siegel": true,
+    "seq": 1
+  },
+  "watcher": {
+    "script": ".github/sbkim-watch.mjs",
+    "workflow": ".github/workflows/sbkim-watch.yml",
+    "cron": "0 */6 * * *",
+    "dependencies": "none (node fetch only)"
+  },
+  "tests": { "runner": "node --test", "file": "test/sbkim.test.js", "pass": 5, "fail": 0 },
+  "match": {
+    "computedLiveInBrowser": true,
+    "threshold": 0.80,
+    "cosines": {
+      "Mein-Mixarium": 0.9544,
+      "SB-KIMTool-Point": 0.8320,
+      "Sage-Protokol": 0.8241,
+      "Mein-Tresor": 0.8137,
+      "Jasons-Tresor": 0.8137
+    },
+    "connected": "5/5",
+    "honest": "Alle Werte real ≥ 0.80; nichts grün-gerechnet."
+  },
+  "ack": {
+    "Sage-Protokol": 18,
+    "SB-KIMTool-Point": 20,
+    "Jasons-Tresor": 10,
+    "Mein-Tresor": 13,
+    "Mein-Mixarium": 0
+  },
+  "notes": [
+    "Mein-Mixarium hat kein sbkim/SIGNAL.json (HTTP 404) -> ack 0, Sync zeigt ehrlich 'SIGNAL nicht lesbar'.",
+    "Alle 5 Nachbar-Sporen reziprok geprüft (verify_foreign_spore.mjs) -> VALID, byte-1:1 als *_inbox.json abgelegt."
+  ]
+}

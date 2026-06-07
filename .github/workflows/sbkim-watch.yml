@@ -1,0 +1,74 @@
+name: SBKIM Netz-Wächter
+
+# Schaut zeitgesteuert in die Briefkästen (SIGNAL.json) der Peer-Knoten und
+# öffnet NUR dann ein Issue, wenn es Neues gibt (seq > eigenem ack). So erfährt
+# der Knoten von fremden Bauten, auch wenn Klaus gerade nicht da ist.
+# Server-los-konform: nur lesende Anfragen auf genannte raw/main-URLs.
+
+on:
+  schedule:
+    # Standard (inaktiv): alle 6 Stunden. Ruhig, kaum Leerläufe.
+    - cron: "0 */6 * * *"
+    # AKTIV-Phase: diese Zeile einkommentieren, wenn ihr gerade an mehreren
+    # Repos baut — dann alle 15 Min (GitHub-Queue: real eher 15–20 Min).
+    # Danach wieder auskommentieren, sonst hunderte Leerläufe pro Tag.
+    # - cron: "*/15 * * * *"
+  workflow_dispatch: {}      # „Run workflow"-Knopf im Actions-Tab (sofort, jederzeit)
+
+permissions:
+  contents: read
+  issues: write              # nur um bei Neuem ein Hinweis-Issue zu öffnen
+
+concurrency:
+  group: sbkim-watch
+  cancel-in-progress: false
+
+jobs:
+  watch:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Repo auschecken (für eigenes SIGNAL.json / ack)
+        uses: actions/checkout@v4
+
+      - name: Node bereitstellen
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+
+      - name: Briefkästen der Peers prüfen
+        id: watch
+        run: node .github/sbkim-watch.mjs
+
+      - name: Bei Neuem ein Hinweis-Issue öffnen (sonst nichts)
+        if: steps.watch.outputs.has_news == 'true'
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const body = process.env.SUMMARY || "Neues im SBKIM-Netz (Details siehe Action-Log).";
+            const title = "🔔 SBKIM-Netz: Neues von einem Peer-Knoten";
+            // Vorhandenes offenes Wächter-Issue wiederverwenden statt zuzuspammen.
+            const existing = await github.rest.issues.listForRepo({
+              owner: context.repo.owner, repo: context.repo.repo,
+              state: "open", labels: "sbkim-watch", per_page: 1,
+            });
+            if (existing.data.length) {
+              await github.rest.issues.createComment({
+                owner: context.repo.owner, repo: context.repo.repo,
+                issue_number: existing.data[0].number, body,
+              });
+            } else {
+              // Label anlegen (idempotent), dann Issue öffnen.
+              try {
+                await github.rest.issues.createLabel({
+                  owner: context.repo.owner, repo: context.repo.repo,
+                  name: "sbkim-watch", color: "6EE7D3",
+                  description: "Automatische SBKIM-Netz-Briefkasten-Meldung",
+                });
+              } catch (e) { /* existiert schon */ }
+              await github.rest.issues.create({
+                owner: context.repo.owner, repo: context.repo.repo,
+                title, body, labels: ["sbkim-watch"],
+              });
+            }
+        env:
+          SUMMARY: ${{ steps.watch.outputs.summary }}

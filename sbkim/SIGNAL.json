@@ -1,0 +1,30 @@
+{
+  "node": "Mein-Rezeptbuch",
+  "seq": 1,
+  "lastBuild": "2026-06-07",
+  "headline": "SBKIM-Briefkasten 1:1 nach Bauplan gebaut — Live-Verbund (Cosinus im Browser), Gold-Zähler, Siegel, Auto-Issue-Wächter. Identität verified-spore (id uOpUBezUVbOMsVd2C9BkHW80agnLx5tCx_nIRy2KkXg).",
+  "sporeUrl": "https://raw.githubusercontent.com/lausiklauskn-png/Mein-Rezeptbuch/main/sbkim/spore.json",
+  "nodeId": "uOpUBezUVbOMsVd2C9BkHW80agnLx5tCx_nIRy2KkXg",
+  "mailboxes": {
+    "Sage-Protokol": "https://raw.githubusercontent.com/lausiklauskn-png/Mein-Rezeptbuch/main/sbkim/AUSTAUSCH-Sage.md",
+    "SB-KIMTool-Point": "https://raw.githubusercontent.com/lausiklauskn-png/Mein-Rezeptbuch/main/sbkim/AUSTAUSCH-SBKIMTool.md",
+    "Jasons-Tresor": "https://raw.githubusercontent.com/lausiklauskn-png/Mein-Rezeptbuch/main/sbkim/AUSTAUSCH-JasonsTresor.md",
+    "Mein-Tresor": "https://raw.githubusercontent.com/lausiklauskn-png/Mein-Rezeptbuch/main/sbkim/AUSTAUSCH-MeinTresor.md",
+    "Mein-Mixarium": "https://raw.githubusercontent.com/lausiklauskn-png/Mein-Rezeptbuch/main/sbkim/AUSTAUSCH-Mixarium.md"
+  },
+  "forNodes": ["*"],
+  "ack": {
+    "Sage-Protokol": 18,
+    "SB-KIMTool-Point": 20,
+    "Jasons-Tresor": 10,
+    "Mein-Tresor": 13,
+    "Mein-Mixarium": 0
+  },
+  "history": [
+    {
+      "seq": 1,
+      "date": "2026-06-07",
+      "note": "Erstes SIGNAL. Briefkasten gebaut (Knopf 📬 + Dialog + CONFIG + byte-gleiche Logik), Gold-Zähler am geschlossenen Knopf, SBKIM-Siegel, Auto-Issue-Wächter (Cron 0 */6 + Run-Knopf). 5 Nachbar-Sporen reziprok geprüft (✔ VALID) + als *_inbox.json abgelegt. Live-Cosinus gegen eigenen 384-dim domainVector: Mixarium 0.9544, Point 0.8320, Sage 0.8241, Tresor 0.8137, Jasons 0.8137 → 5/5 verbunden. ack auf aktuellen Peer-Stand quittiert (Mixarium 0: kein SIGNAL.json lesbar)."
+    }
+  ]
+}

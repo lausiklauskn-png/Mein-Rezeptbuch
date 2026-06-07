@@ -1,0 +1,13 @@
+{
+  "name": "mein-rezeptbuch",
+  "version": "0.1.0",
+  "description": "Mein Rezeptbuch — Kochrezepte-PWA und SBKIM-Endknoten mit Identität (verified-spore), Live-Verbund-Briefkasten und Andock. Briefkasten-Logik byte-gleich zum Mein-Tresor-Bauplan.",
+  "type": "module",
+  "private": true,
+  "scripts": {
+    "test": "node --test",
+    "verify": "node scripts/verify_foreign_spore.mjs sbkim/spore.json",
+    "watch": "node .github/sbkim-watch.mjs"
+  },
+  "license": "UNLICENSED"
+}
