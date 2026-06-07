@@ -2,8 +2,8 @@ self.SBKIM_SW_STANDALONE = false;
 importScripts("./sbkim-sw-v3.js");
 console.info("SBKIM-SW geladen via importScripts (Variante 3b)");
 // Service Worker for Mein Rezeptbuch (Hauptapp)
-const CACHE = 'mrz-v16';
-const SHELL = ['./index.html', './app-manifest.json', './icons/icon-book-blue-192.png', './icons/icon-book-blue-512.png'];
+const CACHE = 'mrz-v17';
+const SHELL = ['./index.html', './sicherheit.html', './app-manifest.json', './icons/icon-book-blue-192.png', './icons/icon-book-blue-512.png'];
 
 self.addEventListener('install', e => {
   e.waitUntil(caches.open(CACHE).then(c => c.addAll(SHELL)));
