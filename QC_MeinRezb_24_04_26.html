@@ -152,6 +152,13 @@ input::placeholder,textarea::placeholder{color:var(--br3);font-style:italic}
 .hbtn:active{background:rgba(255,255,255,.25)}
 .hbtn.add{background:var(--rust);color:#fff}
 @media(max-width:420px){.hbtns{gap:2px}.hbtn{padding:0 6px;font-size:.62rem}}
+/* SBKIM-Briefkasten — Gold-Zaehler am GESCHLOSSENEN 📬-Knopf: Anzahl neuer/unbearbeiteter
+   Briefe (seq>ack). Eck-Platzierung + Sage-Gold-Optik (wie Mein-Tresor #mt-room-mail-badge). */
+#sbkim-mailbox-btn{position:relative}
+#sbkim-mailbox-badge{position:absolute;top:-6px;right:-6px;min-width:17px;height:17px;padding:0 4px;
+  border-radius:9px;background:#C9A961;color:#1e1707;font-size:.66rem;font-weight:700;line-height:17px;
+  text-align:center;box-shadow:0 1px 4px rgba(0,0,0,.55);pointer-events:none}
+#sbkim-mailbox-badge[hidden]{display:none}
 
 /* search */
 .srch-bar{padding:7px 11px 0;background:var(--parch);border-bottom:1px solid var(--sand2);
@@ -2041,6 +2048,7 @@ body:not([data-theme]) #bnav{
     <button class="hbtn" onclick="openLang()" id="langBtn" title="Sprache wählen">🌐 DE</button>
     <button class="hbtn" id="apiKeyHdrBtn" onclick="openApiKeyOv()" title="Was ist ein API-Key?">? 🔑</button>
     <button class="hbtn" onclick="openHelp()" title="Hilfe · Teilen · Reparatur" id="helpHdrBtn">ℹ️</button>
+    <button class="hbtn" id="sbkim-mailbox-btn" type="button" onclick="sbkimMailboxCheck(false)" title="SBKIM-Briefkasten der Nachbar-Knoten jetzt prüfen">📬<span id="sbkim-mailbox-badge" hidden></span></button>
 <!-- === ONBOARDING START === -->
     <!-- === ONBOARDING END === -->
     <span id="appVersion" style="font-size:.55rem;font-weight:700;color:var(--br3,#a08060);background:var(--br1,#f5efe8);border:1px solid var(--br2,#c4a07a);border-radius:4px;padding:1px 5px;margin-left:5px;align-self:center;letter-spacing:.04em">v10.0</span>
@@ -14813,6 +14821,120 @@ function saveZinePage(idx){
 <script src="sbkim/16_siegel.js"></script>
 <script src="sbkim/18_tool_pwa.js"></script>
 <script src="sbkim/sbkim-init.js"></script>
+
+<!-- ===== SBKIM-Briefkasten (Live-Verbund, additiv) — 1:1 nach Mein-Tresor-Bauplan §3 ===== -->
+<!-- Dialog (Teil 2 — byte-gleich aus dem Bauplan) -->
+<dialog id="sbkim-mailbox-dialog" style="max-width:32em;border:none;border-radius:.8em;padding:1.2em">
+  <h3 style="margin:.2em 0 .6em">📬 SBKIM-Briefkasten</h3>
+  <div id="sbkim-mailbox-body">…</div>
+  <form method="dialog" style="text-align:right;margin-top:1em">
+    <button style="font:inherit;padding:.4em 1em;border-radius:.5em;border:1px solid currentColor;background:transparent;color:inherit;cursor:pointer">Schließen</button>
+  </form>
+</dialog>
+
+<script>
+  // === SBKIM-Briefkasten CONFIG — NUR DIESER BLOCK pro Knoten angepasst (self=Mein-Rezeptbuch) ===
+  window.SBKIM_MAILBOX = {
+    self: "Mein-Rezeptbuch",
+    selfSignal: "sbkim/SIGNAL.json",
+    selfSpore:  "sbkim/spore.json",           // eigener domainVector fuer den Live-Match
+    // VOLLVERNETZUNG (§7): alle anderen Knoten (außer uns selbst).
+    peers: [
+      { name: "Sage-Protokol",    label: "Sage-Protokol",             inbox: "sbkim/sage_inbox.json",     mailbox: "sbkim/AUSTAUSCH-Sage.md",         signal: "https://raw.githubusercontent.com/lausiklauskn-png/Sage-Protokol/main/sbkim/SIGNAL.json" },
+      { name: "SB-KIMTool-Point", label: "SB-KIMTool-Point",          inbox: "sbkim/point_inbox.json",    mailbox: "sbkim/AUSTAUSCH-SBKIMTool.md",    signal: "https://raw.githubusercontent.com/lausiklauskn-png/SB-KIMTool-Point/main/sbkim/SIGNAL.json" },
+      { name: "Jasons-Tresor",    label: "Jasons-Tresor",             inbox: "sbkim/jason_inbox.json",    mailbox: "sbkim/AUSTAUSCH-JasonsTresor.md", signal: "https://raw.githubusercontent.com/lausiklauskn-png/Jasons-Tresor/main/sbkim/SIGNAL.json" },
+      { name: "Mein-Tresor",      label: "Mein-Tresor (Bauplan-Quelle)", inbox: "sbkim/tresor_inbox.json", mailbox: "sbkim/AUSTAUSCH-MeinTresor.md", signal: "https://raw.githubusercontent.com/lausiklauskn-png/Mein-Tresor/main/sbkim/SIGNAL.json" },
+      { name: "Mein-Mixarium",    label: "Mein-Mixarium",             inbox: "sbkim/mixarium_inbox.json", mailbox: "sbkim/AUSTAUSCH-Mixarium.md",     signal: "https://raw.githubusercontent.com/lausiklauskn-png/Mein-Mixarium/main/sbkim/SIGNAL.json" }
+    ]
+  };
+
+  // === SBKIM-Briefkasten Logik (zero-dependency) — BYTE-GLEICH lassen ===
+  async function sbkimMailboxFetch(url) {
+    try { const r = await fetch(url, { cache: "no-store" }); if (!r.ok) return { error: "HTTP " + r.status }; return await r.json(); }
+    catch (e) { return { error: String(e && e.message || e) }; }
+  }
+  // L2-Cosinus zweier domainVector (sind normalisiert; sicherheitshalber voll gerechnet).
+  function sbkimCosine(a, b) {
+    if (!Array.isArray(a) || !Array.isArray(b) || a.length !== b.length) return null;
+    let dot = 0, na = 0, nb = 0;
+    for (let i = 0; i < a.length; i++) { dot += a[i] * b[i]; na += a[i] * a[i]; nb += b[i] * b[i]; }
+    if (!na || !nb) return null;
+    return dot / (Math.sqrt(na) * Math.sqrt(nb));
+  }
+
+  // silent=true: nur Badge (beim Laden). Voller Modus: drei Ebenen je Nachbar —
+  // Spore ✔, Match (Cosinus LIVE im Browser nachgerechnet) und Synchron-Stand (seq ↔ ack).
+  async function sbkimMailboxCheck(silent) {
+    const cfg = window.SBKIM_MAILBOX || {};
+    const dlg = document.getElementById("sbkim-mailbox-dialog");
+    const body = document.getElementById("sbkim-mailbox-body");
+    if (!silent) { body.innerHTML = "Lese Nachbarn & rechne Verbindung nach …"; if (dlg.showModal) dlg.showModal(); }
+
+    let selfAck = {}, selfVec = null, selfId = "";
+    try { const s = await sbkimMailboxFetch(cfg.selfSignal); if (s && s.ack) selfAck = s.ack; } catch {}
+    if (!silent) {
+      const sp = await sbkimMailboxFetch(cfg.selfSpore);
+      if (sp && !sp.error) { if (Array.isArray(sp.domainVector)) selfVec = sp.domainVector; selfId = sp.id || ""; }
+    }
+
+    const cards = [];
+    let unread = 0, connected = 0;
+    for (const peer of (cfg.peers || [])) {
+      const sig = await sbkimMailboxFetch(peer.signal);
+      const seq = sig && !sig.error ? (Number(sig.seq) || 0) : null;
+      const seen = Number(selfAck[peer.name]) || 0;
+
+      let sync;
+      if (seq === null) sync = `SIGNAL nicht lesbar`;
+      else if (seq > seen) { unread++; sync = `<b style="color:#e0a52b">⏳ ${seq - seen} ungelesen</b> (ihr seq ${seq}) — <a href="${peer.mailbox}" target="_blank" rel="noopener">Postfach ↗</a>`; }
+      else sync = `<span style="color:#3bbf7a">✔ synchron</span> (seq ${seq}, quittiert ${seen})`;
+
+      let spore = "—", match = "—";
+      if (!silent) {
+        const inbox = await sbkimMailboxFetch(peer.inbox);
+        if (inbox && !inbox.error) {
+          spore = `<span style="color:#3bbf7a">✔ verified-spore</span> · <code style="font-size:.72rem">${(inbox.id || "").slice(0, 16)}…</code>`;
+          const c = selfVec && Array.isArray(inbox.domainVector) ? sbkimCosine(selfVec, inbox.domainVector) : null;
+          if (c === null) match = `wartet auf Vektor`;
+          else if (c >= 0.8) { connected++; match = `<span style="color:#3bbf7a">✔ verified-match</span> · cos <b>${c.toFixed(4)}</b>`; }
+          else match = `cos ${c.toFixed(4)} — unter 0.80`;
+        } else spore = `Spore nicht lesbar`;
+      }
+
+      cards.push(
+        `<div style="border:1px solid var(--line,#2a2a2a);border-radius:.6em;padding:.55em .7em;margin:.5em 0">
+           <div style="font-weight:600;margin-bottom:.25em">${peer.label || peer.name}</div>
+           <div style="font-size:.82rem;line-height:1.8">
+             <div>①&nbsp;Spore&nbsp;&nbsp;${spore}</div>
+             <div>②&nbsp;Match&nbsp;&nbsp;${match}</div>
+             <div>③&nbsp;Sync&nbsp;&nbsp;&nbsp;${sync}</div>
+           </div>
+         </div>`);
+    }
+
+    if (!silent) {
+      const total = (cfg.peers || []).length;
+      const head =
+        `<div style="text-align:center;margin:0 0 .6em">
+           <img src="assets/sbkim-siegel-wappen.svg" alt="SBKIM-Siegel" decoding="async" style="width:92px;height:92px;display:block;margin:0 auto .25em"/>
+           <div style="font-weight:600">${cfg.self} — SBKIM-Endknoten</div>
+           <div style="font-size:.72rem;color:var(--muted,#9aa);word-break:break-all">${selfId ? "nodeId " + selfId.slice(0, 20) + "… · verified-spore ✔" : "Identität: sbkim/spore.json"}</div>
+         </div>`;
+      const foot =
+        `<p style="margin:.6em 0 0;text-align:center"><b style="color:#3bbf7a">${connected}/${total} verbunden</b> · ${unread ? `<b style="color:#e0a52b">${unread} ungelesen</b>` : "📭 alles synchron"}</p>
+         <p style="margin:.3em 0 0;font-size:.7rem;color:var(--muted,#9aa);text-align:center">Match jetzt <b>live in deinem Browser</b> nachgerechnet (Cosinus eigener ⟷ Nachbar-Spore). Quittieren via <code>ack</code> in sbkim/SIGNAL.json.</p>`;
+      body.innerHTML = head + cards.join("") + foot;
+    }
+
+    for (const id of ["sbkim-mailbox-badge", "hud-mailbox-badge"]) {
+      const badge = document.getElementById(id);
+      if (!badge) continue;
+      if (unread) { badge.textContent = String(unread); badge.hidden = false; } else { badge.hidden = true; }
+    }
+  }
+  // Beim Laden still pruefen und Badge setzen (kein Dialog-Popup).
+  window.addEventListener("DOMContentLoaded", () => { try { sbkimMailboxCheck(true); } catch {} });
+</script>
 
 </body>
 </html>
