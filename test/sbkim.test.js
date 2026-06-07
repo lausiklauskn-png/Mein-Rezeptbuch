@@ -59,3 +59,12 @@ test("Cosinus mit sich selbst ist 1 (Sanity der Match-Rechnung)", () => {
   const self = load("spore.json").domainVector;
   assert.ok(Math.abs(cosine(self, self) - 1) < 1e-9);
 });
+
+test("zu jeder *_inbox.json gibt es einen *_inbox.verify.md-Vermerk (§11.3)", () => {
+  const all = readdirSync(new URL(".", SBKIM));
+  const inboxes = all.filter((f) => f.endsWith("_inbox.json"));
+  for (const f of inboxes) {
+    const verify = f.replace(/\.json$/, ".verify.md");
+    assert.ok(all.includes(verify), `fehlt: ${verify}`);
+  }
+});
