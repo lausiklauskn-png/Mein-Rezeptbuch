@@ -24,6 +24,6 @@
 
 ## Match (Live-Cosinus, eigener domainVector ⟷ Nachbar)
 - **cos = 0.813698** (Schwelle ≥ 0.80) → **Stufe: verified-match**
-- Reziprozität: einseitig (unsere Browser-Rechnung); reziproke Bestätigung steht aus.
+- Reziprozität: **✔ reziprok bestätigt** durch Jasons-Tresor 2026-06-07 — Jasons hat unabhängig (Modul 04, node:crypto) denselben Wert 0.813698 gerechnet, führt uns in `mailboxes` + `ack["Mein-Rezeptbuch"]=2` (SIGNAL seq 11) + Postfach `AUSTAUSCH-Rezeptbuch.md`. Aus `raw/main` gegengeprüft (Spore unverändert, byte-1:1).
 
 _Erzeugt 2026-06-07. Nachrechnen: `node scripts/verify_foreign_spore.mjs sbkim/jason_inbox.json` + Cosinus im 📬-Briefkasten (live im Browser)._
