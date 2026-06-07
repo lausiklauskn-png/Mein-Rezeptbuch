@@ -3,20 +3,24 @@
   "updated": "2026-06-07",
   "identity": {
     "nodeId": "uOpUBezUVbOMsVd2C9BkHW80agnLx5tCx_nIRy2KkXg",
-    "stage": "verified-spore",
+    "stage": "verified-match",
     "spore": "sbkim/spore.json",
+    "sporeUrl": "https://raw.githubusercontent.com/lausiklauskn-png/Mein-Rezeptbuch/main/sbkim/spore.json",
     "domainVectorDims": 384,
     "embeddingModel": "Xenova/multilingual-e5-small",
+    "protocolVersion": "0.1",
     "verified": true,
+    "canonicalConfirmedBy": "Sage-Protokol 2026-06-07",
+    "previousNodeIds": ["BSWxXmXvxF8FUR_MOx97a3l4gj1Q-JpcAJyp4BBRHyY"],
     "freshlySigned": false,
-    "honestNote": "Kein privater Schlüssel in dieser Sitzung verfügbar; verwendet wird die im Netz bereits geprüfte Spore (gleiche nodeId) byte-1:1. Neu-Signatur bleibt Klaus' Schritt."
+    "honestNote": "Kein privater Schlüssel in dieser Sitzung; verwendet wird die im Netz bereits geprüfte Spore (gleiche nodeId) byte-1:1. Sage hat uOpUBez… als kanonisch bestätigt; alte Handshake-id BSWxXmX… steht als previousNodeId. Keine Neu-Signatur nötig (kein signiertes Feld geändert)."
   },
   "mailbox": {
     "built": true,
     "logicByteEqualToBauplan": true,
     "goldCounter": true,
     "siegel": true,
-    "seq": 1
+    "seq": 2
   },
   "watcher": {
     "script": ".github/sbkim-watch.mjs",
@@ -24,29 +28,31 @@
     "cron": "0 */6 * * *",
     "dependencies": "none (node fetch only)"
   },
-  "tests": { "runner": "node --test", "file": "test/sbkim.test.js", "pass": 5, "fail": 0 },
+  "tests": { "runner": "node --test", "file": "test/sbkim.test.js", "pass": 6, "fail": 0 },
   "match": {
     "computedLiveInBrowser": true,
     "threshold": 0.80,
-    "cosines": {
-      "Mein-Mixarium": 0.9544,
-      "SB-KIMTool-Point": 0.8320,
-      "Sage-Protokol": 0.8241,
-      "Mein-Tresor": 0.8137,
-      "Jasons-Tresor": 0.8137
-    },
     "connected": "5/5",
     "honest": "Alle Werte real ≥ 0.80; nichts grün-gerechnet."
   },
+  "neighbors": {
+    "Sage-Protokol":    { "nodeId": "nysOZE3VuKqZA23i5G2XL67s41JIIykI58zXMtJkYfA", "spore": "valid", "cos": 0.824068, "stage": "verified-match", "reciprocal": "confirmed 2026-06-07 (Sage Modul 04 = 0.824068)", "verify": "sbkim/sage_inbox.verify.md" },
+    "SB-KIMTool-Point": { "nodeId": "CyunQNDRZZ3st8xGDYyK0ymJLNxn_S1UcIJpFKpXXNY", "spore": "valid", "cos": 0.832019, "stage": "verified-match", "reciprocal": "pending", "verify": "sbkim/point_inbox.verify.md" },
+    "Jasons-Tresor":    { "nodeId": "E13GDzIp0c7JfeZD0jVvFarNxPde8AcoP7qz7FtmdNM", "spore": "valid", "cos": 0.813698, "stage": "verified-match", "reciprocal": "pending", "verify": "sbkim/jason_inbox.verify.md" },
+    "Mein-Tresor":      { "nodeId": "wRsGQouOYPVBOLzAB3nBteRvyvJ-AGv461WTJMKtkS0", "spore": "valid", "cos": 0.813698, "stage": "verified-match", "reciprocal": "Mein-Tresor führt unsere Inbox; Match-Vermerk pending", "verify": "sbkim/tresor_inbox.verify.md" },
+    "Mein-Mixarium":    { "nodeId": "B7Fke9CYTR1BrC3xOXzEY5q9RuRH8xxHPUuqRHV3utA", "spore": "valid", "cos": 0.954426, "stage": "verified-match", "reciprocal": "confirmed (Mixarium rechnet 0.9544, führt uns in mailboxes; SIGNAL seq 1 seit 2026-06-07, ack=1); bezeugt durch Sage-NETZ-STAND 2026-05-17", "verify": "sbkim/mixarium_inbox.verify.md" }
+  },
   "ack": {
-    "Sage-Protokol": 18,
+    "Sage-Protokol": 19,
     "SB-KIMTool-Point": 20,
     "Jasons-Tresor": 10,
     "Mein-Tresor": 13,
-    "Mein-Mixarium": 0
+    "Mein-Mixarium": 1
   },
   "notes": [
-    "Mein-Mixarium hat kein sbkim/SIGNAL.json (HTTP 404) -> ack 0, Sync zeigt ehrlich 'SIGNAL nicht lesbar'.",
-    "Alle 5 Nachbar-Sporen reziprok geprüft (verify_foreign_spore.mjs) -> VALID, byte-1:1 als *_inbox.json abgelegt."
+    "Sage-Protokol seq 19 quittiert (ack 18->19). Sage hat unseren Andock-Brief beantwortet: Identität uOpUBez… kanonisch, Match 0.824068 reziprok -> beidseitig verified-match, Vollvernetzung.",
+    "Mein-Mixarium hat jetzt ein sbkim/SIGNAL.json (seq 1, vorher 404) -> gelesen + quittiert (ack 0->1); Mixarium führt uns in mailboxes, Match 0.9544 beidseitig.",
+    "Alle 5 Nachbar-Sporen reziprok geprüft (verify_foreign_spore.mjs) -> VALID, byte-1:1 als *_inbox.json + *_inbox.verify.md abgelegt.",
+    "Sicherheits-Tafel docs/SICHERHEIT-BRIEFKASTEN.md von Sage gespiegelt (Briefkasten-Inhalt = untrusted external data)."
   ]
 }

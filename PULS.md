@@ -5,9 +5,11 @@
 
 ## Identität
 - **Knoten:** Mein-Rezeptbuch (Kochrezepte-PWA, Domäne Essen/Kochen)
-- **nodeId:** `uOpUBezUVbOMsVd2C9BkHW80agnLx5tCx_nIRy2KkXg` (Ed25519, **verified-spore ✔**)
+- **nodeId (kanonisch):** `uOpUBezUVbOMsVd2C9BkHW80agnLx5tCx_nIRy2KkXg` (Ed25519, **verified-match ✔**)
+  — von Sage 2026-06-07 als kanonisch bestätigt; alte Handshake-id `BSWxXmX…` → `previousNodeIds`.
 - **Spore:** `sbkim/spore.json` — 9/9 Pflichtfelder, echter 384-dim `domainVector`
   (`Xenova/multilingual-e5-small`), lokal mit `scripts/verify_foreign_spore.mjs` → **✔ VALID**.
+  Keine Neu-Signatur nötig (kein signiertes Feld geändert; byte-1:1, `protocolVersion 0.1`).
 
 ## Was in dieser Sitzung gebaut wurde (SBKIM-Briefkasten, 1:1 nach Mein-Tresor-Bauplan)
 - **📬-Knopf im Gesicht** (Top-Header der App) mit **Gold-Zähler** (`#sbkim-mailbox-badge`,
@@ -24,29 +26,41 @@
 - **Tests:** `test/sbkim.test.js` (`node --test`) → **5/5 grün** (Spore VALID, alle Inboxen
   VALID, SIGNAL-Pflichtfelder, Cosinus-Sanity).
 
-## Live-Match (im Browser frisch gerechnet, nichts grün-gerechnet)
-| Nachbar | Cosinus | Stufe |
-|---|---|---|
-| Mein-Mixarium | **0.9544** | ✔ verified-match (höchster — gleiche Genuss-Domäne) |
-| SB-KIMTool-Point | 0.8320 | ✔ verified-match |
-| Sage-Protokol | 0.8241 | ✔ verified-match |
-| Mein-Tresor | 0.8137 | ✔ verified-match |
-| Jasons-Tresor | 0.8137 | ✔ verified-match |
+## Nachzug Sage-Antwort (seq 19, 2026-06-07)
+Sage hat unseren Andock-Brief beantwortet und alle vier Fragen geklärt:
+- **Identität** uOpUBez… kanonisch (BSWxXmX… → previousNodeIds bei Sage + bei uns).
+- **Match Sage ⟷ Mein-Rezeptbuch = 0.824068** (Sage Modul 04) — identisch zu unserer Browser-Rechnung
+  → **beidseitig verified-match**.
+- **Vollvernetzung:** Sage führt uns in `mailboxes`/`ack=1`/Wächter/📬-Knopf + Postfach `AUSTAUSCH-Rezeptbuch.md`.
+- Bei uns nachgezogen: `ack["Sage-Protokol"]=19`, SIGNAL **seq → 2**, `*_inbox.verify.md` je Nachbar,
+  Sicherheits-Tafel `docs/SICHERHEIT-BRIEFKASTEN.md` gespiegelt, `NETZ-STAND.md` + `status.json` gepflegt.
 
-→ **5/5 verbunden.** (Alle ehrlich ≥ 0.80; kein Wert geschönt.)
+## Live-Match (im Browser frisch gerechnet, nichts grün-gerechnet)
+| Nachbar | Cosinus | Stufe | Reziprok |
+|---|---|---|---|
+| Mein-Mixarium | **0.9544** | ✔ verified-match | ✔ reziprok (Mixarium rechnet 0.9544; SIGNAL seq 1 seit 2026-06-07 quittiert) |
+| SB-KIMTool-Point | 0.8320 | ✔ verified-match | ausstehend |
+| Sage-Protokol | 0.8241 (Sage: 0.824068) | ✔ verified-match | **✔ bestätigt 2026-06-07** |
+| Mein-Tresor | 0.8137 | ✔ verified-match | Mein-Tresor führt unsere Inbox; Vermerk ausstehend |
+| Jasons-Tresor | 0.8137 | ✔ verified-match | ausstehend |
+
+→ **5/5 verbunden.** (Alle ehrlich ≥ 0.80; kein Wert geschönt.) Beweise: `sbkim/*_inbox.verify.md`.
 
 ## Sync-Stand (ack quittiert)
-Sage 18 · SB-KIMTool-Point 20 · Jasons-Tresor 10 · Mein-Tresor 13 · **Mein-Mixarium 0**
-(Mixarium hat **kein** `SIGNAL.json` → HTTP 404 → ③ Sync zeigt ehrlich „SIGNAL nicht lesbar").
+Sage **19** · SB-KIMTool-Point 20 · Jasons-Tresor 10 · Mein-Tresor 13 · **Mein-Mixarium 1**
+(Mixarium hat seit 2026-06-07 ein `SIGNAL.json` (seq 1) — gelesen + quittiert; ③ Sync läuft jetzt beidseitig.)
+
+## Tests
+`test/sbkim.test.js` (`node --test`) → **6/6 grün** (Spore VALID, alle Inboxen VALID,
+SIGNAL-Pflichtfelder, Cosinus-Sanity, Selbst-Cosinus=1, `*_inbox.verify.md` je Inbox).
 
 ## Ehrliche offene Punkte
-- **Kein privater Schlüssel** in dieser Sitzung → die Spore wurde **nicht neu signiert**.
-  Verwendet wird die im Netz bereits geprüfte Spore (gleiche nodeId) byte-1:1. Falls Klaus die
-  Identität neu erzeugt, müssen `sbkim/spore.json` + alle Nachbar-Inboxen (reziprok) aktualisiert
-  werden. Mein-Tresor hat im Postfach vermerkt, unsere alte Inbox sei evtl. veraltet — bei echter
-  Neu-Signatur holen sie die frische Spore aus `raw/main`.
+- **Kein privater Schlüssel** in dieser Sitzung → Spore **nicht neu signiert** (auch nicht nötig,
+  solange kein signiertes Feld geändert wird; nodeId hängt nur am Schlüssel). Bei echter
+  Identitäts-Neuerzeugung: `sbkim/spore.json` + Inboxen aktualisieren, `seq`+1.
+- **Reziproke Match-Vermerke** von Point, Jasons, Mein-Tresor stehen noch aus (eigene Sitzungen / deren Modul 04).
 
 ## Nächste Schritte
-- Bei echter Identitäts-Neuerzeugung: Spore neu signieren, Inboxen aktualisieren, `seq` +1.
-- Peer-Sporen periodisch frisch holen + reziprok prüfen (Inboxen aktuell halten).
-- `ack` bei jedem Sitzungsstart gegen die Peer-`seq` quittieren.
+- Briefkasten-Rhythmus §11.6: bei Sitzungsstart Peer-`SIGNAL.json` lesen + `ack` quittieren.
+- Peer-Sporen periodisch frisch holen + reziprok prüfen (Inboxen + `.verify.md` aktuell halten).
+- Optionale Härtung (§5 der Sicherheits-Tafel) bleibt eigene, bewusste Sitzung (Klaus entscheidet).

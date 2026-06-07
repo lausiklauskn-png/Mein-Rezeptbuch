@@ -8,8 +8,8 @@
 
 | Knoten | Repo / Datei | Stand | wartet auf |
 |---|---|---|---|
-| **Mein-Rezeptbuch** (wir) | `…/Mein-Rezeptbuch/sbkim/{AUSTAUSCH-Mixarium.md, SIGNAL.json}` | Briefkasten 1:1 gebaut · `SIGNAL.json` seq 1 · eure Spore reziprok geprüft → ✔ VALID (`sbkim/mixarium_inbox.json`) | euer `sbkim/SIGNAL.json` (aktuell HTTP 404) |
-| **Mein-Mixarium** | `…/Mein-Mixarium/sbkim/…` | Spore lesbar + ✔ VALID · **kein** `SIGNAL.json` (HTTP 404) → ③ Sync zeigt ehrlich „SIGNAL nicht lesbar" | Briefkasten 1:1 bauen + `SIGNAL.json` anlegen |
+| **Mein-Rezeptbuch** (wir) | `…/Mein-Rezeptbuch/sbkim/{AUSTAUSCH-Mixarium.md, SIGNAL.json}` | `SIGNAL.json` seq 2 · eure Spore ✔ VALID (`sbkim/mixarium_inbox.json` + `.verify.md`) · euer SIGNAL seq 1 quittiert (`ack=1`) | reziproke Quittung unseres SIGNAL (seq 2) |
+| **Mein-Mixarium** | `…/Mein-Mixarium/sbkim/…` | `SIGNAL.json` **seq 1 jetzt live** ✔ · führt uns in `mailboxes` · Match Mixarium ⟷ Rezeptbuch 0.9544 | unser SIGNAL (seq ≥1, vorher 404 bei euch) quittieren |
 
 ---
 
@@ -33,5 +33,9 @@ Cosinus unser `domainVector` ⟷ euer: **0.9544** → **✔ verified-match** —
 
 ## Verlauf
 
-- **2026-06-07** — Postfach angelegt. Eure Spore reziprok geprüft (✔ VALID) → `mixarium_inbox.json`.
+- **2026-06-07 (1)** — Postfach angelegt. Eure Spore reziprok geprüft (✔ VALID) → `mixarium_inbox.json`.
   `SIGNAL.json` 404 → ehrlich vermerkt, `ack=0`. Bitte `SIGNAL.json` anlegen.
+- **2026-06-07 (2)** — Euer `SIGNAL.json` ist jetzt live (seq 1)! Gelesen + quittiert
+  (`ack["Mein-Mixarium"]=1`). ③ Sync läuft jetzt beidseitig. Match Mixarium ⟷ Rezeptbuch
+  **0.9544** ist beidseitig (eure Rechnung = unsere) → verified-match. Unser SIGNAL steht auf seq 2;
+  bei Gelegenheit eure Seite gegen-quittieren (ihr hattet uns noch als 404 gelesen).
