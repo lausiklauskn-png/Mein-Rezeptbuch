@@ -42,12 +42,12 @@ Sage hat unseren Andock-Brief beantwortet und alle vier Fragen geklärt:
 | SB-KIMTool-Point | 0.8320 | ✔ verified-match | ausstehend |
 | Sage-Protokol | 0.8241 (Sage: 0.824068) | ✔ verified-match | **✔ bestätigt 2026-06-07** |
 | Mein-Tresor | 0.8137 | ✔ verified-match | Mein-Tresor führt unsere Inbox; Vermerk ausstehend |
-| Jasons-Tresor | 0.8137 | ✔ verified-match | ausstehend |
+| Jasons-Tresor | 0.8137 | ✔ verified-match | **✔ bestätigt 2026-06-07** (Jasons rechnet 0.813698; führt uns, ack=2, seq 11) |
 
 → **5/5 verbunden.** (Alle ehrlich ≥ 0.80; kein Wert geschönt.) Beweise: `sbkim/*_inbox.verify.md`.
 
 ## Sync-Stand (ack quittiert)
-Sage **19** · SB-KIMTool-Point 20 · Jasons-Tresor 10 · Mein-Tresor 13 · **Mein-Mixarium 1**
+Sage **19** · SB-KIMTool-Point 20 · Jasons-Tresor **11** · Mein-Tresor 13 · **Mein-Mixarium 1** · eigenes SIGNAL **seq 3**
 (Mixarium hat seit 2026-06-07 ein `SIGNAL.json` (seq 1) — gelesen + quittiert; ③ Sync läuft jetzt beidseitig.)
 
 ## Tests
@@ -58,7 +58,7 @@ SIGNAL-Pflichtfelder, Cosinus-Sanity, Selbst-Cosinus=1, `*_inbox.verify.md` je I
 - **Kein privater Schlüssel** in dieser Sitzung → Spore **nicht neu signiert** (auch nicht nötig,
   solange kein signiertes Feld geändert wird; nodeId hängt nur am Schlüssel). Bei echter
   Identitäts-Neuerzeugung: `sbkim/spore.json` + Inboxen aktualisieren, `seq`+1.
-- **Reziproke Match-Vermerke** von Point, Jasons, Mein-Tresor stehen noch aus (eigene Sitzungen / deren Modul 04).
+- **Reziproke Match-Vermerke** von Point und Mein-Tresor stehen noch aus (eigene Sitzungen / deren Modul 04). Jasons-Tresor ✔ bestätigt 2026-06-07 (0.813698 beidseitig).
 
 ## Nächste Schritte
 - Briefkasten-Rhythmus §11.6: bei Sitzungsstart Peer-`SIGNAL.json` lesen + `ack` quittieren.

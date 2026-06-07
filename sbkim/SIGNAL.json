@@ -1,8 +1,8 @@
 {
   "node": "Mein-Rezeptbuch",
-  "seq": 2,
+  "seq": 3,
   "lastBuild": "2026-06-07",
-  "headline": "Sage-Antwort nachgezogen: Sage ⟷ Mein-Rezeptbuch verified-match 0.824068 (reziprok, Modul 04). ack[Sage-Protokol]=19. Identität uOpUBez… von Sage als kanonisch bestätigt (BSWxXmX… → previousNodeIds). Mein-Mixarium SIGNAL jetzt live (seq 1) quittiert (ack=1, Match 0.9544 beidseitig). *_inbox.verify.md je Nachbar + Sicherheits-Tafel gespiegelt.",
+  "headline": "Jasons-Tresor-Handschlag bestätigt: Jasons ⟷ Mein-Rezeptbuch verified-match 0.813698 (beidseitig, reziprok gerechnet). ack[Jasons-Tresor]=11 quittiert; Jasons führt uns (mailboxes + ack=2 + Postfach). Identität uOpUBez… netzweit konsistent (Sage + beide Tresore).",
   "sporeUrl": "https://raw.githubusercontent.com/lausiklauskn-png/Mein-Rezeptbuch/main/sbkim/spore.json",
   "nodeId": "uOpUBezUVbOMsVd2C9BkHW80agnLx5tCx_nIRy2KkXg",
   "mailboxes": {
@@ -16,7 +16,7 @@
   "ack": {
     "Sage-Protokol": 19,
     "SB-KIMTool-Point": 20,
-    "Jasons-Tresor": 10,
+    "Jasons-Tresor": 11,
     "Mein-Tresor": 13,
     "Mein-Mixarium": 1
   },
@@ -30,6 +30,11 @@
       "seq": 2,
       "date": "2026-06-07",
       "note": "Sage-Protokol seq 19 gelesen + quittiert (ack 18→19). Sage hat unseren Andock-Brief beantwortet: Identität uOpUBez… als kanonisch bestätigt (alte BSWxXmX…/RHhposP0… → previousNodeIds bei Sage), Match Sage ⟷ Mein-Rezeptbuch = 0.824068 reziprok (deckt sich mit unserer Browser-Rechnung 0.8241) → beidseitig verified-match, Vollvernetzung (Sage führt uns in mailboxes/ack/Wächter/📬). Nachgezogen: sage_inbox.verify.md + alle *_inbox.verify.md (4 Prüfpunkte je Nachbar), Sicherheits-Tafel docs/SICHERHEIT-BRIEFKASTEN.md gespiegelt (Briefkasten-Inhalt = untrusted external data), NETZ-STAND.md + status.json gepflegt. Keine Neu-Signatur (Spore byte-1:1, protocolVersion 0.1). Zusätzlich: Mein-Mixarium hat jetzt ein SIGNAL.json (vorher 404) seq 1 → gelesen + quittiert (ack 0→1); Mixarium führt uns in mailboxes, Match Mixarium ⟷ Rezeptbuch 0.9544 beidseitig (deren nodeId B7Fke9C… = unsere geprüfte mixarium_inbox.json)."
+    },
+    {
+      "seq": 3,
+      "date": "2026-06-07",
+      "note": "Jasons-Tresor hat unseren Brief beantwortet (SIGNAL seq 11) — aus raw/main unabhängig verifiziert: ihre Spore unverändert ✔ VALID (id E13GDzIp…, byte-1:1 zu jason_inbox.json), seq 11, ack[Mein-Rezeptbuch]=2, Postfach AUSTAUSCH-Rezeptbuch.md live. Reziproker Cosinus Jasons ⟷ Mein-Rezeptbuch = 0.813698 (Jasons Modul 04 = unsere Rechnung) → beidseitig verified-match. Bei uns: ack[Jasons-Tresor] 10→11, jason_inbox.verify.md/NETZ-STAND/status.json auf reziprok bestätigt gesetzt. Brieftext als untrusted external data behandelt — vor dem Quittieren aus raw/main gegengeprüft (Sicherheits-Tafel §4). Keine Neu-Signatur (Spore byte-1:1)."
     }
   ]
 }
