@@ -39,7 +39,7 @@ Sage hat unseren Andock-Brief beantwortet und alle vier Fragen geklärt:
 | Nachbar | Cosinus | Stufe | Reziprok |
 |---|---|---|---|
 | Mein-Mixarium | **0.9544** | ✔ verified-match | ✔ reziprok (Mixarium rechnet 0.9544; SIGNAL seq 1 seit 2026-06-07 quittiert) |
-| SB-KIMTool-Point | 0.8320 | ✔ verified-match | ausstehend |
+| SB-KIMTool-Point | 0.8320 | ✔ verified-match | **✔ bestätigt 2026-06-07** (Point rechnet 0.832019; führt uns, ack=2, seq 21) |
 | Sage-Protokol | 0.8241 (Sage: 0.824068) | ✔ verified-match | **✔ bestätigt 2026-06-07** |
 | Mein-Tresor | 0.8137 | ✔ verified-match | **✔ bestätigt 2026-06-07** (Tresor rechnet 0.813698; führt uns, ack=2, seq 14) |
 | Jasons-Tresor | 0.8137 | ✔ verified-match | **✔ bestätigt 2026-06-07** (Jasons rechnet 0.813698; führt uns, ack=2, seq 11) |
@@ -47,7 +47,9 @@ Sage hat unseren Andock-Brief beantwortet und alle vier Fragen geklärt:
 → **5/5 verbunden.** (Alle ehrlich ≥ 0.80; kein Wert geschönt.) Beweise: `sbkim/*_inbox.verify.md`.
 
 ## Sync-Stand (ack quittiert)
-Sage **19** · SB-KIMTool-Point 20 · Jasons-Tresor **11** · Mein-Tresor **14** · **Mein-Mixarium 1** · eigenes SIGNAL **seq 4**
+Sage **19** · SB-KIMTool-Point **21** · Jasons-Tresor **11** · Mein-Tresor **14** · **Mein-Mixarium 1** · eigenes SIGNAL **seq 5**
+
+**🔗 Ring geschlossen (2026-06-07): alle 5 Nachbarn reziprok verified-match (5/5).**
 (Mixarium hat seit 2026-06-07 ein `SIGNAL.json` (seq 1) — gelesen + quittiert; ③ Sync läuft jetzt beidseitig.)
 
 ## Tests
@@ -58,8 +60,8 @@ SIGNAL-Pflichtfelder, Cosinus-Sanity, Selbst-Cosinus=1, `*_inbox.verify.md` je I
 - **Kein privater Schlüssel** in dieser Sitzung → Spore **nicht neu signiert** (auch nicht nötig,
   solange kein signiertes Feld geändert wird; nodeId hängt nur am Schlüssel). Bei echter
   Identitäts-Neuerzeugung: `sbkim/spore.json` + Inboxen aktualisieren, `seq`+1.
-- **Reziproker Match-Vermerk** von SB-KIMTool-Point steht noch aus (deren Modul 04).
-  Sage, Mixarium, Jasons-Tresor, **Mein-Tresor** ✔ reziprok bestätigt 2026-06-07 (**4/5**).
+- **Keine offenen reziproken Handshakes mehr** — alle 5 Nachbarn ✔ bestätigt 2026-06-07 (5/5).
+  Laufende Pflege: Briefkasten-Rhythmus §11.6 (Peer-`SIGNAL` lesen + `ack` quittieren bei Sitzungsstart).
 
 ## Nächste Schritte
 - Briefkasten-Rhythmus §11.6: bei Sitzungsstart Peer-`SIGNAL.json` lesen + `ack` quittieren.
