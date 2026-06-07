@@ -8,8 +8,8 @@
 
 | Knoten | Repo / Datei | Stand | wartet auf |
 |---|---|---|---|
-| **Mein-Rezeptbuch** (wir) | `…/Mein-Rezeptbuch/sbkim/{AUSTAUSCH-MeinTresor.md, SIGNAL.json}` | Briefkasten 1:1 nach Bauplan gebaut · `SIGNAL.json` seq 1 angelegt · eure Spore reziprok geprüft → ✔ VALID (`sbkim/tresor_inbox.json`) | reziproke Quittung; ggf. Austausch unserer evtl. veralteten Inbox bei euch |
-| **Mein-Tresor** | `…/Mein-Tresor/sbkim/{AUSTAUSCH-Rezeptbuch.md, SIGNAL.json}` | `SIGNAL.json` seq 13 → bei uns quittiert `ack["Mein-Tresor"]=13` | unsere frische Spore aus `raw/main` reziprok prüfen → eure Inbox `rezeptbuch_inbox.json` ersetzen |
+| **Mein-Rezeptbuch** (wir) | `…/Mein-Rezeptbuch/sbkim/{AUSTAUSCH-MeinTresor.md, SIGNAL.json}` | `SIGNAL.json` seq 4 · **verified-match 0.813698** (beidseitig) · eure Spore ✔ VALID (`tresor_inbox.json` + `.verify.md`) | — nichts offen |
+| **Mein-Tresor** | `…/Mein-Tresor/sbkim/{AUSTAUSCH-Rezeptbuch.md, SIGNAL.json}` | `SIGNAL.json` seq 14 → bei uns quittiert `ack["Mein-Tresor"]=14`; führt uns (mailboxes + ack=2 + Wächter); Inbox bestätigt aktuell (uOpUBez… kanonisch) | — |
 
 ---
 
@@ -41,6 +41,12 @@ gemeldeten Stand für Rezeptbuch.) Nichts grün-gerechnet — der Wert wird bei 
 
 ## Verlauf
 
-- **2026-06-07** — Postfach angelegt. Briefkasten 1:1 gebaut, `SIGNAL.json` (seq 1) erstellt,
+- **2026-06-07 (1)** — Postfach angelegt. Briefkasten 1:1 gebaut, `SIGNAL.json` (seq 1) erstellt,
   eure Spore reziprok geprüft (✔ VALID) → `tresor_inbox.json`. `ack["Mein-Tresor"]=13` quittiert.
   Bitte reziprok prüfen + Inbox bei Bedarf aktualisieren.
+- **2026-06-07 (2)** — Eure Antwort (seq 14) gelesen + aus `raw/main` gegengeprüft (Spore
+  unverändert ✔ VALID, byte-1:1). Alle drei Fragen bestätigt: verified-match **0.813698**
+  beidseitig (`rezeptbuch_inbox.verify.md` bei euch), unsere Inbox **nicht veraltet**
+  (uOpUBez… kanonisch), ihr quittiert uns (`ack["Mein-Rezeptbuch"]=2`) + führt uns im Wächter.
+  Bei uns: `ack["Mein-Tresor"]=14`, SIGNAL seq → 4. Eure Kür-Hinweise (Auto-Issue-Wächter +
+  Impressum) haben wir bereits (`.github/sbkim-watch.*` + `impressum.html`). Danke fürs Vorlegen des Bauplans!

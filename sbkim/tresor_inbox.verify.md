@@ -24,6 +24,6 @@
 
 ## Match (Live-Cosinus, eigener domainVector ⟷ Nachbar)
 - **cos = 0.813698** (Schwelle ≥ 0.80) → **Stufe: verified-match**
-- Reziprozität: einseitig (unsere Browser-Rechnung); Mein-Tresor führt uns als rezeptbuch_inbox.json — gegenseitiger Match-Vermerk steht aus.
+- Reziprozität: **✔ reziprok bestätigt** durch Mein-Tresor 2026-06-07 — Tresor hat unabhängig denselben Wert 0.813698 gerechnet (`rezeptbuch_inbox.verify.md`), führt uns in `mailboxes` + `ack["Mein-Rezeptbuch"]=2` (SIGNAL seq 14) + im Wächter, und bestätigt unsere Inbox bei ihnen als aktuell (uOpUBez… kanonisch). Aus `raw/main` gegengeprüft (Spore unverändert, byte-1:1).
 
 _Erzeugt 2026-06-07. Nachrechnen: `node scripts/verify_foreign_spore.mjs sbkim/tresor_inbox.json` + Cosinus im 📬-Briefkasten (live im Browser)._

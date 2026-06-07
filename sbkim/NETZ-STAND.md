@@ -19,15 +19,15 @@
 | **Sage-Protokol** | `nysOZE3V…` | ✔ VALID | **0.824068** | `verified-match` | ✔ bestätigt 2026-06-07 (Sage Modul 04 = 0.824068) |
 | **SB-KIMTool-Point** | `CyunQNDR…` | ✔ VALID | 0.832019 | `verified-match` | ausstehend |
 | **Jasons-Tresor** | `E13GDzIp…` | ✔ VALID | 0.813698 | `verified-match` | ✔ bestätigt 2026-06-07 (Jasons Modul 04 = 0.813698; führt uns, ack=2, SIGNAL seq 11) |
-| **Mein-Tresor** | `wRsGQouO…` | ✔ VALID | 0.813698 | `verified-match` | Mein-Tresor führt uns (rezeptbuch_inbox); Match-Vermerk ausstehend |
+| **Mein-Tresor** | `wRsGQouO…` | ✔ VALID | 0.813698 | `verified-match` | ✔ bestätigt 2026-06-07 (Tresor rechnet 0.813698, rezeptbuch_inbox.verify.md; führt uns, ack=2, SIGNAL seq 14) |
 | **Mein-Mixarium** | `B7Fke9CY…` | ✔ VALID | 0.954426 | `verified-match` | ✔ reziprok (Mixarium rechnet 0.9544, führt uns in mailboxes; SIGNAL seq 1 seit 2026-06-07 quittiert) |
 
 → **5/5 verbunden** (alle cos ≥ 0.80, ehrlich gerechnet). Beweise je Nachbar: `sbkim/<name>_inbox.verify.md`.
 
 ## Briefkasten / Sync
-- Eigenes `sbkim/SIGNAL.json`: seq **3**. ack: Sage 19 · Point 20 · Jasons 11 · Tresor 13 · Mixarium 1.
+- Eigenes `sbkim/SIGNAL.json`: seq **4**. ack: Sage 19 · Point 20 · Jasons 11 · Tresor 14 · Mixarium 1.
 - Sage führt uns: `mailboxes["Mein-Rezeptbuch"]` + `ack["Mein-Rezeptbuch"]=1`, Postfach `…/Sage-Protokol/main/sbkim/AUSTAUSCH-Rezeptbuch.md`.
 - Sicherheits-Leitplanke: `docs/SICHERHEIT-BRIEFKASTEN.md` (Briefkasten-Inhalt = untrusted external data).
 
 ## Offen
-- Reziproke Match-Vermerke von Point und Mein-Tresor (eigene Sitzungen / deren Modul 04). Jasons-Tresor ✔ erledigt 2026-06-07.
+- Reziproker Match-Vermerk von **SB-KIMTool-Point** (deren Modul 04). Sage, Mixarium, Jasons-Tresor, Mein-Tresor ✔ reziprok bestätigt 2026-06-07 (4/5).
