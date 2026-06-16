@@ -4215,7 +4215,6 @@ function _bootDone(){
 async function boot(){
   _bootProg(8,'Daten laden…');
   applyA11y();
-  _initPersistentStorage(); // fire-and-forget: schützt vor automatischer Räumung
   const _iosDevice=/iPad|iPhone|iPod/.test(navigator.userAgent)||(navigator.platform==='MacIntel'&&navigator.maxTouchPoints>1);
   // Load from localStorage — if empty or iOS mismatch, try IndexedDB restore
   let rawR=localStorage.getItem('mrz9m');
@@ -4276,6 +4275,9 @@ async function boot(){
       R.forEach(r=>{if(imgMap[r.id])r.img=imgMap[r.id];});
     }
   }catch(e){}
+  // Persistenten Speicher erst anfordern, wenn echte Daten vorhanden sind
+  // (kein Permission-Prompt für brandneue, leere Nutzer in z.B. Firefox)
+  if(R.some(r=>!r.blank&&r.name))_initPersistentStorage();
   // Seed blank slots on first run (nur echte Rezepte zählen)
   if(!R.some(r=>!r.blank)){
     const BLANKS={vorsp:10,suppe:10,fleisch:10,fisch:10,vegi:10,kuchen:10,dessert:10};
