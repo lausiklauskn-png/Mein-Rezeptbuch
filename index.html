@@ -1126,6 +1126,12 @@ html.a11y-hc body[data-theme=spektral] .bn-ico{color:#fff !important;text-shadow
 .bvault-body{overflow-y:auto;flex:1;padding:10px 12px;min-height:0;-webkit-overflow-scrolling:touch}
 .bvault-ios{background:#fff3cd;border:1px solid #ffc107;border-radius:10px;padding:9px 12px;
   font-size:.72rem;color:#7a5000;margin-bottom:10px;line-height:1.45}
+.bvault-store{background:var(--sand);border:1px solid var(--sand2);border-radius:10px;padding:9px 12px;margin-bottom:12px}
+.bvault-store-hd{font-size:.74rem;color:var(--ink);margin-bottom:7px}
+.bvault-store-bar{height:7px;border-radius:4px;background:var(--sand2);overflow:hidden;margin-bottom:6px}
+.bvault-store-fill{height:100%;border-radius:4px;transition:width .3s}
+.bvault-store-meta{font-size:.68rem;color:var(--br3);margin-bottom:3px}
+.bvault-store-status{font-size:.68rem;font-weight:600}
 .bvault-new{display:flex;gap:8px;margin-bottom:12px}
 .bvault-new input{flex:1;border:1.5px solid var(--sand2);border-radius:9px;padding:8px 10px;
   font-family:inherit;font-size:.82rem;color:var(--ink);background:#fff;outline:none;-webkit-appearance:none}
@@ -2671,6 +2677,7 @@ const LANGS={
     sBvScreenTitle:'Backup-Tresor',sBvLbl:'Backup-Tresor',sBvSub:'Mehrere Sicherungen verwalten',
     bvJsonT:'JSON-Backup aus Downloads laden',bvJsonD:'Gespeicherte .json-Datei vom Gerät laden',bvJsonBtn:'📂 Datei auswählen',
     bvIosWarn:'⚠️ <strong>iOS-Hinweis:</strong> Safari/Edge kann Daten löschen. Exportiere regelmäßig als JSON.',bvIosLast:'Letzter Export:',bvIosNone:'Noch kein Export.',
+    bvStoreT:'Speichernutzung',bvStoreProt:'🔒 Dauerhaft gesichert',bvStoreUnprot:'⚠️ Nicht dauerhaft – exportiere regelmäßig',
     bvNamePH:'Name (z.B. Vor dem Urlaub)',bvSaveBtn:'💾 Sichern',
     bvRec:'Rezept',bvRecs:'Rezepte',
     bvSecManual:'📌 Eigene Backups',bvSecAuto:'🔄 Automatische Backups (letzte {n})',bvEmpty:'Noch keine Backups. Erstelle jetzt dein erstes Backup.',
@@ -2796,6 +2803,7 @@ const LANGS={
     sBvScreenTitle:'Backup Vault',sBvLbl:'Backup Vault',sBvSub:'Manage multiple backups',
     bvJsonT:'Load JSON backup from downloads',bvJsonD:'Select a saved .json file from your device',bvJsonBtn:'📂 Select file',
     bvIosWarn:'⚠️ <strong>iOS note:</strong> Safari/Edge may delete data. Export regularly as JSON.',bvIosLast:'Last export:',bvIosNone:'No export yet.',
+    bvStoreT:'Storage usage',bvStoreProt:'🔒 Storage protected',bvStoreUnprot:'⚠️ Not persisted – export regularly',
     bvNamePH:'Name (e.g. Before vacation)',bvSaveBtn:'💾 Save',
     bvRec:'recipe',bvRecs:'recipes',
     bvSecManual:'📌 My backups',bvSecAuto:'🔄 Automatic backups (last {n})',bvEmpty:'No backups yet. Create your first backup now.',
@@ -2921,6 +2929,7 @@ const LANGS={
     sBvScreenTitle:'Архив резервных копий',sBvLbl:'Архив резервных копий',sBvSub:'Управление несколькими резервными копиями',
     bvJsonT:'Загрузить JSON-резервную копию',bvJsonD:'Выберите .json-файл с устройства',bvJsonBtn:'📂 Выбрать файл',
     bvIosWarn:'⚠️ <strong>iOS:</strong> Safari/Edge может удалять данные. Регулярно экспортируй в JSON.',bvIosLast:'Последний экспорт:',bvIosNone:'Экспорт не выполнялся.',
+    bvStoreT:'Использование памяти',bvStoreProt:'🔒 Хранилище защищено',bvStoreUnprot:'⚠️ Без защиты – экспортируй регулярно',
     bvNamePH:'Название (напр. Перед отпуском)',bvSaveBtn:'💾 Сохранить',
     bvRec:'рецепт',bvRecs:'рецептов',
     bvSecManual:'📌 Мои резервные копии',bvSecAuto:'🔄 Автоматические резервные копии (последние {n})',bvEmpty:'Резервных копий нет. Создайте первую сейчас.',
@@ -3046,6 +3055,7 @@ const LANGS={
     sBvScreenTitle:'备份库',sBvLbl:'备份库',sBvSub:'管理多个备份',
     bvJsonT:'从下载中加载JSON备份',bvJsonD:'从设备选择已保存的.json文件',bvJsonBtn:'📂 选择文件',
     bvIosWarn:'⚠️ <strong>iOS提示：</strong>Safari/Edge可能删除数据，请定期导出JSON。',bvIosLast:'上次导出：',bvIosNone:'尚未导出。',
+    bvStoreT:'存储占用',bvStoreProt:'🔒 存储已受保护',bvStoreUnprot:'⚠️ 未持久化 – 请定期导出',
     bvNamePH:'名称（如：假期前）',bvSaveBtn:'💾 保存',
     bvRec:'食谱',bvRecs:'食谱',
     bvSecManual:'📌 我的备份',bvSecAuto:'🔄 自动备份（最近 {n} 个）',bvEmpty:'暂无备份。立即创建第一个备份。',
@@ -3171,6 +3181,7 @@ const LANGS={
     sBvScreenTitle:'Bóveda de copias',sBvLbl:'Bóveda de copias',sBvSub:'Gestionar múltiples copias de seguridad',
     bvJsonT:'Cargar copia JSON desde descargas',bvJsonD:'Selecciona un archivo .json guardado en tu dispositivo',bvJsonBtn:'📂 Seleccionar archivo',
     bvIosWarn:'⚠️ <strong>Aviso iOS:</strong> Safari/Edge puede borrar datos. Exporta regularmente en JSON.',bvIosLast:'Último export:',bvIosNone:'Sin exportaciones.',
+    bvStoreT:'Uso de almacenamiento',bvStoreProt:'🔒 Almacenamiento protegido',bvStoreUnprot:'⚠️ No persistente – exporta con frecuencia',
     bvNamePH:'Nombre (p.ej. Antes de vacaciones)',bvSaveBtn:'💾 Guardar',
     bvRec:'receta',bvRecs:'recetas',
     bvSecManual:'📌 Mis copias',bvSecAuto:'🔄 Copias automáticas (últimas {n})',bvEmpty:'Sin copias. Crea tu primera copia ahora.',
@@ -3327,6 +3338,7 @@ const LANGS={
     sBvScreenTitle:'Coffre de sauvegardes',sBvLbl:'Coffre de sauvegardes',sBvSub:'Gérer plusieurs sauvegardes',
     bvJsonT:'Charger sauvegarde JSON',bvJsonD:'Sélectionner un fichier .json depuis l\'appareil',bvJsonBtn:'📂 Sélectionner fichier',
     bvIosWarn:'⚠️ <strong>iOS :</strong> Safari/Edge peut supprimer des données. Exportez régulièrement en JSON.',bvIosLast:'Dernier export :',bvIosNone:'Aucun export.',
+    bvStoreT:'Utilisation du stockage',bvStoreProt:'🔒 Stockage protégé',bvStoreUnprot:'⚠️ Non persistant – exportez régulièrement',
     bvNamePH:'Nom (ex. Avant vacances)',bvSaveBtn:'💾 Sauvegarder',
     bvRec:'recette',bvRecs:'recettes',
     bvSecManual:'📌 Mes sauvegardes',bvSecAuto:'🔄 Sauvegardes automatiques (dernières {n})',bvEmpty:'Aucune sauvegarde. Créez votre première maintenant.',
@@ -3561,6 +3573,7 @@ const LANGS={
     sBvScreenTitle:'Archivio backup',sBvLbl:'Archivio backup',sBvSub:'Gestisci più backup',
     bvJsonT:'Carica backup JSON',bvJsonD:'Seleziona un file .json salvato sul dispositivo',bvJsonBtn:'📂 Seleziona file',
     bvIosWarn:'⚠️ <strong>iOS:</strong> Safari/Edge può eliminare i dati. Esporta regolarmente in JSON.',bvIosLast:'Ultimo export:',bvIosNone:'Nessun export.',
+    bvStoreT:'Utilizzo memoria',bvStoreProt:'🔒 Memoria protetta',bvStoreUnprot:'⚠️ Non persistente – esporta regolarmente',
     bvNamePH:'Nome (es. Prima delle vacanze)',bvSaveBtn:'💾 Salva',
     bvRec:'ricetta',bvRecs:'ricette',
     bvSecManual:'📌 I miei backup',bvSecAuto:'🔄 Backup automatici (ultimi {n})',bvEmpty:'Nessun backup. Crea il primo ora.',
@@ -3795,6 +3808,7 @@ const LANGS={
     sBvScreenTitle:'Cofre de cópias',sBvLbl:'Cofre de cópias',sBvSub:'Gerir múltiplas cópias de segurança',
     bvJsonT:'Carregar cópia JSON',bvJsonD:'Selecionar ficheiro .json guardado no dispositivo',bvJsonBtn:'📂 Selecionar ficheiro',
     bvIosWarn:'⚠️ <strong>iOS:</strong> Safari/Edge pode apagar dados. Exporte regularmente em JSON.',bvIosLast:'Último export:',bvIosNone:'Sem exports.',
+    bvStoreT:'Utilização de armazenamento',bvStoreProt:'🔒 Armazenamento protegido',bvStoreUnprot:'⚠️ Não persistente – exporte com frequência',
     bvNamePH:'Nome (ex. Antes das férias)',bvSaveBtn:'💾 Guardar',
     bvRec:'receita',bvRecs:'receitas',
     bvSecManual:'📌 As minhas cópias',bvSecAuto:'🔄 Cópias automáticas (últimas {n})',bvEmpty:'Sem cópias. Crie a primeira agora.',
@@ -4051,6 +4065,18 @@ function _idbGet(k){
   })).catch(()=>null);
 }
 
+// ── Persistenten Speicher anfordern ──────────────────────
+// Schützt localStorage + IndexedDB davor, vom Browser bei Speicherdruck
+// stillschweigend geräumt zu werden (Datenverlust-Schutz).
+async function _initPersistentStorage(){
+  try{
+    if(navigator.storage&&navigator.storage.persist){
+      const already=navigator.storage.persisted?await navigator.storage.persisted():false;
+      if(!already)await navigator.storage.persist();
+    }
+  }catch(e){}
+}
+
 // ── Bild-Komprimierung via Canvas ────────────────────────
 function resizeImage(dataUrl,maxW,quality){
   return new Promise(resolve=>{
@@ -4189,6 +4215,7 @@ function _bootDone(){
 async function boot(){
   _bootProg(8,'Daten laden…');
   applyA11y();
+  _initPersistentStorage(); // fire-and-forget: schützt vor automatischer Räumung
   const _iosDevice=/iPad|iPhone|iPod/.test(navigator.userAgent)||(navigator.platform==='MacIntel'&&navigator.maxTouchPoints>1);
   // Load from localStorage — if empty or iOS mismatch, try IndexedDB restore
   let rawR=localStorage.getItem('mrz9m');
@@ -10023,6 +10050,28 @@ function exportFromVault(entry){
   toast('📤 JSON exportiert');
 }
 
+// Speicher-Füllstand + Persistenz-Status (navigator.storage.estimate)
+async function _storageInfoHtml(){
+  if(!(navigator.storage&&navigator.storage.estimate))return'';
+  let est;
+  try{est=await navigator.storage.estimate();}catch(e){return'';}
+  let persisted=false;
+  try{if(navigator.storage.persisted)persisted=await navigator.storage.persisted();}catch(e){}
+  const used=est.usage||0,quota=est.quota||0;
+  const mb=n=>(n/1048576).toFixed(n>=10485760?0:1);
+  const pct=quota?Math.min(100,Math.round(used/quota*100)):0;
+  const barCol=pct>=90?'var(--rust)':(pct>=70?'#e0a000':'var(--teal)');
+  const status=persisted
+    ?`<span style="color:var(--teal)">${T('bvStoreProt')}</span>`
+    :`<span style="color:var(--rust)">${T('bvStoreUnprot')}</span>`;
+  return`<div class="bvault-store">
+    <div class="bvault-store-hd">📊 <strong>${T('bvStoreT')}</strong></div>
+    <div class="bvault-store-bar"><div class="bvault-store-fill" style="width:${pct}%;background:${barCol}"></div></div>
+    <div class="bvault-store-meta">${mb(used)} / ${quota?mb(quota):'–'} MB (${pct}%)</div>
+    <div class="bvault-store-status">${status}</div>
+  </div>`;
+}
+
 async function _renderVault(){
   const body=document.getElementById('bvaultBody');
   if(!body)return;
@@ -10041,6 +10090,9 @@ async function _renderVault(){
       ${T('bvJsonBtn')}
     </label>
   </div>`;
+
+  // Speicher-Füllstand
+  html+=await _storageInfoHtml();
 
   // iOS-Warnung
   if(_isIOS){
@@ -10664,7 +10716,15 @@ var qrcode=function(){var t=function(t,r){var e=t,n=g[r],o=null,i=0,a=null,u=[],
     var box=document.getElementById('ob-hlp-url');
     if(box)box.textContent=url;
     var qr=document.getElementById('ob-hlp-qr');
-    if(qr)qr.src='https://api.qrserver.com/v1/create-qr-code/?size=180x180&data='+encodeURIComponent(url);
+    if(qr){
+      // QR lokal erzeugen (offline, kein externer Dienst) – nutzt gebündelten qrcode-generator
+      try{
+        var _q=qrcode(0,'M');
+        _q.addData(url);
+        _q.make();
+        qr.src=_q.createDataURL(4,8);
+      }catch(e){qr.removeAttribute('src');qr.alt='⚠️ QR-Fehler';}
+    }
     document.getElementById('ob-helper-bg').style.display='flex';
   };
   window.obCloseHelper=function(){
