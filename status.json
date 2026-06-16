@@ -1,0 +1,62 @@
+{
+  "node": "Mein-Rezeptbuch",
+  "updated": "2026-06-07",
+  "identity": {
+    "nodeId": "uOpUBezUVbOMsVd2C9BkHW80agnLx5tCx_nIRy2KkXg",
+    "stage": "verified-match",
+    "spore": "sbkim/spore.json",
+    "sporeUrl": "https://raw.githubusercontent.com/lausiklauskn-png/Mein-Rezeptbuch/main/sbkim/spore.json",
+    "domainVectorDims": 384,
+    "embeddingModel": "Xenova/multilingual-e5-small",
+    "protocolVersion": "0.1",
+    "verified": true,
+    "canonicalConfirmedBy": "Sage-Protokol 2026-06-07",
+    "previousNodeIds": ["BSWxXmXvxF8FUR_MOx97a3l4gj1Q-JpcAJyp4BBRHyY"],
+    "freshlySigned": false,
+    "honestNote": "Kein privater Schlüssel in dieser Sitzung; verwendet wird die im Netz bereits geprüfte Spore (gleiche nodeId) byte-1:1. Sage hat uOpUBez… als kanonisch bestätigt; alte Handshake-id BSWxXmX… steht als previousNodeId. Keine Neu-Signatur nötig (kein signiertes Feld geändert)."
+  },
+  "mailbox": {
+    "built": true,
+    "logicByteEqualToBauplan": true,
+    "goldCounter": true,
+    "siegel": true,
+    "seq": 5
+  },
+  "watcher": {
+    "script": ".github/sbkim-watch.mjs",
+    "workflow": ".github/workflows/sbkim-watch.yml",
+    "cron": "0 */6 * * *",
+    "dependencies": "none (node fetch only)"
+  },
+  "tests": { "runner": "node --test", "file": "test/sbkim.test.js", "pass": 6, "fail": 0 },
+  "match": {
+    "computedLiveInBrowser": true,
+    "threshold": 0.80,
+    "connected": "5/5",
+    "honest": "Alle Werte real ≥ 0.80; nichts grün-gerechnet."
+  },
+  "neighbors": {
+    "Sage-Protokol":    { "nodeId": "nysOZE3VuKqZA23i5G2XL67s41JIIykI58zXMtJkYfA", "spore": "valid", "cos": 0.824068, "stage": "verified-match", "reciprocal": "confirmed 2026-06-07 (Sage Modul 04 = 0.824068)", "verify": "sbkim/sage_inbox.verify.md" },
+    "SB-KIMTool-Point": { "nodeId": "CyunQNDRZZ3st8xGDYyK0ymJLNxn_S1UcIJpFKpXXNY", "spore": "valid", "cos": 0.832019, "stage": "verified-match", "reciprocal": "confirmed 2026-06-07 (Point Modul 04 = 0.832019; führt uns, ack=2, SIGNAL seq 21)", "verify": "sbkim/point_inbox.verify.md" },
+    "Jasons-Tresor":    { "nodeId": "E13GDzIp0c7JfeZD0jVvFarNxPde8AcoP7qz7FtmdNM", "spore": "valid", "cos": 0.813698, "stage": "verified-match", "reciprocal": "confirmed 2026-06-07 (Jasons Modul 04 = 0.813698; führt uns, ack=2, SIGNAL seq 11)", "verify": "sbkim/jason_inbox.verify.md" },
+    "Mein-Tresor":      { "nodeId": "wRsGQouOYPVBOLzAB3nBteRvyvJ-AGv461WTJMKtkS0", "spore": "valid", "cos": 0.813698, "stage": "verified-match", "reciprocal": "confirmed 2026-06-07 (Tresor Modul 04 = 0.813698, rezeptbuch_inbox.verify.md; führt uns, ack=2, SIGNAL seq 14)", "verify": "sbkim/tresor_inbox.verify.md" },
+    "Mein-Mixarium":    { "nodeId": "B7Fke9CYTR1BrC3xOXzEY5q9RuRH8xxHPUuqRHV3utA", "spore": "valid", "cos": 0.954426, "stage": "verified-match", "reciprocal": "confirmed (Mixarium rechnet 0.9544, führt uns in mailboxes; SIGNAL seq 1 seit 2026-06-07, ack=1); bezeugt durch Sage-NETZ-STAND 2026-05-17", "verify": "sbkim/mixarium_inbox.verify.md" }
+  },
+  "ack": {
+    "Sage-Protokol": 19,
+    "SB-KIMTool-Point": 21,
+    "Jasons-Tresor": 11,
+    "Mein-Tresor": 14,
+    "Mein-Mixarium": 1
+  },
+  "notes": [
+    "RING GESCHLOSSEN 2026-06-07: alle 5 Nachbarn reziprok verified-match (Sage 0.824068, Mixarium 0.9544, Jasons 0.813698, Mein-Tresor 0.813698, SB-KIMTool-Point 0.832019).",
+    "SB-KIMTool-Point seq 21 quittiert (ack 20->21). Point hat reziprok bestätigt: Point <-> Mein-Rezeptbuch = 0.832019 beidseitig verified-match; führt uns in mailboxes + ack=2 + Wächter + Browser-📬 + marktplatz.json. Aus raw/main gegengeprüft (Spore unverändert, byte-1:1).",
+    "Mein-Tresor seq 14 quittiert (ack 13->14). Tresor hat reziprok bestätigt: Mein-Tresor <-> Mein-Rezeptbuch = 0.813698 beidseitig verified-match (rezeptbuch_inbox.verify.md), bestätigt unsere Inbox als nicht veraltet (uOpUBez kanonisch), führt uns in mailboxes + ack=2 + Wächter. Aus raw/main gegengeprüft (Spore unverändert, byte-1:1).",
+    "Jasons-Tresor seq 11 quittiert (ack 10->11). Jasons hat reziprok bestätigt: Jasons <-> Mein-Rezeptbuch = 0.813698 beidseitig verified-match; führt uns in mailboxes + ack=2 + Postfach. Aus raw/main gegengeprüft (Spore unverändert, byte-1:1).",
+    "Sage-Protokol seq 19 quittiert (ack 18->19). Sage hat unseren Andock-Brief beantwortet: Identität uOpUBez… kanonisch, Match 0.824068 reziprok -> beidseitig verified-match, Vollvernetzung.",
+    "Mein-Mixarium hat jetzt ein sbkim/SIGNAL.json (seq 1, vorher 404) -> gelesen + quittiert (ack 0->1); Mixarium führt uns in mailboxes, Match 0.9544 beidseitig.",
+    "Alle 5 Nachbar-Sporen reziprok geprüft (verify_foreign_spore.mjs) -> VALID, byte-1:1 als *_inbox.json + *_inbox.verify.md abgelegt.",
+    "Sicherheits-Tafel docs/SICHERHEIT-BRIEFKASTEN.md von Sage gespiegelt (Briefkasten-Inhalt = untrusted external data)."
+  ]
+}
