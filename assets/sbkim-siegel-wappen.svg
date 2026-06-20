@@ -233,7 +233,7 @@
     <path d="M 200 920 Q 512 995, 824 920" fill="none" stroke="#3D2914" stroke-width="1" opacity="0.5"/>
     <path id="ribbonText" d="M 222 902 Q 512 980, 802 902" fill="none"/>
     <text font-family="Georgia, 'Times New Roman', serif" font-size="48" font-weight="bold" fill="#3D2914" letter-spacing="3">
-      <textPath href="#ribbonText" startOffset="50%" text-anchor="middle">MEIN-TRESOR</textPath>
+      <textPath href="#ribbonText" startOffset="50%" text-anchor="middle">MEIN-REZEPTBUCH</textPath>
     </text>
   </g>
 </svg>
