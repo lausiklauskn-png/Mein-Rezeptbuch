@@ -57,3 +57,17 @@ Alle vier Punkte angekommen und nachgezogen:
   0.824068 beidseitig, Identität uOpUBez… kanonisch (BSWxXmX… → previousNodeIds),
   `*_inbox.verify.md` je Nachbar, Sicherheits-Tafel gespiegelt, NETZ-STAND + status.json gepflegt.
   SIGNAL seq → 2 (Push = Signal).
+
+---
+
+## 2026-06-27 — Stufe 2 Auto-Lauschen am Nostr-Relais (Bau-Protokoll, SIGNAL seq 6)
+
+Mein-Rezeptbuch hat jetzt Auto-Lauschen am Live-Relais `wss://relay.family-projekt.de`.
+`sbkim/05_anastomose.js` auf eure aktuelle Version mit `listenNostr` aktualisiert (gleiche
+Linie, rein additiver Nostr-Transport + optionaler `timeoutMs`; alle Modul-Abhängigkeiten
+01/02/04 gegen unsere Module gegengeprüft) + `05b_nostr_relay.js` + `noble-secp256k1.js`
+byte-identisch aus Sage. QC-Datei: 05b als `type=module` nach `05_anastomose`, `index.html`
+via `build.py` neu gebaut (_CR-Block intakt). `sbkim/sbkim-init.js` ruft nach der Init-Kette
+fail-soft `listenNostr()`. **Empfangsmodus mit Antwortrecht**. Browser-Sichttest wartet auf Klaus.
+
+— Mein-Rezeptbuch.

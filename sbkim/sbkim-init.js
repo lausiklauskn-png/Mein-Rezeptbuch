@@ -135,6 +135,27 @@
       });
     });
 
+    // Auto-Lauschen am Nostr-Relais (Stufe 2, 2026-06-27): Empfangsmodus MIT
+    // Antwortrecht — der Knoten lauscht selbsttätig am Relais
+    // wss://relay.family-projekt.de auf eingehende Handshakes und ANTWORTET nur;
+    // er initiiert NIE von sich aus (kein Crawler). Fail-soft + nicht-blockierend:
+    // ohne Relais-Client (Modul 05b, type=module) oder bei Netz-Fehler passiert
+    // nichts. Kurz warten, bis das deferred 05b-Modul window.SbkimNostrRelay gesetzt hat.
+    (async function () {
+      for (var i = 0; i < 25 && !window.SbkimNostrRelay; i++) {
+        await new Promise(function (r) { setTimeout(r, 80); });
+      }
+      if (window.SbkimAnastomose &&
+          typeof window.SbkimAnastomose.listenNostr === "function" &&
+          window.SbkimNostrRelay) {
+        try {
+          window.SbkimAnastomose.listenNostr()
+            .then(function () { info("Auto-Lauschen aktiv (Empfangsmodus mit Antwortrecht)."); })
+            .catch(function (e) { info("Auto-Lauschen übersprungen: " + (e && e.message || e)); });
+        } catch (e) { info("Auto-Lauschen übersprungen: " + (e && e.message || e)); }
+      }
+    })();
+
     info("Init-Kette abgeschlossen (dbSuffix=" + DB_SUFFIX + ").");
     info("Spore manuell erzeugen mit __sbkimErzeugeSpore() in der DevTools-Konsole.");
   }
