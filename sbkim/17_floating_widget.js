@@ -86,6 +86,10 @@
   var EVENT_POSTMESSAGE = "sbkim:postmessage";
   var EVENT_FREMD_ALERT = "sbkim:fremd-alert";
   var EVENT_SIEGEL_CERTIFIED = "sbkim:siegel-certified";
+  // Stufe 2 (2026-06-27): Auto-Lauschen am Nostr-Relais. `sbkim:nostr-listening`
+  // {active:true} → VERKEHR leuchtet ruhig grün ("am Relais verbunden, lauscht");
+  // {active:false} → aus. Echter Handschlag pulst weiterhin obendrauf.
+  var EVENT_NOSTR_LISTENING = "sbkim:nostr-listening";
 
   // Slot-IDs (Karte 17 § Vier-Slot-Layout).
   var ALL_SLOTS = ["lebt", "verkehr", "fremd", "siegel"];
@@ -95,7 +99,7 @@
   // nutzen sie). Klick-Modals geben den Kontext am Touch-Tablet.
   var SLOT_TOOLTIPS = {
     lebt:    "LEBT — Page lebt seit init() (Modul 02 Spore). Klick öffnet Status-Modal.",
-    verkehr: "VERKEHR — letzte Handshakes (Modul 05) + postMessages (Modul 15). Klick öffnet Mini-Log.",
+    verkehr: "VERKEHR — grün = am Relais verbunden, lauscht (Empfangsmodus, antwortet nur). Pulst bei Handschlag (Modul 05) / postMessage (Modul 15). Klick öffnet Mini-Log.",
     fremd:   "FREMD — Fremdzugriff-Buffer (Modul 15 Sub e). Rot wenn Buffer nicht leer. Klick öffnet Modul-15-Modal.",
     siegel:  "SBKIM-Siegel — Modul 16 Self-Inscribing-Bezeugung. Klick öffnet Aspekte-Modal.",
   };
@@ -120,6 +124,15 @@
   // Erlaubte Corner-Werte (Karte 17 § Schnittstelle).
   var ALLOWED_CORNERS = ["top-left", "top-right", "bottom-left", "bottom-right"];
   var ALLOWED_THEMES = ["auto", "dark", "light", "transparent"];
+
+  // Pflege 17 Stufen-Render 2026-05-26 (Sub-(e)-Sichttest-Befund 1):
+  // Sichtbarer SIEGEL-Slot bekommt `data-siegel-stufe`-Attribut, damit
+  // Bronze (im Mycel, ruhend) vs. Gold (im Mycel, aktiv) visuell unterscheidbar
+  // wird. Modul 16 setzt `data-stufe` am unsichtbaren Proxy-Span — das
+  // griff bisher nur am Proxy, nicht am sichtbaren Slot-Button.
+  var SIEGEL_STUFE_BRONZE = "bronze";
+  var SIEGEL_STUFE_GOLD = "gold";
+  var SIEGEL_STUFENWECHSEL_MS = 600;
 
   // ---- Modul-Zustand (Closure) ----
 
@@ -165,6 +178,10 @@
     siegelCertified: 0,
   };
 
+  // Stufe 2: lauscht der Knoten gerade am Nostr-Relais? Hält VERKEHR ruhig
+  // grün, auch ohne aktuellen Verkehr (Dauerzustand "Empfangsmodus aktiv").
+  var nostrListening = false;
+
   // Listener-Referenzen (für sauberes Re-Init).
   var listeners = {};
   var pulseTimers = {};        // slotId → setTimeout-Handle
@@ -182,6 +199,11 @@
   var siegelCertifiedAt = null;
   var siegelRepoUrl = null;
   var fremdBufferSize = 0;
+  // Pflege 17 Stufen-Render 2026-05-26: was der sichtbare SIEGEL-Slot
+  // gerade rendert. null wenn SIEGEL noch nicht gemountet. Sonst
+  // "bronze" oder "gold". Diagnose-Anker für _meta.
+  var siegelStufeRendered = null;
+  var siegelStufenwechselTimerId = null;
 
   // ---- Hilfsfunktionen ----
 
@@ -526,6 +548,30 @@
       "#" + WIDGET_ID + " .sbkim-widget-slot.siegel.siegel-first-boot::before {",
       "  animation: sbkim-widget-siegel-first-boot 600ms ease-out;",
       "}",
+      // Pflege 17 Stufen-Render 2026-05-26 (Sub-(e)-Sichttest-Befund 1):
+      // Bronze („im Mycel, ruhend") = Surface-Check grün, aber noch kein
+      // Cross-Knoten-Handshake; Gold („im Mycel, aktiv") = mind. ein
+      // sbkim:handshake outcome:"established" empfangen. Spiegelt das
+      // Spec-Pattern aus index.html § Sub (e) (dort wirkt der Filter am
+      // 40 px Wappen-SVG; hier am 22 px Gold-Medaillon + ★-Glyph).
+      "#" + WIDGET_ID + " .sbkim-widget-slot.siegel[data-siegel-stufe=\"bronze\"]::before,",
+      "#" + WIDGET_ID + " .sbkim-widget-slot.siegel[data-siegel-stufe=\"bronze\"] .sbkim-widget-siegel-glyph {",
+      "  filter: saturate(0.6) brightness(0.85);",
+      "}",
+      "#" + WIDGET_ID + " .sbkim-widget-slot.siegel[data-siegel-stufe=\"bronze\"]:hover::before {",
+      "  filter: saturate(0.6) brightness(0.85);",
+      "  box-shadow: 0 0 8px rgba(140, 110, 47, 0.55);",
+      "}",
+      "#" + WIDGET_ID + " .sbkim-widget-slot.siegel[data-siegel-stufe=\"gold\"] { /* Default-Render — keine Override */ }",
+      // Bronze→Gold-Animation 600 ms (analog index.html § siegel-stufenwechsel-gold).
+      "#" + WIDGET_ID + " .sbkim-widget-slot.siegel.sbkim-widget-siegel-stufenwechsel::before {",
+      "  animation: sbkim-widget-siegel-stufenwechsel-gold 600ms ease-out;",
+      "}",
+      "@keyframes sbkim-widget-siegel-stufenwechsel-gold {",
+      "  0%   { transform: scale(1.00); box-shadow: 0 0 0 0 rgba(201, 169, 97, 0.55); }",
+      "  40%  { transform: scale(1.15); box-shadow: 0 0 18px 4px rgba(201, 169, 97, 0.55); }",
+      "  100% { transform: scale(1.00); box-shadow: 0 0 6px rgba(201, 169, 97, 0.5); }",
+      "}",
       // Stern-Glyph zentriert über der Lampe-::before (per absoluten Span).
       "#" + WIDGET_ID + " .sbkim-widget-siegel-glyph {",
       "  position: absolute;",
@@ -783,6 +829,11 @@
         root.appendChild(siegelBtn);
         slotElements[slotId] = siegelBtn;
         siegelMounted = true;
+        // Pflege 17 Stufen-Render 2026-05-26: initial-Stufe-Attribut
+        // direkt nach Mount setzen (Modul 16 hat dann bereits init()
+        // gelaufen, sonst wären wir nicht in diesem Zweig — fail-soft
+        // Default ist "bronze").
+        applySiegelStufeToSlot(getSiegelStufe());
         continue;
       }
       var btn = buildSlotButton(doc, slotId);
@@ -1111,7 +1162,7 @@
     // Wenn Widget nach init() neu gemountet wird (z.B. via show() nach
     // hide()), zeigt die aktuelle counts-Map welche Slots aktiv sind.
     if (eventCounts.alive > 0) setSlotActive("lebt", true);
-    if (eventCounts.handshake + eventCounts.postmessage > 0) setSlotActive("verkehr", true);
+    if (eventCounts.handshake + eventCounts.postmessage > 0 || nostrListening) setSlotActive("verkehr", true);
     if (fremdBufferSize > 0) setSlotActive("fremd", true);
   }
 
@@ -1185,12 +1236,14 @@
     listeners.postmessage = function (ev) { onPostmessage(ev); };
     listeners.fremdAlert = function (ev) { onFremdAlert(ev); };
     listeners.siegelCertified = function (ev) { onSiegelCertified(ev); };
+    listeners.nostrListening = function (ev) { onNostrListening(ev); };
     try {
       global.addEventListener(EVENT_ALIVE, listeners.alive);
       global.addEventListener(EVENT_HANDSHAKE, listeners.handshake);
       global.addEventListener(EVENT_POSTMESSAGE, listeners.postmessage);
       global.addEventListener(EVENT_FREMD_ALERT, listeners.fremdAlert);
       global.addEventListener(EVENT_SIEGEL_CERTIFIED, listeners.siegelCertified);
+      global.addEventListener(EVENT_NOSTR_LISTENING, listeners.nostrListening);
     } catch (err) {
       warn("Event-Listener-Registrierung fehlgeschlagen — Widget bleibt passiv.", err);
     }
@@ -1202,6 +1255,17 @@
     if (typeof detail.since === "string") lebtSince = detail.since;
     if (typeof detail.nodeId === "string") lebtNodeIdPrefix = detail.nodeId.slice(0, 12);
     setSlotActive("lebt", true);
+  }
+
+  // Stufe 2: Auto-Lauschen-Status. VERKEHR ruhig grün, solange der Knoten am
+  // Relais lauscht — sichtbar auch ohne aktuellen Verkehr. Echter Handschlag
+  // pulst weiterhin über onHandshake. Verkehr bleibt aktiv, solange entweder
+  // schon Verkehr gesehen wurde ODER der Lausch-Kanal offen ist.
+  function onNostrListening(ev) {
+    var detail = (ev && ev.detail) || {};
+    nostrListening = (detail.active !== false);
+    var hasTraffic = (eventCounts.handshake + eventCounts.postmessage) > 0;
+    setSlotActive("verkehr", hasTraffic || nostrListening);
   }
 
   function onHandshake(ev) {
@@ -1217,6 +1281,17 @@
     setSlotActive("verkehr", true);
     pulseSlot("verkehr", "verkehr-pulse", VERKEHR_PULSE_MS);
     refreshVerkehrModalIfOpen();
+    // Pflege 17 Stufen-Render 2026-05-26 (Sub-(e)-Sichttest-Befund 1):
+    // bei established-Handshake den sichtbaren SIEGEL-Slot von Bronze
+    // auf Gold umschalten + 600 ms Stufenwechsel-Animation. Idempotent:
+    // wenn schon Gold, no-op (kein Re-Animate-Spam). Slot muss
+    // gemountet sein (sonst gibt's nichts zu re-stylen).
+    if (detail.outcome === "established" && siegelMounted) {
+      if (siegelStufeRendered !== SIEGEL_STUFE_GOLD) {
+        applySiegelStufeToSlot(SIEGEL_STUFE_GOLD);
+        playSiegelStufenwechselAnimation();
+      }
+    }
   }
 
   function onPostmessage(ev) {
@@ -1289,6 +1364,10 @@
     }
     slotElements.siegel = btn;
     siegelMounted = true;
+    // Pflege 17 Stufen-Render 2026-05-26: initial-Stufe-Attribut direkt
+    // nach Mount setzen. Modul 16 hat zu diesem Zeitpunkt
+    // `_meta.siegelStufe` gesetzt (Bau 16 Sub e).
+    applySiegelStufeToSlot(getSiegelStufe());
     // Pflege 17 UX 2026-05-25: SIEGEL ist jetzt da — wenn das Widget
     // minimiert war (mit data-fallback="lebt"), data-fallback entfernen,
     // damit SIEGEL zum sichtbaren Slot wird.
@@ -1313,6 +1392,54 @@
     if (!siegel || typeof siegel.isCertified !== "function") return false;
     try { return siegel.isCertified() === true; }
     catch (_e) { return false; }
+  }
+
+  // Pflege 17 Stufen-Render 2026-05-26: lookup auf
+  // SbkimSiegel._meta.siegelStufe (Modul-16-Getter aus Bau 16 Sub (e)).
+  // Fail-soft Default = "bronze" (sicheres minus). Architektur-Pfad (ii)
+  // aus dem Brief — robust gegen Event-Reihenfolge.
+  function getSiegelStufe() {
+    var siegel = global.SbkimSiegel;
+    if (!siegel || !siegel._meta) return SIEGEL_STUFE_BRONZE;
+    try {
+      var s = siegel._meta.siegelStufe;
+      if (s === SIEGEL_STUFE_GOLD) return SIEGEL_STUFE_GOLD;
+    } catch (_e) { /* fail-soft */ }
+    return SIEGEL_STUFE_BRONZE;
+  }
+
+  // Schreibt data-siegel-stufe ans sichtbare Slot-Element. Idempotent +
+  // fail-soft. Ruft KEIN Modul 16 auf.
+  function applySiegelStufeToSlot(stufe) {
+    var el = slotElements.siegel;
+    if (!el) return;
+    try {
+      el.setAttribute("data-siegel-stufe", stufe);
+      siegelStufeRendered = stufe;
+    } catch (err) {
+      warn("data-siegel-stufe konnte nicht gesetzt werden.", err);
+    }
+  }
+
+  // Bronze→Gold-Stufenwechsel-Animation am sichtbaren Slot (600 ms).
+  function playSiegelStufenwechselAnimation() {
+    var el = slotElements.siegel;
+    if (!el || !el.classList) return;
+    try {
+      el.classList.add("sbkim-widget-siegel-stufenwechsel");
+      if (siegelStufenwechselTimerId !== null) {
+        clearTimeout(siegelStufenwechselTimerId);
+      }
+      siegelStufenwechselTimerId = setTimeout(function () {
+        if (el && el.classList) {
+          try { el.classList.remove("sbkim-widget-siegel-stufenwechsel"); }
+          catch (_e) { /* nb */ }
+        }
+        siegelStufenwechselTimerId = null;
+      }, SIEGEL_STUFENWECHSEL_MS);
+    } catch (err) {
+      warn("Siegel-Stufenwechsel-Animation fehlgeschlagen.", err);
+    }
   }
 
   function nowIso() { return new Date().toISOString(); }
@@ -1725,8 +1852,10 @@
         postmessage:     EVENT_POSTMESSAGE,
         fremdAlert:      EVENT_FREMD_ALERT,
         siegelCertified: EVENT_SIEGEL_CERTIFIED,
+        nostrListening:  EVENT_NOSTR_LISTENING,
       },
       get ready()          { return ready; },
+      get nostrListening() { return nostrListening; },
       get widgetMounted()  { return !!(widgetRoot && widgetRoot.parentNode); },
       get firstBootShown() { return firstBootShown; },
       get siegelMounted()  { return siegelMounted; },
@@ -1761,6 +1890,9 @@
       get lebtNodeIdPrefix()   { return lebtNodeIdPrefix; },
       get siegelCertifiedAt()  { return siegelCertifiedAt; },
       get siegelRepoUrl()      { return siegelRepoUrl; },
+      // Pflege 17 Stufen-Render 2026-05-26: was der sichtbare SIEGEL-Slot
+      // gerade anzeigt ("bronze" | "gold" | null). null = nicht gemountet.
+      get siegelStufeRendered() { return siegelStufeRendered; },
       get visibleFlag()        { return visibleFlag; },
       get optAllowClose()      { return optAllowClose; },
       get optAllowDrag()       { return optAllowDrag; },
