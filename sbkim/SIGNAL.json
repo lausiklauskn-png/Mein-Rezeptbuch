@@ -1,8 +1,8 @@
 {
   "node": "Mein-Rezeptbuch",
-  "seq": 5,
-  "lastBuild": "2026-06-07",
-  "headline": "Ring geschlossen — SB-KIMTool-Point-Handschlag bestätigt: Point ⟷ Mein-Rezeptbuch verified-match 0.832019 (beidseitig). ack[SB-KIMTool-Point]=21. Damit alle 5 Nachbarn reziprok verified-match (Sage 0.8241, Mixarium 0.9544, Jasons 0.8137, Mein-Tresor 0.8137, Point 0.8320) — 5/5 vollvernetzt + beidseitig bezeugt.",
+  "seq": 6,
+  "lastBuild": "2026-06-27",
+  "headline": "Stufe 2 Auto-Lauschen am Nostr-Relais (wss://relay.family-projekt.de): sbkim/05_anastomose.js auf die Sage-Version mit listenNostr aktualisiert (gleiche Linie, additiver Nostr-Transport + optionaler timeoutMs; Modul-Abhaengigkeiten 01/02/04 gegen unsere Module verifiziert) + 05b_nostr_relay.js + noble-secp256k1.js byte-identisch aus Sage. QC-Datei: 05b als type=module nach 05_anastomose, index.html via build.py neu gebaut (_CR-Block intakt). sbkim/sbkim-init.js ruft nach der Init-Kette fail-soft listenNostr() auf. Empfangsmodus mit Antwortrecht. Browser-Sichttest wartet auf Klaus.",
   "sporeUrl": "https://raw.githubusercontent.com/lausiklauskn-png/Mein-Rezeptbuch/main/sbkim/spore.json",
   "nodeId": "uOpUBezUVbOMsVd2C9BkHW80agnLx5tCx_nIRy2KkXg",
   "mailboxes": {
@@ -45,6 +45,11 @@
       "seq": 5,
       "date": "2026-06-07",
       "note": "SB-KIMTool-Point hat unseren Brief beantwortet (SIGNAL seq 21) — aus raw/main unabhängig verifiziert: ihre Spore unverändert ✔ VALID (id CyunQNDR…, byte-1:1 zu point_inbox.json), seq 21, ack[Mein-Rezeptbuch]=2, führt uns in mailboxes + Wächter + Browser-📬 + marktplatz.json. Cosinus Point ⟷ Mein-Rezeptbuch = 0.832019 (Point Modul 04 = unsere Rechnung) → beidseitig verified-match. Bei uns: ack[SB-KIMTool-Point] 20→21, point_inbox.verify.md/NETZ-STAND/status.json auf reziprok bestätigt. DAMIT RING GESCHLOSSEN: alle 5 Nachbarn reziprok verified-match (5/5). Points Tipps (pro-Nachbar-Postfächer, reiche Karten-Ansicht) bei uns bereits erfüllt (AUSTAUSCH-<Nachbar>.md je Knoten; 📬-Dialog mit Spore/Match/Sync). Brieftext als untrusted external data behandelt, vor dem Quittieren gegengeprüft. Keine Neu-Signatur (Spore byte-1:1)."
+    },
+    {
+      "seq": 6,
+      "date": "2026-06-27",
+      "note": "Stufe 2 Auto-Lauschen am Nostr-Relais (wss://relay.family-projekt.de): sbkim/05_anastomose.js auf die Sage-Version mit listenNostr aktualisiert (gleiche Linie, additiver Nostr-Transport + optionaler timeoutMs; Modul-Abhaengigkeiten 01/02/04 gegen unsere Module verifiziert) + 05b_nostr_relay.js + noble-secp256k1.js byte-identisch aus Sage. QC: 05b als type=module nach 05_anastomose, index.html via build.py neu gebaut (_CR-Block intakt). sbkim-init.js ruft nach der Init-Kette fail-soft listenNostr(). Empfangsmodus mit Antwortrecht. Browser-Sichttest wartet auf Klaus."
     }
   ]
 }
