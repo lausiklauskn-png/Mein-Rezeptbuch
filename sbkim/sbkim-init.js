@@ -197,12 +197,48 @@ window.__sbkimErzeugeSpore = async function (description) {
   var stammCategories = ["Vorspeisen", "Suppen", "Fleisch", "Fisch", "Vegetarisch", "Kuchen", "Desserts"];
   var guestCategories = ["Getränke", "Smoothies & Shakes", "Mocktails", "Alkfr. Cocktails", "Limonaden", "Tees & Kaffees", "Cocktails", "Bowlen", "Sirup & Basis", "Knabbereien", "Fingerfood"];
   var domainKeywords = ["Rezept", "Kochen", "Essen", "Hauptgang", "Beilage", "Backen", "Saucen"];
-  var beschreibung = (typeof description === "string" && description.trim().length)
-    ? description.trim()
-    : SBKIM_REZEPTBUCH_DESCRIPTION;
+  var explicitDescription = (typeof description === "string" && description.trim().length > 0);
+  var beschreibung = explicitDescription ? description.trim() : SBKIM_REZEPTBUCH_DESCRIPTION;
 
-  var vec = await SbkimEmbedding.embedPassage(beschreibung);
-  console.info("Domain-Vektor erzeugt: " + vec.length + " Floats (aus der Beschreibung)");
+  // Inhalts-treuer domainVector (2026-06-28): wenn echte Rezepte vorhanden sind
+  // UND der Nutzer keine eigene Beschreibung erzwingt, entscheidet der INHALT
+  // (Rezept-Name + Kategorie) statt der Selbstbeschreibung. sampleContent liefert
+  // NUR unkritische Labels (Rezept-Namen/Kategorien) — kein PII. Fail-soft: kein
+  // Inhalt / Fehler / explizite Beschreibung → Beschreibungs-Vektor (Hülle).
+  function sampleContent() {
+    var out = [];
+    try {
+      var arr = (typeof window !== "undefined" && Array.isArray(window.R)) ? window.R : [];
+      for (var i = 0; i < arr.length && out.length < 32; i++) {
+        var r = arr[i];
+        if (!r || r.blank) continue;
+        var name = (typeof r.name === "string") ? r.name.trim() : "";
+        var cat = (typeof r.cat === "string") ? r.cat.trim() : "";
+        var t = (cat + " " + name).trim();
+        if (t.length) out.push(t);
+      }
+    } catch (e) { /* fail-soft */ }
+    return out;
+  }
+
+  var vec = null;
+  var source = "description";
+  if (!explicitDescription && typeof SbkimEmbedding.embedContentVector === "function") {
+    var samples = sampleContent();
+    if (samples.length) {
+      try {
+        var res = await SbkimEmbedding.embedContentVector(samples);
+        if (res && res.vector) { vec = res.vector; source = "content"; }
+        console.info("Inhalts-Vektor aus " + samples.length + " Rezepten erzeugt.");
+      } catch (e) { console.warn("embedContentVector — Fallback auf Beschreibung:", e); }
+    }
+  }
+  if (!vec) {
+    vec = await SbkimEmbedding.embedPassage(beschreibung);
+    source = "description";
+    console.info("Beschreibungs-Vektor erzeugt (kein/leerer Inhalt oder eigene Beschreibung).");
+  }
+  console.info("Domain-Vektor erzeugt: " + vec.length + " Floats, Quelle: " + source);
 
   var spore = await SbkimSpore.generateOwnSpore({
     domain: "lausiklauskn-png.github.io",
@@ -212,6 +248,8 @@ window.__sbkimErzeugeSpore = async function (description) {
     domainDescription: beschreibung,
     domainKeywords: domainKeywords,
     domainVector: Array.from(vec),
+    embeddingSource: source,
+    embeddingVersion: 1,
     stammCategories: stammCategories,
     guestCategories: guestCategories,
   });
@@ -450,6 +488,8 @@ window.__sbkimErzeugeSpore = async function (description) {
         domainDescription: description,
         domainKeywords: C.domainKeywords,
         domainVector: arr,
+        embeddingSource: "description",
+        embeddingVersion: 1,
         stammCategories: C.stammCategories,
         guestCategories: C.guestCategories,
       });
