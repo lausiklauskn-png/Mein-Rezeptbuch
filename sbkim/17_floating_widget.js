@@ -76,9 +76,20 @@
   // localStorage-Schlüssel (Karte 17 § Persistenz / § localStorage-Schema).
   // Pflege 17 UX 2026-05-25: dritter Schlüssel `sbkim_widget_minimized`
   // für den Drei-Zustand-Pfad full / minimized / hidden.
-  var LS_KEY_VISIBLE = "sbkim_widget_visible";
-  var LS_KEY_POSITION = "sbkim_widget_position";
-  var LS_KEY_MINIMIZED = "sbkim_widget_minimized";
+  // Pro-App-Namensraum (Fix 2026-06-28, Klaus): die Schlüssel tragen den
+  // App-Pfad (z.B. "Mein-Rezeptbuch"), damit Geschwister-Apps auf demselben
+  // Origin (lausiklauskn-png.github.io) sich NICHT denselben Widget-Zustand
+  // teilen. Vorher führte ein Schließen in EINER App zum Verschwinden in ALLEN.
+  var WIDGET_SCOPE = (function () {
+    try {
+      var p = (typeof location !== "undefined" && location.pathname) ? location.pathname : "";
+      var seg = p.replace(/^\/+/, "").split("/")[0];
+      return (seg && seg.length) ? seg : "root";
+    } catch (e) { return "root"; }
+  })();
+  var LS_KEY_VISIBLE = "sbkim_widget_visible__" + WIDGET_SCOPE;
+  var LS_KEY_POSITION = "sbkim_widget_position__" + WIDGET_SCOPE;
+  var LS_KEY_MINIMIZED = "sbkim_widget_minimized__" + WIDGET_SCOPE;
 
   // Custom-Event-Namen (Karte 17 § Event-Bus-Schema).
   var EVENT_ALIVE = "sbkim:alive";
@@ -221,13 +232,12 @@
   }
 
   function loadVisibleFromLs() {
-    if (!optRememberHidden) {
-      visibleFlag = true;
-      return;
-    }
-    var raw = lsGet(LS_KEY_VISIBLE);
-    if (raw === "false") visibleFlag = false;
-    else visibleFlag = true;
+    // Fix 2026-06-28 (Klaus): KEIN dauerhaftes Verstecken mehr. Das X schließt
+    // das Widget nur für die laufende Sitzung; beim nächsten Seitenstart ist es
+    // WIEDER da. Vorher blieb ein (auch versehentliches) Schließen gemerkt, bis
+    // man die Browserdaten löschte — und über den geteilten Origin in ALLEN Apps.
+    // Beim Seitenstart darum immer sichtbar.
+    visibleFlag = true;
   }
 
   function persistVisible() {
