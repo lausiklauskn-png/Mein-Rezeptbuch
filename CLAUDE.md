@@ -132,12 +132,22 @@ print(f'Gespeichert: {filename}, {len(output)} Zeilen')
 2. Nach Änderungen: `python3 build.py` ausführen → erzeugt neue `index.html`
 3. Commit-Nachrichten auf **Deutsch**
 
+### Selbst-Merge-Freibrief (Klaus 2026-06-28, netzweit für ALLE Repos)
+Klaus' stehende Anweisung: die Sitzung merget ihre **eigenen** PRs **selbstständig** nach
+`main`, sobald sie getestet (Smoke/Build grün, bei reinen Doku-/byte-Kopie-Änderungen
+Drift-Guard grün), abgegrenzt und nicht architektonisch zweifelhaft sind — **ohne auf
+"X mergen" zu warten** (Draft-PR → ready → squash-merge). **NICHT** automatisch mergen bei
+echtem Zweifel (Richtungsentscheid, schwer umkehrbar, mehrere gleich gute Wege) ODER wenn
+Klaus ausdrücklich vorher draufschauen will. Klaus' Browser-Sichttest am Tablet bleibt davon
+unberührt (er läuft auf der live-deployten Seite nach dem Merge). Niemals auf einen anderen
+als den vorgegebenen Branch pushen.
+
 ### "Hochladen"-Befehl
 Wenn der Benutzer **"Hochladen"** schreibt:
 1. Alle lokalen Änderungen committen
 2. Auf aktuellen Feature-Branch pushen: `git push -u origin <branch>`
 3. PR erstellen via `mcp__github__create_pull_request` → nach `main`
-4. PR-URL mitteilen
+4. PR-URL mitteilen — **und nach dem Selbst-Merge-Freibrief direkt mergen, wenn sinnvoll**
 
 ### Pflicht-Prüfung bei "Hochladen" oder "Mergen"
 **Immer** alle offenen Branches und PRs prüfen – nicht nur den aktuellen Branch:
