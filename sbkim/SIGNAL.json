@@ -1,8 +1,8 @@
 {
   "node": "Mein-Rezeptbuch",
-  "seq": 6,
-  "lastBuild": "2026-06-27",
-  "headline": "Stufe 2 Auto-Lauschen am Nostr-Relais (wss://relay.family-projekt.de): sbkim/05_anastomose.js auf die Sage-Version mit listenNostr aktualisiert (gleiche Linie, additiver Nostr-Transport + optionaler timeoutMs; Modul-Abhaengigkeiten 01/02/04 gegen unsere Module verifiziert) + 05b_nostr_relay.js + noble-secp256k1.js byte-identisch aus Sage. QC-Datei: 05b als type=module nach 05_anastomose, index.html via build.py neu gebaut (_CR-Block intakt). sbkim/sbkim-init.js ruft nach der Init-Kette fail-soft listenNostr() auf. Empfangsmodus mit Antwortrecht. Browser-Sichttest wartet auf Klaus.",
+  "seq": 7,
+  "lastBuild": "2026-06-28",
+  "headline": "Modul 23 RENDEZVOUS + oeffentlicher Knopf Mit dem Netz verbinden ausgerollt. sbkim/23_rendezvous(.ui).js byte-1:1 aus Sage; QC laedt beide vor sbkim-init.js, das SbkimRendezvousUI mountet (nodeName Mein Rezeptbuch, createIdentity ueber vorhandenes __sbkimErzeugeSpore). index.html via build.py neu gebaut. Vorhandener Stack (01-08/15/16/17/18) genutzt - kein Doppel-Laden. Loest die Adress-Wand per Raum sbkim-rdv. Headless 8/8 gruen. Verfassungstreu (nutzer-ausgeloest). Branch vorher frisch auf origin/main (Achtsamkeit). Browser-Live-Test wartet auf Klaus.",
   "sporeUrl": "https://raw.githubusercontent.com/lausiklauskn-png/Mein-Rezeptbuch/main/sbkim/spore.json",
   "nodeId": "uOpUBezUVbOMsVd2C9BkHW80agnLx5tCx_nIRy2KkXg",
   "mailboxes": {
@@ -12,7 +12,9 @@
     "Mein-Tresor": "https://raw.githubusercontent.com/lausiklauskn-png/Mein-Rezeptbuch/main/sbkim/AUSTAUSCH-MeinTresor.md",
     "Mein-Mixarium": "https://raw.githubusercontent.com/lausiklauskn-png/Mein-Rezeptbuch/main/sbkim/AUSTAUSCH-Mixarium.md"
   },
-  "forNodes": ["*"],
+  "forNodes": [
+    "*"
+  ],
   "ack": {
     "Sage-Protokol": 19,
     "SB-KIMTool-Point": 21,
@@ -50,6 +52,11 @@
       "seq": 6,
       "date": "2026-06-27",
       "note": "Stufe 2 Auto-Lauschen am Nostr-Relais (wss://relay.family-projekt.de): sbkim/05_anastomose.js auf die Sage-Version mit listenNostr aktualisiert (gleiche Linie, additiver Nostr-Transport + optionaler timeoutMs; Modul-Abhaengigkeiten 01/02/04 gegen unsere Module verifiziert) + 05b_nostr_relay.js + noble-secp256k1.js byte-identisch aus Sage. QC: 05b als type=module nach 05_anastomose, index.html via build.py neu gebaut (_CR-Block intakt). sbkim-init.js ruft nach der Init-Kette fail-soft listenNostr(). Empfangsmodus mit Antwortrecht. Browser-Sichttest wartet auf Klaus."
+    },
+    {
+      "seq": 7,
+      "date": "2026-06-28",
+      "headline": "Modul 23 Rendezvous + oeffentlicher Knopf ausgerollt (sbkim/23_rendezvous(.ui).js byte-1:1 aus Sage; QC + build.py; sbkim-init.js mountet UI, nodeName Mein Rezeptbuch). Stack genutzt, kein Doppel-Laden. Headless 8/8. Browser-Sichttest wartet auf Klaus."
     }
   ]
 }

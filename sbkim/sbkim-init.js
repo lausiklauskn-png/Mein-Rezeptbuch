@@ -518,3 +518,27 @@ window.__sbkimErzeugeSpore = async function (description) {
   if (doc.body) watchForSiegelModal();
   else doc.addEventListener("DOMContentLoaded", watchForSiegelModal);
 })();
+
+// ── Modul 23 Rendezvous — öffentlicher Floating-Knopf „🌐 Mit dem Netz
+// verbinden" (Klaus 2026-06-28: sofort öffentlich, eigener kleiner Knopf).
+// UNABHÄNGIG von der Andock-Kette gemountet (soll immer erscheinen). Mechanik
+// = geteiltes Modul 23 (SbkimRendezvous), nutzt den vorhandenen Stack lazy;
+// createIdentity reicht den vorhandenen Spore-Erzeuger __sbkimErzeugeSpore
+// durch (erzeugt bei Bedarf die lebende Spore mit Rezeptbuch-Domäne).
+// Verfassungstreu: nutzer-ausgelöst, kein Auto-Connect. Fail-soft.
+(function () {
+  "use strict";
+  function mountRendezvous() {
+    if (!window.SbkimRendezvousUI) return;
+    try {
+      window.SbkimRendezvousUI.init({
+        nodeName: "Mein Rezeptbuch",
+        corner: "bl",
+        createIdentity: function () { return window.__sbkimErzeugeSpore(); },
+      });
+      if (window.console && console.info) console.info("[MR-SBKIM] Rendezvous-UI gemountet (öffentlicher 🌐-Knopf).");
+    } catch (e) { if (window.console && console.warn) console.warn("[MR-SBKIM] Rendezvous-UI übersprungen:", e); }
+  }
+  if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", mountRendezvous);
+  else mountRendezvous();
+})();
