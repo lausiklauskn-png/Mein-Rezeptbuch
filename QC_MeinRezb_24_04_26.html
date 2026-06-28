@@ -719,6 +719,8 @@ body.nav-collapsed{padding-bottom:calc(16px + var(--sb))}
 .sett-row:last-child{border-bottom:none}
 .sett-row:active{background:var(--sand)}
 .sett-row.ntap{cursor:default}.sett-row.ntap:active{background:transparent}
+/* SBKIM-Andock-Knopf NICHT schwebend — er lebt fest in den Einstellungen (Klaus 2026-06-29). */
+#sbkim-rdv-btn{display:none!important}
 .sett-ico{font-size:1.03rem;flex-shrink:0}
 .sett-body{flex:1}
 .sett-lbl{font-size:.8rem;font-weight:700}
@@ -2402,6 +2404,17 @@ body:not([data-theme]) #bnav{
         <div class="sett-ico">🎨</div>
         <div class="sett-body"><div class="sett-lbl" id="sImgGenLbl">DALL-E Bildschlüssel</div>
           <div class="sett-sub" id="sImgGenSub">OpenAI-Key für KI-Bilder</div></div>
+        <div class="sett-arr">›</div>
+      </div>
+    </div>
+    <div class="sett-sec">
+      <div class="sett-head">🌐 NETZWERK (SBKIM)</div>
+      <div class="sett-row" onclick="if(window.SbkimRendezvousUI){window.SbkimRendezvousUI.show()}else{alert('Netz-Modul lädt noch — kurz warten und erneut tippen.')}">
+        <div class="sett-ico">🌐</div>
+        <div class="sett-body">
+          <div class="sett-lbl">Mit dem Netz verbinden</div>
+          <div class="sett-sub">Im gemeinsamen Raum anmelden &amp; andere Knoten finden (serverlos)</div>
+        </div>
         <div class="sett-arr">›</div>
       </div>
     </div>
