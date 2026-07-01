@@ -8292,6 +8292,22 @@ function _applyCatMapping(recs,mapping){
   if(!mapping||!Object.keys(mapping).length)return;
   recs.forEach(r=>{if(r.cat&&mapping[r.cat])r.cat=mapping[r.cat];});
 }
+function _resolveFolderMappings(mapping){
+  // Kategorien, die als Ordner behalten werden sollen (Wert '__folder__'),
+  // in echte Ordner (FD) umwandeln und den Mapping-Wert durch 'fld_<id>' ersetzen.
+  // Ein bereits vorhandener gleichnamiger Ordner wird wiederverwendet.
+  if(!mapping)return;
+  let created=false,nid=Date.now();
+  FD.forEach(f=>{const n=Number(f.id);if(!isNaN(n)&&n>=nid)nid=n+1;});
+  Object.keys(mapping).forEach(cat=>{
+    if(mapping[cat]!=='__folder__')return;
+    const name=String(cat).trim()||'Ordner';
+    let f=FD.find(x=>x.name&&x.name.trim().toLowerCase()===name.toLowerCase());
+    if(!f){f={id:nid++,name:name,ico:'📁'};FD.push(f);created=true;}
+    mapping[cat]='fld_'+f.id;
+  });
+  if(created)svFD();
+}
 function _showCatMapDialog(recs,onDone){
   const validCats=new Set(CATS.filter(c=>c.id!=='all').map(c=>c.id));
   const unknownMap={};
@@ -8299,11 +8315,11 @@ function _showCatMapDialog(recs,onDone){
   const unknowns=Object.keys(unknownMap);
   if(!unknowns.length){onDone({});return;}
   const catOpts=CATS.filter(c=>c.id!=='all').map(c=>`<option value="${c.id}">${c.ico} ${c[CL]||c.de}</option>`).join('');
-  const rows=unknowns.map(cat=>`<div class="catmap-row"><div class="catmap-src"><div class="catmap-lbl">"${h(cat)}"</div><div class="catmap-cnt">${unknownMap[cat]} Rezept${unknownMap[cat]!==1?'e':''}</div></div><select class="catmap-sel" data-cat="${h(cat)}">${catOpts}</select></div>`).join('');
+  const rows=unknowns.map(cat=>`<div class="catmap-row"><div class="catmap-src"><div class="catmap-lbl">"${h(cat)}"</div><div class="catmap-cnt">${unknownMap[cat]} Rezept${unknownMap[cat]!==1?'e':''}</div></div><select class="catmap-sel" data-cat="${h(cat)}"><option value="__folder__" selected>📁 ${T('catmapAsFolder')||'als eigener Ordner'} „${h(cat)}"</option>${catOpts}</select></div>`).join('');
   const ov=document.createElement('div');ov.className='share-ov';
-  ov.innerHTML=`<div class="share-box catmap-box"><div style="font-size:1.3rem;margin-bottom:5px;text-align:center">🗂️</div><div class="share-box-title" style="text-align:center;margin-bottom:3px">${T('catmapTitle')||'Kategorien zuordnen'}</div><div class="share-box-sub" style="text-align:center;margin-bottom:10px">${T('catmapSub')||'Unbekannte Kategorien aus der Datei — bitte zuordnen:'}</div>${rows}<button class="share-btn-p" id="_catmapOk" style="margin-top:12px;background:var(--rust)">✅ ${T('catmapOk')||'Übernehmen'}</button><button class="share-btn-cl" id="_catmapSkip">${T('catmapSkip')||'Überspringen'}</button></div>`;
+  ov.innerHTML=`<div class="share-box catmap-box"><div style="font-size:1.3rem;margin-bottom:5px;text-align:center">🗂️</div><div class="share-box-title" style="text-align:center;margin-bottom:3px">${T('catmapTitle')||'Kategorien zuordnen'}</div><div class="share-box-sub" style="text-align:center;margin-bottom:10px">${T('catmapSub')||'Unbekannte Kategorien aus der Datei — als eigenen Ordner behalten oder einer festen Kategorie zuordnen:'}</div>${rows}<button class="share-btn-p" id="_catmapOk" style="margin-top:12px;background:var(--rust)">✅ ${T('catmapOk')||'Übernehmen'}</button><button class="share-btn-cl" id="_catmapSkip">${T('catmapSkip')||'Überspringen'}</button></div>`;
   document.body.appendChild(ov);
-  ov.querySelector('#_catmapOk').onclick=()=>{const m={};ov.querySelectorAll('.catmap-sel').forEach(s=>{m[s.dataset.cat]=s.value;});ov.remove();onDone(m);};
+  ov.querySelector('#_catmapOk').onclick=()=>{const m={};ov.querySelectorAll('.catmap-sel').forEach(s=>{m[s.dataset.cat]=s.value;});_resolveFolderMappings(m);ov.remove();onDone(m);};
   ov.querySelector('#_catmapSkip').onclick=()=>{ov.remove();onDone({});};
 }
 function _importImgJson(entries){
