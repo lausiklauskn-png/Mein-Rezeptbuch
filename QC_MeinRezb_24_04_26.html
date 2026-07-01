@@ -2414,6 +2414,7 @@ body:not([data-theme]) #bnav{
       </div>
       <div id="mistralKeyPanel" style="display:none;padding:12px 16px 14px;border-bottom:1px solid var(--sand2);background:var(--bg)">
         <div style="font-size:.72rem;color:var(--br3);line-height:1.5;margin-bottom:9px">Wird für die Text-Erkennung (OCR, EU) im KI-Scan verwendet, wenn du dort „Mistral (EU)" wählst. Das Einordnen ins Rezept macht weiterhin Claude.</div>
+        <div style="font-size:.72rem;line-height:1.5;margin-bottom:9px">🔑 Schlüssel erstellen: <a href="https://console.mistral.ai/api-keys" target="_blank" rel="noopener" style="color:var(--gold);text-decoration:underline">console.mistral.ai/api-keys</a></div>
         <div style="display:flex;gap:8px;align-items:center">
           <input class="scan-key-in" id="mistralKeyIn" type="password" placeholder="Mistral-Schlüssel …" style="flex:1"
             oninput="onMistralKeyInput(this.value)"
@@ -7935,7 +7936,7 @@ async function triggerScan(){
       if(!r||!r.available){setScanSt('⚠️ '+((r&&r.reason)||'Mistral OCR fehlgeschlagen'),'err');if(btn){btn.disabled=false;}return;}
       contentBlock={type:'text',text:r.text};
       prompt=_SCAN_PROMPT_INTRO_TXT+'\n'+_SCAN_PROMPT_SCHEMA;
-      setScanSt(T('scanLoading'),'loading');
+      setScanSt('✅ Mistral OCR '+(r.model||'')+' fertig — Claude sortiert ein …','loading');
     }else{
       contentBlock=isPdf
         ?{type:'document',source:{type:'base64',media_type:'application/pdf',data:b64}}
@@ -9156,7 +9157,19 @@ function renderCatNav(){
   if(fldSel)fldSel.innerHTML=`<option value="">— ${T('noFolder')} —</option>`+
     FD.map(f=>`<option value="${f.id}">${f.ico} ${h(f.name)}</option>`).join('');
 }
-function setCAT(id){CAT=id;render();window.scrollTo(0,0);}
+function setCAT(id){
+  CAT=id;
+  // Eine aktive Suche überstimmt die Kategorie-Ansicht (render() prüft SQ zuerst).
+  // Tippt der Nutzer bewusst einen Kategorie-Chip an, wird die Suche gelöscht,
+  // damit die gewählte Kategorie sichtbar wird — sonst wirkt die Nav blockiert.
+  if(SQ){
+    SQ='';
+    const si=document.getElementById('srchIn');if(si)si.value='';
+    const sx=document.getElementById('srchX');if(sx)sx.style.display='none';
+    const sc=document.getElementById('srchCnt');if(sc)sc.style.display='none';
+  }
+  render();window.scrollTo(0,0);
+}
 
 // ═══════════════════════════════════════════════════════
 // BADGE
