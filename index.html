@@ -2418,6 +2418,22 @@ const _CR=Object.freeze({c:'© 2026 Klaus Nitzsche',r:'All rights reserved',v:'v
           <div class="sett-sub" id="sImgGenSub">OpenAI-Key für KI-Bilder</div></div>
         <div class="sett-arr">›</div>
       </div>
+      <div class="sett-row" onclick="toggleMistralKeyField()">
+        <div class="sett-ico">📄</div>
+        <div class="sett-body"><div class="sett-lbl">Mistral-Schlüssel (EU)</div>
+          <div class="sett-sub">Für Texterkennung im KI-Scan</div></div>
+        <div class="sett-arr" id="mistralKeyArr">›</div>
+      </div>
+      <div id="mistralKeyPanel" style="display:none;padding:12px 16px 14px;border-bottom:1px solid var(--sand2);background:var(--bg)">
+        <div style="font-size:.72rem;color:var(--br3);line-height:1.5;margin-bottom:9px">Wird für die Text-Erkennung (OCR, EU) im KI-Scan verwendet, wenn du dort „Mistral (EU)" wählst. Das Einordnen ins Rezept macht weiterhin Claude.</div>
+        <div style="display:flex;gap:8px;align-items:center">
+          <input class="scan-key-in" id="mistralKeyIn" type="password" placeholder="Mistral-Schlüssel …" style="flex:1"
+            oninput="onMistralKeyInput(this.value)"
+            onkeydown="if(event.key==='Enter')saveMistralKey()"/>
+          <button class="paste-btn" onclick="saveMistralKey()" title="Mistral-Schlüssel speichern">💾 Speichern</button>
+        </div>
+        <div class="scan-key-note" style="margin-top:8px">🔒 Bleibt nur auf deinem Gerät — wird niemals weitergegeben</div>
+      </div>
     </div>
     <div class="sett-sec">
       <div class="sett-head">🌐 NETZWERK (SBKIM)</div>
@@ -2824,7 +2840,14 @@ Vielen Dank für deine Unterstützung.</div>
         <div id="scanStatus" class="scan-status"></div>
         <div id="scanResultWrap"></div>
 
-        
+        <div id="scanProviderRow" style="margin-top:8px;display:flex;align-items:center;gap:8px;flex-wrap:wrap;font-size:.78rem">
+          <span style="color:var(--br3)">Anbieter:</span>
+          <select id="scanProviderSel" onchange="setScanProvider(this.value)" style="flex:1;min-width:180px;padding:7px 9px;border:1px solid var(--sand2);border-radius:8px;background:var(--parch);color:var(--ink);font-size:.78rem">
+            <option value="anthropic">Anthropic (Claude)</option>
+            <option value="mistral">Mistral (EU) — Texterkennung</option>
+          </select>
+        </div>
+
         <div id="scanActions" style="display:none;margin-top:4px">
           <button class="bigbtn teal" id="scanBtn" onclick="triggerScan()" title="Rezept per KI vom Foto erkennen">
             ✨ <span id="scanBtnLbl">Rezept automatisch erkennen</span>
@@ -7541,6 +7564,14 @@ function selectScanModel(key){
 // ── SCAN: KEY MANAGEMENT ──────────────────────────────
 function getSavedKey(){return localStorage.getItem('claudeKey9m')||'';}
 
+// ── SCAN: ANBIETER (Anthropic/Claude vs. Mistral-OCR) ──
+function getScanProvider(){const p=localStorage.getItem('scanProvider9m');return p==='mistral'?'mistral':'anthropic';}
+function setScanProvider(v){const p=(v==='mistral')?'mistral':'anthropic';localStorage.setItem('scanProvider9m',p);const sel=document.getElementById('scanProviderSel');if(sel)sel.value=p;}
+function getMistralKey(){return localStorage.getItem('mistralKey9m')||'';}
+function onMistralKeyInput(v){const inp=document.getElementById('mistralKeyIn');if(inp)inp.style.borderColor=v.trim().length>=20?'var(--grn)':'var(--sand2)';}
+function saveMistralKey(){const v=document.getElementById('mistralKeyIn')?.value?.trim()||'';if(v){localStorage.setItem('mistralKey9m',v);toast('✅ Mistral-Schlüssel gespeichert!');}else{localStorage.removeItem('mistralKey9m');toast('Mistral-Schlüssel entfernt');}}
+function toggleMistralKeyField(){const p=document.getElementById('mistralKeyPanel');const arr=document.getElementById('mistralKeyArr');if(!p)return;const open=p.style.display==='none'||!p.style.display;p.style.display=open?'block':'none';if(arr)arr.textContent=open?'⌄':'›';if(open){const inp=document.getElementById('mistralKeyIn');if(inp){inp.value=getMistralKey();onMistralKeyInput(inp.value);setTimeout(()=>inp.focus(),80);}}}
+
 // ── IMGGEN: KEY MANAGEMENT ────────────────────────────
 const OPENAI_IMG_KEY_LS='openaiImgKey9m';
 function getOpenAiImgKey(){return localStorage.getItem(OPENAI_IMG_KEY_LS)||localStorage.getItem('openaiKey9m')||'';}
@@ -7688,6 +7719,8 @@ function switchToScanMain(){
 }
 
 function initScanPane(){
+  const sel=document.getElementById('scanProviderSel');
+  if(sel)sel.value=getScanProvider();
   if(getSavedKey()){
     switchToScanMain();
   }else{
@@ -7758,6 +7791,9 @@ function handleScanFile(e){
 async function runBatchScan(files){
   const key=getSavedKey();
   if(!key){showKeySetup();return;}
+  const provider=getScanProvider();
+  const mkey=provider==='mistral'?getMistralKey():'';
+  if(provider==='mistral'&&!mkey){setScanSt('Mistral-Schlüssel fehlt — bitte in den Einstellungen ⚙️ eintragen.','err');return;}
   // Hide normal scan UI, show batch progress
   const zone=document.getElementById('scanPhotoZone');
   const acts=document.getElementById('scanActions');
@@ -7781,35 +7817,28 @@ async function runBatchScan(files){
     try{
       const fileIsPdf=files[i].type==='application/pdf'||files[i].name.toLowerCase().endsWith('.pdf');
       const origData=await new Promise((res,rej)=>{const fr=new FileReader();fr.onload=e=>res(e.target.result);fr.onerror=rej;fr.readAsDataURL(files[i]);});
-      let apiData,storeData,b64,mime,contentBlock;
-      if(fileIsPdf){
-        b64=origData.split(',')[1];
-        contentBlock={type:'document',source:{type:'base64',media_type:'application/pdf',data:b64}};
-        storeData='';
+      let apiData,storeData,b64,mime,contentBlock,prompt;
+      // Rezeptbild-Speicher (nur bei Fotos) unabhängig vom Anbieter vorbereiten
+      if(!fileIsPdf){storeData=await _compressImgStage1(origData);}else{storeData='';}
+      if(provider==='mistral'){
+        updBar(`Datei ${i+1} von ${total}: 📷 Mistral OCR …`);
+        const ocrMime=fileIsPdf?'application/pdf':(origData.split(';')[0].split(':')[1]||'image/jpeg');
+        const r=await window.SbkimOcr.recognize(origData,{provider:'mistral',apiKey:mkey,mimeType:ocrMime});
+        if(!r||!r.available)throw new Error((r&&r.reason)||'Mistral OCR fehlgeschlagen');
+        contentBlock={type:'text',text:r.text};
+        prompt=_SCAN_PROMPT_INTRO_TXT+'\n'+_SCAN_PROMPT_SCHEMA;
       }else{
-        // 1200px für API-Erkennung, 800px für Rezeptbild-Speicher
-        [apiData,storeData]=await Promise.all([resizeImage(origData,1200,0.90),_compressImgStage1(origData)]);
-        b64=apiData.split(',')[1];mime=apiData.split(';')[0].split(':')[1]||'image/jpeg';
-        contentBlock={type:'image',source:{type:'base64',media_type:mime,data:b64}};
+        if(fileIsPdf){
+          b64=origData.split(',')[1];
+          contentBlock={type:'document',source:{type:'base64',media_type:'application/pdf',data:b64}};
+        }else{
+          // 1200px für API-Erkennung
+          apiData=await resizeImage(origData,1200,0.90);
+          b64=apiData.split(',')[1];mime=apiData.split(';')[0].split(':')[1]||'image/jpeg';
+          contentBlock={type:'image',source:{type:'base64',media_type:mime,data:b64}};
+        }
+        prompt=_SCAN_PROMPT_INTRO_IMG+'\n'+_SCAN_PROMPT_SCHEMA;
       }
-      const prompt=`You are a recipe extraction expert. Look at this recipe image carefully and extract ALL information.
-Return ONLY a valid JSON object — no markdown, no explanation, just the raw JSON:
-{
-  "name": "recipe name",
-  "servings": 4,
-  "category": "fleisch|fisch|vegi|suppe|vorsp|kuchen|dessert",
-  "flavor": "one short flavor description",
-  "ingredients": [{"amt": "amount as string", "unit": "unit", "name": "ingredient name"}],
-  "steps": ["step 1 text", "step 2 text"]
-}
-Rules:
-- Extract every ingredient with exact amounts and units
-- Write each preparation step as a complete sentence
-- Choose the closest category from the list
-- If amounts use fractions like 1/2, write them as-is
-- Correct ALL spelling mistakes in the extracted text
-- Do NOT change proper nouns, brand names, dialect words or intentional artistic names
-- CRITICAL: Preserve the ORIGINAL language of the recipe EXACTLY. Do NOT translate.`;
       const resp=await fetch('https://api.anthropic.com/v1/messages',{
         method:'POST',
         headers:{'Content-Type':'application/json','x-api-key':key,'anthropic-version':'2023-06-01','anthropic-dangerous-direct-browser-access':'true'},
@@ -7874,22 +7903,10 @@ function resetScan(){
 }
 
 // ── SCAN: AI RECOGNITION ──────────────────────────────
-async function triggerScan(){
-  if(!scanData){document.getElementById('scanFileIn')?.click();return;}
-  const key=getSavedKey();
-  if(!key){showKeySetup();return;}
-  const btn=document.getElementById('scanBtn');
-  if(btn){btn.disabled=true;}
-  setScanSt(T('scanLoading'),'loading');
-  document.getElementById('scanResultWrap').innerHTML='';
-  document.getElementById('scanActions').style.display='block';
-  const isPdf=scanData.startsWith('data:application/pdf');
-  const b64=scanData.split(',')[1],mime=scanData.split(';')[0].split(':')[1]||'image/jpeg';
-  const contentBlock=isPdf
-    ?{type:'document',source:{type:'base64',media_type:'application/pdf',data:b64}}
-    :{type:'image',source:{type:'base64',media_type:mime,data:b64}};
-  const prompt=`You are a recipe extraction expert. Look at this recipe image carefully and extract ALL information.
-Return ONLY a valid JSON object — no markdown, no explanation, just the raw JSON:
+// Prompt-Bausteine: Einleitung getrennt (Bild vs. Text), Schema/Regeln geteilt
+const _SCAN_PROMPT_INTRO_IMG=`You are a recipe extraction expert. Look at this recipe image carefully and extract ALL information.`;
+const _SCAN_PROMPT_INTRO_TXT=`You are a recipe extraction expert. Here is recipe text extracted via OCR. Read it carefully and extract ALL information.`;
+const _SCAN_PROMPT_SCHEMA=`Return ONLY a valid JSON object — no markdown, no explanation, just the raw JSON:
 {
   "name": "recipe name",
   "servings": 4,
@@ -7906,7 +7923,37 @@ Rules:
 - Correct ALL spelling mistakes in the extracted text
 - Do NOT change proper nouns, brand names, dialect words or intentional artistic names
 - CRITICAL: Preserve the ORIGINAL language of the recipe EXACTLY. Do NOT translate. If Russian → respond in Russian. If Italian → respond in Italian.`;
+
+async function triggerScan(){
+  if(!scanData){document.getElementById('scanFileIn')?.click();return;}
+  const key=getSavedKey();
+  if(!key){showKeySetup();return;}
+  const provider=getScanProvider();
+  const btn=document.getElementById('scanBtn');
+  if(btn){btn.disabled=true;}
+  setScanSt(T('scanLoading'),'loading');
+  document.getElementById('scanResultWrap').innerHTML='';
+  document.getElementById('scanActions').style.display='block';
+  const isPdf=scanData.startsWith('data:application/pdf');
+  const b64=scanData.split(',')[1],mime=scanData.split(';')[0].split(':')[1]||'image/jpeg';
   try{
+    // Content-Block + Prompt-Einleitung je nach Anbieter bestimmen
+    let contentBlock,prompt;
+    if(provider==='mistral'){
+      const mkey=getMistralKey();
+      if(!mkey){setScanSt('Mistral-Schlüssel fehlt — bitte in den Einstellungen ⚙️ eintragen.','err');if(btn){btn.disabled=false;}return;}
+      setScanSt('📷 Mistral OCR liest den Text …','loading');
+      const r=await window.SbkimOcr.recognize(scanData,{provider:'mistral',apiKey:mkey,mimeType:mime});
+      if(!r||!r.available){setScanSt('⚠️ '+((r&&r.reason)||'Mistral OCR fehlgeschlagen'),'err');if(btn){btn.disabled=false;}return;}
+      contentBlock={type:'text',text:r.text};
+      prompt=_SCAN_PROMPT_INTRO_TXT+'\n'+_SCAN_PROMPT_SCHEMA;
+      setScanSt(T('scanLoading'),'loading');
+    }else{
+      contentBlock=isPdf
+        ?{type:'document',source:{type:'base64',media_type:'application/pdf',data:b64}}
+        :{type:'image',source:{type:'base64',media_type:mime,data:b64}};
+      prompt=_SCAN_PROMPT_INTRO_IMG+'\n'+_SCAN_PROMPT_SCHEMA;
+    }
     const resp=await fetch('https://api.anthropic.com/v1/messages',{
       method:'POST',
       headers:{'Content-Type':'application/json','x-api-key':key,'anthropic-version':'2023-06-01','anthropic-dangerous-direct-browser-access':'true'},
