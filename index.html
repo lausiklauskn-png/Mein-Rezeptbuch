@@ -3099,7 +3099,7 @@ Vielen Dank für deine Unterstützung.</div>
         </div>
 
         <input type="file" id="ocrTxtFileIn" accept="image/*,application/pdf" capture="environment" style="display:none" onchange="handleOcrTxtFile(event)"/>
-        <button class="scan-reset-btn" style="margin-top:8px;width:100%" onclick="document.getElementById('ocrTxtFileIn').click()" title="Foto oder Handschrift per EU-Texterkennung (Mistral OCR) in Text umwandeln">📷 Foto / Handschrift → Text (EU-OCR)</button>
+        <button class="scan-reset-btn" style="margin-top:8px;width:100%" onclick="document.getElementById('ocrTxtFileIn').click()" title="Foto oder Handschrift per EU-Texterkennung (Mistral OCR) in Text umwandeln">📷 Mistral OCR — Foto / Handschrift → Text</button>
 
         <div id="txtStatus" class="scan-status"></div>
         <div id="txtResultWrap"></div>
@@ -15387,7 +15387,14 @@ function saveZinePage(idx){
       }
       var data = await res.json();
       var text = provider.extract(data);
-      return { available: true, provider: providerId, text: text };
+      // Tatsächlich benutzte Modell-Version aus der API-Antwort (Mistral OCR
+      // liefert das datierte Modell, z.B. "mistral-ocr-2505") — sichtbar machen,
+      // damit klar ist, welche Version lief. Fällt auf die angeforderte Version
+      // zurück (mistral-ocr-latest), wenn die Antwort keine nennt.
+      var usedModel = (data && typeof data.model === "string" && data.model)
+        ? data.model
+        : (providerId === "mistral" ? (options.model || MISTRAL_DEFAULT_MODEL) : null);
+      return { available: true, provider: providerId, text: text, model: usedModel };
     } catch (e) {
       if (timer) clearTimeout(timer);
       return { available: false, provider: providerId, reason: ocrErrorHint(e) };
@@ -15438,7 +15445,7 @@ function saveZinePage(idx){
   }
 })(typeof window !== "undefined" ? window : globalThis);
 
-// --- OCR-Eingabe-Hook für den Text-Import-Tab (Strang B2) ---
+// --- OCR-Eingabe-Hook für den Text-Import-Tab (Strang B2, Mistral OCR) ---
 window.__mistralOcrKey = window.__mistralOcrKey || '';
 window.handleOcrTxtFile = async function (e) {
   var file = e.target && e.target.files && e.target.files[0];
@@ -15449,7 +15456,7 @@ window.handleOcrTxtFile = async function (e) {
     if (!k) return;
     window.__mistralOcrKey = k.trim();
   }
-  if (typeof setTxtSt === 'function') setTxtSt('📷 Texterkennung läuft…', 'loading');
+  if (typeof setTxtSt === 'function') setTxtSt('📷 Mistral OCR erkennt Text…', 'loading');
   try {
     var dataUrl = await new Promise(function (res, rej) {
       var fr = new FileReader();
@@ -15461,7 +15468,8 @@ window.handleOcrTxtFile = async function (e) {
     if (r && r.available) {
       var ta = document.getElementById('txtPasteArea');
       if (ta) { ta.value = (ta.value ? ta.value + '\n' : '') + (r.text || ''); if (typeof _txtUpdateUI === 'function') _txtUpdateUI(ta); }
-      if (typeof setTxtSt === 'function') setTxtSt('✅ Text erkannt (' + ((r.text || '').length) + ' Zeichen) — jetzt „✨ Rezept automatisch erkennen".', 'ok');
+      var ver = r.model ? (' ' + r.model) : '';
+      if (typeof setTxtSt === 'function') setTxtSt('✅ Erkannt via Mistral OCR' + ver + ' (' + ((r.text || '').length) + ' Zeichen) — jetzt „✨ Rezept automatisch erkennen".', 'ok');
     } else {
       var reason = (r && r.reason) || 'Texterkennung nicht möglich';
       if (/Schlüssel/.test(reason)) window.__mistralOcrKey = '';
