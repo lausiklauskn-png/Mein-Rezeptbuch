@@ -9176,7 +9176,10 @@ function renderCatNav(){
     const dragEvts=c.id!=='all'?`ondragover="pillDragOver(event,'${c.id}')" ondragleave="pillDragLeave(event)" ondrop="pillDrop(event,'${c.id}')"` :'';
     return`<div class="cpill ${CAT===c.id?'on':''}" onclick="setCAT('${c.id}')" ${dragEvts}>${c.ico} ${c[CL]||c.de} <span style="opacity:.65;font-size:.6rem">${cnt}</span></div>`;
   }).join('');
-  if(FD&&FD.length){pills+=FD.map(f=>{const fid='fld_'+f.id;const cnt=R.filter(r=>(r.folder===String(f.id)||r.cat===fid)&&r.name&&!r.blank).length;if(cnt===0)return '';return`<div class="cpill ${CAT===fid?'on':''}" onclick="setCAT('${fid}')">${f.ico} ${f.name} <span style="opacity:.65;font-size:.6rem">${cnt}</span></div>`;}).join('');}
+  // Selbst angelegte Ordner IMMER als Chip zeigen — auch mit 0 Rezepten.
+  // Der Nutzer hat sie bewusst erstellt; sonst verschwinden sie nach einem
+  // Reload aus der Kategorie-Leiste (Befund Klaus 2026-07-01).
+  if(FD&&FD.length){pills+=FD.map(f=>{const fid='fld_'+f.id;const cnt=R.filter(r=>(r.folder===String(f.id)||r.cat===fid)&&r.name&&!r.blank).length;return`<div class="cpill ${CAT===fid?'on':''}" onclick="setCAT('${fid}')">${f.ico} ${f.name} <span style="opacity:.65;font-size:.6rem">${cnt}</span></div>`;}).join('');}
   el.innerHTML=pills;
   const catSel=document.getElementById('newCat');
   if(catSel)catSel.innerHTML=`<option value="">— ${T('lCat')} —</option>`+
