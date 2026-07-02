@@ -2,6 +2,35 @@
 
 ---
 
+## 🚨 REGEL: IMMER gegen `main` prüfen — der GitHub-Default-Branch ist ein toter Decoy
+
+**Verbindlich (Klaus 2026-07-02, nach wiederholtem Fehl-Befund).** Der auf GitHub
+eingestellte **Default-Branch dieses Repos ist NICHT `main`**, sondern ein alter
+**Vor-SBKIM-Branch** (`claude/recipe-book-app-update-fGP7B`, Stand aus der „Muttis"-Zeit,
+ohne `sbkim/`-Verzeichnis). Automatisch angelegte Session-Branches zweigen von diesem
+Default ab und tragen deshalb **kein SBKIM** — jede Sitzung, die „den ausgecheckten Stand"
+oder „den Default-Branch" liest, kommt fälschlich zum Schluss „Rezeptbuch hat kein SBKIM".
+**Das ist der wiederkehrende Fehler. Er ist immer derselbe.**
+
+**Wahrheit:** `main` (`git show origin/main:…`) ist die **einzige** Quelle der Wahrheit und
+die **GitHub-Pages-Deploy-Quelle**. `main` trägt die **volle SBKIM-Integration** (Module
+00–08, 15, 16, 17, 18, 23, Briefkästen, Spore, `status.json`) — die Modul-09-Einbau-PWA-
+Migration **hat längst stattgefunden**.
+
+**Pflicht bei JEDER Aussage über den Rezeptbuch-Stand:**
+1. **Zuerst** `git fetch origin main` und **gegen `origin/main` prüfen**, nie gegen den
+   ausgecheckten Session-Branch oder den Default-Branch:
+   ```bash
+   git fetch origin main --quiet
+   git ls-tree origin/main --name-only sbkim/ | head    # SBKIM ist da
+   git show origin/main:index.html | grep 'sbkim/'       # Module sind eingebunden
+   ```
+2. **Session-Branch von `main` neu aufsetzen**, bevor gebaut wird (der Auto-Default ist
+   wertlos): `git checkout -B <branch> origin/main`.
+3. **Niemals** „Rezeptbuch hat kein SBKIM" schreiben, ohne Schritt 1 ausgeführt zu haben.
+
+---
+
 ## ⚠️ REGEL: Vollbremsung vor der Fehlersuche
 
 Bevor mit der Diagnose begonnen wird, ist genau **eine** Frage zu stellen:
