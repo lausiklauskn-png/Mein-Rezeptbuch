@@ -14998,9 +14998,12 @@ function saveZinePage(idx){
   }
   function toggle() { on ? disable() : enable(); }
 
-  // Garantierter Weg ohne Konsole: URL-Hash #eruda oder gemerkter Zustand.
+  // Sichttest 2026-07-02: Eruda standardmäßig AKTIV (Klaus braucht die Blase für
+  // den window.R-/queryLocal-Browsertest ohne Ecken-Geste). Nur bei explizitem
+  // Ausblenden (localStorage 'eruda9'==='0', z.B. via 5×-Ecken-Geste) bleibt es
+  // aus. URL-Hash #eruda erzwingt es zusätzlich.
   try {
-    if (location.hash.indexOf('eruda') > -1 || localStorage.getItem('eruda9') === '1') enable();
+    if (location.hash.indexOf('eruda') > -1 || localStorage.getItem('eruda9') !== '0') enable();
   } catch (e) {}
 
   // Ecken-Geste: 5× schnell (innerhalb 2 s) in die obere linke 60×60-px-Ecke.
