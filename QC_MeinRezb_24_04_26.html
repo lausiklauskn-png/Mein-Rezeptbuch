@@ -5310,6 +5310,12 @@ function h(s){return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').re
 // STATE
 // ═══════════════════════════════════════════════════════
 let R=[],MS=[],FD=[];
+// SBKIM (2026-07-02): R als LIVE window.R exponieren. Ein top-level `let` hängt
+// NICHT am window-Objekt, aber der Cross-Knoten-Korpus-Provider (sbkim-init.js)
+// + Domänen-Vektor (sampleContent) + weitere Stellen lesen window.R. R wird beim
+// Laden reassigned (R=[]), darum ein Getter statt Einmal-Zuweisung — er liefert
+// immer das aktuelle R.
+try{Object.defineProperty(window,'R',{get:function(){return R;},configurable:true});}catch(e){}
 let CAT='all',SQ='',MVT='tl';
 let EN={},EI={},ES={},CST={rid:null,slotId:null,sel:null};
 let DoneS={},DoneI={},DoneAL={};

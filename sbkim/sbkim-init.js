@@ -94,6 +94,52 @@
       repoUrl:         "https://github.com/lausiklauskn-png/Mein-Rezeptbuch",
     });
 
+    // Query-über-Relais (Korpus-Provider, 2026-07-02): Korpus-Quelle für
+    // SbkimMatch.queryLocal, damit Rezeptbuch auf eine eingehende Frage übers
+    // Relais mit bedeutungs-sortierten Treffern aus seinem AKTUELLEN Inhalt
+    // antwortet (die echten Rezepte aus window.R — jetzt live via Getter).
+    // Lazy: erst beim ersten queryLocal wird embeddet (Modul 03, ~30 MB
+    // einmalig). Fail-soft: ohne Rezepte/Embedding → leere Liste (kein Throw).
+    // KEIN PII — nur Rezept-Namen/Zutaten/Kategorie (öffentlicher Inhalt).
+    // A1: text-Feld (roher Passage-Text) → BM25 trifft Zutaten/Geschmack.
+    if (window.SbkimMatch && typeof SbkimMatch.setLocalCorpus === "function") {
+      SbkimMatch.setLocalCorpus(async function buildRezeptbuchQueryCorpus() {
+        try {
+          if (!window.SbkimEmbedding) return [];
+          await SbkimEmbedding.init();
+          var R = Array.isArray(window.R) ? window.R : [];
+          var recipes = R.filter(function (r) {
+            return r && !r.blank && r.name && String(r.name).trim().length > 0;
+          });
+          if (recipes.length > 80) recipes = recipes.slice(0, 80); // Deckel gegen Embedding-Kosten
+          var corpus = [];
+          for (var i = 0; i < recipes.length; i++) {
+            var r = recipes[i];
+            var ingNames = Array.isArray(r.ings)
+              ? r.ings.map(function (x) { return (x && (x.name || x.origName)) ? (x.name || x.origName) : ""; }).filter(Boolean)
+              : [];
+            var flavors = Array.isArray(r.flavors) ? r.flavors : [];
+            var parts = [String(r.name)].concat(flavors).concat(ingNames);
+            if (r.cat && typeof catName === "function") { try { parts.push(String(catName(r.cat))); } catch (e2) {} }
+            var passage = parts.filter(Boolean).join(", ");
+            var raw = await SbkimEmbedding.embedPassage(passage);
+            var vec = (raw instanceof Float32Array) ? raw : new Float32Array(raw);
+            corpus.push({
+              label: String(r.name),
+              passageVec: vec,
+              text: passage,
+              anchorId: "https://lausiklauskn-png.github.io/Mein-Rezeptbuch/",
+            });
+          }
+          console.info("[MR-SBKIM] queryLocal-Korpus aus " + corpus.length + " Rezepten gebaut (Frage→Antwort übers Relais).");
+          return corpus;
+        } catch (e) {
+          console.warn("[MR-SBKIM] queryLocal-Korpus-Bau übersprungen (fail-soft):", e);
+          return [];
+        }
+      });
+    }
+
     // 02 Spore — Identitäts-Schicht. KEIN getOrCreateIdentity hier; das
     // läuft manuell via __sbkimErzeugeSpore() (DevTools) — Spore-Generierung
     // ist eine bewusste Klaus-Geste, nicht ein Boot-Schritt.
