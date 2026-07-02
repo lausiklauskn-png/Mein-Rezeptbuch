@@ -932,7 +932,12 @@
       corpus = opts.corpus;
     } else if (typeof _localCorpusProvider === "function") {
       try {
-        corpus = _localCorpusProvider();
+        // `await`: Endknoten-Provider bauen den Korpus faul (async — Embeddings
+        // via Modul 03). Ohne await landet ein Promise in validateCorpus →
+        // "Korpus muss ein Array sein, war: Promise" (Live-Befund 2026-07-02).
+        // Ein sync-Provider (Array-Snapshot) bleibt unberührt: `await array`
+        // gibt das Array zurück.
+        corpus = await _localCorpusProvider();
       } catch (err) {
         throw InvalidCorpusError(
           "queryLocal: _localCorpusProvider hat geworfen: " + (err && err.message ? err.message : String(err)),
