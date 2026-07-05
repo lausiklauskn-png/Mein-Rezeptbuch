@@ -628,3 +628,48 @@ window.__sbkimErzeugeSpore = async function (description) {
   if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", mountRendezvous);
   else mountRendezvous();
 })();
+
+// ── Sicherheits-Netz: Modul-17-Widget nie außerhalb des Sichtfelds stranden
+// lassen (Klaus 2026-07-05). Modul 17 stellt seine per localStorage gemerkte
+// Position beim Start ungeprüft wieder her. Wechselt das Fenster-/Bildschirm-
+// maß (Tablet ↔ DeX, Drehung), kann eine früher gemerkte Position außerhalb
+// des sichtbaren Bereichs liegen — dann bleibt das Siegel-Widget unsichtbar,
+// obwohl es gemountet und „sichtbar" ist. Dieser App-seitige Wächter rührt das
+// geteilte Modul 17 NICHT an; er holt das Widget nur in die Standard-Ecke unten
+// rechts zurück und verwirft die verwaiste Position, wenn es aus dem Viewport
+// fällt. Fail-soft, No-Op solange das Widget sichtbar ist.
+(function () {
+  "use strict";
+  var ID = "sbkim-widget";
+  function positionKey() {
+    try {
+      return (window.SbkimWidget && window.SbkimWidget._meta &&
+        window.SbkimWidget._meta.lsKeyPosition) || null;
+    } catch (e) { return null; }
+  }
+  function clampIntoView() {
+    var w = document.getElementById(ID);
+    if (!w) return;
+    var r = w.getBoundingClientRect();
+    if (!r || (r.width === 0 && r.height === 0)) return; // noch nicht gerendert
+    var vw = window.innerWidth || document.documentElement.clientWidth || 0;
+    var vh = window.innerHeight || document.documentElement.clientHeight || 0;
+    var M = 24; // mindestens so viele px müssen sichtbar bleiben
+    var offscreen = (r.right <= M || r.left >= vw - M || r.bottom <= M || r.top >= vh - M);
+    if (!offscreen) return;
+    var k = positionKey();
+    if (k) { try { localStorage.removeItem(k); } catch (e) {} }
+    w.style.top = ""; w.style.left = "";
+    w.style.right = "16px"; w.style.bottom = "16px";
+    if (window.console && console.info) {
+      console.info("[MR-SBKIM] Siegel-Widget war außerhalb des Sichtfelds — in die Standard-Ecke zurückgeholt.");
+    }
+  }
+  var tries = 0;
+  (function waitForWidget() {
+    if (document.getElementById(ID)) { clampIntoView(); return; }
+    if (tries++ < 60) setTimeout(waitForWidget, 100);
+  })();
+  window.addEventListener("resize", clampIntoView);
+  window.addEventListener("orientationchange", clampIntoView);
+})();
