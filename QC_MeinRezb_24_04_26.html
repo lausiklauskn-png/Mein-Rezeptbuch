@@ -2158,6 +2158,7 @@ body:not([data-theme]) #bnav{
       <span style="font-size:.95rem;color:var(--br3)">🔍</span>
       <input id="srchIn" oninput="doSearch(this.value)"/>
       <button class="srch-x" id="srchX" onclick="clearSearch()" title="Suche löschen" style="display:none">✕</button>
+      <button id="semBtn" onclick="toggleSem()" title="Auch nach Bedeutung suchen (gratis, offline)" style="border:none;background:transparent;cursor:pointer;font-size:.95rem;line-height:1;padding:2px 5px;border-radius:8px;opacity:.4;transition:opacity .2s,background .2s">💡</button>
       <div class="srch-acts">
         <button class="mx-btn mx-btn-icon" onclick="openImport()" title="Importieren">📥</button>
         <button class="mx-btn mx-btn-icon" onclick="openExport()" title="Exportieren">📤</button>
@@ -6233,11 +6234,79 @@ function updateSettings(){
 // ═══════════════════════════════════════════════════════
 // SEARCH
 // ═══════════════════════════════════════════════════════
+// ══ Bedeutungs-Suche (semantisch, opt-in, gratis/offline) ══════════════════
+// Wortsuche bleibt sofort; die Bedeutungs-Suche ergänzt Treffer, die dem Sinn
+// nach passen (z.B. "Kuchen" findet auch "Eierschecke"). Modell lädt einmalig
+// (~30 MB) beim ersten Einschalten, danach gecacht. Fail-soft: bei jedem Fehler
+// bleibt die reine Wortsuche. Rezept-Korpus wird EINMAL app-seitig eingebettet
+// (SEM_CORPUS) und wiederverwendet — nur die Suchanfrage wird pro Suche embeddet.
+let SEM_ON=localStorage.getItem('mrSemOn')==='1';
+let SEM_IDS=new Set();      // Rezept-ids, die semantisch passen
+let SEM_CORPUS=null;        // gecachter, eingebetteter Korpus
+let SEM_SIG='';             // Signatur (Rezept-id-Satz) zum Neu-Bauen bei Änderung
+let SEM_TIMER=null,SEM_BUSY=false;
+function semSig(){return R.filter(r=>r.name&&!r.blank).map(r=>r.id).join(',');}
+async function semEnsureCorpus(){
+  const sig=semSig();
+  if(SEM_CORPUS&&SEM_SIG===sig)return SEM_CORPUS;
+  if(!window.SbkimEmbedding)return null;
+  await SbkimEmbedding.init();
+  const rs=R.filter(r=>r.name&&!r.blank).slice(0,120);
+  const corpus=[];
+  for(const r of rs){
+    const ingNames=Array.isArray(r.ings)?r.ings.map(x=>(x&&(x.name||x.origName))||'').filter(Boolean):[];
+    const flavors=Array.isArray(r.flavors)?r.flavors:[];
+    const parts=[String(r.name)].concat(flavors).concat(ingNames);
+    if(r.cat){try{parts.push(String(catName(r.cat)));}catch(e){}}
+    const passage=parts.filter(Boolean).join(', ');
+    let raw;try{raw=await SbkimEmbedding.embedPassage(passage);}catch(e){continue;}
+    corpus.push({label:String(r.name),anchorId:String(r.id),passageVec:(raw instanceof Float32Array)?raw:new Float32Array(raw),text:passage});
+  }
+  SEM_CORPUS=corpus;SEM_SIG=sig;return corpus;
+}
+function semSchedule(q){
+  clearTimeout(SEM_TIMER);
+  const term=(q||'').toLowerCase().trim();
+  if(!term){if(SEM_IDS.size)SEM_IDS=new Set();return;}
+  SEM_TIMER=setTimeout(()=>semRun(term),350);
+}
+async function semRun(term){
+  if(!SEM_ON)return;
+  if(!window.SbkimMatch||typeof SbkimMatch.queryLocal!=='function')return;
+  if(SEM_BUSY){SEM_TIMER=setTimeout(()=>semRun(term),300);return;}
+  SEM_BUSY=true;semBtnBusy(true);
+  try{
+    const corpus=await semEnsureCorpus();
+    if(SQ!==term)return;                 // Nutzer tippt schon etwas anderes
+    if(!corpus||!corpus.length)return;
+    const hits=await SbkimMatch.queryLocal(term,12,{corpus:corpus,hybrid:true});
+    if(SQ!==term)return;                 // Ergebnis veraltet
+    SEM_IDS=new Set(hits.map(h=>h.anchorId).filter(Boolean));
+    render();
+  }catch(e){/* fail-soft: nur Wortsuche */}
+  finally{SEM_BUSY=false;semBtnBusy(false);}
+}
+function semBtnBusy(on){const b=document.getElementById('semBtn');if(b)b.textContent=on?'⏳':'💡';}
+function updateSemBtn(){
+  const b=document.getElementById('semBtn');if(!b)return;
+  b.style.opacity=SEM_ON?'1':'.4';
+  b.style.background=SEM_ON?'rgba(20,160,140,.16)':'transparent';
+  b.title=SEM_ON?'Bedeutungs-Suche AN – findet auch nach Sinn (antippen zum Ausschalten)':'Auch nach Bedeutung suchen (gratis, offline)';
+}
+function toggleSem(){
+  SEM_ON=!SEM_ON;
+  localStorage.setItem('mrSemOn',SEM_ON?'1':'0');
+  updateSemBtn();
+  if(SEM_ON){if(SQ)semSchedule(SQ);}
+  else{SEM_IDS=new Set();render();}
+}
+try{updateSemBtn();}catch(e){}
 function doSearch(q){
   SQ=q.toLowerCase().trim();
   document.getElementById('srchX').style.display=SQ?'block':'none';
   document.getElementById('srchCnt').style.display=SQ?'block':'none';
   render();
+  if(SEM_ON)semSchedule(q); else if(SEM_IDS.size)SEM_IDS=new Set();
 }
 function clearSearch(){
   document.getElementById('srchIn').value='';SQ='';
@@ -6245,12 +6314,17 @@ function clearSearch(){
   document.getElementById('srchCnt').style.display='none';
   render();
 }
-function matchSQ(r){
-  if(!SQ)return true;
+function wordMatchSQ(r){
   const tr=rTr(r);
-  const trParts=tr?[tr.name||'',...(tr.ingredients||[]),...(tr.steps||[])]:[]; 
+  const trParts=tr?[tr.name||'',...(tr.ingredients||[]),...(tr.steps||[])]:[];
   return [r.name,r.ph||'',...(r.flavors||[]),...(r.ings||[]).map(i=>i.name),...(r.steps||[]).map(s=>s.txt),...trParts]
     .join(' ').toLowerCase().includes(SQ);
+}
+function matchSQ(r){
+  if(!SQ)return true;
+  if(wordMatchSQ(r))return true;
+  if(SEM_ON&&SEM_IDS.has(r.id))return true;   // Bedeutungs-Treffer (semantisch)
+  return false;
 }
 
 // ═══════════════════════════════════════════════════════
