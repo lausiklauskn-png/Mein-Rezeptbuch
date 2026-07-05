@@ -14994,8 +14994,9 @@ function saveZinePage(idx){
      Hervorholen auf zwei garantierten Wegen:
        1) 5× schnell in die obere LINKE Bildschirmecke tippen (toggelt ein/aus), ODER
        2) die App-URL einmal mit  #eruda  am Ende öffnen.
-     Der Zustand wird gemerkt (localStorage 'eruda9'); erneutes 5×-Tippen blendet
-     es wieder aus. Eruda wird erst beim Hervorholen initialisiert. -->
+     Bei jedem Neuladen startet Eruda verborgen (bewusst NICHT aus localStorage
+     'eruda9' wiederhergestellt); erneutes 5×-Tippen blendet es innerhalb der
+     Sitzung wieder aus. Eruda wird erst beim Hervorholen initialisiert. -->
 <script src="https://cdn.jsdelivr.net/npm/eruda@3"></script>
 <script>
 (function () {
@@ -15010,12 +15011,15 @@ function saveZinePage(idx){
   }
   function toggle() { on ? disable() : enable(); }
 
-  // Sichttest 2026-07-02: Eruda standardmäßig AKTIV (Klaus braucht die Blase für
-  // den window.R-/queryLocal-Browsertest ohne Ecken-Geste). Nur bei explizitem
-  // Ausblenden (localStorage 'eruda9'==='0', z.B. via 5×-Ecken-Geste) bleibt es
-  // aus. URL-Hash #eruda erzwingt es zusätzlich.
+  // 2026-07-05 (Klaus): Eruda standardmäßig VERBORGEN — kein schwebender Knopf auf
+  // der App-Oberfläche. Das Modul-17-Floating-Widget (Siegel / LEBT·VERKEHR·FREMD)
+  // bleibt davon UNBERÜHRT und sichtbar. Eruda nur auf ausdrücklichen Wunsch
+  // hervorholbar: URL-Hash #eruda ODER 5×-Tipp in die obere linke Ecke. Bewusst
+  // NICHT aus localStorage 'eruda9' wiederhergestellt — sonst bliebe die Blase auf
+  // Geräten aus der 2026-07-02-„aktiv"-Phase (dort wurde 'eruda9'==='1' gespeichert)
+  // ungewollt hängen.
   try {
-    if (location.hash.indexOf('eruda') > -1 || localStorage.getItem('eruda9') !== '0') enable();
+    if (location.hash.indexOf('eruda') > -1) enable();
   } catch (e) {}
 
   // Ecken-Geste: 5× schnell (innerhalb 2 s) in die obere linke 60×60-px-Ecke.
