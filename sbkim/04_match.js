@@ -1770,7 +1770,18 @@
     if (Object.prototype.hasOwnProperty.call(opts, "corpus") && opts.corpus !== undefined) {
       corpus = opts.corpus;
     } else if (typeof _localCorpusProvider === "function") {
-      corpus = _localCorpusProvider();
+      try {
+        // `await`: Endknoten-Provider bauen den Korpus faul (async — Embeddings
+        // via Modul 03). Ohne await landet ein Promise in queryLocal/validateCorpus
+        // → "Korpus muss ein Array sein, war: Promise". Gleicher Bug wie queryLocal
+        // (PR #533), hier für Bau 04.G nachgezogen. Sync-Array-Provider bleiben
+        // unberührt: `await array` gibt das Array zurück.
+        corpus = await _localCorpusProvider();
+      } catch (err) {
+        throw InvalidCorpusError(
+          "queryLocalJudged: _localCorpusProvider hat geworfen: " + (err && err.message ? err.message : String(err)),
+        );
+      }
     } else {
       corpus = [];
     }
