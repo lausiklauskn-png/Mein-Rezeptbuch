@@ -10549,7 +10549,7 @@ function rndCard(r){
     <div class="rcard-hd" onclick="${isBlank?'openInlineEdit('+r.id+')':'togCard('+r.id+')'}">
       <div class="stripe" style="background:${cc}"></div>
       <div class="rcard-hd-content">
-        <div class="rname ${isBlank?'em':''}" id="rname-${r.id}">${h(rName(r)||(r.ph||catName(r.cat)))}${rTr(r)?`<span style="font-size:.56rem;font-weight:700;background:var(--teals);color:var(--teal);border-radius:7px;padding:1px 5px;margin-left:5px;vertical-align:middle">🌐 ${CL.toUpperCase()}</span>`:''}</div>
+        <div class="rname ${isBlank?'em':''}" id="rname-${r.id}">${h(rName(r)||(r.ph||catName(r.cat)))}${rTr(r)?`<span style="font-size:.56rem;font-weight:700;background:var(--teals);color:var(--teal);border-radius:7px;padding:1px 5px;margin-left:5px;vertical-align:middle">🌐 ${CL.toUpperCase()}</span>`:''}${(SQ&&SEM_ON&&SEM_IDS.has(r.id)&&!wordMatchSQ(r))?`<span title="Nach Bedeutung gefunden (nicht per Wort)" style="font-size:.56rem;font-weight:700;background:rgba(20,160,140,.14);color:#0d8a76;border-radius:7px;padding:1px 5px;margin-left:5px;vertical-align:middle">💡 Sinn</span>`:''}</div>
         ${rTr(r)&&rName(r)!==r.name?`<div style="font-size:.59rem;color:var(--br3);margin-top:1px">${h(r.name)}</div>`:''}
         <div class="rmeta">${tot?`${tot} ${T('sIngr')} · ${dispTime?fmtPrepTime(dispTime):(r.steps||[]).length+' '+T('sSteps')}`:isBlank?`${catIco(r.cat)} ${catName(r.cat)}`:''}</div>
         ${r.name?`<div class="rcard-acts" onclick="event.stopPropagation()">
