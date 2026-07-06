@@ -2171,6 +2171,7 @@ const _CR=Object.freeze({c:'© 2026 Klaus Nitzsche',r:'All rights reserved',v:'v
       <input id="srchIn" oninput="doSearch(this.value)"/>
       <button class="srch-x" id="srchX" onclick="clearSearch()" title="Suche löschen" style="display:none">✕</button>
       <button id="semBtn" onclick="toggleSem()" title="Auch nach Bedeutung suchen (gratis, offline)" style="border:none;background:transparent;cursor:pointer;font-size:.95rem;line-height:1;padding:2px 5px;border-radius:8px;opacity:.4;transition:opacity .2s,background .2s">💡</button>
+      <button id="judgeBtn" onclick="toggleJudge()" title="KI-Richter: schärfer, braucht deinen KI-Schlüssel" style="border:none;background:transparent;cursor:pointer;font-size:.9rem;line-height:1;padding:2px 5px;border-radius:8px;opacity:.4;transition:opacity .2s,background .2s">⚖️</button>
       <div class="srch-acts">
         <button class="mx-btn mx-btn-icon" onclick="openImport()" title="Importieren">📥</button>
         <button class="mx-btn mx-btn-icon" onclick="openExport()" title="Exportieren">📤</button>
@@ -6255,6 +6256,7 @@ function updateSettings(){
 // bleibt die reine Wortsuche. Rezept-Korpus wird EINMAL app-seitig eingebettet
 // (SEM_CORPUS) und wiederverwendet — nur die Suchanfrage wird pro Suche embeddet.
 let SEM_ON=localStorage.getItem('mrSemOn')==='1';
+let JUDGE_ON=localStorage.getItem('mrJudgeOn')==='1';  // KI-Richter opt-in (BYOK, Default aus)
 let SEM_IDS=new Set();      // Rezept-ids, die semantisch passen
 let SEM_CORPUS=null;        // gecachter, eingebetteter Korpus
 let SEM_SIG='';             // Signatur (Rezept-id-Satz) zum Neu-Bauen bei Änderung
@@ -6286,6 +6288,15 @@ function semEnsureCorpus(){
 const SEM_PREP_MSG='💡 Sinn-Suche wird vorbereitet <span class="sem-prep-dot">…</span> <span style="opacity:.7">(einmalig ~30 MB, danach schnell)</span>';
 function semSetStatus(html){const s=document.getElementById('semStatus');if(!s)return;if(html){s.innerHTML=html;s.style.display='block';}else{s.style.display='none';s.innerHTML='';}}
 function semReady(){return !!(SEM_CORPUS&&SEM_SIG===semSig());}
+// KI-Richter opt-in: nutzt einen bereits in der App hinterlegten KI-Schlüssel (BYOK).
+// Nur browser-taugliche Anbieter (Claude via Header, Mistral EU); kein Schlüssel → null → gratis.
+function judgeCreds(){
+  try{
+    var c=localStorage.getItem('claudeKey9m'); if(c)return{apiKey:c,provider:'claude'};
+    var m=localStorage.getItem('mistralKey9m'); if(m)return{apiKey:m,provider:'mistral'};
+  }catch(e){}
+  return null;
+}
 // Vorab-Laden beim Einschalten: Modell + Korpus im Hintergrund bauen, damit die
 // Wartezeit nicht erst beim ersten Tippen kommt — mit sichtbarem Lade-Hinweis.
 async function semPrepare(){
@@ -6308,16 +6319,30 @@ async function semRun(term){
   if(!window.SbkimMatch||typeof SbkimMatch.queryLocal!=='function')return;
   if(SEM_BUSY){SEM_TIMER=setTimeout(()=>semRun(term),300);return;}
   SEM_BUSY=true;semBtnBusy(true);
-  semSetStatus(semReady()?'💡 sucht nach Bedeutung <span class="sem-prep-dot">…</span>':SEM_PREP_MSG);
+  const creds=JUDGE_ON?judgeCreds():null;
+  semSetStatus(!semReady()?SEM_PREP_MSG:(creds?'⚖️ KI-Richter prüft nach Bedeutung <span class="sem-prep-dot">…</span>':'💡 sucht nach Bedeutung <span class="sem-prep-dot">…</span>'));
   try{
     const corpus=await semEnsureCorpus();
     if(SQ!==term)return;                 // Nutzer tippt schon etwas anderes
     if(!corpus||!corpus.length){semSetStatus('');return;}
-    const hits=await SbkimMatch.queryLocal(term,12,{corpus:corpus,hybrid:true});
-    if(SQ!==term)return;                 // Ergebnis veraltet
-    SEM_IDS=new Set(hits.map(h=>h.anchorId).filter(Boolean));
+    let judged=false;
+    if(creds&&typeof SbkimMatch.queryLocalJudged==='function'){
+      const res=await SbkimMatch.queryLocalJudged(term,12,{corpus:corpus,hybrid:true,apiKey:creds.apiKey,provider:creds.provider});
+      if(SQ!==term)return;               // Ergebnis veraltet
+      const cands=(res&&res.candidates)||[];
+      judged=!!(res&&res.judged);
+      const kept=judged?cands.filter(c=>c.passt!==false):cands;   // Richter wirft Unpassendes raus
+      SEM_IDS=new Set(kept.map(h=>h.anchorId).filter(Boolean));
+    }else{
+      const hits=await SbkimMatch.queryLocal(term,12,{corpus:corpus,hybrid:true});
+      if(SQ!==term)return;               // Ergebnis veraltet
+      SEM_IDS=new Set(hits.map(h=>h.anchorId).filter(Boolean));
+    }
     let add=0;SEM_IDS.forEach(id=>{const r=R.find(x=>x.id===id);if(r&&r.name&&!r.blank&&!wordMatchSQ(r))add++;});
-    semSetStatus(add?('✨ '+add+' zusätzlich nach Bedeutung gefunden'):'💡 Sinn-Suche an – keine weiteren Treffer');
+    if(JUDGE_ON&&!creds)semSetStatus('⚖️ KI-Richter braucht einen KI-Schlüssel (Einstellungen) – zeige gratis Sinn-Treffer'+(add?': ✨ '+add:''));
+    else if(judged)semSetStatus(add?('✅ '+add+' nach Bedeutung · KI-geprüft'):'✅ KI-Richter: keine weiteren passenden Treffer');
+    else if(JUDGE_ON&&creds)semSetStatus(add?('✨ '+add+' nach Bedeutung (KI-Richter nicht erreichbar – gratis genutzt)'):'💡 Sinn-Suche an – keine weiteren Treffer');
+    else semSetStatus(add?('✨ '+add+' zusätzlich nach Bedeutung gefunden'):'💡 Sinn-Suche an – keine weiteren Treffer');
     render();
   }catch(e){semSetStatus('');/* fail-soft: nur Wortsuche */}
   finally{SEM_BUSY=false;semBtnBusy(false);}
@@ -6336,7 +6361,22 @@ function toggleSem(){
   if(SEM_ON){semPrepare();if(SQ)semSchedule(SQ);}
   else{SEM_IDS=new Set();semSetStatus('');render();}
 }
+function updateJudgeBtn(){
+  const b=document.getElementById('judgeBtn');if(!b)return;
+  const has=!!judgeCreds();
+  b.style.opacity=JUDGE_ON?'1':'.4';
+  b.style.background=JUDGE_ON?'rgba(180,120,40,.18)':'transparent';
+  b.title=JUDGE_ON?(has?'KI-Richter AN – prüft die Sinn-Treffer schärfer (antippen zum Ausschalten)':'KI-Richter AN, aber kein KI-Schlüssel hinterlegt – zeigt gratis Sinn-Treffer'):'KI-Richter: schärfer, braucht deinen KI-Schlüssel (antippen)';
+}
+function toggleJudge(){
+  JUDGE_ON=!JUDGE_ON;
+  localStorage.setItem('mrJudgeOn',JUDGE_ON?'1':'0');
+  if(JUDGE_ON&&!SEM_ON){SEM_ON=true;localStorage.setItem('mrSemOn','1');updateSemBtn();semPrepare();}   // Richter braucht die Sinn-Suche
+  updateJudgeBtn();
+  if(SEM_ON){if(SQ)semSchedule(SQ);else if(JUDGE_ON)semSetStatus(semReady()?'⚖️ KI-Richter bereit – tippe einen Begriff':SEM_PREP_MSG);}
+}
 try{updateSemBtn();}catch(e){}
+try{updateJudgeBtn();}catch(e){}
 function doSearch(q){
   SQ=q.toLowerCase().trim();
   document.getElementById('srchX').style.display=SQ?'block':'none';

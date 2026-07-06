@@ -1322,6 +1322,7 @@
             method: "POST",
             headers: {
               "x-api-key": o.apiKey,
+              "anthropic-dangerous-direct-browser-access": "true",
               "anthropic-version": ANTHROPIC_API_VERSION,
               "content-type": "application/json",
             },
