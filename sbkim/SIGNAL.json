@@ -1,8 +1,8 @@
 {
   "node": "Mein-Rezeptbuch",
-  "seq": 8,
-  "lastBuild": "2026-06-28",
-  "headline": "INHALTS-TREUER DOMAENEN-VEKTOR ausgerollt (von der Huelle zum Inhalt). sbkim/02_spore.js + sbkim/03_embedding.js byte-1:1 aus Sage aktualisiert (regenerateOwnSpore + embedContentVector + Felder embeddingSource/embeddingVersion; md5-geprueft identisch zur Sage-Quelle, Diff = exakt der Inhalts-Vektor-Block, kein Repo-Drift). sbkim-init.js __sbkimErzeugeSpore sampelt jetzt bis zu 32 echte Rezepte (window.R: Kategorie+Name, NUR unkritische Labels, kein PII) -> embedContentVector -> domainVector aus dem INHALT statt der Selbstbeschreibung. Greift NUR im Auto-Pfad (oeffentlicher Knopf 'Mit dem Netz verbinden' ueber createIdentity); das Siegel-Semantik-Textfeld (explizite Beschreibung) bleibt bewusst Beschreibungs-Vektor (Huelle nach Nutzer-Wahl). embeddingSource (content|description) + embeddingVersion mit-signiert. Fail-soft: leeres Buch / Fehler / eigene Beschreibung -> Beschreibungs-Vektor. PROTOCOL_VERSION bleibt 0.1. Kern unangetastet, nur sbkim/-Modulkopien + init-Glue; index.html unveraendert (sbkim/ per externem <script>, app-sw network-first -> kein Cache-Bust noetig). NAECHSTER SCHRITT: Klaus oeffnet die App, 'Mit dem Netz verbinden' (Re-Sign im Browser, privater Schluessel bleibt lokal) -> neue Spore mit Inhalts-Vektor; Sage rechnet verified-match vorher (0.824068) / nachher. Schwelle 0.80 netzweit bewusst neu zu kalibrieren (eigene Folge-Sitzung). Branch vorher frisch auf origin/main (Achtsamkeit). Browser-Live-Match wartet auf Klaus.",
+  "seq": 9,
+  "lastBuild": "2026-07-06",
+  "headline": "Bau 23.B (Cross-Knoten-Frage) empfangen + Module auf Sage-Kanon geheilt; Quittung fuer Sage seq 43 (Inhalte von der Bau-Sitzung 2026-07-06 selbst verarbeitet).",
   "sporeUrl": "https://raw.githubusercontent.com/lausiklauskn-png/Mein-Rezeptbuch/main/sbkim/spore.json",
   "nodeId": "uOpUBezUVbOMsVd2C9BkHW80agnLx5tCx_nIRy2KkXg",
   "mailboxes": {
@@ -16,7 +16,7 @@
     "*"
   ],
   "ack": {
-    "Sage-Protokol": 19,
+    "Sage-Protokol": 43,
     "SB-KIMTool-Point": 21,
     "Jasons-Tresor": 11,
     "Mein-Tresor": 14,
@@ -62,6 +62,11 @@
       "seq": 7,
       "date": "2026-06-28",
       "headline": "Modul 23 Rendezvous + oeffentlicher Knopf ausgerollt (sbkim/23_rendezvous(.ui).js byte-1:1 aus Sage; QC + build.py; sbkim-init.js mountet UI, nodeName Mein Rezeptbuch). Stack genutzt, kein Doppel-Laden. Headless 8/8. Browser-Sichttest wartet auf Klaus."
+    },
+    {
+      "seq": 9,
+      "date": "2026-07-06",
+      "headline": "Bau 23.B empfangen, Modul-Drift geheilt, ack Sage=43."
     }
   ]
 }
