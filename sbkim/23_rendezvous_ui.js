@@ -16,7 +16,7 @@
  *
  * Dieses UI-Modul wird — wie Modul 23 selbst — **byte-1:1 in jede PWA kopiert**.
  * Die App parametrisiert nur:
- *   SbkimRendezvousUI.init({ nodeName, createIdentity, corner?, accent? })
+ *   SbkimRendezvousUI.init({ nodeName, createIdentity, prepareCorpus?, corner?, accent? })
  * - nodeName:       Anzeigename der eigenen Visitenkarte (z.B. "Mein Rezeptbuch").
  * - createIdentity: optional async () -> void; erzeugt die lebende Identität,
  *                   falls noch keine da ist (app-spezifisch, da Domänen-
@@ -43,7 +43,7 @@
 
   var VERSION = "0.1";
 
-  var cfg = { nodeName: "SBKIM-Knoten", createIdentity: null, corner: "bl", accent: null };
+  var cfg = { nodeName: "SBKIM-Knoten", createIdentity: null, dbSuffix: null, prepareCorpus: null, corner: "bl", accent: null };
   var mounted = false;
   var btnEl = null, panelEl = null, outEl = null, cardsEl = null, relOnlyBtn = null;
   var askInputEl = null, answerBtn = null;   // Bau 23.B — Frage-Feld + Antwortrecht-Schalter
@@ -76,6 +76,35 @@
   function setOut(text) { if (outEl) outEl.textContent = text; if (cardsEl) clear(cardsEl); }
   function appendOut(text) { if (outEl) outEl.textContent += text; }
   function clear(node) { while (node && node.firstChild) node.removeChild(node.firstChild); }
+
+  // PFLICHT (Klaus 2026-07-08): jede Operation, die das ~30-MB-Embedding-Modell
+  // laden kann (Verbinden / Nur-neu-anmelden / „Wer ist im Raum?" — über
+  // getOwnLiveSpore/createIdentity), zeigt einen Prozent-Balken im Panel. Ohne
+  // ihn wirkt die Seite eingefroren (Modell-Laden > 12 s) und wird zu früh
+  // geschlossen. Quelle: Modul-03-Event sbkim:embedding-progress.
+  var _progHandler = null, _progBase = "";
+  function startModelProgress(baseText) {
+    _progBase = baseText || "";
+    if (_progHandler || !outEl) return;
+    _progHandler = function (ev) {
+      var dd = ev && ev.detail; if (!dd || !outEl) return;
+      if (typeof dd.progress === "number" && isFinite(dd.progress)) {
+        var pct = Math.max(0, Math.min(100, Math.round(dd.progress)));
+        var filled = Math.round(pct / 5);
+        var bar = new Array(filled + 1).join("█") + new Array(20 - filled + 1).join("░");
+        outEl.textContent = _progBase + "\nSprach-Modell lädt  " + bar + "  " + pct + " %" +
+          "\n(einmalig ~30 MB — kann am Tablet 1–2 Min dauern, bitte offen lassen)";
+      } else if (dd.status === "done" || dd.status === "ready") {
+        outEl.textContent = _progBase + "\nSprach-Modell geladen ✓";
+      }
+    };
+    try { global.addEventListener("sbkim:embedding-progress", _progHandler); } catch (_e) {}
+  }
+  function stopModelProgress() {
+    if (!_progHandler) return;
+    try { global.removeEventListener("sbkim:embedding-progress", _progHandler); } catch (_e) {}
+    _progHandler = null;
+  }
 
   function mount() {
     if (mounted) return;
@@ -129,6 +158,20 @@
     filterRow.appendChild(relOnlyBtn);
     panelEl.appendChild(filterRow);
 
+    // Modus B — „🧹 Aufräumen & neu anmelden" (Identitäts-Hygiene, zerstörend,
+    // dezent gestrichelt). Löscht NUR den geteilten Alt-Topf `sbkim` dieser
+    // Origin, behält die eigene Schublade + stabile Identität; erst mit dem
+    // Notfall gibt es eine ganz neue Identität.
+    var repairRow = el("div", "margin-top:8px");
+    var repairBtn = el("button", "padding:6px 11px;border-radius:8px;border:1px dashed var(--line,#5a4a3a);" +
+      "background:transparent;color:#e6b980;cursor:pointer;font:inherit;font-size:.74rem",
+      "🧹 Aufräumen & neu anmelden"); repairBtn.type = "button";
+    repairBtn.title = "Löscht den geteilten Alt-Speicher dieser Adresse (nicht deine eigene Schublade), " +
+      "meldet Service-Worker ab, behält deine stabile Identität und meldet dich neu an. Danach hart neu laden.";
+    repairBtn.addEventListener("click", function () { onRepair(); });
+    repairRow.appendChild(repairBtn);
+    panelEl.appendChild(repairRow);
+
     // Bau 23.B — Cross-Knoten-Frage: EIN Frage-Feld + „Antworten"-Schalter.
     // Fragen ist nutzer-ausgelöst (❓-Knopf je Karte nutzt dieses Feld);
     // Antworten ist das Antwortrecht (Default AUS, bewusster Schalter).
@@ -175,18 +218,62 @@
     mounted = true;
   }
 
+  // Modul 23 mit der vollen Konfig füttern (nodeName + dbSuffix + createIdentity)
+  // — dbSuffix ist Pflicht, damit Modus B (repairAndReconnect) NUR den geteilten
+  // Alt-Topf `sbkim` löscht und die eigene Schublade `sbkim_<suffix>` behält.
+  function configModule() {
+    var r = rdv();
+    if (!r) return;
+    var o = { nodeName: cfg.nodeName };
+    if (cfg.dbSuffix) o.dbSuffix = cfg.dbSuffix;
+    if (typeof cfg.createIdentity === "function") o.createIdentity = cfg.createIdentity;
+    if (typeof cfg.prepareCorpus === "function") o.prepareCorpus = cfg.prepareCorpus;
+    try { r.configure(o); } catch (_e) {}
+  }
+
   function ensureRdv() {
     var r = rdv();
     if (!r) { setOut("Modul 23 (SbkimRendezvous) nicht geladen."); return null; }
-    try { r.configure({ nodeName: cfg.nodeName }); } catch (_e) {}
+    configModule();
     return r;
+  }
+
+  // Modus B — „🧹 Aufräumen & neu anmelden" (zerstörend, nur hinter Nutzer-Knopf).
+  function onRepair() {
+    var r = ensureRdv();
+    if (!r) return;
+    if (typeof r.repairAndReconnect !== "function") {
+      setOut("Aufräumen ist in dieser Version noch nicht verfügbar (Modul 23 zu alt).");
+      return;
+    }
+    setOut("🧹 Räume den geteilten Alt-Speicher dieser Adresse auf …\n");
+    startModelProgress("🧹 Räume auf & melde neu an …");
+    r.repairAndReconnect().then(function (res) {
+      stopModelProgress(); if (outEl) outEl.textContent = "🧹 Aufgeräumt & neu angemeldet:\n";
+      var c = res && res.cleaned;
+      if (c) {
+        appendOut("• Alt-Topf „sbkim“ gelöscht: " + (c.dbDeleted ? "ja" : "nein") + "\n");
+        appendOut("• Service-Worker abgemeldet: " + (c.swUnregistered || 0) + "\n");
+        appendOut("• Caches geleert: " + (c.cachesDeleted || 0) + "\n");
+      }
+      if (res && res.ok) {
+        if (res.created) appendOut("✓ Frische Identität: " + res.nodeId + "\n");
+        else appendOut("Identität (eigene Schublade bleibt): " + res.nodeId + "\n");
+        appendOut("✓ Neu im Raum angemeldet.\n");
+      } else {
+        appendOut("✗ " + ((res && res.reason) || "Neu-Anmelden fehlgeschlagen.") + "\n");
+      }
+      if (res && res.reloadHint) appendOut("\nℹ️ " + res.reloadHint);
+    }).catch(function (e) { stopModelProgress(); setOut("✗ Aufräumen fehlgeschlagen: " + (e && e.message ? e.message : e)); });
   }
 
   function onConnect() {
     var r = ensureRdv();
     if (!r) return;
     setOut("→ Verbinde mit dem Netz …\n");
+    startModelProgress("→ Verbinde mit dem Netz …");
     r.connectAndAnnounce({ createIdentity: cfg.createIdentity || undefined }).then(function (res) {
+      stopModelProgress(); if (outEl) outEl.textContent = "";
       if (res.ok) {
         if (res.created) appendOut("✓ Identität erzeugt: " + res.nodeId + "\n");
         else appendOut("Identität vorhanden: " + res.nodeId + "\n");
@@ -196,27 +283,31 @@
         appendOut("✗ " + (res.reason || "Verbinden fehlgeschlagen.") +
           (cfg.createIdentity ? "\n(Bei Netz-/Modell-Fehler: Verbindung prüfen und nochmal.)" : ""));
       }
-    }).catch(function (e) { appendOut("✗ Verbinden fehlgeschlagen: " + (e && e.message ? e.message : e)); });
+    }).catch(function (e) { stopModelProgress(); setOut("✗ Verbinden fehlgeschlagen: " + (e && e.message ? e.message : e)); });
   }
 
   function onAnnounce() {
     var r = ensureRdv();
     if (!r) return;
     setOut("→ Hefte deine Visitenkarte in den gemeinsamen Raum …\n");
+    startModelProgress("→ Hefte deine Visitenkarte in den gemeinsamen Raum …");
     r.announce().then(function (res) {
+      stopModelProgress(); if (outEl) outEl.textContent = "";
       if (res.ok) appendOut("✓ Du bist im Raum (nodeId " + res.nodeId + "). Lass den Tab offen.");
       else appendOut("✗ " + (res.reason || "Anmelden fehlgeschlagen."));
-    }).catch(function (e) { appendOut("✗ Anmelden fehlgeschlagen: " + (e && e.message ? e.message : e)); });
+    }).catch(function (e) { stopModelProgress(); setOut("✗ Anmelden fehlgeschlagen: " + (e && e.message ? e.message : e)); });
   }
 
   function onDiscover() {
     var r = ensureRdv();
     if (!r) return;
     setOut("👥 Lese den gemeinsamen Raum …\n");
+    startModelProgress("👥 Lese den gemeinsamen Raum …");
     r.discover().then(function (res) {
+      stopModelProgress();
       if (!res.ok) { setOut("✗ Raum-Lesen fehlgeschlagen: " + (res.reason || "(unbekannt)")); return; }
       renderCards(res.cards);
-    }).catch(function (e) { setOut("✗ Raum-Lesen fehlgeschlagen: " + (e && e.message ? e.message : e)); });
+    }).catch(function (e) { stopModelProgress(); setOut("✗ Raum-Lesen fehlgeschlagen: " + (e && e.message ? e.message : e)); });
   }
 
   function renderCards(cards) {
@@ -354,14 +445,15 @@
     if (!opts || typeof opts !== "object") return;
     if (typeof opts.nodeName === "string" && opts.nodeName.length > 0) cfg.nodeName = opts.nodeName;
     if (typeof opts.createIdentity === "function") cfg.createIdentity = opts.createIdentity;
+    if (typeof opts.prepareCorpus === "function") cfg.prepareCorpus = opts.prepareCorpus;
+    if (typeof opts.dbSuffix === "string" && opts.dbSuffix.length > 0) cfg.dbSuffix = opts.dbSuffix;
     if (typeof opts.corner === "string") cfg.corner = opts.corner;
     if (typeof opts.accent === "string") cfg.accent = opts.accent;
   }
 
   function init(opts) {
     applyOpts(opts);
-    var r = rdv();
-    if (r) { try { r.configure({ nodeName: cfg.nodeName }); } catch (_e) {} }
+    configModule();
     var d = doc();
     if (!d) return Promise.resolve();
     if (d.readyState === "loading") d.addEventListener("DOMContentLoaded", mount);

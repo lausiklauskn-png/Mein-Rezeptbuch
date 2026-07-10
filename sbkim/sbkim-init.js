@@ -615,14 +615,29 @@ window.__sbkimErzeugeSpore = async function (description) {
 (function () {
   "use strict";
   function mountRendezvous() {
+    // Modus A (Identitäts-Hygiene, Skill „saubere-netz-anmeldung"): eigene
+    // Schublade `sbkim_rezeptbuch` + stabile Identität sanft/idempotent/lokal
+    // sicherstellen (KEIN Auto-Anmelden, Empfangsmodus). dbSuffix ins Modul 23,
+    // damit Modus B (🧹 Aufräumen) NUR den geteilten Alt-Topf `sbkim` löscht.
+    if (window.SbkimRendezvous && typeof window.SbkimRendezvous.init === "function") {
+      try {
+        window.SbkimRendezvous.init({
+          nodeName: "Mein Rezeptbuch",
+          dbSuffix: "rezeptbuch",
+          createIdentity: function () { return window.__sbkimErzeugeSpore(); },
+          ensureIdentity: true,
+        });
+      } catch (e) { if (window.console && console.warn) console.warn("[MR-SBKIM] Rendezvous (Modus A) übersprungen:", e); }
+    }
     if (!window.SbkimRendezvousUI) return;
     try {
       window.SbkimRendezvousUI.init({
         nodeName: "Mein Rezeptbuch",
+        dbSuffix: "rezeptbuch",
         corner: "bl",
         createIdentity: function () { return window.__sbkimErzeugeSpore(); },
       });
-      if (window.console && console.info) console.info("[MR-SBKIM] Rendezvous-UI gemountet (öffentlicher 🌐-Knopf).");
+      if (window.console && console.info) console.info("[MR-SBKIM] Rendezvous-UI gemountet (öffentlicher 🌐-Knopf, Modus A aktiv).");
     } catch (e) { if (window.console && console.warn) console.warn("[MR-SBKIM] Rendezvous-UI übersprungen:", e); }
   }
   if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", mountRendezvous);
