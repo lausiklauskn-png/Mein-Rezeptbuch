@@ -6274,6 +6274,10 @@ function semEnsureCorpus(){
   return SEM_CORPUS_P;
 }
 const SEM_PREP_MSG='💡 Sinn-Suche wird vorbereitet <span class="sem-prep-dot">…</span> <span style="opacity:.7">(einmalig ~30 MB, danach schnell)</span>';
+// A5 (Bau 22f-Rollout): app-eigene Synonym-Karte für die Multi-Query-Erweiterung
+// (Modul 04 expandQuerySimple). Ein Token → eine Alternative, deterministisch,
+// kein Netz/LLM. Rezept-relevante + netzweit harmlose Umschreibungen.
+const SEM_SYN={"torte":["kuchen"],"kuchen":["torte"],"cocktail":["drink"],"drink":["cocktail","getränk"],"getränk":["drink","getraenk"],"limo":["limonade"],"limonade":["limo"],"smoothie":["shake"],"shake":["smoothie"],"alkoholfrei":["mocktail"],"mocktail":["alkoholfrei"],"plätzchen":["keks"],"keks":["plätzchen","plaetzchen"],"kfz":["auto"],"auto":["kfz","wagen"],"wagen":["auto"],"notebook":["laptop"],"laptop":["notebook"],"handy":["smartphone"],"smartphone":["handy"],"arznei":["medikament"],"medikament":["arznei","arzneimittel"],"foto":["bild"],"bild":["foto"]};
 function semSetStatus(html){const s=document.getElementById('semStatus');if(!s)return;if(html){s.innerHTML=html;s.style.display='block';}else{s.style.display='none';s.innerHTML='';}}
 function semReady(){return !!(SEM_CORPUS&&SEM_SIG===semSig());}
 // KI-Richter opt-in: nutzt einen bereits in der App hinterlegten KI-Schlüssel (BYOK).
@@ -6322,7 +6326,15 @@ async function semRun(term){
       const kept=judged?cands.filter(c=>c.passt!==false):cands;   // Richter wirft Unpassendes raus
       SEM_IDS=new Set(kept.map(h=>h.anchorId).filter(Boolean));
     }else{
-      const hits=await SbkimMatch.queryLocal(term,12,{corpus:corpus,hybrid:true});
+      // A5 (Bau 22f-Rollout): Multi-Query — Frage-Varianten über die app-eigene
+      // Synonym-Karte bilden (expandQuerySimple) und via RRF verschmelzen
+      // (queryLocalMulti). Rein additiv: senkt keine Schwelle, gatet nichts.
+      // Fail-soft: ohne die Funktionen → byte-gleicher Einzel-Query-Pfad.
+      let vars=[term];
+      if(typeof SbkimMatch.expandQuerySimple==='function'){try{const v=SbkimMatch.expandQuerySimple(term,{synonyms:SEM_SYN});if(Array.isArray(v)&&v.length)vars=v;}catch(_){/* Einzel-Query */}}
+      const hits=(typeof SbkimMatch.queryLocalMulti==='function')
+        ?await SbkimMatch.queryLocalMulti(vars,12,{corpus:corpus,hybrid:true})
+        :await SbkimMatch.queryLocal(term,12,{corpus:corpus,hybrid:true});
       if(SQ!==term)return;               // Ergebnis veraltet
       SEM_IDS=new Set(hits.map(h=>h.anchorId).filter(Boolean));
     }
