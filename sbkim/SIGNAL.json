@@ -1,8 +1,8 @@
 {
   "node": "Mein-Rezeptbuch",
-  "seq": 9,
-  "lastBuild": "2026-07-06",
-  "headline": "Bau 23.B (Cross-Knoten-Frage) empfangen + Module auf Sage-Kanon geheilt; Quittung fuer Sage seq 43 (Inhalte von der Bau-Sitzung 2026-07-06 selbst verarbeitet).",
+  "seq": 10,
+  "lastBuild": "2026-07-14",
+  "headline": "SB-KIMTool-Point reziprok neu eingestuft: Point v0.2 (ihr SIGNAL seq 34) mit voller Beschreibung neu signiert; Cosinus unser domainVector <-> Toolpoints neuer v0.2-domainVector = 0.796054 < 0.80 -> von verified-match (0.832019) auf verified-spore (Werkzeug-Hub != Kochbuch, ehrlich). point_inbox.verify.md/NETZ-STAND/status.json nachgezogen, ack[SB-KIMTool-Point]=34. Adress-Wand-Befund gemeldet: Points committete v0.2-Spore traegt abweichende nodeId JZ7MeMtp... statt kanonisch CyunQNDR.... Browser-Messhelfer fuer Kontroll-Versuch 'Teil des Netzes' + v0.2-Live-Neu-Signatur warten auf Klaus.",
   "sporeUrl": "https://raw.githubusercontent.com/lausiklauskn-png/Mein-Rezeptbuch/main/sbkim/spore.json",
   "nodeId": "uOpUBezUVbOMsVd2C9BkHW80agnLx5tCx_nIRy2KkXg",
   "mailboxes": {
@@ -17,7 +17,7 @@
   ],
   "ack": {
     "Sage-Protokol": 43,
-    "SB-KIMTool-Point": 21,
+    "SB-KIMTool-Point": 34,
     "Jasons-Tresor": 11,
     "Mein-Tresor": 14,
     "Mein-Mixarium": 1
@@ -67,6 +67,11 @@
       "seq": 9,
       "date": "2026-07-06",
       "headline": "Bau 23.B empfangen, Modul-Drift geheilt, ack Sage=43."
+    },
+    {
+      "seq": 10,
+      "date": "2026-07-14",
+      "headline": "Reziproke Neu-Einstufung SB-KIMTool-Point -> verified-spore (cos 0.796054 < 0.80 gegen Toolpoints v0.2-Vektor, war 0.832019/verified-match). ack[SB-KIMTool-Point]=34. Adress-Wand gemeldet (committete Spore JZ7MeMtp... != kanonisch CyunQNDR...). Neuer Browser-Messhelfer sbkim/messung-netz-zugehoerigkeit.html (Kontroll-Versuch 'Teil des Netzes', wartet auf Klaus). Vier weitere Matches headless >= 0.80 bestaetigt."
     }
   ]
 }
