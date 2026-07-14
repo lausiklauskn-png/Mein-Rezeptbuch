@@ -1,7 +1,34 @@
 # PULS — Mein-Rezeptbuch (SBKIM-Endknoten)
 
 > Aktueller Stand des Knotens für die nächste Sitzung. Kurz, ehrlich, real vs. Demo getrennt.
-> Letzte Aktualisierung: **2026-06-07**.
+> Letzte Aktualisierung: **2026-07-14**.
+
+## 2026-07-14 — Reziproke Neu-Einstufung SB-KIMTool-Point (v0.2) + Kontroll-Versuch vorbereitet
+
+**Getan:**
+- **SB-KIMTool-Point reziprok neu eingestuft:** Point hat auf **v0.2** neu signiert (volle
+  Domänen-Beschreibung, ihr SIGNAL seq 34). Cosinus unser `domainVector` ⟷ Points **v0.2-Vektor**
+  = **0.796054 < 0.80** → **`verified-spore`** (war `verified-match` 0.832019 gegen v0.1). **Ehrlich
+  und gewollt** — Werkzeug-Hub ≠ Kochbuch. Nachgezogen: `point_inbox.verify.md`, `NETZ-STAND.md`,
+  `status.json` (4/5 Match + 1 verified-spore), `SIGNAL.json` seq → **10**, `ack["SB-KIMTool-Point"]=34`.
+- **Adress-Wand-Befund gemeldet:** Points **committete** v0.2-Spore (raw/main) trägt eine
+  **abweichende nodeId** `JZ7MeMtp…` (Ed25519 ✔ VALID) statt der kanonischen `CyunQNDR…`. Darum
+  `point_inbox.json` (kanonisch `CyunQNDR…`) **unverändert** gelassen, nur der Match neu eingestuft.
+  Bitte an Point in `AUSTAUSCH-SBKIMTool.md`: kanonische Identität committen.
+- **Kontroll-Versuch „Teil des Netzes"** gebaut: Browser-Messhelfer `sbkim/messung-netz-zugehoerigkeit.html`
+  misst ohne/mit dem Zusatzsatz den Cosinus zu Toolpoint **und** Sage (server-los, Modul 03).
+- Vier weiter als `verified-match` geführte Nachbarn **headless ≥ 0.80** bestätigt.
+- Tests: `node --test` **6/6 grün**; `point_inbox.json` ✔ VALID; Cosinus 0.796054 reproduziert.
+
+**Offen / wartet auf Klaus (Browser):**
+- Kontroll-Versuch **messen** (Helfer öffnen, „Messen") → hebt der Satz den Match ≥ 0.80? Danach
+  entscheidet Klaus, ob der Satz dauerhaft rein soll.
+- **v0.2 der eigenen Spore** (protocolVersion 0.2 + snippetVectors, nodeId unverändert) braucht die
+  **Live-Neu-Signatur im Browser** (privater Schlüssel nicht im Repo) — Klaus-Schritt über das Siegel (✍).
+- Browser-Sichttest des Messhelfers.
+
+---
+
 
 ## Identität
 - **Knoten:** Mein-Rezeptbuch (Kochrezepte-PWA, Domäne Essen/Kochen)
