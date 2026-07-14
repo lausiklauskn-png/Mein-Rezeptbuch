@@ -8,11 +8,11 @@
 |---|---|
 | Knoten | Sage-Protokol |
 | nodeName | Sage |
-| Domäne | Mycel-Bibliothek |
+| Domäne | Mycel-Bibliothek (SBKIM-Spezifikations- und Bau-Hub) |
 | nodeId | `nysOZE3VuKqZA23i5G2XL67s41JIIykI58zXMtJkYfA` |
 | embeddingModel | Xenova/multilingual-e5-small |
 | domainVector | 384-dim |
-| protocolVersion | 0.1 |
+| protocolVersion | **0.2** (11 snippetVectors) |
 
 ## 4 Prüfpunkte
 1. **Pflichtfelder (9/9):** ✔
@@ -23,7 +23,16 @@
 **Ergebnis:** ✔ VALID
 
 ## Match (Live-Cosinus, eigener domainVector ⟷ Nachbar)
-- **cos = 0.824068** (Schwelle ≥ 0.80) → **Stufe: verified-match**
-- Reziprozität: **reziprok bestätigt** durch Sage 2026-06-07 (Modul 04 = 0.824068, deckt sich mit unserer Browser-Rechnung).
+- **cos = 0.792393** (Schwelle ≥ 0.80) → **Stufe: verified-spore** (unter 0.80).
+- **Reziproke Neu-Einstufung 2026-07-14:** Sage hat seine Live-Spore auf **v0.2** neu signiert
+  (Klaus' Browser, Siegel-Knopf — erste v0.2-Spore im Netz, SIGNAL seq 46, ausführliche
+  Domänen-Beschreibung + 11 snippetVectors, `nodeId nysOZE3V… UNVERÄNDERT`). Der Cosinus
+  gegen Sages **neuen** domainVector fällt von **0.824068 (v0.1) auf 0.792393** — knapp unter
+  die 0.80-Schwelle. **Ehrlich und erwartbar:** der SBKIM-Spezifikations-Hub mit sehr breiter,
+  protokoll-fokussierter Beschreibung ist semantisch weiter vom Kochbuch entfernt als 0.80.
+  Identität ✔ VALID, kein Adress-Wand (committete nodeId == kanonische nodeId). Analog zur
+  SB-KIMTool-Point-Neu-Einstufung (2026-07-14). `ack["Sage-Protokol"]=46`.
 
-_Erzeugt 2026-06-07. Nachrechnen: `node scripts/verify_foreign_spore.mjs sbkim/sage_inbox.json` + Cosinus im 📬-Briefkasten (live im Browser)._
+_Erzeugt 2026-06-07, aktualisiert 2026-07-14 (v0.2-Neu-Einstufung). Nachrechnen:
+`node scripts/verify_foreign_spore.mjs sbkim/sage_inbox.json` + Cosinus im 📬-Briefkasten
+(live im Browser)._
