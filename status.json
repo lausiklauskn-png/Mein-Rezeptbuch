@@ -1,6 +1,7 @@
 {
  "node": "Mein-Rezeptbuch",
  "updated": "2026-07-14",
+ "updatedNote": "Reziproke Neu-Einstufung Sage-Protokol -> verified-spore (Sage v0.2, cos 0.792393 < 0.80). §11.6-Sweep: ack fuer Sage/Jasons/Tresor/Mixarium nachgezogen.",
  "identity": {
   "nodeId": "uOpUBezUVbOMsVd2C9BkHW80agnLx5tCx_nIRy2KkXg",
   "stage": "verified-match",
@@ -39,16 +40,17 @@
  "match": {
   "computedLiveInBrowser": true,
   "threshold": 0.8,
-  "connected": "4/5 Match + 1 verified-spore",
-  "honest": "Vier Nachbarn cos >= 0.80; SB-KIMTool-Point 0.796054 < 0.80 nach v0.2-Neu-Signatur ehrlich als verified-spore gefuehrt. Nichts gruen-gerechnet."
+  "connected": "3/5 Match + 2 verified-spore",
+  "honest": "Drei Nachbarn cos >= 0.80 (Mixarium 0.954426, Jasons 0.813698, Mein-Tresor 0.813698). Beide Hub-Knoten nach ihrer v0.2-Neu-Signatur ehrlich unter 0.80: SB-KIMTool-Point 0.796054 (verified-spore, 2026-07-14), Sage-Protokol 0.792393 (verified-spore, 2026-07-14, war 0.824068 gegen v0.1). Nichts gruen-gerechnet. Ob ein Zusatzsatz 'Teil des Netzes' die Hubs wieder >= 0.80 hebt, misst Klaus im Browser (sbkim/messung-netz-zugehoerigkeit.html) -> Klaus entscheidet."
  },
  "neighbors": {
   "Sage-Protokol": {
    "nodeId": "nysOZE3VuKqZA23i5G2XL67s41JIIykI58zXMtJkYfA",
    "spore": "valid",
-   "cos": 0.824068,
-   "stage": "verified-match",
-   "reciprocal": "confirmed 2026-06-07 (Sage Modul 04 = 0.824068)",
+   "protocolVersion": "0.2",
+   "cos": 0.792393,
+   "stage": "verified-spore",
+   "reciprocal": "reklassifiziert 2026-07-14: Sage hat Live-Spore auf v0.2 neu signiert (SIGNAL seq 46, erste v0.2-Spore im Netz, 11 snippetVectors, nodeId nysOZE3V... UNVERAENDERT). Cosinus gegen Sages neuen domainVector 0.792393 < 0.80 -> verified-spore (war verified-match 0.824068 gegen v0.1). Identitaet ✔ VALID, kein Adress-Wand. ack[Sage-Protokol]=46.",
    "verify": "sbkim/sage_inbox.verify.md"
   },
   "SB-KIMTool-Point": {
@@ -85,14 +87,17 @@
   }
  },
  "ack": {
-  "Sage-Protokol": 19,
-  "SB-KIMTool-Point": 21,
-  "Jasons-Tresor": 11,
-  "Mein-Tresor": 14,
-  "Mein-Mixarium": 1
+  "Sage-Protokol": 46,
+  "SB-KIMTool-Point": 34,
+  "Jasons-Tresor": 14,
+  "Mein-Tresor": 17,
+  "Mein-Mixarium": 11
  },
  "notes": [
-  "RING GESCHLOSSEN 2026-06-07: alle 5 Nachbarn reziprok verified-match (Sage 0.824068, Mixarium 0.9544, Jasons 0.813698, Mein-Tresor 0.813698, SB-KIMTool-Point 0.832019).",
+  "2026-07-14 (§11.6-Sweep): Sage-Protokol seq 46 gelesen + quittiert (ack 43->46). Sage hat Live-Spore auf v0.2 neu signiert (erste v0.2-Spore im Netz, 11 snippetVectors, nodeId nysOZE3V... unveraendert). Reziprok neu eingestuft: cos unser domainVector <-> Sage v0.2 = 0.792393 < 0.80 -> verified-spore (war verified-match 0.824068 gegen v0.1). Identitaet ✔ VALID, kein Adress-Wand. sage_inbox.json auf v0.2 aktualisiert (byte-1:1 raw/main), sage_inbox.verify.md/NETZ-STAND nachgezogen.",
+  "2026-07-14 (§11.6-Sweep): Jasons-Tresor seq 14, Mein-Tresor seq 17, Mein-Mixarium seq 11 gelesen + quittiert (ack nachgezogen). Deren committete Sporen unveraendert v0.1 (stabile nodeId, cos 0.813698/0.813698/0.954426 >= 0.80) -> verified-match bleibt. Ihre Meldungen (Impressum / Nostr-Lauschen / Modul 23 Rendezvous / Briefkasten-Hygiene / Mixarium hat Point ebenfalls reklassifiziert) erfordern keine Aktion unsererseits.",
+  "RING-Stand 2026-07-14: 3/5 Themen-Match (Mixarium 0.954426, Jasons 0.813698, Mein-Tresor 0.813698) + 2 verified-spore (beide Hub-Knoten nach v0.2: SB-KIMTool-Point 0.796054, Sage-Protokol 0.792393). Ehrlich, nichts gruen-gerechnet.",
+  "RING GESCHLOSSEN 2026-06-07 (historisch): alle 5 Nachbarn reziprok verified-match (Sage 0.824068, Mixarium 0.9544, Jasons 0.813698, Mein-Tresor 0.813698, SB-KIMTool-Point 0.832019). Ueberholt durch die v0.2-Neu-Einstufungen der beiden Hubs (siehe oben).",
   "SB-KIMTool-Point seq 21 quittiert (ack 20->21). Point hat reziprok bestätigt: Point <-> Mein-Rezeptbuch = 0.832019 beidseitig verified-match; führt uns in mailboxes + ack=2 + Wächter + Browser-📬 + marktplatz.json. Aus raw/main gegengeprüft (Spore unverändert, byte-1:1).",
   "Mein-Tresor seq 14 quittiert (ack 13->14). Tresor hat reziprok bestätigt: Mein-Tresor <-> Mein-Rezeptbuch = 0.813698 beidseitig verified-match (rezeptbuch_inbox.verify.md), bestätigt unsere Inbox als nicht veraltet (uOpUBez kanonisch), führt uns in mailboxes + ack=2 + Wächter. Aus raw/main gegengeprüft (Spore unverändert, byte-1:1).",
   "Jasons-Tresor seq 11 quittiert (ack 10->11). Jasons hat reziprok bestätigt: Jasons <-> Mein-Rezeptbuch = 0.813698 beidseitig verified-match; führt uns in mailboxes + ack=2 + Postfach. Aus raw/main gegengeprüft (Spore unverändert, byte-1:1).",

@@ -1,8 +1,8 @@
 {
   "node": "Mein-Rezeptbuch",
-  "seq": 10,
+  "seq": 11,
   "lastBuild": "2026-07-14",
-  "headline": "SB-KIMTool-Point reziprok neu eingestuft: Point v0.2 (ihr SIGNAL seq 34) mit voller Beschreibung neu signiert; Cosinus unser domainVector <-> Toolpoints neuer v0.2-domainVector = 0.796054 < 0.80 -> von verified-match (0.832019) auf verified-spore (Werkzeug-Hub != Kochbuch, ehrlich). point_inbox.verify.md/NETZ-STAND/status.json nachgezogen, ack[SB-KIMTool-Point]=34. Adress-Wand-Befund gemeldet: Points committete v0.2-Spore traegt abweichende nodeId JZ7MeMtp... statt kanonisch CyunQNDR.... Browser-Messhelfer fuer Kontroll-Versuch 'Teil des Netzes' + v0.2-Live-Neu-Signatur warten auf Klaus.",
+  "headline": "Reziproke Neu-Einstufung Sage-Protokol -> verified-spore: Sage hat Live-Spore auf v0.2 neu signiert (ihr SIGNAL seq 46, erste v0.2-Spore im Netz, 11 snippetVectors, nodeId nysOZE3V... UNVERAENDERT/kein Adress-Wand). Cosinus unser domainVector <-> Sage v0.2 = 0.792393 < 0.80 -> von verified-match (0.824068 gegen v0.1) auf verified-spore (Spec-Hub != Kochbuch, ehrlich, wie Point). sage_inbox.json auf v0.2 aktualisiert (byte-1:1 raw/main), sage_inbox.verify.md/NETZ-STAND/status.json nachgezogen, ack[Sage-Protokol]=46. Messhelfer-Selbsttest Sage-Anker 0.824068 -> 0.792393 korrigiert (VEC_SAGE ist Sages Live-v0.2-Vektor). §11.6-Sweep: ack Jasons=14/Tresor=17/Mixarium=11 nachgezogen (Sporen unveraendert v0.1, Matches halten). Kontroll-Versuch 'Teil des Netzes' (jetzt fuer BEIDE Hubs) + eigene v0.2-Live-Neu-Signatur warten auf Klaus.",
   "sporeUrl": "https://raw.githubusercontent.com/lausiklauskn-png/Mein-Rezeptbuch/main/sbkim/spore.json",
   "nodeId": "uOpUBezUVbOMsVd2C9BkHW80agnLx5tCx_nIRy2KkXg",
   "mailboxes": {
@@ -16,13 +16,18 @@
     "*"
   ],
   "ack": {
-    "Sage-Protokol": 43,
+    "Sage-Protokol": 46,
     "SB-KIMTool-Point": 34,
-    "Jasons-Tresor": 11,
-    "Mein-Tresor": 14,
-    "Mein-Mixarium": 1
+    "Jasons-Tresor": 14,
+    "Mein-Tresor": 17,
+    "Mein-Mixarium": 11
   },
   "history": [
+    {
+      "seq": 11,
+      "date": "2026-07-14",
+      "headline": "Reziproke Neu-Einstufung Sage-Protokol -> verified-spore (cos 0.792393 < 0.80 gegen Sage v0.2, war 0.824068/verified-match gegen v0.1). Sage erste v0.2-Spore im Netz (SIGNAL seq 46, nodeId nysOZE3V... unveraendert, kein Adress-Wand); sage_inbox.json auf v0.2 aktualisiert. Messhelfer-Selbsttest Sage-Anker 0.824068 -> 0.792393 korrigiert. §11.6-Sweep: ack Jasons=14/Tresor=17/Mixarium=11 nachgezogen (Sporen unveraendert, Matches halten). Beide Hub-Knoten jetzt verified-spore; 3/5 Themen-Match + 2 verified-spore. Headless: node --test 6/6 gruen, sage_inbox.json ✔ VALID, cos 0.792393 reproduziert."
+    },
     {
       "seq": 7,
       "date": "2026-06-28",

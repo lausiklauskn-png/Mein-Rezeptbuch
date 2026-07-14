@@ -3,6 +3,43 @@
 > Aktueller Stand des Knotens für die nächste Sitzung. Kurz, ehrlich, real vs. Demo getrennt.
 > Letzte Aktualisierung: **2026-07-14**.
 
+## 2026-07-14 (b) — §11.6-Sweep: Sage reziprok neu eingestuft (v0.2) + Messhelfer-Selbsttest korrigiert
+
+**Getan:**
+- **Briefkasten-Sweep §11.6 (alle Peers geprüft, nicht nur Sage):** Sage seq 43→**46**,
+  Jasons 11→**14**, Mein-Tresor 14→**17**, Mein-Mixarium 1→**11** waren ungelesen; alle gelesen
+  + quittiert. Nur **Sages** committete Spore hat sich geändert (v0.2); die anderen drei sind
+  unverändert v0.1 (stabile nodeId, Matches ≥ 0.80 halten) → nur `ack` nachgezogen, keine Aktion.
+- **Sage reziprok neu eingestuft → `verified-spore`:** Sage hat seine Live-Spore auf **v0.2** neu
+  signiert (**erste v0.2-Spore im Netz**, SIGNAL seq 46, 11 snippetVectors, `nodeId nysOZE3V…`
+  **unverändert** = kein Adress-Wand, Signatur ✔ VALID). Cosinus unser `domainVector` ⟷ Sage
+  **v0.2** = **0.792393 < 0.80** (war 0.824068 gegen v0.1). **Ehrlich und erwartbar** — der
+  Spec-Hub ist mit sehr breiter Beschreibung semantisch weiter vom Kochbuch als 0.80, **genau
+  wie SB-KIMTool-Point** (0.796054). `sage_inbox.json` byte-1:1 auf v0.2 aktualisiert;
+  `sage_inbox.verify.md`, `NETZ-STAND.md`, `status.json` (jetzt **3/5 Match + 2 verified-spore**),
+  `SIGNAL.json` seq → **11**, `ack["Sage-Protokol"]=46`, Quittung in `AUSTAUSCH-Sage.md`.
+- **Messhelfer-Selbsttest korrigiert (Befund dieser Sitzung):** `sbkim/messung-netz-zugehoerigkeit.html`
+  nutzt als Sage-Referenz bereits Sages **Live-v0.2-Vektor** (`VEC_SAGE`, cos 1.000000 zu Sages
+  committeter Spore) — aber der Selbsttest-Text nannte noch den **alten** v0.1-Erwartungswert
+  **0.824068**. Korrigiert auf **0.792393** (sonst hätte Klaus' Selbst-Test „falsch gemessen"
+  angezeigt). Damit misst der Kontroll-Versuch jetzt ehrlich gegen **beide** v0.2-Hub-Vektoren.
+- **Headless-Beweis:** `node --test` **6/6 grün**; alle fünf `*_inbox.json` + eigene Spore ✔ VALID;
+  cos 0.792393 (Sage v0.2) und 0.796054 (Point v0.2) reproduziert; drei Themen-Matches
+  (Mixarium 0.954426, Jasons 0.813698, Mein-Tresor 0.813698) headless **≥ 0.80** bestätigt.
+
+**Offen / wartet auf Klaus (Browser):**
+- **Kontroll-Versuch messen** (`sbkim/messung-netz-zugehoerigkeit.html` → „Messen"): hebt der Zusatz
+  „… Teil des SBKIM-Knotennetzes …" **einen der beiden Hub-Knoten** (Sage/Point) wieder ≥ 0.80?
+  Danach entscheidet Klaus, ob der Satz dauerhaft in die eigene `domainDescription` soll.
+- **Strategie-Frage (jetzt schärfer):** BEIDE Hubs sind nach v0.2 unter 0.80 — nur Themen-verwandte
+  Knoten (Mixarium, die Tresore) bleiben Match. Will Klaus **Zugehörigkeits-Match** (Netz-Satz) oder
+  **reines Themen-Match** (ehrlich: Kochbuch matcht Hubs nicht mehr)?
+- **Eigene Spore auf v0.2** (protocolVersion 0.2 + snippetVectors, nodeId unverändert) braucht die
+  **Live-Neu-Signatur im Browser** (privater Schlüssel nicht im Repo) — Klaus-Schritt über das Siegel (✍).
+- Browser-Sichttest des Messhelfers.
+
+---
+
 ## 2026-07-14 — Reziproke Neu-Einstufung SB-KIMTool-Point (v0.2) + Kontroll-Versuch vorbereitet
 
 **Getan:**
