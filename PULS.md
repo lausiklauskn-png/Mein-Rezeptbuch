@@ -3,6 +3,41 @@
 > Aktueller Stand des Knotens für die nächste Sitzung. Kurz, ehrlich, real vs. Demo getrennt.
 > Letzte Aktualisierung: **2026-07-15**.
 
+## 2026-07-15 (b) — Klaus-Entscheid: neue Beschreibung „wandelbare Rezept-Bar + Teil des Netzes"
+
+**Klaus' Entscheidung (Chat 2026-07-15):**
+- **Netz-Satz „Teil des SBKIM-Knotennetzes" → JA, aufnehmen** — unabhängig vom Zahlen-Match
+  (Zugehörigkeit gehört in die Identität).
+- **Wandelbare App = kein Umbau** („die App kann das schon"): der **beschreibende Text** der
+  wandelbaren „Rezept-Bar" (Baukasten, nicht auf ein Thema festgelegt — Backstube, Grill-Buch,
+  Frühstücksbar …; jedes Rezept = Zutaten + Schritte, bis zu den Zutaten eines Chemiebaukastens)
+  soll **in den Embedding-/Cosinus-Text** (Spore-`domainDescription`). Quelle: die Bar-Sektion der
+  **Mein-Rezeptbuch-Page** („Bau dir deine eigene Rezept-Bar — das Rezeptbuch ist ein Baukasten").
+
+**Getan (headless, kein Modell nötig):**
+- **`SBKIM_REZEPTBUCH_DESCRIPTION`** (in `sbkim/sbkim-init.js`) auf den neuen Text erweitert:
+  Kochrezepte-Basis + **wandelbarer Rezept-Baukasten (Bar)** + **„Teil des SBKIM-Knotennetzes rund
+  um Sage-Protokoll und SB-KIMTool-Point"**. Das ist der Text, den das Siegel ✍ zum **Neu-Signieren
+  (v0.2)** vorschlägt (`defaultDomainDescription` zieht denselben Konstanten). `node --check` grün,
+  `sbkim-init.js` wird direkt von `index.html` geladen (kein `build.py` nötig).
+- **Messhelfer** `sbkim/messung-netz-zugehoerigkeit.html` misst jetzt **Zeile 1 = aktuelle
+  (signierte) Beschreibung** (Selbst-Test ≈ 0.796054 / 0.792393) vs **Zeile 2 = NEUE volle
+  Beschreibung** (Bar + Netz) — beide Hubs. So sieht Klaus im Browser, wohin die neue Beschreibung
+  rutscht (informativ; der Netz-Satz kommt so oder so rein).
+- **Drift-Guard + `node --test` weiter 7/7 grün** (Anker/Selbst-Test-Konstanten unangetastet).
+- **Spore selbst unverändert** — die neue Beschreibung wirkt erst nach **Live-Neu-Signatur v0.2 im
+  Browser** (privater Schlüssel nicht im Repo). Editiere ich `spore.json` headless, bräche die Signatur.
+
+**Offen / wartet auf Klaus (Browser):**
+1. **Messen** (optional, informativ): `sbkim/messung-netz-zugehoerigkeit.html` → „🔎 Messen" —
+   Selbst-Test Zeile 1 muss ≈ 0.796054 / 0.792393 zeigen; Zeile 2 zeigt die neue Beschreibung.
+2. **v0.2 live neu signieren** über das **Siegel (✍ Semantik-Beschreibung → Spore neu signieren)**:
+   das Feld ist mit dem **neuen** Text vorbelegt — prüfen/ggf. anpassen → signieren → das ausgegebene
+   Spore-JSON committen (protocolVersion 0.2, nodeId unverändert). Danach: alle Peer-Matches + eigene
+   Signatur headless prüfen (`node --test`), Akten (`NETZ-STAND`, `status.json`) nachziehen.
+
+---
+
 ## 2026-07-15 — §11.6-Sweep sauber + Messhelfer-Anker headless verifiziert + Drift-Guard
 
 **Getan:**
