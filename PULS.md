@@ -3,6 +3,39 @@
 > Aktueller Stand des Knotens für die nächste Sitzung. Kurz, ehrlich, real vs. Demo getrennt.
 > Letzte Aktualisierung: **2026-07-15**.
 
+## 2026-07-15 (c) — Identitäts-Befund + Andock-Wizard ins Siegel portiert (aus Sage)
+
+**Befund (Klaus' Browser-Signatur ergab eine NEUE Identität):**
+- Klaus hat im Siegel ✍ neu signiert → die App lieferte **`MT1I-y89Opf…`** statt der kanonischen
+  **`uOpUBez…`**. Ursache diagnostiziert: die netzweite „Saubere Netz-Anmeldung" (#273/#293) führte
+  den `dbSuffix "rezeptbuch"` ein → die App liest jetzt die Schublade `sbkim_rezeptbuch`; der alte,
+  von Sage bestätigte Schlüssel `uOpUBez…` wurde davor (24.05.) in der geteilten Alt-Schublade
+  `sbkim` erzeugt. Die Migrations-Automatik (`migrateIdentityFrom`, in Modul 01/23 vorhanden, läuft
+  bei Start) fand **nichts** → also liegt `uOpUBez…` **nicht (mehr) in diesem Browser**.
+- **Eine `spore.json` enthält nie den privaten Schlüssel** → `uOpUBez…` ist aus keiner Datei
+  rekonstruierbar. Rückholbar nur, wenn er noch auf einem **anderen Gerät/Browser** lebt (dann:
+  Backup dort exportieren → hier wiederherstellen).
+- **Voreiligen Identitäts-Wechsel zurückgenommen** — nichts committet; das Netz kennt weiter `uOpUBez…`.
+  (spore.json/status.json/SIGNAL.json/NETZ-STAND unverändert auf uOpUBez.)
+
+**Gebaut (Klaus: „Tool einbauen — ja"):** der **Andock-Wizard ins Siegel portiert** (aus Sage, der
+Quelle der Wahrheit; Skill „status-leiste-siegel"). `sbkim/sbkim-init.js`: neues Modal `#rez-andock-modal`
+(z-index über dem Siegel), das der 🔑-Knopf jetzt öffnet (statt nur zum ✍-Feld zu springen). **Fünf
+Bausteine** über die echten Module 02/03: (1) Identität anzeigen/erzeugen · (2) Spore signieren +
+Download (mit Modell-Ladebalken) · (3) **verschlüsseltes Backup** (PBKDF2 600k + AES-GCM-256) ·
+(4) **Wiederherstellen** (importBackup, auch auf neuem Gerät) · (5) **Identitäts-Wechsler**
+(listIdentities/setActiveIdentity — zeigt früher erzeugte Identitäten). Kern-Module unangetastet,
+kein PII, privater Schlüssel bleibt im Browser. `node --check` grün, `node --test` **7/7 grün**.
+SW ist network-first → Klaus bekommt die neue Datei nach Reload.
+
+**Offen / wartet auf Klaus (Browser):**
+- Siegel öffnen → 🔑 → **Identitäts-Wechsler** ansehen: steht dort evtl. `uOpUBez…`? Oder auf einem
+  anderen Gerät ein **Backup exportieren** (Schritt 3) und hier **wiederherstellen** (Schritt 4).
+- Danach entscheiden: `uOpUBez…` zurückgeholt → damit neu signieren (neue Beschreibung), ODER
+  `MT1I…` als neue offizielle Identität übernehmen (dann Nachbarn informieren — vorbereitet).
+
+---
+
 ## 2026-07-15 (b) — Klaus-Entscheid: neue Beschreibung „wandelbare Rezept-Bar + Teil des Netzes"
 
 **Klaus' Entscheidung (Chat 2026-07-15):**
