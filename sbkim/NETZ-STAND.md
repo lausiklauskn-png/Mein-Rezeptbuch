@@ -4,36 +4,47 @@
 > Wahrheitsquelle bleibt `status.json` (Maschine) + die `sbkim/*_inbox.verify.md`-Vermerke
 > (Beweis). Diese Datei ist die Karte darüber. Gehört zu INTERFACES §11.6.
 
-**Stand: 2026-07-14** · Protokoll-Version `0.1`
+**Stand: 2026-07-15** · Protokoll-Version `0.1`
 
 ## Eigene Identität
-- **Knoten:** Mein-Rezeptbuch (Domäne: Kochrezepte / Essen)
-- **nodeId (kanonisch):** `uOpUBezUVbOMsVd2C9BkHW80agnLx5tCx_nIRy2KkXg` — von Sage 2026-06-07 bestätigt
-- **previousNodeIds:** `BSWxXmXvxF8FUR_MOx97a3l4gj1Q-JpcAJyp4BBRHyY` (Handshake 16./17.05.2026)
-- **Spore:** `sbkim/spore.json` (verified-spore ✔, echter 384-dim domainVector, `Xenova/multilingual-e5-small`)
+- **Knoten:** Mein-Rezeptbuch (Domäne: Kochrezepte / Essen — wandelbare Rezept-Bar)
+- **nodeId (neu, kanonisch ab 2026-07-15):** `MT1I-y89OpfRm0Un8HH4QAxMFgs6agtFehh5rA38Q68`
+  — live im Browser signiert (Ed25519 ✔ VALID), im Browser bestätigt (Andock-Wizard Identitäts-Wechsler
+  zeigt nur Fach „main" = MT1I). **Reziproke Bestätigung durch die Nachbarn ausstehend.**
+- **previousNodeIds:** `uOpUBezUVbOMsVd2C9BkHW80agnLx5tCx_nIRy2KkXg` (von Sage 2026-06-07 bestätigt) ·
+  `BSWxXmXvxF8FUR_MOx97a3l4gj1Q-JpcAJyp4BBRHyY` (Handshake 16./17.05.2026)
+- **Warum der Wechsel:** die netzweite „Saubere Netz-Anmeldung" (#273/#293) führte den `dbSuffix`
+  `rezeptbuch` ein → die App liest jetzt die eigene Schublade `sbkim_rezeptbuch`; der alte Schlüssel
+  `uOpUBez…` wurde davor (24.05.) in der **geteilten Alt-Schublade `sbkim`** erzeugt und ist von der
+  App nicht mehr erreichbar. Eine `spore.json` enthält **nie** den privaten Schlüssel → nicht aus
+  Datei rekonstruierbar. Reversibel: taucht `uOpUBez…` je auf einem anderen Gerät auf, per
+  Andock-Wizard (Backup/Wiederherstellen) zurückwechselbar.
+- **Spore:** `sbkim/spore.json` (✔ VALID, echter 384-dim domainVector, `Xenova/multilingual-e5-small`,
+  neue Beschreibung: wandelbare Rezept-Bar/Baukasten + „Teil des SBKIM-Knotennetzes").
 
 ## Nachbarn (Live-Cosinus eigener ⟷ Nachbar, im Browser nachrechenbar)
 
+Cosinus jetzt mit dem **neuen `MT1I…`-Vektor** (neue Beschreibung) gerechnet:
+
 | Knoten | nodeId | Spore | cos | Stufe | Reziprok |
 |---|---|---|---|---|---|
-| **Sage-Protokol** | `nysOZE3V…` | ✔ VALID (v0.2) | **0.792393** | `verified-spore` | ⬇️ NEU 2026-07-14: Sage v0.2 (SIGNAL seq 46, **erste v0.2-Spore im Netz**, 11 snippetVectors, nodeId `nysOZE3V…` **unverändert**), Cosinus gegen neuen Vektor **< 0.80** → verified-spore (war 0.824068/verified-match gegen v0.1). Ehrlich: Spec-Hub ≠ Kochbuch. Identität ✔ VALID, kein Adress-Wand. |
-| **SB-KIMTool-Point** | `CyunQNDR…` | ✔ VALID | **0.796054** | `verified-spore` | ⬇️ NEU 2026-07-14: Point v0.2 (SIGNAL seq 34), Cosinus gegen neuen Vektor **< 0.80** → verified-spore (war 0.832019/verified-match). Gewollt: Werkzeug-Hub ≠ Kochbuch. ⚠️ Points committete v0.2-Spore trägt abweichende nodeId `JZ7MeMtp…` (an Point gemeldet). |
-| **Jasons-Tresor** | `E13GDzIp…` | ✔ VALID | 0.813698 | `verified-match` | ✔ bestätigt 2026-06-07 (Jasons Modul 04 = 0.813698; führt uns, ack=2, SIGNAL seq 11) |
-| **Mein-Tresor** | `wRsGQouO…` | ✔ VALID | 0.813698 | `verified-match` | ✔ bestätigt 2026-06-07 (Tresor rechnet 0.813698, rezeptbuch_inbox.verify.md; führt uns, ack=2, SIGNAL seq 14) |
-| **Mein-Mixarium** | `B7Fke9CY…` | ✔ VALID | 0.954426 | `verified-match` | ✔ reziprok (Mixarium rechnet 0.9544, führt uns in mailboxes; SIGNAL seq 1 seit 2026-06-07 quittiert) |
+| **Sage-Protokol** | `nysOZE3V…` | ✔ VALID (v0.2) | **0.881144** | `match (reziprok ausstehend)` | ⬆️ 2026-07-15: mit neuem MT1I-Vektor **≥ 0.80** (war 0.792393 gegen alten uOpUBez-Vektor). Der „Teil des Netzes"-Satz holt den Spec-Hub zurück. Sage kennt uns noch als `uOpUBez…` → Identitäts-Wechsel gemeldet (`AUSTAUSCH-Sage.md`). |
+| **SB-KIMTool-Point** | `CyunQNDR…` | ✔ VALID | **0.864109** | `match (reziprok ausstehend)` | ⬆️ 2026-07-15: mit neuem MT1I-Vektor **≥ 0.80** (war 0.796054). Identitäts-Wechsel gemeldet (`AUSTAUSCH-SBKIMTool.md`). ⚠️ Points committete v0.2-Spore trägt abweichende nodeId `JZ7MeMtp…`. |
+| **Jasons-Tresor** | `E13GDzIp…` | ✔ VALID | **0.842400** | `match (reziprok ausstehend)` | 2026-07-15: mit MT1I-Vektor 0.842400 (war 0.813698). Kennt uns noch als `uOpUBez…` → gemeldet (`AUSTAUSCH-JasonsTresor.md`). |
+| **Mein-Tresor** | `wRsGQouO…` | ✔ VALID | **0.842400** | `match (reziprok ausstehend)` | 2026-07-15: mit MT1I-Vektor 0.842400 (war 0.813698). Gemeldet (`AUSTAUSCH-MeinTresor.md`). |
+| **Mein-Mixarium** | `B7Fke9CY…` | ✔ VALID | **0.838384** | `match (reziprok ausstehend)` | 2026-07-15: mit MT1I-Vektor 0.838384 (war 0.954426; niedriger, weil die neue Beschreibung breiter ist — weiter ≥ 0.80). Gemeldet (`AUSTAUSCH-Mixarium.md`). |
 
-→ **3/5 Match + 2 verified-spore** (Stand 2026-07-14). Drei Nachbarn cos ≥ 0.80 (Mixarium 0.954426,
-Jasons 0.813698, Mein-Tresor 0.813698); **beide Hub-Knoten nach ihrer v0.2-Neu-Signatur ehrlich
-unter 0.80** (Sage 0.792393, SB-KIMTool-Point 0.796054) — Identitäten bleiben ✔ VALID. Beweise je
-Nachbar: `sbkim/<name>_inbox.verify.md`. Nichts grün-gerechnet.
+→ **5/5 cos ≥ 0.80** mit dem neuen Vektor (unsere Rechnung), aber **reziprok ausstehend**: die Nachbarn
+kennen uns noch als `uOpUBez…`. Der Identitäts-Wechsel + die Bitte, unsere Inbox auf `MT1I…` zu
+aktualisieren, sind in `SIGNAL.json` (seq 12) + je `AUSTAUSCH-<Nachbar>.md` gemeldet. Beweise je
+Nachbar-Spore: `sbkim/<name>_inbox.verify.md`. Nichts grün-gerechnet.
 
-> **Muster (2026-07-14):** Beide **Hub-Knoten** (Sage = Spec-Hub, SB-KIMTool-Point = Werkzeug-Hub)
-> sind nach ihrer v0.2-Neu-Signatur mit ausführlicher Beschreibung **unter** die 0.80-Themen-Schwelle
-> zum Kochbuch gefallen — ehrlich und erwartbar. Die drei **Themen-verwandten** Knoten (Getränke-
-> Schwester Mixarium, die beiden Tresore) bleiben v0.1 und ≥ 0.80. Ob ein Zusatzsatz „Teil des
-> Netzes" die Hubs wieder ≥ 0.80 hebt (Zugehörigkeits- statt Themen-Match), misst Klaus im Browser
-> (`sbkim/messung-netz-zugehoerigkeit.html`) → **Klaus entscheidet**. Wenn die drei v0.1-Nachbarn
-> später ebenfalls auf v0.2 re-signieren, sind ihre Cosinus reziprok neu zu messen.
+> **Muster (2026-07-15):** Der neue Beschreibungs-Vektor (wandelbare Rezept-Bar + „Teil des
+> SBKIM-Knotennetzes") hebt **beide Hub-Knoten wieder ≥ 0.80** (Sage 0.881, Point 0.864) — der
+> Kontroll-Versuch ist damit beantwortet: der Zugehörigkeits-Satz holt die Hubs zurück. Mixarium
+> sinkt von 0.954 auf 0.838 (breitere Beschreibung), bleibt aber deutlich ≥ 0.80. **Offen bleibt
+> nur die reziproke Neu-Bestätigung des neuen `MT1I…`** durch die fünf Nachbarn (Identitäts-Wechsel
+> gemeldet, sie ziehen beim nächsten §11.6-Abgleich nach).
 
 ## Briefkasten / Sync
 - Eigenes `sbkim/SIGNAL.json`: seq **11**. ack: **Sage 46** · Point 34 · **Jasons 14** · **Tresor 17** · **Mixarium 11** (§11.6-Sweep 2026-07-14 nachgezogen).

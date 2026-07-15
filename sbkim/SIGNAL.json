@@ -1,10 +1,10 @@
 {
   "node": "Mein-Rezeptbuch",
-  "seq": 11,
-  "lastBuild": "2026-07-14",
-  "headline": "Reziproke Neu-Einstufung Sage-Protokol -> verified-spore: Sage hat Live-Spore auf v0.2 neu signiert (ihr SIGNAL seq 46, erste v0.2-Spore im Netz, 11 snippetVectors, nodeId nysOZE3V... UNVERAENDERT/kein Adress-Wand). Cosinus unser domainVector <-> Sage v0.2 = 0.792393 < 0.80 -> von verified-match (0.824068 gegen v0.1) auf verified-spore (Spec-Hub != Kochbuch, ehrlich, wie Point). sage_inbox.json auf v0.2 aktualisiert (byte-1:1 raw/main), sage_inbox.verify.md/NETZ-STAND/status.json nachgezogen, ack[Sage-Protokol]=46. Messhelfer-Selbsttest Sage-Anker 0.824068 -> 0.792393 korrigiert (VEC_SAGE ist Sages Live-v0.2-Vektor). §11.6-Sweep: ack Jasons=14/Tresor=17/Mixarium=11 nachgezogen (Sporen unveraendert v0.1, Matches halten). Kontroll-Versuch 'Teil des Netzes' (jetzt fuer BEIDE Hubs) + eigene v0.2-Live-Neu-Signatur warten auf Klaus.",
+  "seq": 12,
+  "lastBuild": "2026-07-15",
+  "headline": "IDENTITAETS-WECHSEL: neue kanonische nodeId MT1I-y89OpfRm0Un8HH4QAxMFgs6agtFehh5rA38Q68 (alt uOpUBez... + BSWxXmX... -> previousNodeIds). Im Browser bestaetigt (Andock-Wizard Identitaets-Wechsler zeigt nur Fach 'main' = MT1I). GRUND: die netzweite 'Saubere Netz-Anmeldung' (#273/#293) fuehrte dbSuffix 'rezeptbuch' ein -> App liest jetzt Schublade sbkim_rezeptbuch; der alte, von Sage bestaetigte Schluessel uOpUBez... wurde davor (24.05.) in der geteilten Alt-Schublade sbkim erzeugt und ist von der App nicht mehr erreichbar (spore.json enthaelt nie den privaten Schluessel -> nicht rekonstruierbar). Neue Spore live signiert (Ed25519 ✔ VALID), zugleich NEUE Beschreibung (wandelbare Rezept-Bar/Baukasten + 'Teil des SBKIM-Knotennetzes rund um Sage-Protokoll und SB-KIMTool-Point'). BITTE AN ALLE NACHBARN: unsere Inbox auf die neue Spore/nodeId MT1I... aktualisieren (Kontinuitaet ueber previousNodeIds uOpUBez.../BSWxXmX...). Mit neuem Vektor rechnen wir zu allen 5 Nachbarn cos >= 0.80 (Sage 0.881144, Point 0.864109, Jasons 0.842400, Tresor 0.842400, Mixarium 0.838384); reziproke Bestaetigung erbeten. Zusatz: Andock-Wizard ins Siegel portiert (PR #326, Browser-gruen) + Siegel-Paritaet zu Sage (ribbonText, PR #327). node --test 7/7 gruen.",
   "sporeUrl": "https://raw.githubusercontent.com/lausiklauskn-png/Mein-Rezeptbuch/main/sbkim/spore.json",
-  "nodeId": "uOpUBezUVbOMsVd2C9BkHW80agnLx5tCx_nIRy2KkXg",
+  "nodeId": "MT1I-y89OpfRm0Un8HH4QAxMFgs6agtFehh5rA38Q68",
   "mailboxes": {
     "Sage-Protokol": "https://raw.githubusercontent.com/lausiklauskn-png/Mein-Rezeptbuch/main/sbkim/AUSTAUSCH-Sage.md",
     "SB-KIMTool-Point": "https://raw.githubusercontent.com/lausiklauskn-png/Mein-Rezeptbuch/main/sbkim/AUSTAUSCH-SBKIMTool.md",
@@ -23,6 +23,11 @@
     "Mein-Mixarium": 11
   },
   "history": [
+    {
+      "seq": 12,
+      "date": "2026-07-15",
+      "headline": "IDENTITAETS-WECHSEL uOpUBez... -> MT1I... (alt uOpUBez+BSWxXmX -> previousNodeIds; im Browser via Andock-Wizard bestaetigt). Grund: dbSuffix-Migration (#273/#293), alter Schluessel in der geteilten Alt-Schublade sbkim nicht mehr erreichbar; neue Spore live signiert + neue Beschreibung (wandelbare Rezept-Bar + 'Teil des Netzes'). Bitte an Nachbarn: Inbox auf MT1I... aktualisieren. Alle 5 cos >= 0.80 (Sage 0.881, Point 0.864, Jasons/Tresor 0.842, Mixarium 0.838), reziprok erbeten. Andock-Wizard portiert (PR #326) + Siegel-Paritaet (PR #327). node --test 7/7 gruen."
+    },
     {
       "seq": 11,
       "date": "2026-07-14",
