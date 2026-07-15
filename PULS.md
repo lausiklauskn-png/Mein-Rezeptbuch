@@ -1,7 +1,47 @@
 # PULS — Mein-Rezeptbuch (SBKIM-Endknoten)
 
 > Aktueller Stand des Knotens für die nächste Sitzung. Kurz, ehrlich, real vs. Demo getrennt.
-> Letzte Aktualisierung: **2026-07-14**.
+> Letzte Aktualisierung: **2026-07-15**.
+
+## 2026-07-15 — §11.6-Sweep sauber + Messhelfer-Anker headless verifiziert + Drift-Guard
+
+**Getan:**
+- **§11.6-Sweep (alle 5 Peers aus deren `raw/main` gelesen):** Sage seq **46**, SB-KIMTool-Point
+  **34**, Jasons-Tresor **14**, Mein-Tresor **17**, Mein-Mixarium **11** — **alle exakt gleich
+  unserem `ack`**. Nichts Ungelesenes, keine neue Peer-v0.2-Spore, **kein Handlungsbedarf**.
+- **Messhelfer-Anker headless verifiziert** (reine Vektor-Rechnung, kein Modell): der Kontroll-
+  Versuchs-Helfer `sbkim/messung-netz-zugehoerigkeit.html` misst gegen die **richtigen** Anker —
+  `cos(spore, VEC_SAGE) = 0.792393` und `cos(spore, VEC_TP) = 0.796054` reproduzieren die im Helfer
+  angezeigten Selbst-Test-Werte **exakt**; `VEC_SAGE` ist **byte-1:1** Sages committete v0.2-Spore
+  (cos 1.000000 zu `sage_inbox.json`); `VEC_TP` ist Points v0.2-Vektor (bewusst ≠ kanonisch
+  `point_inbox.json` v0.1, cos 0.887890 — Adress-Wand, siehe NETZ-STAND). Der Helfer wird also
+  korrekt messen, sobald Klaus ihn im Browser öffnet.
+- **Drift-Guard-Test ergänzt** (`test/sbkim.test.js`, additiv): rechnet die Helfer-Anker gegen die
+  eigene Spore und stellt sicher, dass die im UI genannten Selbst-Test-Werte reproduzierbar bleiben.
+  Genau diese Konstante war letzte Sitzung veraltet (`0.824068`) — der Test verhindert, dass so ein
+  stummer Drift wiederkehrt. `node --test` jetzt **7/7 grün**.
+
+**Ehrlich zur Grenze (warum (a)/(b) nicht headless erledigt sind):**
+- Die **eigentliche Messung** (neuen Text OHNE/MIT Netz-Satz einbetten) braucht das Modell
+  `Xenova/multilingual-e5-small`. Ein Versuch, sie headless zu reproduzieren (transformers.js 2.17.2,
+  identische Pipeline `pooling:mean,normalize:true`, Präfix `passage:`), scheiterte: die
+  **Org-Egress-Politik blockt `huggingface.co` (403)** aus dieser Sitzung, und das Modell liegt
+  nicht im Repo (`models/` fehlt). Das ist eine echte Umgebungs-Grenze, **kein** offener Bau —
+  im normalen Browser (CDN + HF erreichbar) läuft der Helfer. **Nicht erneut headless versuchen.**
+
+**Offen / wartet auf Klaus (Browser) — unverändert:**
+- **Kontroll-Versuch messen** (`sbkim/messung-netz-zugehoerigkeit.html` → „🔎 Messen"): hebt der
+  Zusatz „… Teil des SBKIM-Knotennetzes …" **einen der beiden Hubs** (Sage/Point) wieder ≥ 0.80?
+  Selbst-Test OHNE Zusatz muss ≈ Toolpoint **0.796054** / Sage **0.792393** anzeigen (headless
+  bestätigt: die Anker stimmen). Ergebnis (OHNE + MIT, beide Hubs) → **Klaus entscheidet** Satz ja/nein.
+- **Eigene Spore auf v0.2** (protocolVersion 0.2 + snippetVectors, nodeId unverändert) braucht die
+  **Live-Neu-Signatur im Browser** (privater Schlüssel nicht im Repo) — Klaus-Schritt über Siegel (✍).
+- Browser-Sichttest des Messhelfers.
+
+**Manual-Check:** Headless `node --test` 7/7 grün. Browser-Pfade (Messung, v0.2-Signatur) **ungeprüft,
+warten auf Klaus' Browser-Lauf** — headless nicht erreichbar (HF-Egress geblockt, s.o.).
+
+---
 
 ## 2026-07-14 (b) — §11.6-Sweep: Sage reziprok neu eingestuft (v0.2) + Messhelfer-Selbsttest korrigiert
 
