@@ -554,6 +554,312 @@ window.__sbkimErzeugeSpore = async function (description) {
     }
   }
 
+  // ==========================================================================
+  // ANDOCK-WIZARD (Baustein 1 des Siegel-Werkzeugs) — portiert aus Sage
+  // (Quelle der Wahrheit, index.html ~Z. 3779–4520), Skill „status-leiste-siegel".
+  // Eigenes Modal ÜBER dem Siegel-Modal (z-index 100000). Fünf Bausteine über die
+  // ECHTEN Module 02/03: (1) Identität erzeugen · (2) Spore signieren+Download ·
+  // (3) verschlüsseltes Backup · (4) Wiederherstellen · (5) Identitäts-Wechsler.
+  // Dynamisch in JS gebaut (Rezeptbuch injiziert host-seitig, kein QC/build.py).
+  // Kern-Module unangetastet; privater Schlüssel verlässt den Browser nie.
+  // ==========================================================================
+  var __rezAndockNodeId = null;
+
+  function injectAndockStyleOnce() {
+    if (doc.getElementById("rez-andock-style")) return;
+    var st = doc.createElement("style");
+    st.id = "rez-andock-style";
+    st.textContent = [
+      ".rez-andock-modal{position:fixed;inset:0;z-index:100000;display:grid;place-items:center;padding:1.3rem;}",
+      ".rez-andock-modal[hidden]{display:none;}",
+      ".rez-andock-backdrop{position:absolute;inset:0;background:radial-gradient(ellipse at center,rgba(40,30,10,0.5) 0%,rgba(0,0,0,0.88) 70%);backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);}",
+      ".rez-andock-card{position:relative;z-index:1;max-width:680px;width:100%;max-height:90vh;overflow-y:auto;padding:1.8rem 1.6rem 1.3rem;background:linear-gradient(160deg,rgba(28,24,14,0.97) 0%,rgba(12,11,8,0.98) 100%);border:1px solid rgba(201,169,97,0.4);border-radius:20px;color:#f2ecdc;box-shadow:0 28px 60px rgba(0,0,0,0.7),inset 0 0 80px rgba(201,169,97,0.05);}",
+      ".rez-andock-close{position:absolute;top:0.8rem;right:0.9rem;width:32px;height:32px;padding:0;background:rgba(255,255,255,0.08);border:1px solid rgba(255,255,255,0.18);border-radius:50%;color:#f0f0ff;font-size:1.2rem;line-height:1;cursor:pointer;}",
+      ".rez-andock-tag{display:inline-block;font-size:0.76rem;color:#C9A961;letter-spacing:0.06em;text-transform:uppercase;margin-bottom:0.35rem;}",
+      ".rez-andock-card h2{margin:0 0 0.7rem;font-size:1.3rem;color:#fff;}",
+      ".rez-andock-lede{line-height:1.6;color:#ddd6c4;margin:0 0 1.2rem;font-size:0.92rem;}",
+      ".rez-andock-steps{list-style:none;padding:0;margin:0 0 1.2rem;display:grid;gap:0.9rem;}",
+      ".rez-andock-steps li{padding:0.9rem 1rem;background:rgba(0,0,0,0.42);border:1px solid rgba(201,169,97,0.22);border-radius:12px;}",
+      ".rez-andock-steps h3{margin:0 0 0.45rem;font-size:1rem;font-weight:500;display:flex;align-items:center;gap:0.55rem;color:#fff;}",
+      ".rez-andock-num{display:inline-grid;place-items:center;width:24px;height:24px;background:rgba(201,169,97,0.18);border:1px solid rgba(201,169,97,0.42);border-radius:50%;color:#C9A961;font-family:ui-monospace,monospace;font-size:0.76rem;}",
+      ".rez-andock-steps p{margin:0 0 0.6rem;color:rgba(242,236,220,0.7);font-size:0.85rem;line-height:1.55;}",
+      ".rez-andock-btn{padding:0.55rem 1rem;font-size:0.88rem;background:rgba(201,169,97,0.16);border:1px solid rgba(201,169,97,0.5);border-radius:8px;color:#f2e9cf;font-family:inherit;cursor:pointer;}",
+      ".rez-andock-btn.primary{background:#C9A961;border-color:#C9A961;color:#1a1508;font-weight:600;}",
+      ".rez-andock-btn:disabled{opacity:0.4;cursor:not-allowed;}",
+      ".rez-andock-output{margin-top:0.6rem;padding:0.55rem 0.75rem;background:rgba(0,0,0,0.5);border:1px solid rgba(255,255,255,0.12);border-radius:6px;font-family:ui-monospace,monospace;font-size:0.76rem;color:#cfcabb;word-break:break-all;}",
+      ".rez-andock-output:empty{display:none;}",
+      ".rez-andock-output.ok{border-color:rgba(52,211,153,0.4);color:#aef0d0;}",
+      ".rez-andock-output.err{border-color:rgba(244,63,94,0.4);color:#f8b7b7;}",
+      "@keyframes rez-andock-pulse{0%,100%{opacity:1;}50%{opacity:0.4;}}",
+      ".rez-andock-output.is-loading{animation:rez-andock-pulse 1.1s ease-in-out infinite;border-color:rgba(201,169,97,0.5);}",
+      "@media (prefers-reduced-motion:reduce){.rez-andock-output.is-loading{animation:none;}}",
+      ".rez-andock-identities{margin:0 0 1rem;padding:0.8rem 1rem;background:rgba(110,231,211,0.05);border:1px solid rgba(110,231,211,0.18);border-radius:12px;}",
+      ".rez-andock-identities h3{margin:0 0 0.35rem;font-size:0.92rem;font-weight:500;color:#fff;}",
+      ".rez-andock-mini{color:rgba(242,236,220,0.7);font-size:0.8rem;margin:0 0 0.55rem;line-height:1.5;}",
+      ".rez-andock-identity-row{display:flex;align-items:center;gap:0.6rem;}",
+      ".rez-andock-identity-row label{color:rgba(242,236,220,0.7);font-size:0.8rem;}",
+      ".rez-andock-identity-row select{flex:1;padding:0.4rem 0.6rem;background:rgba(0,0,0,0.4);color:#f2ecdc;border:1px solid rgba(255,255,255,0.18);border-radius:6px;font:inherit;font-size:0.82rem;}",
+    ].join("\n");
+    doc.head ? doc.head.appendChild(st) : doc.body.appendChild(st);
+  }
+
+  function setAndockOutput(id, text, cls) {
+    var el = doc.getElementById(id);
+    if (!el) return;
+    el.textContent = text;
+    el.classList.remove("ok", "err");
+    if (cls) el.classList.add(cls);
+  }
+
+  function buildAndockModal() {
+    injectAndockStyleOnce();
+    var modal = doc.createElement("div");
+    modal.id = "rez-andock-modal";
+    modal.className = "rez-andock-modal";
+    modal.hidden = true;
+    modal.setAttribute("role", "dialog");
+    modal.setAttribute("aria-modal", "true");
+    modal.innerHTML =
+      '<div class="rez-andock-backdrop" data-rez-andock-close></div>' +
+      '<div class="rez-andock-card">' +
+        '<button class="rez-andock-close" data-rez-andock-close aria-label="Wizard schließen">×</button>' +
+        '<span class="rez-andock-tag">Andock-Wizard · Mein Rezeptbuch</span>' +
+        '<h2>Eigene Identität &amp; Spore verwalten</h2>' +
+        '<p class="rez-andock-lede">Hier bekommt dein Rezeptbuch seine eigene, private Netz-Identität. Erstmaliges Signieren kann 1–2 Minuten dauern (Modul 03 lädt das ~30 MB Embedding-Modell). Dein privater Schlüssel verlässt diesen Browser nie.</p>' +
+        '<ol class="rez-andock-steps">' +
+          '<li><h3><span class="rez-andock-num">1</span>Identität erzeugen</h3>' +
+            '<p>Erzeugt (oder lädt) dein Ed25519-Schlüsselpaar in der Browser-Schublade <code>sbkim_rezeptbuch</code>. Die nodeId leitet sich aus dem öffentlichen Schlüssel ab — kein Server, kein Account.</p>' +
+            '<button class="rez-andock-btn primary" id="rez-andock-step1-btn">Identität anzeigen / erzeugen</button>' +
+            '<div class="rez-andock-output" id="rez-andock-step1-out"></div></li>' +
+          '<li><h3><span class="rez-andock-num">2</span>Spore signieren + herunterladen</h3>' +
+            '<p>Lädt Modul 03, erzeugt den 384-dim Domain-Vektor aus deiner Beschreibung und signiert die Spore mit derselben Identität. Die <code>spore.json</code> kommt als Download — schick sie mir zum Einspielen.</p>' +
+            '<button class="rez-andock-btn" id="rez-andock-step2-btn" disabled>Spore signieren + herunterladen</button>' +
+            '<div class="rez-andock-output" id="rez-andock-step2-out"></div></li>' +
+          '<li><h3><span class="rez-andock-num">3</span>Verschlüsseltes Backup</h3>' +
+            '<p>Ein passwort-verschlüsseltes Backup (PBKDF2-SHA256 600 000 + AES-GCM-256) sichert deine Identität gegen Datenverlust. Ohne Backup ist eine Identität nur einen Lösch-Klick weit von weg.</p>' +
+            '<button class="rez-andock-btn" id="rez-andock-step3-btn">Backup erzeugen + herunterladen</button>' +
+            '<div class="rez-andock-output" id="rez-andock-step3-out"></div></li>' +
+          '<li><h3><span class="rez-andock-num">4</span>Identität wiederherstellen</h3>' +
+            '<p>Eine gesicherte Backup-Datei (Schritt 3) zurückspielen: Datei wählen, Passwort eingeben — Schlüssel und Spore landen wieder in der Browser-Schublade. Funktioniert auch auf einem neuen Gerät/Browser — so holst du eine alte Identität zurück.</p>' +
+            '<input type="file" id="rez-andock-step4-file" accept=".json,application/json" hidden>' +
+            '<button class="rez-andock-btn" id="rez-andock-step4-btn">Backup-Datei wählen + wiederherstellen</button>' +
+            '<div class="rez-andock-output" id="rez-andock-step4-out"></div></li>' +
+        '</ol>' +
+        '<div class="rez-andock-identities"><h3>🔀 Identitäts-Wechsler</h3>' +
+          '<p class="rez-andock-mini">Falls in diesem Browser mehrere Identitäten liegen, wählst du hier die aktive. So findest du eine früher erzeugte Identität wieder:</p>' +
+          '<div class="rez-andock-identity-row"><label for="rez-andock-identity-select">Aktive Identität:</label>' +
+            '<select id="rez-andock-identity-select"><option value="">— keine geladen —</option></select></div></div>' +
+      '</div>';
+    doc.body.appendChild(modal);
+    // Wiring (innerhalb der IIFE → keine globalen onclick, addEventListener):
+    [].forEach.call(modal.querySelectorAll("[data-rez-andock-close]"), function (n) {
+      n.addEventListener("click", closeAndockWizard);
+    });
+    modal.querySelector("#rez-andock-step1-btn").addEventListener("click", andockStep1Identity);
+    modal.querySelector("#rez-andock-step2-btn").addEventListener("click", andockStep2Spore);
+    modal.querySelector("#rez-andock-step3-btn").addEventListener("click", andockStep3Backup);
+    var fileInput = modal.querySelector("#rez-andock-step4-file");
+    modal.querySelector("#rez-andock-step4-btn").addEventListener("click", function () { fileInput.click(); });
+    fileInput.addEventListener("change", function () { andockStep4Restore(fileInput); });
+    modal.querySelector("#rez-andock-identity-select").addEventListener("change", function () { andockSwitchIdentity(this.value); });
+    return modal;
+  }
+
+  function openAndockWizard() {
+    var modal = doc.getElementById("rez-andock-modal") || buildAndockModal();
+    modal.hidden = false;
+    refreshAndockIdentities();
+    if (!window.__rezAndockEsc) {
+      window.__rezAndockEsc = function (e) {
+        if (e.key === "Escape") {
+          var m = doc.getElementById("rez-andock-modal");
+          if (m && !m.hidden) closeAndockWizard();
+        }
+      };
+      doc.addEventListener("keydown", window.__rezAndockEsc);
+    }
+  }
+  function closeAndockWizard() {
+    var m = doc.getElementById("rez-andock-modal");
+    if (m) m.hidden = true;
+  }
+
+  async function andockStep1Identity() {
+    var btn = doc.getElementById("rez-andock-step1-btn");
+    var step2btn = doc.getElementById("rez-andock-step2-btn");
+    if (!window.SbkimSpore || typeof window.SbkimSpore.getOrCreateIdentity !== "function") {
+      setAndockOutput("rez-andock-step1-out", "Modul 02 (SbkimSpore) nicht geladen.", "err");
+      return;
+    }
+    btn.disabled = true;
+    setAndockOutput("rez-andock-step1-out", "Stelle Identität sicher …");
+    try {
+      var id = await window.SbkimSpore.getOrCreateIdentity();
+      __rezAndockNodeId = id.nodeId;
+      setAndockOutput("rez-andock-step1-out", "nodeId: " + id.nodeId, "ok");
+      if (step2btn) step2btn.disabled = false;
+      refreshAndockIdentities();
+    } catch (err) {
+      setAndockOutput("rez-andock-step1-out", "Fehler: " + (err && err.message ? err.message : err), "err");
+    }
+    btn.disabled = false;
+  }
+
+  async function andockStep2Spore() {
+    var btn = doc.getElementById("rez-andock-step2-btn");
+    var step3btn = doc.getElementById("rez-andock-step3-btn");
+    if (!window.SbkimEmbedding || !window.SbkimSpore) {
+      setAndockOutput("rez-andock-step2-out", "Module 02 oder 03 nicht geladen.", "err");
+      return;
+    }
+    btn.disabled = true;
+    var out = doc.getElementById("rez-andock-step2-out");
+    if (out) out.classList.add("is-loading");
+    setAndockOutput("rez-andock-step2-out", "Lade Modul 03 (Embedding-Modell, ~30 MB) …");
+    var onProg = function (ev) {
+      var d = ev && ev.detail;
+      if (!d) return;
+      if (d.status === "progress" && typeof d.progress === "number" && isFinite(d.progress)) {
+        var pct = Math.max(0, Math.min(100, Math.round(d.progress)));
+        var file = d.file ? String(d.file).split("/").pop() : "Modell";
+        var bar = "█".repeat(Math.round(pct / 5)) + "░".repeat(20 - Math.round(pct / 5));
+        setAndockOutput("rez-andock-step2-out", "Embedding-Modell lädt … " + bar + " " + pct + " %  (" + file + ", ~30 MB einmalig)");
+      } else if (d.status === "done" || d.status === "ready") {
+        setAndockOutput("rez-andock-step2-out", "Modell geladen — erzeuge Domain-Vektor …");
+      }
+    };
+    window.addEventListener("sbkim:embedding-progress", onProg);
+    try {
+      await window.SbkimEmbedding.init();
+      window.removeEventListener("sbkim:embedding-progress", onProg);
+      if (out) out.classList.remove("is-loading");
+      setAndockOutput("rez-andock-step2-out", "Erzeuge Domain-Vektor (384 floats) …");
+      var C = SBKIM_SEMANTIK_CONFIG;
+      var beschreibung = C.defaultDomainDescription;
+      var vec = await window.SbkimEmbedding.embedPassage(beschreibung);
+      setAndockOutput("rez-andock-step2-out", "Signiere Spore …");
+      var spore = await window.SbkimSpore.generateOwnSpore({
+        domain: C.domain,
+        endpoint: C.endpoint,
+        nodeType: C.nodeType,
+        nodeName: C.nodeName,
+        domainDescription: beschreibung,
+        domainKeywords: C.domainKeywords,
+        domainVector: Array.from(vec),
+        embeddingSource: "description",
+        embeddingVersion: 1,
+        stammCategories: C.stammCategories,
+        guestCategories: C.guestCategories,
+      });
+      downloadJson("spore.json", spore);
+      setAndockOutput("rez-andock-step2-out", "✔ Spore signiert + heruntergeladen — nodeId " + spore.id + " (unverändert), Signatur-Länge " + (spore.signature || "").length + ". Schick sie mir für sbkim/spore.json.", "ok");
+      if (step3btn) step3btn.disabled = false;
+    } catch (err) {
+      window.removeEventListener("sbkim:embedding-progress", onProg);
+      if (out) out.classList.remove("is-loading");
+      setAndockOutput("rez-andock-step2-out", "Fehler: " + (err && err.message ? err.message : err), "err");
+    }
+    btn.disabled = false;
+  }
+
+  async function andockStep3Backup() {
+    var btn = doc.getElementById("rez-andock-step3-btn");
+    if (!window.SbkimSpore || typeof window.SbkimSpore.exportBackup !== "function") {
+      setAndockOutput("rez-andock-step3-out", "Modul 02 exportBackup fehlt.", "err");
+      return;
+    }
+    var password = window.prompt("Backup-Passwort wählen (mindestens 8 Zeichen — KEIN automatisches Zurücksetzen möglich, gut merken!):");
+    if (!password) { setAndockOutput("rez-andock-step3-out", "Abgebrochen — kein Passwort.", "err"); return; }
+    btn.disabled = true;
+    setAndockOutput("rez-andock-step3-out", "Erzeuge verschlüsseltes Backup (PBKDF2 600 000 + AES-GCM-256) …");
+    try {
+      var blob = await window.SbkimSpore.exportBackup(password);
+      var ts = new Date().toISOString().replace(/[:.]/g, "-");
+      downloadJson("rezeptbuch-backup-" + ts + ".sbkim.json", blob);
+      setAndockOutput("rez-andock-step3-out", "✔ Backup heruntergeladen. Bewahre Datei + Passwort sicher auf — ohne beides keine Wiederherstellung.", "ok");
+    } catch (err) {
+      setAndockOutput("rez-andock-step3-out", "Fehler: " + (err && err.message ? err.message : err), "err");
+    }
+    btn.disabled = false;
+  }
+
+  async function andockStep4Restore(input) {
+    var out = "rez-andock-step4-out";
+    if (!window.SbkimSpore || typeof window.SbkimSpore.importBackup !== "function") {
+      setAndockOutput(out, "Modul 02 importBackup fehlt.", "err"); return;
+    }
+    var file = input && input.files && input.files[0];
+    if (!file) { setAndockOutput(out, "Keine Datei gewählt.", "err"); return; }
+    var blob;
+    try { blob = JSON.parse(await file.text()); }
+    catch (_e) { setAndockOutput(out, "Datei ist kein gültiges JSON-Backup.", "err"); input.value = ""; return; }
+    var password = window.prompt("Backup-Passwort eingeben (das beim Sichern vergebene):");
+    if (!password) { setAndockOutput(out, "Abgebrochen — kein Passwort.", "err"); input.value = ""; return; }
+    setAndockOutput(out, "Entschlüssele Backup + spiele Identität zurück …");
+    try {
+      var res = await window.SbkimSpore.importBackup(blob, password);
+      andockAfterRestore(out, res);
+    } catch (err) {
+      var msg = (err && err.message) ? err.message : String(err);
+      var name = err && err.name ? err.name : "";
+      if (/Overwrite/i.test(name) || /vorhanden|überschreib|overwrite/i.test(msg)) {
+        if (window.confirm("Eine Identität mit diesem Schlüssel existiert bereits in diesem Browser. Mit der Backup-Version überschreiben? (Die jetzige lokale Identität geht dabei verloren.)")) {
+          setAndockOutput(out, "Überschreibe vorhandene Identität …");
+          try { andockAfterRestore(out, await window.SbkimSpore.importBackup(blob, password, { force: true })); }
+          catch (err2) { setAndockOutput(out, "Fehler beim Überschreiben: " + (err2 && err2.message ? err2.message : err2), "err"); }
+        } else { setAndockOutput(out, "Abgebrochen — vorhandene Identität unverändert.", "err"); }
+      } else {
+        setAndockOutput(out, "Fehler: " + msg + " (falsches Passwort oder beschädigte Datei?)", "err");
+      }
+    } finally { input.value = ""; }
+  }
+
+  function andockAfterRestore(out, res) {
+    if (res && res.restored) {
+      setAndockOutput(out, "✔ Identität wiederhergestellt — Schlüssel + Spore sind zurück in der Browser-Schublade. Du bist wieder am Mycel. Jetzt Schritt 2 (Spore signieren) für die aktuelle Beschreibung.", "ok");
+    } else {
+      setAndockOutput(out, "Nichts wiederhergestellt" + (res && res.reason ? " — " + res.reason : "") + ".", "err");
+    }
+    var s2 = doc.getElementById("rez-andock-step2-btn");
+    var s3 = doc.getElementById("rez-andock-step3-btn");
+    if (s2) s2.disabled = false;
+    if (s3) s3.disabled = false;
+    refreshAndockIdentities();
+  }
+
+  async function refreshAndockIdentities() {
+    var sel = doc.getElementById("rez-andock-identity-select");
+    if (!sel || !window.SbkimSpore || typeof window.SbkimSpore.listIdentities !== "function") return;
+    try {
+      var ids = await window.SbkimSpore.listIdentities();
+      var active = null;
+      if (typeof window.SbkimSpore.getActiveIdentityKey === "function") {
+        try { active = await window.SbkimSpore.getActiveIdentityKey(); } catch (_e) { /* nb */ }
+      }
+      sel.innerHTML = "";
+      if (!ids || !ids.length) {
+        var opt0 = doc.createElement("option");
+        opt0.value = ""; opt0.textContent = "— keine geladen —";
+        sel.appendChild(opt0);
+        return;
+      }
+      ids.forEach(function (k) {
+        var opt = doc.createElement("option");
+        opt.value = k; opt.textContent = k + (k === active ? "  (aktiv)" : "");
+        if (k === active) opt.selected = true;
+        sel.appendChild(opt);
+      });
+    } catch (_e) { /* nb */ }
+  }
+
+  async function andockSwitchIdentity(key) {
+    if (!key || !window.SbkimSpore || typeof window.SbkimSpore.setActiveIdentity !== "function") return;
+    try {
+      await window.SbkimSpore.setActiveIdentity(key);
+      refreshAndockIdentities();
+    } catch (err) { if (window.console && console.warn) console.warn("setActiveIdentity:", err); }
+  }
+
   // ---- Injektion ins Siegel-Modal ----
   function injectIdentityLinkIntoSiegel(modal) {
     if (!modal || modal.querySelector("[data-rez-identity-link]")) return;
@@ -565,7 +871,8 @@ window.__sbkimErzeugeSpore = async function (description) {
     link.type = "button";
     link.textContent = "🔑 Eigene Identität & Spore erzeugen / verwalten →";
     link.style.cssText = "display:block;width:100%;margin:0 0 1rem;padding:0.6rem 0.9rem;background:rgba(168,132,30,0.16);border:1px solid rgba(168,132,30,0.55);border-radius:8px;color:#f2e9cf;font:inherit;font-size:0.86rem;cursor:pointer;text-align:left;";
-    link.addEventListener("click", function () { focusSemantikInput(modal); });
+    // Öffnet den Andock-Wizard (Backup/Wiederherstellen/Identitäts-Wechsler).
+    link.addEventListener("click", function () { openAndockWizard(); });
 
     var schutz = buildSchutzInfoBlock();
     var semantik = buildSemantikBlock();
