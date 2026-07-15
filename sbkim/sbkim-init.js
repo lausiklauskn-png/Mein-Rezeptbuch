@@ -229,9 +229,13 @@ var SBKIM_REZEPTBUCH_DESCRIPTION =
   "Gerichten über Kuchen und Desserts bis zu Saucen und Beilagen, vom " +
   "Hefeteig bis zur fertigen Sauce. Dazu passende Begleitgetränke (Limonaden, " +
   "Tees, Mocktails, alkoholfreie Cocktails) und kleine Knabbereien als " +
-  "Überraschungs-Plus. Eine ruhige, werbefreie Sammlung zum Nachkochen, die " +
-  "sich semantisch mit verwandten Knoten wie dem Cocktail-Knoten Mixarium " +
-  "verbinden lässt.";
+  "Überraschungs-Plus. Zugleich ein wandelbarer Rezept-Baukasten: nicht auf " +
+  "ein Thema festgelegt — lade ein neues Rezept-Paket herein, benenne " +
+  "Kategorien um, und aus dem Kochbuch wird deine eigene Bar (Backstube, " +
+  "Grill-Buch, Frühstücksbar, Salatbar, Pasta-Werkstatt). Jedes Rezept ist " +
+  "Zutaten plus Schritte — bis hin zu den Zutaten eines Chemiebaukastens. " +
+  "Teil des SBKIM-Knotennetzes rund um Sage-Protokoll und SB-KIMTool-Point, " +
+  "semantisch verbunden mit verwandten Knoten wie dem Cocktail-Knoten Mixarium.";
 
 // DevTools-Fallback: Spore manuell erzeugen. Ab Bau 2026-06-07 ist der
 // optionale `description`-Parameter (Default: reicher Rezeptbuch-Text) der

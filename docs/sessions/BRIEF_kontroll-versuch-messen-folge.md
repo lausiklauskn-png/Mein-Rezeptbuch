@@ -25,16 +25,25 @@
   und das Modell nicht im Repo liegt. **Nicht erneut headless versuchen** — läuft nur im Browser.
 - **Eigene Spore unverändert** (`protocolVersion 0.1`) — v0.2-Neu-Signatur braucht Klaus' Browser.
 
-## 2. Ziel dieser Folge-Sitzung
-(a) **Kontroll-Versuch messen (Klaus-Browser):** `sbkim/messung-netz-zugehoerigkeit.html` öffnen →
-    „🔎 Messen". Selbst-Test OHNE Zusatz muss ≈ Toolpoint **0.796054** / Sage **0.792393** anzeigen
-    (headless bestätigt: Anker stimmen — stimmt der Selbst-Test, misst die Seite korrekt). Prüfen,
-    ob der Zusatzsatz „… Teil des SBKIM-Knotennetzes rund um Sage-Protokoll und SB-KIMTool-Point."
-    **einen der beiden Hubs** wieder ≥ 0.80 hebt. Ergebnis (beide Werte, OHNE + MIT) dokumentieren
-    → **Klaus entscheidet** Satz ja/nein.
-(b) **Falls Klaus den Satz will:** `domainDescription` in `spore.json` ergänzen, Spore **v0.2**
-    (protocolVersion 0.2 + snippetVectors, nodeId unverändert) **live neu signieren** im Browser
-    (Siegel ✍). Vor Commit alle behaltenen Peer-Matches headless prüfen (`node --test`).
+## 1b. Klaus-Entscheid 2026-07-15 (bereits umgesetzt, Text-Seite)
+- **Netz-Satz „Teil des SBKIM-Knotennetzes" → JA** (unabhängig vom Zahlen-Match).
+- **Wandelbare App = kein Umbau**: nur der **beschreibende Text** der wandelbaren „Rezept-Bar"
+  (Baukasten; Backstube/Grill-Buch/Frühstücksbar …; jedes Rezept = Zutaten + Schritte, bis zu den
+  Zutaten eines Chemiebaukastens) kommt in die `domainDescription`. Quelle: Bar-Sektion der
+  Mein-Rezeptbuch-Page.
+- **Erledigt (headless):** `SBKIM_REZEPTBUCH_DESCRIPTION` (`sbkim/sbkim-init.js`) auf den neuen Text
+  erweitert (das ist der Siegel-✍-Vorschlag zum Neu-Signieren); Messhelfer misst jetzt aktuelle vs.
+  neue Beschreibung. `node --test` 7/7 grün. **Spore selbst noch v0.1** (Neu-Signatur = Browser).
+
+## 2. Ziel dieser Folge-Sitzung (Klaus-Browser)
+(a) **v0.2 live neu signieren** über das **Siegel (✍ Semantik-Beschreibung → Spore neu signieren)**:
+    das Feld ist mit dem **neuen** Text vorbelegt (`SBKIM_REZEPTBUCH_DESCRIPTION`) — prüfen/ggf.
+    anpassen → signieren → ausgegebenes Spore-JSON committen (protocolVersion 0.2, nodeId unverändert).
+    Optional vorher **messen** (`sbkim/messung-netz-zugehoerigkeit.html` → „🔎 Messen"): Zeile 1
+    (aktuell) ≈ Toolpoint **0.796054** / Sage **0.792393** = Selbst-Test; Zeile 2 = neue Beschreibung.
+(b) **Nach dem Signieren (nächste Sitzung, headless):** `spore.json` ✔ VALID prüfen, alle behaltenen
+    Peer-Matches ≥ 0.80 verifizieren (`node --test`), Akten nachziehen (`NETZ-STAND.md`, `status.json`),
+    ggf. §11.6-Meldung (SIGNAL seq +1) an die Peers, dass Rezeptbuch auf v0.2 ist.
 (c) Laufende §11.6-Pflege: bei Sitzungsstart Peer-SIGNAL erneut gegen `ack` prüfen.
 
 ## 3. Datenverträge
