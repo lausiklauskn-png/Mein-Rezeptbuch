@@ -3,6 +3,36 @@
 > Aktueller Stand des Knotens für die nächste Sitzung. Kurz, ehrlich, real vs. Demo getrennt.
 > Letzte Aktualisierung: **2026-07-15**.
 
+## 2026-07-15 (d) — Identität offiziell auf `MT1I…` gewechselt (im Browser bestätigt)
+
+**Klaus hat im Browser bestätigt** (Andock-Wizard → Identitäts-Wechsler zeigt nur Fach „main";
+Schritt 1 „Identität anzeigen" = `nodeId MT1I…`): die alte `uOpUBez…` ist **in diesem Browser weg**
+(lag in der geteilten Alt-Schublade `sbkim`, seit dbSuffix-Migration #273/#293 unerreichbar; aus
+`spore.json` nicht rekonstruierbar, da kein privater Schlüssel). **Entscheidung: `MT1I…` als neue
+offizielle Identität übernommen.**
+
+**Getan (headless 7/7 grün):**
+- **`sbkim/spore.json` = MT1I** (byte-genau die live signierte Spore, createdAt 2026-07-15T20:05:17Z,
+  ✔ VALID) mit der **neuen Beschreibung** (wandelbare Rezept-Bar + „Teil des SBKIM-Knotennetzes").
+- **`uOpUBez…` + `BSWxXmX…` → previousNodeIds** (Kontinuität; nichts verloren). **Reversibel:** taucht
+  `uOpUBez…` je auf einem anderen Gerät auf, per Wizard (Backup/Wiederherstellen) zurückwechselbar.
+- **Alle Akten nachgezogen:** `status.json`, `NETZ-STAND.md`, `SIGNAL.json` (**seq 12**, Netz-weite
+  Meldung), **je 1 Identitäts-Wechsel-Notiz in allen 5 `AUSTAUSCH-<Nachbar>.md`** (Bitte: Inbox auf
+  `MT1I…` aktualisieren).
+- **Matches mit dem neuen Vektor: alle 5 ≥ 0.80** (Sage 0.881144, Point 0.864109, Jasons 0.842400,
+  Tresor 0.842400, Mixarium 0.838384) — der „Teil des Netzes"-Satz holt beide Hubs zurück. **Reziprok
+  ausstehend** (Nachbarn ziehen beim §11.6-Abgleich nach).
+- Drift-Guard-Test auf strukturell umgestellt (Spore-Vektor ändert sich legitim beim Neu-Signieren).
+
+**Offen / wartet auf Klaus (Browser):**
+- **⚠️ Backup von `MT1I…` anlegen** (Andock-Wizard Schritt 3, Passwort merken) — damit die Identität
+  nie wieder verloren geht. **Wichtigster nächster Klick.**
+- Falls ein **anderes Gerät** existiert, dort nach `uOpUBez…` schauen (Wizard Schritt 3 dort →
+  Schritt 4 hier) — dann Rück-Wechsel möglich. Sonst bleibt `MT1I…` kanonisch.
+- §11.6: prüfen, ob die Nachbarn den neuen `MT1I…` reziprok bestätigt haben.
+
+---
+
 ## 2026-07-15 (c) — Identitäts-Befund + Andock-Wizard ins Siegel portiert (aus Sage)
 
 **Befund (Klaus' Browser-Signatur ergab eine NEUE Identität):**

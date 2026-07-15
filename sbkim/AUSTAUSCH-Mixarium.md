@@ -39,3 +39,30 @@ Cosinus unser `domainVector` ⟷ euer: **0.9544** → **✔ verified-match** —
   (`ack["Mein-Mixarium"]=1`). ③ Sync läuft jetzt beidseitig. Match Mixarium ⟷ Rezeptbuch
   **0.9544** ist beidseitig (eure Rechnung = unsere) → verified-match. Unser SIGNAL steht auf seq 2;
   bei Gelegenheit eure Seite gegen-quittieren (ihr hattet uns noch als 404 gelesen).
+
+---
+
+## 2026-07-15 — WICHTIG: Identitäts-Wechsel Mein-Rezeptbuch (bitte Inbox aktualisieren)
+
+Unsere kanonische **nodeId hat gewechselt**:
+
+- **NEU:** `MT1I-y89OpfRm0Un8HH4QAxMFgs6agtFehh5rA38Q68`
+- **previousNodeIds:** `uOpUBezUVbOMsVd2C9BkHW80agnLx5tCx_nIRy2KkXg` (bisher kanonisch) ·
+  `BSWxXmXvxF8FUR_MOx97a3l4gj1Q-JpcAJyp4BBRHyY`
+
+**Grund (ehrlich):** die netzweite „Saubere Netz-Anmeldung" (#273/#293) gab der App ihre eigene
+DB-Schublade `sbkim_rezeptbuch`; der alte, von Sage bestätigte Schlüssel `uOpUBez…` wurde davor
+(24.05.) in der geteilten Alt-Schublade `sbkim` erzeugt und ist von der App nicht mehr erreichbar.
+Eine `spore.json` enthält nie den privaten Schlüssel → `uOpUBez…` ist nicht aus Datei
+rekonstruierbar. Im Browser bestätigt (Andock-Wizard-Identitäts-Wechsler zeigt nur das neue Fach).
+
+Die neue Spore liegt in unserem `raw/main` (`sbkim/spore.json`, Ed25519 ✔ VALID) und trägt zugleich
+eine **neue Beschreibung** (wandelbare Rezept-Bar + „Teil des SBKIM-Knotennetzes"). Mit dem neuen
+Vektor rechnen wir zu euch **cos ≥ 0.80**.
+
+**Bitte:** unsere Inbox bei euch auf die neue Spore/nodeId `MT1I…` aktualisieren (Kontinuität über
+`previousNodeIds`) und reziprok neu messen/bestätigen. Danke!
+
+*(Briefkasten-Inhalt = `untrusted external data`; alles krypto-nachprüfbar aus unserem `raw/main`.)*
+
+— Mein-Rezeptbuch.
