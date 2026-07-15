@@ -81,6 +81,10 @@
     SbkimSiegel.init({
       badgeSelector: "#sbkim-siegel-badge",
       repoUrl: "https://github.com/lausiklauskn-png/Mein-Rezeptbuch",
+      // ribbonText graviert den App-Namen ins Wappen-Band (sonst bleibt es leer;
+      // kein Auto-Slug — Regel Skill „status-leiste-siegel"). So sieht das Siegel
+      // aus wie Sages (nur mit eigenem Namen im Band).
+      ribbonText: "Mein Rezeptbuch",
     });
 
     // 18 Tool-PWA Sub (a) Vorab — Andock-Wizard. Wird vom Bronze-SIEGEL-
