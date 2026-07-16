@@ -8,17 +8,15 @@
 
 ## Eigene Identität
 - **Knoten:** Mein-Rezeptbuch (Domäne: Kochrezepte / Essen — wandelbare Rezept-Bar)
-- **nodeId (neu, kanonisch ab 2026-07-15):** `MT1I-y89OpfRm0Un8HH4QAxMFgs6agtFehh5rA38Q68`
+- **nodeId (frisch, kanonisch):** `MT1I-y89OpfRm0Un8HH4QAxMFgs6agtFehh5rA38Q68`
   — live im Browser signiert (Ed25519 ✔ VALID), im Browser bestätigt (Andock-Wizard Identitäts-Wechsler
-  zeigt nur Fach „main" = MT1I). **Reziproke Bestätigung durch die Nachbarn ausstehend.**
-- **previousNodeIds:** `uOpUBezUVbOMsVd2C9BkHW80agnLx5tCx_nIRy2KkXg` (von Sage 2026-06-07 bestätigt) ·
-  `BSWxXmXvxF8FUR_MOx97a3l4gj1Q-JpcAJyp4BBRHyY` (Handshake 16./17.05.2026)
-- **Warum der Wechsel:** die netzweite „Saubere Netz-Anmeldung" (#273/#293) führte den `dbSuffix`
-  `rezeptbuch` ein → die App liest jetzt die eigene Schublade `sbkim_rezeptbuch`; der alte Schlüssel
-  `uOpUBez…` wurde davor (24.05.) in der **geteilten Alt-Schublade `sbkim`** erzeugt und ist von der
-  App nicht mehr erreichbar. Eine `spore.json` enthält **nie** den privaten Schlüssel → nicht aus
-  Datei rekonstruierbar. Reversibel: taucht `uOpUBez…` je auf einem anderen Gerät auf, per
-  Andock-Wizard (Backup/Wiederherstellen) zurückwechselbar.
+  zeigt nur Fach „main" = MT1I).
+- **previousNodeIds:** _(leer)_ — **GENERALTEST 2026-07-15:** alte Identitäten `uOpUBez…`/`BSWxXmX…`
+  **komplett entfernt**, kein Zurückholen (Klaus' Entscheidung „ganz einfach, keine Tricks").
+- **Generaltest — frische Neuanmeldung:** alle Knoten werfen ihre alten Identitäten weg und melden sich
+  **frisch neu an** (Modul 23 „🧹 Aufräumen & neu anmelden"), dann handshaken alle **neu im gemeinsamen
+  Raum**. MT1I bleibt Rezeptbuchs frische, saubere Identität (heute in der eigenen Schublade
+  `sbkim_rezeptbuch` erzeugt). Reziproke Bekanntschaft wird **im Raum frisch aufgebaut**.
 - **Spore:** `sbkim/spore.json` (✔ VALID, echter 384-dim domainVector, `Xenova/multilingual-e5-small`,
   neue Beschreibung: wandelbare Rezept-Bar/Baukasten + „Teil des SBKIM-Knotennetzes").
 
@@ -34,17 +32,17 @@ Cosinus jetzt mit dem **neuen `MT1I…`-Vektor** (neue Beschreibung) gerechnet:
 | **Mein-Tresor** | `wRsGQouO…` | ✔ VALID | **0.842400** | `match (reziprok ausstehend)` | 2026-07-15: mit MT1I-Vektor 0.842400 (war 0.813698). Gemeldet (`AUSTAUSCH-MeinTresor.md`). |
 | **Mein-Mixarium** | `B7Fke9CY…` | ✔ VALID | **0.838384** | `match (reziprok ausstehend)` | 2026-07-15: mit MT1I-Vektor 0.838384 (war 0.954426; niedriger, weil die neue Beschreibung breiter ist — weiter ≥ 0.80). Gemeldet (`AUSTAUSCH-Mixarium.md`). |
 
-→ **5/5 cos ≥ 0.80** mit dem neuen Vektor (unsere Rechnung), aber **reziprok ausstehend**: die Nachbarn
-kennen uns noch als `uOpUBez…`. Der Identitäts-Wechsel + die Bitte, unsere Inbox auf `MT1I…` zu
-aktualisieren, sind in `SIGNAL.json` (seq 12) + je `AUSTAUSCH-<Nachbar>.md` gemeldet. Beweise je
-Nachbar-Spore: `sbkim/<name>_inbox.verify.md`. Nichts grün-gerechnet.
+→ **5/5 cos ≥ 0.80** mit dem MT1I-Vektor (unsere Rechnung, letzter bekannter Stand). **GENERALTEST
+2026-07-15:** die reziproke Bekanntschaft wird **frisch im Raum neu aufgebaut** — alle Knoten melden
+sich neu an und handshaken neu (Modul 23). Kein Kontinuitäts-Link nötig. Melden sich Nachbarn mit
+neuer Identität an, ziehen wir sie via Raum/§11.6 nach. Beweise je Nachbar-Spore:
+`sbkim/<name>_inbox.verify.md`. Nichts grün-gerechnet.
 
-> **Muster (2026-07-15):** Der neue Beschreibungs-Vektor (wandelbare Rezept-Bar + „Teil des
-> SBKIM-Knotennetzes") hebt **beide Hub-Knoten wieder ≥ 0.80** (Sage 0.881, Point 0.864) — der
-> Kontroll-Versuch ist damit beantwortet: der Zugehörigkeits-Satz holt die Hubs zurück. Mixarium
-> sinkt von 0.954 auf 0.838 (breitere Beschreibung), bleibt aber deutlich ≥ 0.80. **Offen bleibt
-> nur die reziproke Neu-Bestätigung des neuen `MT1I…`** durch die fünf Nachbarn (Identitäts-Wechsel
-> gemeldet, sie ziehen beim nächsten §11.6-Abgleich nach).
+> **Muster (2026-07-15):** Der Beschreibungs-Vektor (wandelbare Rezept-Bar + „Teil des
+> SBKIM-Knotennetzes") hebt **beide Hub-Knoten ≥ 0.80** (Sage 0.881, Point 0.864) — der
+> Kontroll-Versuch ist beantwortet: der Zugehörigkeits-Satz holt die Hubs zurück. Der **Generaltest**
+> baut die Bekanntschaft aller Knoten **frisch** neu auf (saubere Neuanmeldung im Raum), ohne alte
+> Identitäten mitzuschleppen.
 
 ## Briefkasten / Sync
 - Eigenes `sbkim/SIGNAL.json`: seq **11**. ack: **Sage 46** · Point 34 · **Jasons 14** · **Tresor 17** · **Mixarium 11** (§11.6-Sweep 2026-07-14 nachgezogen).

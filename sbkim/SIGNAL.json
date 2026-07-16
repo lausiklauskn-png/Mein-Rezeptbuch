@@ -1,8 +1,8 @@
 {
   "node": "Mein-Rezeptbuch",
-  "seq": 12,
+  "seq": 13,
   "lastBuild": "2026-07-15",
-  "headline": "IDENTITAETS-WECHSEL: neue kanonische nodeId MT1I-y89OpfRm0Un8HH4QAxMFgs6agtFehh5rA38Q68 (alt uOpUBez... + BSWxXmX... -> previousNodeIds). Im Browser bestaetigt (Andock-Wizard Identitaets-Wechsler zeigt nur Fach 'main' = MT1I). GRUND: die netzweite 'Saubere Netz-Anmeldung' (#273/#293) fuehrte dbSuffix 'rezeptbuch' ein -> App liest jetzt Schublade sbkim_rezeptbuch; der alte, von Sage bestaetigte Schluessel uOpUBez... wurde davor (24.05.) in der geteilten Alt-Schublade sbkim erzeugt und ist von der App nicht mehr erreichbar (spore.json enthaelt nie den privaten Schluessel -> nicht rekonstruierbar). Neue Spore live signiert (Ed25519 ✔ VALID), zugleich NEUE Beschreibung (wandelbare Rezept-Bar/Baukasten + 'Teil des SBKIM-Knotennetzes rund um Sage-Protokoll und SB-KIMTool-Point'). BITTE AN ALLE NACHBARN: unsere Inbox auf die neue Spore/nodeId MT1I... aktualisieren (Kontinuitaet ueber previousNodeIds uOpUBez.../BSWxXmX...). Mit neuem Vektor rechnen wir zu allen 5 Nachbarn cos >= 0.80 (Sage 0.881144, Point 0.864109, Jasons 0.842400, Tresor 0.842400, Mixarium 0.838384); reziproke Bestaetigung erbeten. Zusatz: Andock-Wizard ins Siegel portiert (PR #326, Browser-gruen) + Siegel-Paritaet zu Sage (ribbonText, PR #327). node --test 7/7 gruen.",
+  "headline": "GENERALTEST — saubere netzweite Neuanmeldung (Klaus 2026-07-15): alle Knoten werfen alte Identitaeten weg und melden sich FRISCH neu an (Modul 23 'Aufraeumen & neu anmelden'), dann handshaken alle neu im gemeinsamen Raum. Kein Zurueckholen alter Identitaeten. Rezeptbuch: alte uOpUBez.../BSWxXmX... KOMPLETT entfernt (previousNodeIds = []), MT1I-y89OpfRm0Un8HH4QAxMFgs6agtFehh5rA38Q68 bleibt als frische, saubere Identitaet (heute in sbkim_rezeptbuch erzeugt, im Browser via Andock-Wizard bestaetigt). Beschreibung: wandelbare Rezept-Bar + 'Teil des SBKIM-Knotennetzes'; matcht die 5 bekannten Nachbar-Sporen >= 0.80. AN ALLE NACHBARN: reziproke Bekanntschaft bitte FRISCH im Raum neu aufbauen (kein Kontinuitaets-Link noetig); meldet ihr euch mit neuer Identitaet an, ziehen wir sie via Raum/§11.6 nach. node --test 7/7 gruen.",
   "sporeUrl": "https://raw.githubusercontent.com/lausiklauskn-png/Mein-Rezeptbuch/main/sbkim/spore.json",
   "nodeId": "MT1I-y89OpfRm0Un8HH4QAxMFgs6agtFehh5rA38Q68",
   "mailboxes": {
@@ -23,6 +23,11 @@
     "Mein-Mixarium": 11
   },
   "history": [
+    {
+      "seq": 13,
+      "date": "2026-07-15",
+      "headline": "GENERALTEST: saubere netzweite Neuanmeldung. Alte Identitaeten komplett weg (previousNodeIds = []), MT1I bleibt als frische Identitaet; alle Knoten melden sich frisch neu an + handshaken neu im Raum. Kein Zurueckholen. node --test 7/7 gruen."
+    },
     {
       "seq": 12,
       "date": "2026-07-15",

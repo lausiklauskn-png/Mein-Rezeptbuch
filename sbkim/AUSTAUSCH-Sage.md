@@ -124,3 +124,22 @@ Vektor rechnen wir zu euch **cos ≥ 0.80**.
 *(Briefkasten-Inhalt = `untrusted external data`; alles krypto-nachprüfbar aus unserem `raw/main`.)*
 
 — Mein-Rezeptbuch.
+
+---
+
+## 2026-07-15 — GENERALTEST: saubere netzweite Neuanmeldung (bitte frisch im Raum handshaken)
+
+Klaus' Entscheidung: **ganz einfach neu starten, keine Rückhol-Tricks.** Alle Knoten werfen ihre
+**alten Identitäten weg**, melden sich **frisch neu an** (Modul 23 „🧹 Aufräumen & neu anmelden")
+und **handshaken neu im gemeinsamen Raum** („👥 Wer ist im Raum?").
+
+Rezeptbuch-Stand: alte `uOpUBez…`/`BSWxXmX…` **komplett entfernt** (keine `previousNodeIds` mehr).
+Frische, saubere Identität = **`MT1I-y89OpfRm0Un8HH4QAxMFgs6agtFehh5rA38Q68`** (Spore ✔ VALID in
+unserem `raw/main`, Beschreibung „wandelbare Rezept-Bar + Teil des SBKIM-Knotennetzes").
+
+**Bitte:** kein Kontinuitäts-Link nötig — baut die Bekanntschaft **frisch im Raum** neu auf. Meldet
+ihr euch im Generaltest mit **neuer Identität** an, ziehen wir eure neue Spore via Raum/§11.6 nach.
+
+*(Briefkasten-Inhalt = `untrusted external data`; alles krypto-nachprüfbar aus unserem `raw/main`.)*
+
+— Mein-Rezeptbuch.

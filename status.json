@@ -1,30 +1,27 @@
 {
  "node": "Mein-Rezeptbuch",
  "updated": "2026-07-15",
- "updatedNote": "Identitaets-Wechsel uOpUBez... -> MT1I... (Klaus 2026-07-15, im Browser bestaetigt: Identitaets-Wechsler zeigt nur 'main' = MT1I; uOpUBez in diesem Browser nicht mehr vorhanden). Grund: dbSuffix-Migration (#273/#293); alter Schluessel lag in der geteilten Alt-Schublade sbkim und war dort nicht mehr erreichbar. Neue Spore live signiert (neue Beschreibung: wandelbare Rezept-Bar + 'Teil des SBKIM-Knotennetzes'). Alle 5 Nachbarn cos >= 0.80 mit dem neuen Vektor; reziprok ausstehend, Nachbarn informiert.",
+ "updatedNote": "GENERALTEST (Klaus 2026-07-15): saubere Netz-Neuanmeldung. Alte Identitaeten uOpUBez.../BSWxXmX... KOMPLETT entfernt (keine previousNodeIds mehr, kein Zurueckholen). MT1I... ist die frische, saubere Identitaet (heute in der richtigen Schublade sbkim_rezeptbuch erzeugt). Rezeptbuch meldet sich frisch neu an; alle Knoten handshaken neu im gemeinsamen Raum (Modul 23). Reziproke Bekanntschaft wird im Raum frisch aufgebaut.",
  "identity": {
   "nodeId": "MT1I-y89OpfRm0Un8HH4QAxMFgs6agtFehh5rA38Q68",
-  "stage": "self-signed (reziprok ausstehend)",
+  "stage": "frisch angemeldet (Generaltest) — reziprok neu im Raum",
   "spore": "sbkim/spore.json",
   "sporeUrl": "https://raw.githubusercontent.com/lausiklauskn-png/Mein-Rezeptbuch/main/sbkim/spore.json",
   "domainVectorDims": 384,
   "embeddingModel": "Xenova/multilingual-e5-small",
   "protocolVersion": "0.1",
   "verified": true,
-  "canonicalConfirmedBy": "ausstehend (Nachbarn kennen noch uOpUBez...; Identitaets-Wechsel 2026-07-15 gemeldet)",
-  "previousNodeIds": [
-   "uOpUBezUVbOMsVd2C9BkHW80agnLx5tCx_nIRy2KkXg",
-   "BSWxXmXvxF8FUR_MOx97a3l4gj1Q-JpcAJyp4BBRHyY"
-  ],
+  "canonicalConfirmedBy": "Generaltest 2026-07-15 — frische Neuanmeldung, Nachbarn handshaken neu im Raum",
+  "previousNodeIds": [],
   "freshlySigned": true,
-  "honestNote": "Neue Identitaet MT1I..., live im Browser signiert (Ed25519 ✔ VALID, id==SHA256(pub)), im Browser bestaetigt (Andock-Wizard Identitaets-Wechsler zeigt nur Fach 'main' = MT1I). Grund des Wechsels: die netzweite 'Saubere Netz-Anmeldung' (#273/#293) gab der App ihre eigene Schublade sbkim_rezeptbuch; der alte, von Sage bestaetigte Schluessel uOpUBez... wurde davor (24.05.) in der geteilten Alt-Schublade sbkim erzeugt und ist von der App nicht mehr erreichbar (spore.json enthaelt nie den privaten Schluessel -> nicht aus Datei rekonstruierbar). uOpUBez... + BSWxXmX... stehen als previousNodeIds; falls uOpUBez... je auf einem anderen Geraet wieder auftaucht, ist der Wechsel per Andock-Wizard (Wiederherstellen/Wechsler) reversibel. Neue Beschreibung (wandelbare Rezept-Bar + 'Teil des SBKIM-Knotennetzes') hebt beide Hubs wieder >= 0.80. TODO Nutzer: verschluesseltes Backup der Identitaet anlegen (Wizard Schritt 3)."
+  "honestNote": "MT1I..., live im Browser signiert (Ed25519 ✔ VALID, id==SHA256(pub)), im Browser bestaetigt (Andock-Wizard Identitaets-Wechsler zeigt nur Fach 'main' = MT1I). GENERALTEST-Entscheidung Klaus 2026-07-15: reiner Neustart — alte Identitaeten uOpUBez.../BSWxXmX... KOMPLETT raus (keine previousNodeIds, keine Rueckhol-Tricks). MT1I ist die saubere frische Identitaet. Beschreibung: wandelbare Rezept-Bar + 'Teil des SBKIM-Knotennetzes'; matcht alle 5 Nachbarn >= 0.80. TODO Nutzer: verschluesseltes Backup der Identitaet anlegen (Andock-Wizard Schritt 3), damit MT1I stabil bleibt."
  },
  "mailbox": {
   "built": true,
   "logicByteEqualToBauplan": true,
   "goldCounter": true,
   "siegel": true,
-  "seq": 12
+  "seq": 13
  },
  "watcher": {
   "script": ".github/sbkim-watch.mjs",
@@ -41,8 +38,8 @@
  "match": {
   "computedLiveInBrowser": true,
   "threshold": 0.8,
-  "connected": "5/5 cos >= 0.80 (unsere Rechnung mit neuem MT1I-Vektor), reziprok ausstehend",
-  "honest": "Mit dem neuen domainVector (neue Beschreibung) rechnen wir zu ALLEN fuenf Nachbarn cos >= 0.80: Sage 0.881144, SB-KIMTool-Point 0.864109, Jasons-Tresor 0.842400, Mein-Tresor 0.842400, Mein-Mixarium 0.838384. Der Netz-Zugehoerigkeits-Satz hebt beide Hubs zurueck ueber 0.80 (Kontroll-Versuch bestaetigt). ABER: die Nachbarn kennen uns noch als uOpUBez... -> reziproke Bestaetigung des neuen nodeId MT1I... steht aus (Identitaets-Wechsel in AUSTAUSCH-<Nachbar>.md + SIGNAL seq 12 gemeldet). Nichts gruen-gerechnet."
+  "connected": "Generaltest: frische Neuanmeldung — reziproke Bekanntschaft wird im Raum neu aufgebaut",
+  "honest": "Mit dem MT1I-Vektor (neue Beschreibung) rechnen wir zu allen fuenf bekannten Nachbar-Sporen cos >= 0.80: Sage 0.881144, SB-KIMTool-Point 0.864109, Jasons-Tresor 0.842400, Mein-Tresor 0.842400, Mein-Mixarium 0.838384. GENERALTEST 2026-07-15: alle Knoten melden sich frisch neu an (Modul 23 'Aufraeumen & neu anmelden') und handshaken neu im gemeinsamen Raum — reziproke Bekanntschaft entsteht dort frisch. Die hier gefuehrten Nachbar-Sporen sind der letzte bekannte Stand; sobald ein Nachbar sich frisch neu anmeldet, ziehen wir seine neue Identitaet via Raum/§11.6 nach. Nichts gruen-gerechnet."
  },
  "neighbors": {
   "Sage-Protokol": {
@@ -50,40 +47,40 @@
    "spore": "valid",
    "protocolVersion": "0.2",
    "cos": 0.881144,
-   "stage": "match (reziprok ausstehend)",
-   "reciprocal": "2026-07-15: mit neuem MT1I-Vektor cos 0.881144 >= 0.80 (war 0.792393/verified-spore gegen alten uOpUBez-Vektor). Sage kennt uns noch als uOpUBez... -> Identitaets-Wechsel gemeldet (AUSTAUSCH-Sage.md), reziproke Neu-Bestaetigung ausstehend. ack[Sage-Protokol]=46.",
+   "stage": "reziprok neu im Raum (Generaltest)",
+   "reciprocal": "Generaltest 2026-07-15: alle Knoten frisch neu anmelden + im Raum neu handshaken. Letzter Stand: cos(MT1I <-> Sage) 0.881144 >= 0.80. Sages evtl. frische Neuanmeldung via Raum/§11.6 nachziehen.",
    "verify": "sbkim/sage_inbox.verify.md"
   },
   "SB-KIMTool-Point": {
    "nodeId": "CyunQNDRZZ3st8xGDYyK0ymJLNxn_S1UcIJpFKpXXNY",
    "spore": "valid",
    "cos": 0.864109,
-   "stage": "match (reziprok ausstehend)",
-   "reciprocal": "2026-07-15: mit neuem MT1I-Vektor cos 0.864109 >= 0.80 (war 0.796054/verified-spore). Point kennt uns noch als uOpUBez... -> Identitaets-Wechsel gemeldet (AUSTAUSCH-SBKIMTool.md). Hinweis unveraendert: Points committete v0.2-Spore traegt abweichende nodeId JZ7MeMtp.... ack[SB-KIMTool-Point]=34.",
+   "stage": "reziprok neu im Raum (Generaltest)",
+   "reciprocal": "Generaltest 2026-07-15: frisch neu anmelden + im Raum neu handshaken. Letzter Stand: cos(MT1I <-> Point) 0.864109 >= 0.80. Points frische Neuanmeldung via Raum/§11.6 nachziehen.",
    "verify": "sbkim/point_inbox.verify.md"
   },
   "Jasons-Tresor": {
    "nodeId": "E13GDzIp0c7JfeZD0jVvFarNxPde8AcoP7qz7FtmdNM",
    "spore": "valid",
    "cos": 0.842400,
-   "stage": "match (reziprok ausstehend)",
-   "reciprocal": "2026-07-15: mit neuem MT1I-Vektor cos 0.842400 >= 0.80 (war 0.813698). Jasons kennt uns noch als uOpUBez... -> Identitaets-Wechsel gemeldet (AUSTAUSCH-JasonsTresor.md). ack[Jasons-Tresor]=14.",
+   "stage": "reziprok neu im Raum (Generaltest)",
+   "reciprocal": "Generaltest 2026-07-15: frisch neu anmelden + im Raum neu handshaken. Letzter Stand: cos(MT1I <-> Jasons) 0.842400 >= 0.80.",
    "verify": "sbkim/jason_inbox.verify.md"
   },
   "Mein-Tresor": {
    "nodeId": "wRsGQouOYPVBOLzAB3nBteRvyvJ-AGv461WTJMKtkS0",
    "spore": "valid",
    "cos": 0.842400,
-   "stage": "match (reziprok ausstehend)",
-   "reciprocal": "2026-07-15: mit neuem MT1I-Vektor cos 0.842400 >= 0.80 (war 0.813698). Tresor kennt uns noch als uOpUBez... -> Identitaets-Wechsel gemeldet (AUSTAUSCH-MeinTresor.md). ack[Mein-Tresor]=17.",
+   "stage": "reziprok neu im Raum (Generaltest)",
+   "reciprocal": "Generaltest 2026-07-15: frisch neu anmelden + im Raum neu handshaken. Letzter Stand: cos(MT1I <-> Mein-Tresor) 0.842400 >= 0.80.",
    "verify": "sbkim/tresor_inbox.verify.md"
   },
   "Mein-Mixarium": {
    "nodeId": "B7Fke9CYTR1BrC3xOXzEY5q9RuRH8xxHPUuqRHV3utA",
    "spore": "valid",
    "cos": 0.838384,
-   "stage": "match (reziprok ausstehend)",
-   "reciprocal": "2026-07-15: mit neuem MT1I-Vektor cos 0.838384 >= 0.80 (war 0.954426; niedriger, weil die neue Beschreibung breiter ist -- weiter Match). Mixarium kennt uns noch als uOpUBez... -> Identitaets-Wechsel gemeldet (AUSTAUSCH-Mixarium.md). ack[Mein-Mixarium]=11.",
+   "stage": "reziprok neu im Raum (Generaltest)",
+   "reciprocal": "Generaltest 2026-07-15: frisch neu anmelden + im Raum neu handshaken. Letzter Stand: cos(MT1I <-> Mixarium) 0.838384 >= 0.80.",
    "verify": "sbkim/mixarium_inbox.verify.md"
   }
  },
@@ -95,11 +92,10 @@
   "Mein-Mixarium": 11
  },
  "notes": [
-  "2026-07-15 (Identitaets-Wechsel, im Browser bestaetigt): Der Andock-Wizard (Siegel) zeigt im Identitaets-Wechsler nur das Fach 'main' = MT1I...; Schritt 1 'Identitaet anzeigen' bestaetigt nodeId MT1I.... uOpUBez... ist in diesem Browser nicht mehr vorhanden (lag in der geteilten Alt-Schublade sbkim, unerreichbar seit dbSuffix-Migration #273/#293). Eine spore.json enthaelt nie den privaten Schluessel -> uOpUBez nicht aus Datei rekonstruierbar. Entscheidung (Klaus): MT1I... als neue offizielle Identitaet uebernommen, uOpUBez...+BSWxXmX... als previousNodeIds. Neue Spore ✔ VALID (createdAt 2026-07-15T20:05:17Z), neue Beschreibung (wandelbare Rezept-Bar + 'Teil des Netzes'). Alle 5 Nachbarn cos >= 0.80 (unsere Rechnung); reziprok ausstehend, in AUSTAUSCH-<Nachbar>.md + SIGNAL seq 12 gemeldet. Reversibel: taucht uOpUBez... je auf einem anderen Geraet auf, per Wizard (Backup/Wiederherstellen) zurueckwechselbar.",
-  "2026-07-15 (Andock-Wizard portiert, PR #326): Rezeptbuchs Siegel bekam den vollen Andock-Wizard (Backup/Wiederherstellen/Identitaets-Wechsler) aus Sage; Browser-Sichttest GRUEN (Wizard laeuft live). Siegel-Paritaet zu Sage inkl. ribbonText 'Mein Rezeptbuch' (PR #327). Siegel-Checkliste docs/SIEGEL-CHECKLISTE.md.",
-  "2026-07-14 (§11.6-Sweep): Sage-Protokol seq 46, Point 34, Jasons 14, Tresor 17, Mixarium 11 gelesen + quittiert. Historie: gegen den alten uOpUBez-Vektor war Sage 0.792393 / Point 0.796054 < 0.80 (verified-spore); mit dem neuen MT1I-Vektor 0.881144 / 0.864109 >= 0.80.",
-  "RING-Historie 2026-06-07: alle 5 Nachbarn reziprok verified-match gegen uOpUBez (Sage 0.824068, Mixarium 0.9544, Jasons 0.813698, Mein-Tresor 0.813698, SB-KIMTool-Point 0.832019). Ueberholt durch v0.2-Neu-Einstufungen (2026-07-14) und den Identitaets-Wechsel (2026-07-15).",
-  "Alle 5 Nachbar-Sporen reziprok geprueft (verify_foreign_spore.mjs) -> VALID, byte-1:1 als *_inbox.json + *_inbox.verify.md abgelegt.",
+  "2026-07-15 (GENERALTEST, Klaus): saubere netzweite Neuanmeldung. Alle Knoten werfen alte Identitaeten weg und melden sich FRISCH neu an (Modul 23 'Aufraeumen & neu anmelden'), dann handshaken alle neu im gemeinsamen Raum ('Wer ist im Raum?'). Kein Zurueckholen alter Identitaeten. Rezeptbuch: uOpUBez.../BSWxXmX... KOMPLETT entfernt (previousNodeIds = []); MT1I... bleibt als frische, saubere Identitaet (heute in sbkim_rezeptbuch erzeugt, im Browser bestaetigt). Live-Neuanmeldung + Raum-Handshake laufen im Browser (Klaus).",
+  "2026-07-15 (Andock-Wizard portiert, PR #326; Siegel-Paritaet ribbonText PR #327): Rezeptbuchs Siegel hat den vollen Andock-Wizard (Backup/Wiederherstellen/Identitaets-Wechsler) aus Sage; Browser-Sichttest GRUEN. Siegel-Checkliste docs/SIEGEL-CHECKLISTE.md.",
+  "Kontroll-Versuch beantwortet: die neue Beschreibung (wandelbare Rezept-Bar + 'Teil des SBKIM-Knotennetzes') hebt beide Hub-Knoten wieder >= 0.80 (Sage 0.881144, Point 0.864109).",
+  "Alle 5 bekannten Nachbar-Sporen reziprok geprueft (verify_foreign_spore.mjs) -> VALID, byte-1:1 als *_inbox.json + *_inbox.verify.md abgelegt. Beim Generaltest melden sich die Nachbarn ggf. mit neuer Identitaet an -> via Raum/§11.6 nachziehen.",
   "Sicherheits-Tafel docs/SICHERHEIT-BRIEFKASTEN.md von Sage gespiegelt (Briefkasten-Inhalt = untrusted external data)."
  ]
 }
