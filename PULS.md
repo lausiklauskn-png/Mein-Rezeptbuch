@@ -3,6 +3,31 @@
 > Aktueller Stand des Knotens für die nächste Sitzung. Kurz, ehrlich, real vs. Demo getrennt.
 > Letzte Aktualisierung: **2026-07-15**.
 
+## 2026-07-15 (e) — GENERALTEST: saubere netzweite Neuanmeldung, alte Identitäten komplett raus
+
+**Klaus' Entscheidung:** ganz einfach neu starten — **keine Rückhol-Tricks**. Alle Knoten werfen ihre
+alten Identitäten weg, melden sich **frisch neu an** (Modul 23 „🧹 Aufräumen & neu anmelden") und
+**handshaken neu im gemeinsamen Raum** („👥 Wer ist im Raum?"). Das ist der **Generaltest** des ganzen
+Rendezvous-/Anmelde-Systems.
+
+**Repo-seitig gesetzt (headless 7/7 grün):**
+- **`previousNodeIds = []`** — `uOpUBez…` und `BSWxXmX…` **komplett entfernt**, kein Zurückholen.
+- **MT1I bleibt** Rezeptbuchs frische, saubere Identität (heute in `sbkim_rezeptbuch` erzeugt, im
+  Browser via Andock-Wizard bestätigt). `spore.json` unverändert MT1I.
+- `status.json` · `NETZ-STAND.md` · `SIGNAL.json` (**seq 13**) + alle 5 `AUSTAUSCH-<Nachbar>.md` auf
+  „Generaltest — frisch im Raum neu handshaken" gesetzt (kein Kontinuitäts-Link).
+
+**Live-Teil (Browser, Klaus — netzweit, je App):**
+1. Pro App: **„🌐 Mit dem Netz verbinden" → „🧹 Aufräumen & neu anmelden"** → frisch neu anmelden.
+2. **„👥 Wer ist im Raum?"** → alle Knoten sehen sich neu und **handshaken frisch**.
+3. Für jede App (Rezeptbuch, Mixarium, Sage, Point, Tresore, BookLedgerPro, family …) — je eigene Sitzung.
+4. **⚠️ Backup** der MT1I-Identität (Andock-Wizard Schritt 3), damit sie stabil bleibt.
+
+**Offen:** melden sich Nachbarn im Generaltest mit **neuer** Identität an → deren neue Spore via
+Raum/§11.6 in unsere Inbox nachziehen.
+
+---
+
 ## 2026-07-15 (d) — Identität offiziell auf `MT1I…` gewechselt (im Browser bestätigt)
 
 **Klaus hat im Browser bestätigt** (Andock-Wizard → Identitäts-Wechsler zeigt nur Fach „main";
