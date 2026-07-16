@@ -343,6 +343,11 @@
   }
 
   // ---- Baustein 5: Identitäts-Wechsler (Mirror Sage refreshAndockIdentities/andockSwitchIdentity) ----
+  // shortNode: gekürzte nodeId fürs Dropdown-Etikett (volle nodeId bleibt im title/Hover).
+  function shortNode(id) {
+    if (!id) return "";
+    return id.length > 20 ? id.slice(0, 16) + "…" : id;
+  }
   function refreshWizardIdentities() {
     var sel = document.getElementById("sbwiz-idsel");
     var o = document.getElementById("sbwiz-o5");
@@ -364,19 +369,30 @@
           if (o) o.textContent = "Noch keine Identität — oben zuerst eine anlegen.";
           return;
         }
-        ids.forEach(function (k) {
-          var opt = document.createElement("option");
-          opt.value = k; opt.textContent = k + (k === active ? "  (aktiv)" : "");
-          if (k === active) opt.selected = true;
-          sel.appendChild(opt);
+        // Pro Slot die nodeId auflösen (Point-Muster 2026-07-16): getOrCreateIdentity(slot)
+        // gibt bei EXISTIERENDEM Slot nur zurück (erzeugt/ändert NICHTS) — alle Slots hier
+        // existieren (aus listIdentities). So sieht man je Fach die nodeId ("Fach · nodeId"),
+        // nicht nur den Speicher-Schlüssel. Fail-soft je Slot: ohne nodeId nur der Slot-Name.
+        var canResolve = typeof window.SbkimSpore.getOrCreateIdentity === "function";
+        return Promise.all(ids.map(function (k) {
+          if (!canResolve) return Promise.resolve({ key: k, nodeId: null });
+          return window.SbkimSpore.getOrCreateIdentity(k)
+            .then(function (id) { return { key: k, nodeId: (id && id.nodeId) || null }; })
+            .catch(function () { return { key: k, nodeId: null }; });
+        })).then(function (rows) {
+          var activeNode = null;
+          rows.forEach(function (row) {
+            var opt = document.createElement("option");
+            opt.value = row.key;
+            var label = row.key + (row.nodeId ? " · " + shortNode(row.nodeId) : "");
+            if (row.key === active) { label += "  (aktiv)"; opt.selected = true; activeNode = row.nodeId; }
+            opt.textContent = label;
+            if (row.nodeId) opt.title = row.nodeId; // volle nodeId bei Hover (Desktop/DeX)
+            sel.appendChild(opt);
+          });
+          var tail = ids.length === 1 ? "Genau eine Identität — sauber." : (ids.length + " Identitäten — wähle die kanonische (aktiv markiert).");
+          if (o) o.textContent = activeNode ? (tail + " · aktive nodeId: " + activeNode) : tail;
         });
-        var tail = ids.length === 1 ? "Genau eine Identität — sauber." : (ids.length + " Identitäten — wähle die kanonische (aktiv markiert).");
-        if (o) o.textContent = tail;
-        // Aktive nodeId anzeigen — read-only via getNodeId(), erzeugt NICHTS.
-        // So sieht man, WELCHE Identität aktiv ist (zum Abgleich mit der committeten Spore).
-        if (window.SbkimSpore && typeof window.SbkimSpore.getNodeId === "function") {
-          window.SbkimSpore.getNodeId().then(function (nid) { if (o && nid) o.textContent = tail + " · aktive nodeId: " + nid; }).catch(function () {});
-        }
       });
     }).catch(function (e) { if (o) o.textContent = "Fehler beim Lesen der Identitäten: " + (e && e.message || e); });
   }
