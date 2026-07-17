@@ -61,6 +61,16 @@
       return;
     }
 
+    // 20 Schlüssel-Safe — verschlüsselte Ablage der SBKIM-Identität UND
+    // generische Geheimnis-Ablage (z.B. BYOK-KI-Schlüssel via putSecret/
+    // getSecret, PBKDF2-600k + AES-GCM-256). Braucht nur Modul 01 (Storage),
+    // NICHT beim Seitenstart abgefragt (autoPrompt Default false — App startet
+    // immer normal). Der KI-Richter im Netz-Panel (Modul 23 UI) nutzt den Safe
+    // für „🔒 im Tresor merken / 🔓 entsperren"; ohne Modul 20 fail-soft.
+    await initModule("SbkimSafe", function () {
+      return window.SbkimSafe && window.SbkimSafe.init();
+    });
+
     // 17 Floating-Widget — Endknoten-Standard-Render-Schicht (Karte 09
     // Schritt 12). MUSS VOR Modul 15/16 init laufen, damit die Proxy-
     // Spans #lamp-fremd + #sbkim-siegel-badge im DOM sind, bevor Modul
