@@ -334,6 +334,35 @@ window.__sbkimErzeugeSpore = async function (description) {
 // Verfassungstreu: nutzer-ausgelöst, kein Auto-Connect. Fail-soft.
 (function () {
   "use strict";
+  // Gerätename (frei wählbarer Anzeige-Name, lokal, kein PII): NUR an die Anzeige/
+  // Anmeldung hängen — NICHT an generateOwnSpore (kein Spore-Re-Sign). Sicherheit:
+  // nur Hinweis, die Kennung im Raum bleibt daneben. Skill: geraetename.
+  function geraetename() { try { return (localStorage.getItem("sbkim_geraetename") || "").trim().slice(0, 40); } catch (_e) { return ""; } }
+  function displayNodeName(base) { var g = geraetename(); return g ? (base + " · " + g) : base; }
+  // Namensfeld per Glue ins geteilte Rendezvous-Panel (#sbkim-rdv-panel, byte-1:1)
+  // injizieren — so bleibt index.html/QC/build.py unangetastet (Rezeptbuch-Build-Regel).
+  function injectGeraetenameField() {
+    function tryInject() {
+      var panel = document.getElementById("sbkim-rdv-panel");
+      if (!panel || document.getElementById("sbkim-geraetename")) return false;
+      var wrap = document.createElement("div");
+      wrap.style.cssText = "margin:8px 0;display:flex;gap:6px;align-items:center;flex-wrap:wrap";
+      var lab = document.createElement("span"); lab.textContent = "🏷️ Gerätename:"; lab.style.cssText = "color:#9aa7b6;font-size:.85rem";
+      var inp = document.createElement("input"); inp.id = "sbkim-geraetename"; inp.type = "text"; inp.maxLength = 40;
+      inp.placeholder = "z. B. Klaus-Handy (frei wählbar)"; inp.value = geraetename();
+      inp.style.cssText = "flex:1;min-width:120px;padding:4px 6px;border-radius:6px;border:1px solid #33414f;background:#0d1520;color:#dfeaf2;font:inherit";
+      inp.title = "Nur ein Anzeige-Hinweis, kein Vertrauens-Beweis — die Kennung bleibt daneben.";
+      inp.addEventListener("input", function () {
+        try { localStorage.setItem("sbkim_geraetename", String(inp.value || "").trim().slice(0, 40)); } catch (_e) {}
+        try { window.dispatchEvent(new CustomEvent("sbkim:geraetename-changed")); } catch (_e) {}
+      });
+      wrap.appendChild(lab); wrap.appendChild(inp);
+      panel.insertBefore(wrap, panel.children[1] || null);
+      return true;
+    }
+    if (tryInject()) return;
+    try { var mo = new MutationObserver(function () { if (tryInject()) mo.disconnect(); }); mo.observe(document.body, { childList: true, subtree: true }); } catch (_e) {}
+  }
   function mountRendezvous() {
     // Modus A (Identitäts-Hygiene, Skill „saubere-netz-anmeldung"): eigene
     // Schublade `sbkim_rezeptbuch` + stabile Identität sanft/idempotent/lokal
@@ -342,7 +371,7 @@ window.__sbkimErzeugeSpore = async function (description) {
     if (window.SbkimRendezvous && typeof window.SbkimRendezvous.init === "function") {
       try {
         window.SbkimRendezvous.init({
-          nodeName: "Mein Rezeptbuch",
+          nodeName: displayNodeName("Mein Rezeptbuch"),
           dbSuffix: "rezeptbuch",
           createIdentity: function () { return window.__sbkimErzeugeSpore(); },
           ensureIdentity: true,
@@ -352,13 +381,20 @@ window.__sbkimErzeugeSpore = async function (description) {
     if (!window.SbkimRendezvousUI) return;
     try {
       window.SbkimRendezvousUI.init({
-        nodeName: "Mein Rezeptbuch",
+        nodeName: displayNodeName("Mein Rezeptbuch"),
         dbSuffix: "rezeptbuch",
         corner: "bl",
         createIdentity: function () { return window.__sbkimErzeugeSpore(); },
       });
       if (window.console && console.info) console.info("[MR-SBKIM] Rendezvous-UI gemountet (öffentlicher 🌐-Knopf, Modus A aktiv).");
     } catch (e) { if (window.console && console.warn) console.warn("[MR-SBKIM] Rendezvous-UI übersprungen:", e); }
+    // Gerätename-Feld ins Panel injizieren + Kopplung (Namenswechsel → Anzeige neu).
+    injectGeraetenameField();
+    try {
+      window.addEventListener("sbkim:geraetename-changed", function () {
+        try { if (window.SbkimRendezvous && window.SbkimRendezvous.configure) window.SbkimRendezvous.configure({ nodeName: displayNodeName("Mein Rezeptbuch") }); } catch (_e) {}
+      });
+    } catch (_e) {}
   }
   if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", mountRendezvous);
   else mountRendezvous();
