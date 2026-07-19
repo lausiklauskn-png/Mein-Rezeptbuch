@@ -1,5 +1,5 @@
 {
-  "createdAt": "2026-07-18T22:09:52.447Z",
+  "createdAt": "2026-07-19T12:44:42.415Z",
   "domain": "lausiklauskn-png.github.io",
   "domainDescription": "Klaus' Rezeptbuch ist ein Endknoten im SBKIM-Mycel für hausgemachte Kochrezepte — von Vorspeisen, Suppen, Fleisch, Fisch und vegetarischen Gerichten über Kuchen und Desserts bis zu Saucen und Beilagen, vom Hefeteig bis zur fertigen Sauce. Dazu passende Begleitgetränke (Limonaden, Tees, Mocktails, alkoholfreie Cocktails) und kleine Knabbereien als Überraschungs-Plus. Zugleich ein wandelbarer Rezept-Baukasten: nicht auf ein Thema festgelegt — lade ein neues Rezept-Paket herein, benenne Kategorien um, und aus dem Kochbuch wird deine eigene Bar (Backstube, Grill-Buch, Frühstücksbar, Salatbar, Pasta-Werkstatt). Jedes Rezept ist Zutaten plus Schritte — bis hin zu den Zutaten eines Chemiebaukastens. Teil des SBKIM-Knotennetzes rund um Sage-Protokoll und SB-KIMTool-Point, semantisch verbunden mit verwandten Knoten wie dem Cocktail-Knoten Mixarium.",
   "domainKeywords": [
@@ -412,7 +412,7 @@
     "Knabbereien",
     "Fingerfood"
   ],
-  "id": "MT1I-y89OpfRm0Un8HH4QAxMFgs6agtFehh5rA38Q68",
+  "id": "VtvtrDV4KhQv3Q9B9jwZL5UIc9W7xrsKLduZ9xqk9T8",
   "nodeName": "Rezeptbuch Klaus",
   "nodeType": "hybrid",
   "protocolVersion": "0.2",
@@ -424,9 +424,9 @@
       "verify"
     ],
     "kty": "OKP",
-    "x": "V87KMKj8dk7ileHzb5JIgYooC9nnpf7A8hF7_H00UeE"
+    "x": "5UAZZvlq6MuVAQCG9B7TiXK7YD8nCUIf9g15HyAhLUk"
   },
-  "signature": "D0T_hAt4vYPja-HgDxAfrEjzQ4AtOH54rRtlLiTi0lGbT9HLF81GxhNZ8V7Ktsx34UbhmZ71qyUZJ3qgOemABg",
+  "signature": "2JYQnF5uT7iI0SqLEKHUcd67ufElD8Q3YqRTzq8gWeCJfcVkpb66Eg3ZYUhSNh4S9Ab2u8HrH6H6hDp3cAfOBg",
   "snippetVectors": [
     {
       "text": "Klaus' Rezeptbuch ist ein Endknoten im SBKIM-Mycel für hausgemachte Kochrezepte — von Vorspeisen, Suppen, Fleisch, Fisch und vegetarischen Gerichten über Kuche…",
