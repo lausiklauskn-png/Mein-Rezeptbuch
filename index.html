@@ -6010,7 +6010,7 @@ async function boot(){
   if(!MS.length){MS=[{id:Date.now(),lbl:courseName('main'),ico:'🍲',rid:0}];svM();}
   _bootProg(65,'Sprache & Thema…');
   // Apply theme
-  const th=localStorage.getItem('mtheme9m')||'spektral';
+  const th=localStorage.getItem('mtheme9m')||'iridescent';
   if(th!=='default')document.body.setAttribute('data-theme',th);
   // Apply API key
   const key=localStorage.getItem('claudeKey9m');
@@ -6148,7 +6148,7 @@ function setTheme(id){
 }
 function renderThemeGrid(){
   const g=document.getElementById('themeGrid');if(!g)return;
-  const cur=localStorage.getItem('mtheme9m')||'default';
+  const cur=localStorage.getItem('mtheme9m')||'iridescent';
   g.innerHTML=THEMES.map(t=>`
     <div class="theme-chip ${t.id===cur?'on':''}" onclick="setTheme('${t.id}')">
       <div class="theme-prev">${t.strips.map(c=>`<div class="theme-strip" style="background:${c}"></div>`).join('')}</div>
