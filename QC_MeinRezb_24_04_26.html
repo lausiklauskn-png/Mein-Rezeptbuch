@@ -2169,6 +2169,13 @@ body:not([data-theme]) #bnav{
     <button class="hbtn" onclick="openLang()" id="langBtn" title="Sprache wählen">🌐 DE</button>
     <button class="hbtn" id="apiKeyHdrBtn" onclick="openApiKeyOv()" title="Was ist ein API-Key?">? 🔑</button>
     <button class="hbtn" onclick="openHelp()" title="Hilfe · Teilen · Reparatur" id="helpHdrBtn">ℹ️</button>
+    <!-- Frisch-Knopf. Dieselbe Funktion lag bisher nur in den Einstellungen
+         (🔄 APP → Aktualisieren & neu laden). Auf dem Handy ist eine
+         Tastenkombination fuer den harten Neuladen keine Option, und drei
+         Ebenen tief ist zu weit — Klaus 2026-08-01. Gleiche Stelle und
+         gleiches Zeichen wie in Kimboard und der Pinnwand. -->
+    <button class="hbtn" id="reloadHdrBtn" type="button" onclick="hdrHardReload(this)"
+            title="Frisch laden — Zwischenspeicher leeren und neueste Fassung holen">🔄</button>
     <button class="hbtn" id="sbkim-mailbox-btn" type="button" onclick="sbkimMailboxCheck(false)" title="SBKIM-Briefkasten der Nachbar-Knoten jetzt prüfen">📬<span id="sbkim-mailbox-badge" hidden></span></button>
 <!-- === ONBOARDING START === -->
     <!-- === ONBOARDING END === -->
@@ -14110,6 +14117,16 @@ function applyUpdate(){
 }
 // Harter Neu-Laden: Service-Worker abmelden + alle Caches leeren + neu laden.
 // Fail-soft: jeder Schritt darf scheitern, spätestens nach 2,5 s wird reloadet.
+// 🔄-Knopf in der Kopfleiste: zeigt kurz an, dass etwas passiert, und
+// ruft dann die vorhandene hardReloadApp(). Bewusst KEINE zweite Kopie der
+// Logik — es gibt genau eine Stelle, die Service-Worker und Zwischenspeicher
+// raeumt. Fail-soft: faellt die Funktion aus, wird trotzdem neu geladen.
+function hdrHardReload(btn){
+  try{ if(btn){ btn.disabled=true; btn.textContent='\u23f3'; } }catch(_e){}
+  try{ hardReloadApp(); }
+  catch(_e){ try{ location.reload(); }catch(__e){} }
+}
+
 function hardReloadApp(){
   const done=()=>{ try{location.reload(true);}catch(_e){try{location.reload();}catch(__e){}} };
   let fired=false;
