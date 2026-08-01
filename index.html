@@ -13,7 +13,11 @@
 <html lang="de">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,viewport-fit=cover">
+<!-- Zoomen ausdruecklich ERLAUBT (Lighthouse-Befund 2026-08-01): maximum-scale=1
+     sperrte das Vergroessern. Wer schlecht sieht, konnte die Schrift nicht
+     aufziehen - fuer eine Rezept-App am Herd genau die falsche Einschraenkung. -->
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="description" content="Mein Rezeptbuch: deine Rezepte sammeln, ordnen und wiederfinden. Laeuft offline auf dem Handy, ohne Konto und ohne Werbung.">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="Rezeptbuch">
@@ -49,6 +53,12 @@
 :root{
   --sand:#f9f4ec;--sand2:#ede5d8;--parch:#fdfaf5;
   --ink:#302010;--br:#7a5840;--br2:#9e7050;--br3:#c4a07a;
+  /* --fill = Fuellfarbe fuer Flaechen mit WEISSER Schrift (aktive Kategorie-
+     Pille, Leerzustands-Knopf). Standard = --br. Themes, deren --br ein
+     helles Pastell ist, setzen weiter unten eine dunklere Variante, sonst
+     ist weisse Schrift darauf nicht lesbar (Lighthouse color-contrast,
+     gemessen 2026-08-01: 9 von 13 Themes lagen unter 4.5:1). */
+  --fill:#7a5840;
   --rust:#b85535;--rusts:#f5e4dc;
   --grn:#4e7040;--grns:#e6f0e0;
   --teal:#36706a;--teals:#e2f0ee;
@@ -82,8 +92,8 @@
   --ease-liquid:cubic-bezier(0.4,0,0.2,1);
   --t-fast:120ms;--t-base:200ms;--t-slow:320ms;
 }
-[data-theme=spring]{--sand:#f4f9f0;--sand2:#d4e8c8;--parch:#f8fdf4;--ink:#162810;--br:#437230;--br2:#5e9448;--br3:#90bc70;--rust:#c05858;--rusts:#fae8e8;--grn:#347028;--grns:#d8f0d0;--teal:#287858;--teals:#d0eee0;--gold:#708020;--golds:#eaf2cc}
-[data-theme=night]{--sand:#181410;--sand2:#2a2018;--parch:#201810;--ink:#ecdcc8;--br:#c8a480;--br2:#a88060;--br3:#b09060;--rust:#e07050;--rusts:#381808;--grn:#68a848;--grns:#182808;--teal:#50a89a;--teals:#0c2420;--gold:#d4a030;--golds:#281e04}
+[data-theme=spring]{--fill:#437230;--sand:#f4f9f0;--sand2:#d4e8c8;--parch:#f8fdf4;--ink:#162810;--br:#437230;--br2:#5e9448;--br3:#90bc70;--rust:#c05858;--rusts:#fae8e8;--grn:#347028;--grns:#d8f0d0;--teal:#287858;--teals:#d0eee0;--gold:#708020;--golds:#eaf2cc}
+[data-theme=night]{--fill:#936940;--sand:#181410;--sand2:#2a2018;--parch:#201810;--ink:#ecdcc8;--br:#c8a480;--br2:#a88060;--br3:#b09060;--rust:#e07050;--rusts:#381808;--grn:#68a848;--grns:#182808;--teal:#50a89a;--teals:#0c2420;--gold:#d4a030;--golds:#281e04}
 [data-theme=night] .top-hdr{background:#241c14}
 [data-theme=night] #bnav{background:var(--sand);border-top:1px solid var(--sand2)}
 [data-theme=night] .bn{color:var(--br)}
@@ -100,11 +110,11 @@
 [data-theme=pastel] #bnav{background:#fff8fe!important;border-top:1px solid #f0d0ea!important}
 [data-theme=pastel] .bn{color:var(--br)}
 [data-theme=pastel] .bn.on{color:var(--ink)}
-[data-theme=modern]{--sand:#f3f5fa;--sand2:#d8dfe8;--parch:#fff;--ink:#182038;--br:#284880;--br2:#3e70a8;--br3:#88aad0;--rust:#c83858;--rusts:#fce6ea;--grn:#228048;--grns:#d0f0e0;--teal:#187888;--teals:#c8e8ef;--gold:#b87020;--golds:#faf0d8}
-[data-theme=colorful]{--sand:#fef9f0;--sand2:#fad8c0;--parch:#fffbf5;--ink:#280e04;--br:#dc5a18;--br2:#cc7c28;--br3:#e0a058;--rust:#c02858;--rusts:#fce8f0;--grn:#489018;--grns:#dcf4c8;--teal:#1888a0;--teals:#c8eff4;--gold:#dc9e08;--golds:#fef8c8}
+[data-theme=modern]{--fill:#284880;--sand:#f3f5fa;--sand2:#d8dfe8;--parch:#fff;--ink:#182038;--br:#284880;--br2:#3e70a8;--br3:#88aad0;--rust:#c83858;--rusts:#fce6ea;--grn:#228048;--grns:#d0f0e0;--teal:#187888;--teals:#c8e8ef;--gold:#b87020;--golds:#faf0d8}
+[data-theme=colorful]{--fill:#c04f15;--sand:#fef9f0;--sand2:#fad8c0;--parch:#fffbf5;--ink:#280e04;--br:#dc5a18;--br2:#cc7c28;--br3:#e0a058;--rust:#c02858;--rusts:#fce8f0;--grn:#489018;--grns:#dcf4c8;--teal:#1888a0;--teals:#c8eff4;--gold:#dc9e08;--golds:#fef8c8}
 
 /* ── Theme: Neon (Dark Neon / Gen-Z Gaming) ── */
-[data-theme=neon]{--sand:#0d0d1a;--sand2:#1c1830;--parch:#12101e;--ink:#e6deff;--br:#9d5cff;--br2:#7a3dd8;--br3:#9a70e8;--rust:#ff3f9a;--rusts:#2a0918;--grn:#00d68f;--grns:#002616;--teal:#00c8f0;--teals:#001a24;--gold:#ffe033;--golds:#1a1602}
+[data-theme=neon]{--fill:#8e42ff;--sand:#0d0d1a;--sand2:#1c1830;--parch:#12101e;--ink:#e6deff;--br:#9d5cff;--br2:#7a3dd8;--br3:#9a70e8;--rust:#ff3f9a;--rusts:#2a0918;--grn:#00d68f;--grns:#002616;--teal:#00c8f0;--teals:#001a24;--gold:#ffe033;--golds:#1a1602}
 [data-theme=neon] .top-hdr{background:#08081a;box-shadow:0 2px 16px rgba(157,92,255,.35)}
 [data-theme=neon] #bnav{background:#0d0d1a!important;border-top:1px solid #1c1830!important}
 [data-theme=neon] .rcard{background:#12101e;box-shadow:0 2px 12px rgba(157,92,255,.18)}
@@ -112,11 +122,11 @@
 [data-theme=neon] .logo{color:#e6deff}
 
 /* ── Theme: Pastel (Y2K / Soft Aesthetic / Gen-Z) ── */
-[data-theme=pastel]{--sand:#fff0f9;--sand2:#f0d0ea;--parch:#fff8fe;--ink:#2a1830;--br:#c050c8;--br2:#d878d4;--br3:#d4a8cc;--rust:#ff6090;--rusts:#ffe0eb;--grn:#4ec888;--grns:#d4f2e4;--teal:#38b8cc;--teals:#ccf0f6;--gold:#f5a020;--golds:#fff0d0}
+[data-theme=pastel]{--fill:#b53cbe;--sand:#fff0f9;--sand2:#f0d0ea;--parch:#fff8fe;--ink:#2a1830;--br:#c050c8;--br2:#d878d4;--br3:#d4a8cc;--rust:#ff6090;--rusts:#ffe0eb;--grn:#4ec888;--grns:#d4f2e4;--teal:#38b8cc;--teals:#ccf0f6;--gold:#f5a020;--golds:#fff0d0}
 [data-theme=pastel] .top-hdr{background:linear-gradient(135deg,#c050c8,#ff6090);box-shadow:0 2px 12px rgba(192,80,200,.3)}
 
 /* ── Theme: Spektral (Echte Lichtspektralfarben – hell) ── */
-[data-theme=spektral]{--sand:#f2f0ff;--sand2:#ddd8f8;--parch:#f8f6ff;--ink:#160828;--br:#6600cc;--br2:#8833dd;--br3:#aa66ee;--rust:#cc1144;--rusts:#fde8ee;--grn:#007733;--grns:#d8ffe8;--teal:#006699;--teals:#d0eeff;--gold:#bb7700;--golds:#fff0cc}
+[data-theme=spektral]{--fill:#6600cc;--sand:#f2f0ff;--sand2:#ddd8f8;--parch:#f8f6ff;--ink:#160828;--br:#6600cc;--br2:#8833dd;--br3:#aa66ee;--rust:#cc1144;--rusts:#fde8ee;--grn:#007733;--grns:#d8ffe8;--teal:#006699;--teals:#d0eeff;--gold:#bb7700;--golds:#fff0cc}
 [data-theme=spektral] .top-hdr{background:linear-gradient(90deg,#FF0000,#FF7700,#FFE500,#00CC00,#00CCFF,#0044FF,#8800FF);box-shadow:0 2px 20px rgba(136,0,255,.3)}
 [data-theme=spektral] .logo{color:#fff;text-shadow:0 0 6px rgba(0,0,0,.9),0 0 12px rgba(0,0,0,.7),0 1px 3px rgba(0,0,0,.8)}
 /* Holografisch (iridescent): heller Pastell-Verlauf -> dunkle, lesbare Navi-Schrift (Klaus 2026-07-22) */
@@ -237,7 +247,7 @@ body.nav-collapsed{padding-bottom:calc(16px + var(--sb))}
 .cpill{display:flex;align-items:center;gap:2px;padding:3px 8px;border-radius:13px;
   font-size:.7rem;font-weight:700;white-space:nowrap;border:1.5px solid transparent;
   flex-shrink:0;color:var(--ink);min-height:24px;cursor:pointer}
-.cpill.on{background:var(--br);border-color:var(--br);color:#fff}
+.cpill.on{background:var(--fill);border-color:var(--fill);color:#fff}
 .cpill:not(.on):active{background:var(--sand2)}
 
 .ctn{padding:9px}
@@ -1174,6 +1184,7 @@ html.a11y-xl { font-size:155% !important }
 html.a11y-hc {
   --ink:#000 !important;
   --br:#4a2000 !important;
+  --fill:#4a2000 !important;
   --br2:#3d1e00 !important;
   --br3:#5a3000 !important;
   --parch:#fffff0 !important;
@@ -1192,6 +1203,7 @@ html.a11y-hc {
 html.a11y-hc body {
   --ink:#000 !important;
   --br:#4a2000 !important;
+  --fill:#4a2000 !important;
   --br2:#3d1e00 !important;
   --br3:#5a3000 !important;
   --parch:#fffff0 !important;
@@ -1670,9 +1682,12 @@ button:active{transform:scale(0.97)}
   padding:var(--space-6);text-align:center;gap:var(--space-3);min-height:300px}
 .empty-state__icon{font-size:56px;opacity:.6}
 .empty-state__title{font-size:var(--text-lg);font-weight:var(--weight-bold);color:var(--ink)}
-.empty-state__desc{font-size:var(--text-sm);opacity:.65;max-width:280px;line-height:var(--leading-normal);color:var(--br3)}
+/* War --br3 (Hinweis-Ton) PLUS opacity .65 - doppelt aufgehellt und in
+   hellen Themes praktisch unlesbar (gemessen 1.26:1). Jetzt Textfarbe mit
+   nur EINER Abschwaechung. */
+.empty-state__desc{font-size:var(--text-sm);opacity:.78;max-width:280px;line-height:var(--leading-normal);color:var(--ink)}
 .empty-state__btn{margin-top:var(--space-2);padding:var(--space-2) var(--space-4);
-  border:none;border-radius:20px;background:var(--br);color:#fff;
+  border:none;border-radius:20px;background:var(--fill);color:#fff;
   font-size:var(--text-sm);font-weight:var(--weight-bold);cursor:pointer;font-family:inherit}
 .empty-state__btn:active{opacity:.8}
 
@@ -1859,7 +1874,7 @@ body:not([data-theme]) #bnav{
    ═══════════════════════════════════════════════════════════════════ */
 
 /* COCKTAIL — Drink-Spectrum Farben */
-[data-theme=cocktail]{
+[data-theme=cocktail]{--fill:#b25a00;
   --sand:#fff8f0;--sand2:#ffe0c2;--parch:#ffffff;--ink:#1a1a2e;
   --br:#f57c00;--br2:#ff9933;--br3:#ffb866;
   --rust:#3e2723;--rusts:#efe2dc;
@@ -1873,7 +1888,7 @@ body:not([data-theme]) #bnav{
 }
 
 /* BRASS & BOTANICAL — Forest + Messing (passt perfekt zum Rezeptbuch) */
-[data-theme=brass]{
+[data-theme=brass]{--fill:#1b5e20;
   --sand:#f4f1e8;--sand2:#d8d0bc;--parch:#faf8f0;--ink:#1d3528;
   --br:#1b5e20;--br2:#357a3a;--br3:#6da669;
   --rust:#5d4037;--rusts:#ece2dc;
@@ -1888,7 +1903,7 @@ body:not([data-theme]) #bnav{
 }
 
 /* IRIDESCENT GLASS — Holografisch */
-[data-theme=iridescent]{
+[data-theme=iridescent]{--fill:#7b51f8;
   --sand:#fefefe;--sand2:#f0e6f7;--parch:#ffffff;--ink:#2c1e3e;
   --br:#a78bfa;--br2:#c4b0fe;--br3:#ddd0ff;
   --rust:#2c1e3e;--rusts:#e8e0f0;
@@ -1903,7 +1918,7 @@ body:not([data-theme]) #bnav{
 }
 
 /* WARM NEON — Cream + Magenta */
-[data-theme=warm-neon]{
+[data-theme=warm-neon]{--fill:#da1777;
   --sand:#fff8ed;--sand2:#ffe9c2;--parch:#fffdf6;--ink:#1a1a2e;
   --br:#ec4899;--br2:#f472b6;--br3:#fbcfe8;
   --rust:#1a1a2e;--rusts:#d8d8e6;
@@ -1918,7 +1933,7 @@ body:not([data-theme]) #bnav{
 }
 
 /* ATELIER — Twilight-Lila + Mint */
-[data-theme=atelier]{
+[data-theme=atelier]{--fill:#814ef5;
   --sand:#f5f0fb;--sand2:#e0d4f0;--parch:#fafaff;--ink:#1a1a3a;
   --br:#8b5cf6;--br2:#a78bfa;--br3:#c4b5fd;
   --rust:#1a1a3a;--rusts:#e0deea;
@@ -2177,7 +2192,10 @@ const _CR=Object.freeze({c:'© 2026 Klaus Nitzsche',r:'All rights reserved',v:'v
 
 <!-- === ONBOARDING END === -->
 
-<div class="sc on" id="sc-recipes">
+<!-- role="main" = Haupt-Inhalt. Screenreader und Pruefwerkzeuge (Lighthouse
+     "landmark-one-main") erwarten genau EINEN solchen Bereich. showSc()
+     reicht die Rolle an den jeweils sichtbaren Screen weiter. -->
+<div class="sc on" id="sc-recipes" role="main">
   <div class="srch-bar">
     <div class="srch-inner">
       <span style="font-size:.95rem;color:var(--br3)">🔍</span>
@@ -6229,7 +6247,10 @@ function showSc(n,dir){
   document.querySelectorAll('.sc').forEach(s=>s.classList.remove('on','swipe-left','swipe-right'));
   document.querySelectorAll('.bn').forEach(b=>b.classList.remove('on'));
   const sc=document.getElementById('sc-'+n);
+  // Haupt-Landmarke wandert mit: immer genau ein sichtbarer role="main".
+  document.querySelectorAll('.sc[role="main"]').forEach(s=>s.removeAttribute('role'));
   if(sc){
+    sc.setAttribute('role','main');
     sc.classList.add('on');
     if(dir==='left')sc.classList.add('swipe-left');
     else if(dir==='right')sc.classList.add('swipe-right');
@@ -15203,13 +15224,39 @@ function saveZinePage(idx){
      Bei jedem Neuladen startet Eruda verborgen (bewusst NICHT aus localStorage
      'eruda9' wiederhergestellt); erneutes 5×-Tippen blendet es innerhalb der
      Sitzung wieder aus. Eruda wird erst beim Hervorholen initialisiert. -->
-<script src="https://cdn.jsdelivr.net/npm/eruda@3"></script>
+<!-- KEIN festes <script src> mehr (Lighthouse-Befund 2026-08-01).
+     Eruda wurde bei JEDEM Start von cdn.jsdelivr.net geholt - rund ein halbes
+     Megabyte, das kein normaler Nutzer je braucht. Drei Folgen:
+       * die App war beim ERSTEN Laden nicht offline-faehig (fremder Server noetig),
+       * jeder Besucher schickte eine Anfrage an einen Dritt-Anbieter,
+       * die Startzeit litt, ohne dass jemand etwas davon hatte.
+     Der Kommentar oben sagte schon "Eruda wird erst beim Hervorholen
+     initialisiert" - die Absicht war richtig, nur wurde die Datei trotzdem
+     immer geladen. Jetzt wird sie WIRKLICH erst geholt, wenn Klaus sie
+     hervorholt (#eruda oder 5x in die obere linke Ecke tippen). -->
 <script>
 (function () {
-  var on = false;
+  var on = false, laden = null;
+  // Holt Eruda beim ERSTEN Hervorholen nach - danach liegt es im Speicher.
+  // Fail-soft: ohne Netz passiert schlicht nichts, die App laeuft weiter.
+  function hole() {
+    if (window.eruda) return Promise.resolve(true);
+    if (laden) return laden;
+    laden = new Promise(function (fertig) {
+      var s = document.createElement('script');
+      s.src = 'https://cdn.jsdelivr.net/npm/eruda@3';
+      s.onload = function () { fertig(true); };
+      s.onerror = function () { laden = null; fertig(false); };
+      document.head.appendChild(s);
+    });
+    return laden;
+  }
   function enable() {
     if (on) return;
-    try { eruda.init(); on = true; localStorage.setItem('eruda9', '1'); } catch (e) {}
+    hole().then(function (da) {
+      if (!da || on) return;
+      try { eruda.init(); on = true; localStorage.setItem('eruda9', '1'); } catch (e) {}
+    });
   }
   function disable() {
     if (!on) return;
