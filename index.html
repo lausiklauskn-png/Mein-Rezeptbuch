@@ -15466,17 +15466,33 @@ function saveZinePage(idx){
     const body = document.getElementById("sbkim-mailbox-body");
     if (!silent) { body.innerHTML = "Lese Nachbarn & rechne Verbindung nach …"; if (dlg.showModal) dlg.showModal(); }
 
+    // ALLE Abfragen gleichzeitig statt nacheinander. Vorher wartete jede auf
+    // die vorige: ein eigenes SIGNAL plus fuenf fremde bei raw.githubusercontent
+    // — sechs Anfragen im Gaensemarsch, die kritische Kette wuchs dadurch auf
+    // ueber eine Sekunde (Lighthouse 2026-08-02). Am Ergebnis aendert sich
+    // nichts: dieselben Antworten, dieselbe Reihenfolge der Karten.
+    // sbkimMailboxFetch wirft nie, gibt im Fehlerfall {error}. Promise.all ist
+    // deshalb sicher — eine tote Gegenstelle reisst die anderen nicht mit.
+    const peers = cfg.peers || [];
+    const [selfSig, selfSpore, sigs, inboxes] = await Promise.all([
+      sbkimMailboxFetch(cfg.selfSignal),
+      silent ? null : sbkimMailboxFetch(cfg.selfSpore),
+      Promise.all(peers.map((p) => sbkimMailboxFetch(p.signal))),
+      silent ? [] : Promise.all(peers.map((p) => sbkimMailboxFetch(p.inbox)))
+    ]);
+
     let selfAck = {}, selfVec = null, selfId = "";
-    try { const s = await sbkimMailboxFetch(cfg.selfSignal); if (s && s.ack) selfAck = s.ack; } catch {}
-    if (!silent) {
-      const sp = await sbkimMailboxFetch(cfg.selfSpore);
-      if (sp && !sp.error) { if (Array.isArray(sp.domainVector)) selfVec = sp.domainVector; selfId = sp.id || ""; }
+    if (selfSig && selfSig.ack) selfAck = selfSig.ack;
+    if (!silent && selfSpore && !selfSpore.error) {
+      if (Array.isArray(selfSpore.domainVector)) selfVec = selfSpore.domainVector;
+      selfId = selfSpore.id || "";
     }
 
     const cards = [];
     let unread = 0, connected = 0;
-    for (const peer of (cfg.peers || [])) {
-      const sig = await sbkimMailboxFetch(peer.signal);
+    for (let pi = 0; pi < peers.length; pi++) {
+      const peer = peers[pi];
+      const sig = sigs[pi];
       const seq = sig && !sig.error ? (Number(sig.seq) || 0) : null;
       const seen = Number(selfAck[peer.name]) || 0;
 
@@ -15487,7 +15503,7 @@ function saveZinePage(idx){
 
       let spore = "—", match = "—";
       if (!silent) {
-        const inbox = await sbkimMailboxFetch(peer.inbox);
+        const inbox = inboxes[pi];
         if (inbox && !inbox.error) {
           spore = `<span style="color:#3bbf7a">✔ verified-spore</span> · <code style="font-size:.72rem">${(inbox.id || "").slice(0, 16)}…</code>`;
           const c = selfVec && Array.isArray(inbox.domainVector) ? sbkimCosine(selfVec, inbox.domainVector) : null;
@@ -15529,7 +15545,15 @@ function saveZinePage(idx){
     }
   }
   // Beim Laden still pruefen und Badge setzen (kein Dialog-Popup).
-  window.addEventListener("DOMContentLoaded", () => { try { sbkimMailboxCheck(true); } catch {} });
+  // NACH "load" statt bei "DOMContentLoaded", und dann erst, wenn der
+  // Hauptfaden Luft hat: die Briefkasten-Abfragen gehen an eine FREMDE Adresse
+  // und haben im kritischen Pfad des Seitenaufbaus nichts zu suchen. Das
+  // Zeichen erscheint dadurch einen Moment spaeter — sonst aendert sich nichts.
+  window.addEventListener("load", () => {
+    const starten = () => { try { sbkimMailboxCheck(true); } catch {} };
+    if (window.requestIdleCallback) requestIdleCallback(starten, { timeout: 3000 });
+    else setTimeout(starten, 800);
+  });
 </script>
 
 
