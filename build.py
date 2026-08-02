@@ -49,6 +49,24 @@ def build():
             'Einfügestelle nicht gefunden – erwartet: <script> direkt vor </head>'
         )
 
+    # Lighthouse "Korrekt definierter Zeichensatz": <meta charset> muss in den
+    # ersten 1024 Byte der ausgelieferten Datei stehen. Der Copyright-Kopf ist
+    # ~950 Byte gross (Rahmen-Zeichen zaehlen in UTF-8 dreifach) und hat den
+    # charset bisher auf Byte 953 gedrueckt – 93 % des Budgets fuer einen
+    # Kommentar. Darum: Kopf NACH dem charset einsetzen, nicht davor.
+    charset_pos = None
+    for i, line in enumerate(qc_lines):
+        if '<meta charset' in line.lower():
+            charset_pos = i + 1
+            break
+    if charset_pos is None:
+        raise RuntimeError(
+            '<meta charset> in der QC-Datei nicht gefunden – Bau abgebrochen, '
+            'sonst entsteht eine index.html ohne Zeichensatz-Angabe vorn.'
+        )
+    if charset_pos > insert_pos:
+        raise RuntimeError('<meta charset> steht hinter der _CR-Einfuegestelle')
+
     # Header
     header = (
         '<!--\n'
@@ -66,8 +84,9 @@ def build():
 
     # index.html zusammenbauen
     result = (
-        header
-        + ''.join(qc_lines[:insert_pos])
+        ''.join(qc_lines[:charset_pos])
+        + header
+        + ''.join(qc_lines[charset_pos:insert_pos])
         + cr_block
         + ''.join(qc_lines[insert_pos:])
     )
