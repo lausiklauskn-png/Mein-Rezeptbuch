@@ -230,6 +230,46 @@ print("✅ Alle Icons vollständig ersetzt")
 
 ---
 
+## ⚠️ REGEL GEÄNDERT 2026-08-08: Icons als DATEI mit Versionsnummer
+
+**Bis dahin galt** (wie in Muttis-Rezeptbuch): alle Icons als Base64 in die
+HTML einbetten, weil Browser externe Favicon-Adressen aggressiv cachen.
+
+**Das Problem war echt, der Preis war zu hoch.** Gemessen am 2026-08-08: die
+eingebetteten Symbole machten **439 KB** der Quelldatei aus und lagen bei
+**jedem** Seitenaufruf auf dem kritischen Pfad — obwohl sie während des Ladens
+**niemand sieht**.
+
+| | vorher | nachher |
+|---|---|---|
+| Quelldatei | 1.512 K | **1.073 K** |
+| erster Anstrich | 4,3 s | **2,6 s** |
+| übertragen | 1.061 KiB | **655 KiB** |
+
+**Neue Regel:** Icons als Datei verlinken, mit **Versionsnummer in der Adresse**:
+
+```html
+<link rel="icon" type="image/png" sizes="192x192" href="icons/icon-book-192.png?v=1">
+```
+
+Eine geänderte Adresse ist für den Cache ein **anderes** Bild — dasselbe
+Ergebnis wie die Einbettung, nur ohne Bytes im Dokument.
+
+**Nach jeder Icon-Änderung `?v=` um eins hochzählen** — in der QC-Datei **und**
+in `app-sw.js`. Beide müssen dieselbe Adresse nennen, sonst holt der
+Offline-Vorrat ein anderes Bild als die Seite.
+
+**Pflicht dabei:** jedes verlinkte Icon gehört in den `SHELL`-Vorrat von
+`app-sw.js` — sonst fehlen die Symbole offline. Solange sie im Dokument lagen,
+stellte sich die Frage nicht.
+
+**Ausnahme, die bleibt:** die eigenständigen Seiten (`MeinRezeptbuch-gift.html`,
+`-gift2.html`, `-invite-v5.html`, USP-Seiten) behalten ihre **inline** Icons.
+Dort ging es nie ums Caching, sondern darum, dass eine verschobene Datei das
+Icon lautlos bricht — und diese Seiten sind klein.
+
+---
+
 ## ⚠️ PFLICHT-REGEL: Dateien umbenennen (atomisch)
 
 **Wenn eine Datei umbenannt wird, MÜSSEN alle Querverweise in EINEM einzigen Commit aktualisiert werden.**
