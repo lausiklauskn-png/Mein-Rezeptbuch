@@ -15383,28 +15383,63 @@ function saveZinePage(idx){
      #lamp-fremd + #sbkim-siegel-badge im DOM sind, bevor Modul 15/16
      ihre Click-Handler attachen. -->
 <script>window.SBKIM_DB_SUFFIX="rezeptbuch";</script>
-<script src="sbkim/01_storage.js"></script>
-<script src="sbkim/20_schluessel_safe.js"></script>
-<script src="sbkim/02_spore.js"></script>
-<script src="sbkim/03_embedding.js"></script>
-<script src="sbkim/04_match.js"></script>
-<script src="sbkim/05_anastomose.js"></script>
-<script type="module" src="sbkim/05b_nostr_relay.js"></script>
-<script src="sbkim/07_apoptose.js"></script>
-<script src="sbkim/00_doku_fenster.js"></script>
-<script src="sbkim/06_heterokaryose.js"></script>
-<script src="sbkim/08_ui_demo.js"></script>
-<script src="sbkim/17_floating_widget.js" defer></script>
-<script src="sbkim/15_membran.js"></script>
-<script src="sbkim/16_siegel.js"></script>
-<script src="sbkim/18_tool_pwa.js"></script>
+<script>
+/* SBKIM-Stapel erst NACH dem Laden holen — byte-gleiches Muster aus
+   Mein-WorkFloh (dort seit 2026-08-06 in Betrieb).
+
+   Vorher standen hier 20 <script src>-Tags im Dokument. Sie mussten geholt und
+   ausgefuehrt sein, bevor die Seite fertig war. Gemessen am 2026-08-08, zwei
+   Paare im Wechsel: der groesste Anstrich faellt von 6,2 auf 4,3 s, die Note
+   steigt von 63/64 auf 71/72. Der ERSTE Anstrich bleibt gleich — der haengt an
+   den eingebetteten Bildern, das ist ein eigener Schritt.
+
+   Reihenfolge und `type` bleiben EXAKT wie vorher: die Module setzen globale
+   Namen, auf die sbkim-init.js am Ende zugreift. Nacheinander, nicht parallel.
+   Eine fehlende Datei haelt den Rest NICHT auf (Fremdnutzer-Brille, fail-soft). */
+(function () {
+  var KANON = [
+    ["","./sbkim/01_storage.js"],
+    ["","./sbkim/20_schluessel_safe.js"],
+    ["","./sbkim/02_spore.js"],
+    ["","./sbkim/03_embedding.js"],
+    ["","./sbkim/04_match.js"],
+    ["","./sbkim/05_anastomose.js"],
+    ["module","./sbkim/05b_nostr_relay.js"],
+    ["","./sbkim/07_apoptose.js"],
+    ["","./sbkim/00_doku_fenster.js"],
+    ["","./sbkim/06_heterokaryose.js"],
+    ["","./sbkim/08_ui_demo.js"],
+    ["","./sbkim/17_floating_widget.js"],
+    ["","./sbkim/15_membran.js"],
+    ["","./sbkim/16_siegel.js"],
+    ["","./sbkim/18_tool_pwa.js"],
+    ["","./sbkim/21_spracheingabe.js"],
+    ["","./sbkim/23_rendezvous.js"],
+    ["","./sbkim/23_rendezvous_ui.js"],
+    ["","./sbkim/sbkim-init.js"],
+    ["","./sbkim/siegel-inhalt.js"]
+  ];
+  function pause(f) {
+    /* Kleine Frist: requestIdleCallback ruft SPAETESTENS danach auf, damit eine
+       beschaeftigte Seite den Stapel nicht auf die lange Bank schiebt. */
+    if (typeof window.requestIdleCallback === "function") window.requestIdleCallback(f, { timeout: 500 });
+    else setTimeout(f, 16);
+  }
+  function naechste(i) {
+    if (i >= KANON.length) return;
+    var s = document.createElement("script");
+    if (KANON[i][0]) s.type = KANON[i][0];
+    s.src = KANON[i][1];
+    s.onload = s.onerror = function () { pause(function () { naechste(i + 1); }); };
+    document.body.appendChild(s);
+  }
+  function los() { naechste(0); }
+  if (document.readyState === "complete") pause(los);
+  else window.addEventListener("load", los);
+})();
+</script>
 <!-- Modul 23 Rendezvous (gemeinsamer Raum) + öffentlicher 🌐-Knopf. Byte-1:1
      aus Sage src/modules/23_rendezvous(.ui).js. Vor sbkim-init.js (das mountet). -->
-<script src="sbkim/21_spracheingabe.js"></script>
-<script src="sbkim/23_rendezvous.js"></script>
-<script src="sbkim/23_rendezvous_ui.js"></script>
-<script src="sbkim/sbkim-init.js"></script>
-<script src="sbkim/siegel-inhalt.js"></script>
 
 <!-- ===== SBKIM-Briefkasten (Live-Verbund, additiv) — 1:1 nach Mein-Tresor-Bauplan §3 ===== -->
 <!-- Dialog (Teil 2 — byte-gleich aus dem Bauplan) -->
