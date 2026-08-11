@@ -5191,7 +5191,35 @@ const LANGS={
     ,manPdfLbl:'PDF'
   }
 };
-let CL=localStorage.getItem('mlang9m')||'de';
+// ── Sprache beim ERSTEN Aufruf: den Browser fragen (Klaus 2026-08-11) ────────
+//
+// Vorher stand hier fest `||'de'`. Wer die Seite zum ersten Mal öffnete, bekam
+// Deutsch — auch mit einem russisch oder spanisch eingestellten Browser, obwohl
+// die Übersetzung dafür längst im Haus ist. Die App hat den Browser nie gefragt.
+//
+// NUR EINE SPRACHE, DIE ES HIER WIRKLICH GIBT. Das ist keine Vorsicht, sondern
+// gemessen: wird `lang` auf eine Sprache gesetzt, für die keine Übersetzung
+// vorliegt (Probe mit Arabisch), sagt die Seite dem Browser „ich bin arabisch"
+// und BLEIBT deutsch — und Chrome bietet dann seine eigene Übersetzung nicht
+// mehr an, weil es die Seite für schon übersetzt hält. Schlimmer als nichts.
+// Kennt die App die Sprache nicht, bleibt es darum ehrlich bei Deutsch, und der
+// Browser darf sein Angebot machen.
+//
+// Eine EINMAL GETROFFENE WAHL gewinnt immer — sie steht im Speicher und wird
+// hier zuerst geprüft. Der Browser wird nur gefragt, wenn noch nie gewählt wurde.
+function ersteSprache(){
+  try{
+    const gewaehlt=localStorage.getItem('mlang9m');
+    if(gewaehlt&&LANGS[gewaehlt]) return gewaehlt;
+    const wunsch=(navigator.languages&&navigator.languages.length)?navigator.languages:[navigator.language||''];
+    for(const w of wunsch){
+      const kurz=String(w).split('-')[0].toLowerCase();
+      if(LANGS[kurz]) return kurz;
+    }
+  }catch(e){/* fail-soft: im Zweifel Deutsch */}
+  return 'de';
+}
+let CL=ersteSprache();
 function T(k){return(LANGS[CL]||LANGS.de)[k]||k;}
 // ─── Translation helpers ───────────────────────────────
 // Returns the saved translation object for the current UI language, or null
