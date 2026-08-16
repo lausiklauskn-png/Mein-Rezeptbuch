@@ -338,26 +338,83 @@ window.__sbkimErzeugeSpore = async function (description) {
   // Anmeldung hängen — NICHT an generateOwnSpore (kein Spore-Re-Sign). Sicherheit:
   // nur Hinweis, die Kennung im Raum bleibt daneben. Skill: geraetename.
   function geraetename() { try { return (localStorage.getItem("sbkim_geraetename") || "").trim().slice(0, 40); } catch (_e) { return ""; } }
-  function displayNodeName(base) { var g = geraetename(); return g ? (base + " · " + g) : base; }
+
+  /* ---- Zweiter freier Name: wie DIESE App heißt ---------------------------
+   *
+   * Klaus' Fall (2026-08-16): dieselbe App kann bei zwei Leuten etwas ganz
+   * Verschiedenes sein. Der eine sammelt Kuchen und nennt sein Rezeptbuch
+   * „Backshop", der andere kocht. Im Raum kamen beide als „Mein Rezeptbuch"
+   * an, weil es keinen anderen Namen gab. Mit fremden Nutzern wird daraus eine
+   * Verwechslung, und die trifft die Suche: wer nach Kuchen fragt, landete bei
+   * irgendeinem Rezeptbuch.
+   *
+   * Zwei getrennte Speicher, weil es zwei verschiedene Aussagen sind:
+   *
+   *   sbkim_appname_<suffix>  „diese App hier ist ein Backshop"   je APP
+   *   sbkim_geraetename       „ich sitze am Handy"                je GERÄT
+   *
+   * Der App-Zusatz trägt den DB-Suffix im Schlüssel, der Gerätename nicht.
+   * Sonst hätte auf der geteilten github.io-Adresse das Mixarium plötzlich
+   * „Backshop" geheißen.
+   *
+   * DER KANON-NAME BLEIBT VORN. „Mein Rezeptbuch · Backshop · Klaus-Handy":
+   * nur so fusioniert die Mycel-Karte den Knoten weiter auf die richtige Pille
+   * und findet seine Adresse. Wer den Kanon-Namen ersetzt statt ihn zu
+   * ergänzen, verschwindet still aus der Karte.
+   *
+   * Beides hängt NUR an der Anzeige, nicht an der signierten Spore — kein
+   * Re-Sign, kein Protokoll-Bump. Und beides ist selbst gewählt: ein Hinweis,
+   * kein Beweis. Die Kennung steht daneben. */
+  /* Den Suffix hier NEU hinschreiben, nicht von oben holen: dieser Block ist
+     eine eigene Kapsel, `DB_SUFFIX` aus der Andock-Kette ist hier nicht
+     sichtbar. Der Zugriff darauf sah beim Schreiben richtig aus und hätte den
+     Netz-Knopf beim Laden mit einem ReferenceError umgeworfen — `node --check`
+     merkt so etwas nicht, das ist gültige Form mit totem Inhalt. */
+  var LS_APPNAME = "sbkim_appname_rezeptbuch";
+  function appZusatz() { try { return (localStorage.getItem(LS_APPNAME) || "").trim().slice(0, 40); } catch (_e) { return ""; } }
+  function displayNodeName(base) {
+    return [base, appZusatz(), geraetename()].filter(Boolean).join(" · ");
+  }
   // Namensfeld per Glue ins geteilte Rendezvous-Panel (#sbkim-rdv-panel, byte-1:1)
   // injizieren — so bleibt index.html/QC/build.py unangetastet (Rezeptbuch-Build-Regel).
+  function baueNamensfeld(id, beschriftung, platzhalter, wert, speichern) {
+    var wrap = document.createElement("div");
+    wrap.style.cssText = "margin:8px 0;display:flex;gap:6px;align-items:center;flex-wrap:wrap";
+    var lab = document.createElement("span"); lab.textContent = beschriftung;
+    lab.style.cssText = "color:#9aa7b6;font-size:.85rem";
+    var inp = document.createElement("input"); inp.id = id; inp.type = "text"; inp.maxLength = 40;
+    inp.placeholder = platzhalter; inp.value = wert;
+    inp.style.cssText = "flex:1;min-width:120px;padding:4px 6px;border-radius:6px;border:1px solid #33414f;background:#0d1520;color:#dfeaf2;font:inherit";
+    inp.title = "Nur ein Anzeige-Hinweis, kein Vertrauens-Beweis — die Kennung bleibt daneben.";
+    inp.addEventListener("input", function () {
+      try { localStorage.setItem(speichern, String(inp.value || "").trim().slice(0, 40)); } catch (_e) {}
+      try { window.dispatchEvent(new CustomEvent("sbkim:geraetename-changed")); } catch (_e) {}
+    });
+    wrap.appendChild(lab); wrap.appendChild(inp);
+    return wrap;
+  }
+
   function injectGeraetenameField() {
     function tryInject() {
       var panel = document.getElementById("sbkim-rdv-panel");
       if (!panel || document.getElementById("sbkim-geraetename")) return false;
-      var wrap = document.createElement("div");
-      wrap.style.cssText = "margin:8px 0;display:flex;gap:6px;align-items:center;flex-wrap:wrap";
-      var lab = document.createElement("span"); lab.textContent = "🏷️ Gerätename:"; lab.style.cssText = "color:#9aa7b6;font-size:.85rem";
-      var inp = document.createElement("input"); inp.id = "sbkim-geraetename"; inp.type = "text"; inp.maxLength = 40;
-      inp.placeholder = "z. B. Klaus-Handy (frei wählbar)"; inp.value = geraetename();
-      inp.style.cssText = "flex:1;min-width:120px;padding:4px 6px;border-radius:6px;border:1px solid #33414f;background:#0d1520;color:#dfeaf2;font:inherit";
-      inp.title = "Nur ein Anzeige-Hinweis, kein Vertrauens-Beweis — die Kennung bleibt daneben.";
-      inp.addEventListener("input", function () {
-        try { localStorage.setItem("sbkim_geraetename", String(inp.value || "").trim().slice(0, 40)); } catch (_e) {}
-        try { window.dispatchEvent(new CustomEvent("sbkim:geraetename-changed")); } catch (_e) {}
-      });
-      wrap.appendChild(lab); wrap.appendChild(inp);
-      panel.insertBefore(wrap, panel.children[1] || null);
+
+      /* Zwei Felder, zwei verschiedene Fragen — darum getrennt und in dieser
+         Reihenfolge: erst WAS das hier ist, dann WO es steht. */
+      var app = baueNamensfeld("sbkim-appname", "📖 Dieses Buch heißt:",
+        "z. B. Backshop (frei wählbar)", appZusatz(), LS_APPNAME);
+      var geraet = baueNamensfeld("sbkim-geraetename", "🏷️ Gerätename:",
+        "z. B. Klaus-Handy (frei wählbar)", geraetename(), "sbkim_geraetename");
+
+      var hinweis = document.createElement("div");
+      hinweis.style.cssText = "color:#9aa7b6;font-size:.72rem;line-height:1.4;margin:-2px 0 6px";
+      hinweis.textContent = "Beides ist freiwillig und bleibt auf diesem Gerät. Im Raum erscheinst " +
+        "du dann als „Mein Rezeptbuch · Backshop · Klaus-Handy\" — der erste Teil bleibt immer stehen, " +
+        "damit dich die Mycel-Karte noch zuordnen kann.";
+
+      panel.insertBefore(app, panel.children[1] || null);
+      if (app.nextSibling) panel.insertBefore(geraet, app.nextSibling); else panel.appendChild(geraet);
+      if (geraet.nextSibling) panel.insertBefore(hinweis, geraet.nextSibling); else panel.appendChild(hinweis);
       return true;
     }
     if (tryInject()) return;
