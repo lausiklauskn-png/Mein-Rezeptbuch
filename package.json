@@ -9,5 +9,5 @@
     "verify": "node scripts/verify_foreign_spore.mjs sbkim/spore.json",
     "watch": "node .github/sbkim-watch.mjs"
   },
-  "license": "UNLICENSED"
+  "license": "SEE LICENSE IN LICENSE"
 }
