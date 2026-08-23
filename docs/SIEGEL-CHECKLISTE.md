@@ -4,7 +4,7 @@
 > Reihenfolge** es gebaut wird — damit jedes Repo (Rezeptbuch, Mixarium, BookLedgerPro, Tresore …)
 > sein Siegel so **aussehen und funktionieren** lässt wie das in **Sage**.
 >
-> **Quelle der Wahrheit = `Sage-Protokol`.** Alles andere sind Klone. Regel: das Siegel-**Modul 16
+> **Quelle = `Sage-Protokol`.** Alles andere sind Klone. Regel: das Siegel-**Modul 16
 > byte-1:1 aus Sage kopieren** (nie selbst pflegen), die **Host-Injektion** aus Sage nachbauen und
 > nur die Config-Werte (Name, Domäne, `dbSuffix`, `ribbonText`) anpassen. Modul 16 bleibt
 > **unangetastet** — es ist das netzweit geteilte Render-Modul. Maschinen-Rezept mit Code:

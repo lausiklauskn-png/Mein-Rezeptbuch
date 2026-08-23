@@ -12,7 +12,7 @@ Default ab und tragen deshalb **kein SBKIM** — jede Sitzung, die „den ausgec
 oder „den Default-Branch" liest, kommt fälschlich zum Schluss „Rezeptbuch hat kein SBKIM".
 **Das ist der wiederkehrende Fehler. Er ist immer derselbe.**
 
-**Wahrheit:** `main` (`git show origin/main:…`) ist die **einzige** Quelle der Wahrheit und
+**Wahrheit:** `main` (`git show origin/main:…`) ist die **einzige** Quelle und
 die **GitHub-Pages-Deploy-Quelle**. `main` trägt die **volle SBKIM-Integration** (Module
 00–08, 15, 16, 17, 18, 23, Briefkästen, Spore, `status.json`) — die Modul-09-Einbau-PWA-
 Migration **hat längst stattgefunden**.

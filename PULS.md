@@ -74,7 +74,7 @@ offizielle Identität übernommen.**
   (spore.json/status.json/SIGNAL.json/NETZ-STAND unverändert auf uOpUBez.)
 
 **Gebaut (Klaus: „Tool einbauen — ja"):** der **Andock-Wizard ins Siegel portiert** (aus Sage, der
-Quelle der Wahrheit; Skill „status-leiste-siegel"). `sbkim/sbkim-init.js`: neues Modal `#rez-andock-modal`
+Quelle; Skill „status-leiste-siegel"). `sbkim/sbkim-init.js`: neues Modal `#rez-andock-modal`
 (z-index über dem Siegel), das der 🔑-Knopf jetzt öffnet (statt nur zum ✍-Feld zu springen). **Fünf
 Bausteine** über die echten Module 02/03: (1) Identität anzeigen/erzeugen · (2) Spore signieren +
 Download (mit Modell-Ladebalken) · (3) **verschlüsseltes Backup** (PBKDF2 600k + AES-GCM-256) ·
