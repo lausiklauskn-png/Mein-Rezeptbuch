@@ -2,7 +2,16 @@ self.SBKIM_SW_STANDALONE = false;
 importScripts("./sbkim-sw-v3.js");
 console.info("SBKIM-SW geladen via importScripts (Variante 3b)");
 // Service Worker for Mein Rezeptbuch (Hauptapp)
-const CACHE = 'mrz-v62';
+const CACHE = 'meinrezeptbuch-v63';
+
+/* ⚠ NUR EIGENE VORRAETE AUFRAEUMEN — `caches` gehoert dem URSPRUNG, nicht dem
+ * Pfad. Auf lausiklauskn-png.github.io liegen rund zwanzig Apps; ein Filter,
+ * der nur "ist nicht meiner" fragt, laesst ALLE fremden durch und loescht sie.
+ * Gemessen am 2026-09-08 an zwei echten Apps
+ * (Sage-Protokol/tests/vorrat_wirkung.mjs). Praefix ABGELESEN aus der
+ * Vorrat-Konstante, nicht geraten. Muster aus Tomys-Hub/bookledger/sw.js.
+ * Es muss BEIDES tun: fremde stehen lassen UND eigene alte weiter wegraeumen. */
+const VORRAT_PRAEFIX = "meinrezeptbuch-";
 // './' statt './index.html': ausgeliefert wird die Seite unter /Mein-Rezeptbuch/.
 // './index.html' ist fuer den Browser eine ANDERE Adresse — addAll() hat das
 // 4,8-MB-Dokument darum beim Installieren ein zweites Mal aus dem Netz geholt.
@@ -42,7 +51,7 @@ self.addEventListener('install', e => {
 
 self.addEventListener('activate', e => {
   e.waitUntil(caches.keys().then(keys =>
-    Promise.all(keys.filter(k => k !== CACHE).map(k => caches.delete(k)))
+    Promise.all(keys.filter(k => k.startsWith(VORRAT_PRAEFIX) && k !== CACHE).map(k => caches.delete(k)))
   ));
   self.clients.claim();
 });
