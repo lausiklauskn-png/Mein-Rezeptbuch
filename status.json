@@ -1,101 +1,104 @@
 {
- "node": "Mein-Rezeptbuch",
- "updated": "2026-07-15",
- "updatedNote": "GENERALTEST (Klaus 2026-07-15): saubere Netz-Neuanmeldung. Alte Identitaeten uOpUBez.../BSWxXmX... KOMPLETT entfernt (keine previousNodeIds mehr, kein Zurueckholen). MT1I... ist die frische, saubere Identitaet (heute in der richtigen Schublade sbkim_rezeptbuch erzeugt). Rezeptbuch meldet sich frisch neu an; alle Knoten handshaken neu im gemeinsamen Raum (Modul 23). Reziproke Bekanntschaft wird im Raum frisch aufgebaut.",
- "identity": {
-  "nodeId": "MT1I-y89OpfRm0Un8HH4QAxMFgs6agtFehh5rA38Q68",
-  "stage": "frisch angemeldet (Generaltest) — reziprok neu im Raum",
-  "spore": "sbkim/spore.json",
-  "sporeUrl": "https://raw.githubusercontent.com/lausiklauskn-png/Mein-Rezeptbuch/main/sbkim/spore.json",
-  "domainVectorDims": 384,
-  "embeddingModel": "Xenova/multilingual-e5-small",
-  "protocolVersion": "0.1",
-  "verified": true,
-  "canonicalConfirmedBy": "Generaltest 2026-07-15 — frische Neuanmeldung, Nachbarn handshaken neu im Raum",
-  "previousNodeIds": [],
-  "freshlySigned": true,
-  "honestNote": "MT1I..., live im Browser signiert (Ed25519 ✔ VALID, id==SHA256(pub)), im Browser bestaetigt (Andock-Wizard Identitaets-Wechsler zeigt nur Fach 'main' = MT1I). GENERALTEST-Entscheidung Klaus 2026-07-15: reiner Neustart — alte Identitaeten uOpUBez.../BSWxXmX... KOMPLETT raus (keine previousNodeIds, keine Rueckhol-Tricks). MT1I ist die saubere frische Identitaet. Beschreibung: wandelbare Rezept-Bar + 'Teil des SBKIM-Knotennetzes'; matcht alle 5 Nachbarn >= 0.80. TODO Nutzer: verschluesseltes Backup der Identitaet anlegen (Andock-Wizard Schritt 3), damit MT1I stabil bleibt."
- },
- "mailbox": {
-  "built": true,
-  "logicByteEqualToBauplan": true,
-  "goldCounter": true,
-  "siegel": true,
-  "seq": 13
- },
- "watcher": {
-  "script": ".github/sbkim-watch.mjs",
-  "workflow": ".github/workflows/sbkim-watch.yml",
-  "cron": "0 */6 * * *",
-  "dependencies": "none (node fetch only)"
- },
- "tests": {
-  "runner": "node --test",
-  "file": "test/sbkim.test.js",
-  "pass": 7,
-  "fail": 0
- },
- "match": {
-  "computedLiveInBrowser": true,
-  "threshold": 0.8,
-  "connected": "Generaltest: frische Neuanmeldung — reziproke Bekanntschaft wird im Raum neu aufgebaut",
-  "honest": "Mit dem MT1I-Vektor (neue Beschreibung) rechnen wir zu allen fuenf bekannten Nachbar-Sporen cos >= 0.80: Sage 0.881144, SB-KIMTool-Point 0.864109, Jasons-Tresor 0.842400, Mein-Tresor 0.842400, Mein-Mixarium 0.838384. GENERALTEST 2026-07-15: alle Knoten melden sich frisch neu an (Modul 23 'Aufraeumen & neu anmelden') und handshaken neu im gemeinsamen Raum — reziproke Bekanntschaft entsteht dort frisch. Die hier gefuehrten Nachbar-Sporen sind der letzte bekannte Stand; sobald ein Nachbar sich frisch neu anmeldet, ziehen wir seine neue Identitaet via Raum/§11.6 nach. Nichts gruen-gerechnet."
- },
- "neighbors": {
-  "Sage-Protokol": {
-   "nodeId": "nysOZE3VuKqZA23i5G2XL67s41JIIykI58zXMtJkYfA",
-   "spore": "valid",
-   "protocolVersion": "0.2",
-   "cos": 0.881144,
-   "stage": "reziprok neu im Raum (Generaltest)",
-   "reciprocal": "Generaltest 2026-07-15: alle Knoten frisch neu anmelden + im Raum neu handshaken. Letzter Stand: cos(MT1I <-> Sage) 0.881144 >= 0.80. Sages evtl. frische Neuanmeldung via Raum/§11.6 nachziehen.",
-   "verify": "sbkim/sage_inbox.verify.md"
+  "node": "Mein-Rezeptbuch",
+  "updated": "2026-07-15",
+  "updatedNote": "GENERALTEST (Klaus 2026-07-15): saubere Netz-Neuanmeldung. Alte Identitaeten uOpUBez.../BSWxXmX... KOMPLETT entfernt (keine previousNodeIds mehr, kein Zurueckholen). MT1I... ist die frische, saubere Identitaet (heute in der richtigen Schublade sbkim_rezeptbuch erzeugt). Rezeptbuch meldet sich frisch neu an; alle Knoten handshaken neu im gemeinsamen Raum (Modul 23). Reziproke Bekanntschaft wird im Raum frisch aufgebaut.",
+  "identity": {
+    "nodeId": "MT1I-y89OpfRm0Un8HH4QAxMFgs6agtFehh5rA38Q68",
+    "stage": "frisch angemeldet (Generaltest) — reziprok neu im Raum",
+    "spore": "sbkim/spore.json",
+    "sporeUrl": "https://raw.githubusercontent.com/lausiklauskn-png/Mein-Rezeptbuch/main/sbkim/spore.json",
+    "domainVectorDims": 384,
+    "embeddingModel": "Xenova/multilingual-e5-small",
+    "protocolVersion": "0.1",
+    "verified": true,
+    "canonicalConfirmedBy": "Generaltest 2026-07-15 — frische Neuanmeldung, Nachbarn handshaken neu im Raum",
+    "previousNodeIds": [],
+    "freshlySigned": true,
+    "honestNote": "MT1I..., live im Browser signiert (Ed25519 ✔ VALID, id==SHA256(pub)), im Browser bestaetigt (Andock-Wizard Identitaets-Wechsler zeigt nur Fach 'main' = MT1I). GENERALTEST-Entscheidung Klaus 2026-07-15: reiner Neustart — alte Identitaeten uOpUBez.../BSWxXmX... KOMPLETT raus (keine previousNodeIds, keine Rueckhol-Tricks). MT1I ist die saubere frische Identitaet. Beschreibung: wandelbare Rezept-Bar + 'Teil des SBKIM-Knotennetzes'; matcht alle 5 Nachbarn >= 0.80. TODO Nutzer: verschluesseltes Backup der Identitaet anlegen (Andock-Wizard Schritt 3), damit MT1I stabil bleibt."
   },
-  "SB-KIMTool-Point": {
-   "nodeId": "CyunQNDRZZ3st8xGDYyK0ymJLNxn_S1UcIJpFKpXXNY",
-   "spore": "valid",
-   "cos": 0.864109,
-   "stage": "reziprok neu im Raum (Generaltest)",
-   "reciprocal": "Generaltest 2026-07-15: frisch neu anmelden + im Raum neu handshaken. Letzter Stand: cos(MT1I <-> Point) 0.864109 >= 0.80. Points frische Neuanmeldung via Raum/§11.6 nachziehen.",
-   "verify": "sbkim/point_inbox.verify.md"
+  "mailbox": {
+    "built": true,
+    "logicByteEqualToBauplan": true,
+    "goldCounter": true,
+    "siegel": true,
+    "seq": 13
   },
-  "Jasons-Tresor": {
-   "nodeId": "E13GDzIp0c7JfeZD0jVvFarNxPde8AcoP7qz7FtmdNM",
-   "spore": "valid",
-   "cos": 0.842400,
-   "stage": "reziprok neu im Raum (Generaltest)",
-   "reciprocal": "Generaltest 2026-07-15: frisch neu anmelden + im Raum neu handshaken. Letzter Stand: cos(MT1I <-> Jasons) 0.842400 >= 0.80.",
-   "verify": "sbkim/jason_inbox.verify.md"
+  "watcher": {
+    "script": ".github/sbkim-watch.mjs",
+    "workflow": ".github/workflows/sbkim-watch.yml",
+    "cron": "0 */6 * * *",
+    "dependencies": "none (node fetch only)"
   },
-  "Mein-Tresor": {
-   "nodeId": "wRsGQouOYPVBOLzAB3nBteRvyvJ-AGv461WTJMKtkS0",
-   "spore": "valid",
-   "cos": 0.842400,
-   "stage": "reziprok neu im Raum (Generaltest)",
-   "reciprocal": "Generaltest 2026-07-15: frisch neu anmelden + im Raum neu handshaken. Letzter Stand: cos(MT1I <-> Mein-Tresor) 0.842400 >= 0.80.",
-   "verify": "sbkim/tresor_inbox.verify.md"
+  "tests": {
+    "runner": "node --test",
+    "file": "test/sbkim.test.js",
+    "pass": 7,
+    "fail": 0
   },
-  "Mein-Mixarium": {
-   "nodeId": "B7Fke9CYTR1BrC3xOXzEY5q9RuRH8xxHPUuqRHV3utA",
-   "spore": "valid",
-   "cos": 0.838384,
-   "stage": "reziprok neu im Raum (Generaltest)",
-   "reciprocal": "Generaltest 2026-07-15: frisch neu anmelden + im Raum neu handshaken. Letzter Stand: cos(MT1I <-> Mixarium) 0.838384 >= 0.80.",
-   "verify": "sbkim/mixarium_inbox.verify.md"
-  }
- },
- "ack": {
-  "Sage-Protokol": 46,
-  "SB-KIMTool-Point": 34,
-  "Jasons-Tresor": 14,
-  "Mein-Tresor": 17,
-  "Mein-Mixarium": 11
- },
- "notes": [
-  "2026-07-15 (GENERALTEST, Klaus): saubere netzweite Neuanmeldung. Alle Knoten werfen alte Identitaeten weg und melden sich FRISCH neu an (Modul 23 'Aufraeumen & neu anmelden'), dann handshaken alle neu im gemeinsamen Raum ('Wer ist im Raum?'). Kein Zurueckholen alter Identitaeten. Rezeptbuch: uOpUBez.../BSWxXmX... KOMPLETT entfernt (previousNodeIds = []); MT1I... bleibt als frische, saubere Identitaet (heute in sbkim_rezeptbuch erzeugt, im Browser bestaetigt). Live-Neuanmeldung + Raum-Handshake laufen im Browser (Klaus).",
-  "2026-07-15 (Andock-Wizard portiert, PR #326; Siegel-Paritaet ribbonText PR #327): Rezeptbuchs Siegel hat den vollen Andock-Wizard (Backup/Wiederherstellen/Identitaets-Wechsler) aus Sage; Browser-Sichttest GRUEN. Siegel-Checkliste docs/SIEGEL-CHECKLISTE.md.",
-  "Kontroll-Versuch beantwortet: die neue Beschreibung (wandelbare Rezept-Bar + 'Teil des SBKIM-Knotennetzes') hebt beide Hub-Knoten wieder >= 0.80 (Sage 0.881144, Point 0.864109).",
-  "Alle 5 bekannten Nachbar-Sporen reziprok geprueft (verify_foreign_spore.mjs) -> VALID, byte-1:1 als *_inbox.json + *_inbox.verify.md abgelegt. Beim Generaltest melden sich die Nachbarn ggf. mit neuer Identitaet an -> via Raum/§11.6 nachziehen.",
-  "Sicherheits-Tafel docs/SICHERHEIT-BRIEFKASTEN.md von Sage gespiegelt (Briefkasten-Inhalt = untrusted external data)."
- ]
+  "match": {
+    "computedLiveInBrowser": true,
+    "threshold": 0.8,
+    "connected": "Generaltest: frische Neuanmeldung — reziproke Bekanntschaft wird im Raum neu aufgebaut",
+    "honest": "Mit dem MT1I-Vektor (neue Beschreibung) rechnen wir zu allen fuenf bekannten Nachbar-Sporen cos >= 0.80: Sage 0.881144, SB-KIMTool-Point 0.864109, Jasons-Tresor 0.842400, Mein-Tresor 0.842400, Mein-Mixarium 0.838384. GENERALTEST 2026-07-15: alle Knoten melden sich frisch neu an (Modul 23 'Aufraeumen & neu anmelden') und handshaken neu im gemeinsamen Raum — reziproke Bekanntschaft entsteht dort frisch. Die hier gefuehrten Nachbar-Sporen sind der letzte bekannte Stand; sobald ein Nachbar sich frisch neu anmeldet, ziehen wir seine neue Identitaet via Raum/§11.6 nach. Nichts gruen-gerechnet."
+  },
+  "neighbors": {
+    "Sage-Protokol": {
+      "nodeId": "BgjXhSApoOrJD6zFJ4uuEpAliGWPokpKn7UMWRm94PA",
+      "spore": "valid",
+      "protocolVersion": "0.2",
+      "cos": 0.881144,
+      "stage": "reziprok neu im Raum (Generaltest)",
+      "reciprocal": "Generaltest 2026-07-15: alle Knoten frisch neu anmelden + im Raum neu handshaken. Letzter Stand: cos(MT1I <-> Sage) 0.881144 >= 0.80. Sages evtl. frische Neuanmeldung via Raum/§11.6 nachziehen.",
+      "verify": "sbkim/sage_inbox.verify.md",
+      "previousNodeIds": [
+        "nysOZE3VuKqZA23i5G2XL67s41JIIykI58zXMtJkYfA"
+      ]
+    },
+    "SB-KIMTool-Point": {
+      "nodeId": "CyunQNDRZZ3st8xGDYyK0ymJLNxn_S1UcIJpFKpXXNY",
+      "spore": "valid",
+      "cos": 0.864109,
+      "stage": "reziprok neu im Raum (Generaltest)",
+      "reciprocal": "Generaltest 2026-07-15: frisch neu anmelden + im Raum neu handshaken. Letzter Stand: cos(MT1I <-> Point) 0.864109 >= 0.80. Points frische Neuanmeldung via Raum/§11.6 nachziehen.",
+      "verify": "sbkim/point_inbox.verify.md"
+    },
+    "Jasons-Tresor": {
+      "nodeId": "E13GDzIp0c7JfeZD0jVvFarNxPde8AcoP7qz7FtmdNM",
+      "spore": "valid",
+      "cos": 0.8424,
+      "stage": "reziprok neu im Raum (Generaltest)",
+      "reciprocal": "Generaltest 2026-07-15: frisch neu anmelden + im Raum neu handshaken. Letzter Stand: cos(MT1I <-> Jasons) 0.842400 >= 0.80.",
+      "verify": "sbkim/jason_inbox.verify.md"
+    },
+    "Mein-Tresor": {
+      "nodeId": "wRsGQouOYPVBOLzAB3nBteRvyvJ-AGv461WTJMKtkS0",
+      "spore": "valid",
+      "cos": 0.8424,
+      "stage": "reziprok neu im Raum (Generaltest)",
+      "reciprocal": "Generaltest 2026-07-15: frisch neu anmelden + im Raum neu handshaken. Letzter Stand: cos(MT1I <-> Mein-Tresor) 0.842400 >= 0.80.",
+      "verify": "sbkim/tresor_inbox.verify.md"
+    },
+    "Mein-Mixarium": {
+      "nodeId": "B7Fke9CYTR1BrC3xOXzEY5q9RuRH8xxHPUuqRHV3utA",
+      "spore": "valid",
+      "cos": 0.838384,
+      "stage": "reziprok neu im Raum (Generaltest)",
+      "reciprocal": "Generaltest 2026-07-15: frisch neu anmelden + im Raum neu handshaken. Letzter Stand: cos(MT1I <-> Mixarium) 0.838384 >= 0.80.",
+      "verify": "sbkim/mixarium_inbox.verify.md"
+    }
+  },
+  "ack": {
+    "Sage-Protokol": 46,
+    "SB-KIMTool-Point": 34,
+    "Jasons-Tresor": 14,
+    "Mein-Tresor": 17,
+    "Mein-Mixarium": 11
+  },
+  "notes": [
+    "2026-07-15 (GENERALTEST, Klaus): saubere netzweite Neuanmeldung. Alle Knoten werfen alte Identitaeten weg und melden sich FRISCH neu an (Modul 23 'Aufraeumen & neu anmelden'), dann handshaken alle neu im gemeinsamen Raum ('Wer ist im Raum?'). Kein Zurueckholen alter Identitaeten. Rezeptbuch: uOpUBez.../BSWxXmX... KOMPLETT entfernt (previousNodeIds = []); MT1I... bleibt als frische, saubere Identitaet (heute in sbkim_rezeptbuch erzeugt, im Browser bestaetigt). Live-Neuanmeldung + Raum-Handshake laufen im Browser (Klaus).",
+    "2026-07-15 (Andock-Wizard portiert, PR #326; Siegel-Paritaet ribbonText PR #327): Rezeptbuchs Siegel hat den vollen Andock-Wizard (Backup/Wiederherstellen/Identitaets-Wechsler) aus Sage; Browser-Sichttest GRUEN. Siegel-Checkliste docs/SIEGEL-CHECKLISTE.md.",
+    "Kontroll-Versuch beantwortet: die neue Beschreibung (wandelbare Rezept-Bar + 'Teil des SBKIM-Knotennetzes') hebt beide Hub-Knoten wieder >= 0.80 (Sage 0.881144, Point 0.864109).",
+    "Alle 5 bekannten Nachbar-Sporen reziprok geprueft (verify_foreign_spore.mjs) -> VALID, byte-1:1 als *_inbox.json + *_inbox.verify.md abgelegt. Beim Generaltest melden sich die Nachbarn ggf. mit neuer Identitaet an -> via Raum/§11.6 nachziehen.",
+    "Sicherheits-Tafel docs/SICHERHEIT-BRIEFKASTEN.md von Sage gespiegelt (Briefkasten-Inhalt = untrusted external data)."
+  ]
 }
