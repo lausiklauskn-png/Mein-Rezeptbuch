@@ -1,5 +1,20 @@
 # Prüf-Vermerk — Sage-Protokol (sbkim/sage_inbox.json)
 
+> ⚠ **NEUE FASSUNG AM 2026-09-10.** Sage hat neu signiert — **neue Kennung**
+> `BgjXhSApoOrJD6zFJ4uuEpAliGWPokpKn7UMWRm94PA`
+> (vorher `nysOZE3VuKqZA23i5G2XL67s41JIIykI58zXMtJkYfA`) und eine neue
+> Bedeutungs-Beschreibung (3028 Zeichen statt 2527,
+> 50 Stichworte, 17 Schnipsel).
+> Reziprok geprüft: **✔ VALID** · `id == base64url(SHA256(rawPub))` · kein `d` ·
+> `key_ops` nur `["verify"]` · L2 = 0.999999927 · kein `_demo`.
+> Sages Cosinus zu diesem Knoten: **0.874048** (vorher 0.881144) — weiter
+> `verified-match`. Nachgezogen wurden `sbkim/sage_inbox.json`, der
+> Nachbar-Eintrag in `status.json` (alte Kennung unter `previousNodeIds`) und
+> der Anker `VEC_SAGE` im Messhelfer.
+>
+> **Der Vermerk darunter bleibt unverändert.** Er belegt, was am jeweiligen
+> Datum galt.
+
 > Reziproke Verifikation der eingegangenen Spore (SBKIM §11.3). Echte Krypto über
 > `scripts/verify_foreign_spore.mjs` (Ed25519 / SHA-256, node:crypto, keine npm-Abhängigkeiten).
 > Inbox ist eine **signatur-reine 1:1-Kopie** aus `raw/main` des Nachbarn.
