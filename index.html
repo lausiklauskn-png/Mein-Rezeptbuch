@@ -3084,6 +3084,7 @@ Vielen Dank für deine Unterstützung.</div>
           <div id="igProgLbl" style="font-size:.78rem;color:var(--ink);text-align:center;font-weight:600"></div>
           <div id="igCostLbl" style="font-size:.74rem;color:var(--teal);margin-top:5px;text-align:center;font-weight:600"></div>
           <button class="scan-key-btn" id="igSaveBtn" onclick="closeImport()" style="display:none;background:var(--grn);margin-top:10px">✅ Bilder im Rezeptbuch – schließen</button>
+          <div id="igFehlerBox" style="display:none;margin-top:10px;background:#fdecea;border:1.5px solid #c0392b;border-radius:9px;padding:10px 12px;font-size:.76rem;color:#7b241c;line-height:1.6"></div>
         </div>
         <div id="igBackupHint" style="display:none;margin-top:12px;background:#fff3cd;border:1.5px solid #e6a817;border-radius:10px;padding:11px 13px;font-size:.76rem;color:#5a3e00;line-height:1.6">
           💰 <strong>Diese Bilder haben Geld gekostet</strong> — sichere sie jetzt! Beim Löschen des Browser-Caches oder auf einem neuen Gerät sind sie sonst weg.<br>
@@ -5609,7 +5610,7 @@ var _imgGenSingleRid=null;
 async function _runImgQueue(rids, genFn, onProgress, opts){
   const total=rids.length;
   const useIdb=opts?.useIdb===true;
-  let done=0,ok=0,fail=0;
+  let done=0,ok=0,fail=0,letzterFehler=null;
   for(const rid of rids){
     if(_imgGenAborted) break;
     const r=R.find(r=>r.id===rid);
@@ -5629,13 +5630,14 @@ async function _runImgQueue(rids, genFn, onProgress, opts){
         ok++;
       }catch(err){
         fail++;
+        letzterFehler=err;              // der Grund muss aus der Schleife heraus
         console.warn('_runImgQueue rid='+rid,err);
       }
     }
     done++;
     if(onProgress) onProgress({done,total,ok,fail,rid});
   }
-  return{ok,fail,total,aborted:_imgGenAborted};
+  return{ok,fail,total,aborted:_imgGenAborted,letzterFehler};
 }
 
 // ── Bildcache-Zugriff (Stufe 3 / IndexedDB) ──────────────────────────────────
@@ -5654,20 +5656,103 @@ function _buildDallePrompt(recipe){
   return `Food photography: a beautifully plated "${name}"${ings?', featuring '+ings:''}${stepHints?'. Preparation: '+stepHints:''}. Natural light, appetizing, rustic wooden or marble surface, no text, no labels.`;
 }
 
-// ── DALL-E-3 genFn (für _runImgQueue) ────────────────────────────────────────
-async function _dalleGenImg(rid,recipe){
-  const key=getSavedOpenAiKey();
-  if(!key)throw new Error('Kein OpenAI-Schlüssel');
+// ── EINE Naht für JEDEN Bild-Aufruf dieser App ──────────────────────────────
+//
+// ⚠ response_format WIRD NICHT MEHR ANGENOMMEN. Gemessen an Klaus' Gerät am
+// 2026-09-11 (in Mein Mixarium, gleicher Aufruf): „Unknown parameter:
+// 'response_format'." OpenAI hat den Parameter aus /v1/images/generations
+// entfernt — und genau daran ist hier JEDER Bild-Versuch gescheitert, an
+// beiden Stellen: bei den Rezeptbildern und bei der Food-Zine.
+//
+// Der Parameter fällt weg. Damit ist das Antwortformat nicht mehr festgelegt:
+// b64_json ODER eine url kommt zurück, beides wird gelesen.
+//
+// Und es gibt jetzt EINE Stelle statt zwei. Zwei Fassungen desselben Aufrufs
+// sind zwei Stellen, an denen derselbe Fehler wiederkommt — hier ist er
+// wirklich zweimal aufgetreten.
+const _IMG_MODELLE=[
+  {model:'dall-e-3'},
+  {model:'gpt-image-1'},     // liefert immer b64_json, braucht nie einen Parameter
+];
+
+async function _einBildVersuch(key,prompt,variante,size){
   const resp=await fetch('https://api.openai.com/v1/images/generations',{
     method:'POST',
     headers:{'Content-Type':'application/json','Authorization':'Bearer '+key},
-    body:JSON.stringify({model:'dall-e-3',prompt:_buildDallePrompt(recipe),n:1,size:'1024x1024',response_format:'b64_json'})
+    body:JSON.stringify({model:variante.model,prompt,n:1,size:size||'1024x1024'})
   });
-  if(!resp.ok){const e=await resp.json().catch(()=>({}));throw new Error(e.error?.message||'HTTP '+resp.status);}
+  if(!resp.ok){
+    const e=await resp.json().catch(()=>({}));
+    const err=new Error(e.error?.message||'HTTP '+resp.status);
+    err.status=resp.status;
+    // Ein 400 oder 404 heißt: DIESER Aufruf passt nicht zu DIESEM Modell — da
+    // kann ein anderes helfen. Ein Test auf das Wort „model" im Fehlertext wäre
+    // zu eng: „Unknown parameter" enthält es nicht.
+    err.andresModellKoennteHelfen=(resp.status===400||resp.status===404);
+    throw err;
+  }
   const data=await resp.json();
-  const b64=data.data?.[0]?.b64_json;
-  if(!b64)throw new Error('Kein Bild erhalten');
-  return 'data:image/png;base64,'+b64;
+  const eintrag=data.data?.[0]||{};
+  if(eintrag.b64_json)return 'data:image/png;base64,'+eintrag.b64_json;
+  // Nur eine Adresse bekommen: das Bild noch holen und einpacken. Es muss als
+  // data:-URL im Rezept landen — eine fremde Adresse verfällt (OpenAI gibt sie
+  // nur kurz heraus), und offline wäre sie ohnehin tot.
+  if(eintrag.url){
+    const bild=await fetch(eintrag.url);
+    if(!bild.ok)throw new Error('Bild-Adresse nicht abrufbar (HTTP '+bild.status+')');
+    const blob=await bild.blob();
+    return await new Promise((ja,nein)=>{
+      const fr=new FileReader();
+      fr.onload=()=>ja(fr.result);
+      fr.onerror=()=>nein(new Error('Bild konnte nicht gelesen werden'));
+      fr.readAsDataURL(blob);
+    });
+  }
+  throw new Error('Kein Bild erhalten');
+}
+
+async function _bildHolen(prompt,size){
+  const key=getOpenAiImgKey()||getSavedOpenAiKey();
+  if(!key)throw new Error('Kein OpenAI-Schlüssel');
+  let ersterFehler=null;
+  for(let i=0;i<_IMG_MODELLE.length;i++){
+    try{
+      return await _einBildVersuch(key,prompt,_IMG_MODELLE[i],size);
+    }catch(err){
+      if(i===0)ersterFehler=err;
+      // Ein abgelehnter Schlüssel, ein Limit oder fehlendes Guthaben ändern
+      // sich durch ein anderes Modell nicht — dort wäre ein zweiter Versuch
+      // nur eine zweite Rechnung.
+      if(!err.andresModellKoennteHelfen)throw err;
+    }
+  }
+  throw ersterFehler||new Error('Kein Bild erhalten');
+}
+
+// ── DALL-E-3 genFn (für _runImgQueue) ────────────────────────────────────────
+async function _dalleGenImg(rid,recipe){
+  return await _bildHolen(_buildDallePrompt(recipe),'1024x1024');
+}
+
+// ── Warum ein Fehlschlag stumm blieb ────────────────────────────────────────
+// Der Grund ging in ein console.warn; auf dem Schirm stand nur „1 Fehler". Ein
+// Fehlschlag ohne Grund ist von einem kaputten Knopf nicht zu unterscheiden —
+// und genau deshalb hat die Ursache (response_format) so lange gebraucht.
+function _imgFehlerText(err){
+  const m=String((err&&err.message)||err||'');
+  // Der Browser meldet „Failed to fetch", wenn er die Anfrage GAR NICHT
+  // hinausgelassen hat. Für einen Menschen ist dieser Satz keine Auskunft.
+  if(/failed to fetch|load failed|networkerror|network request failed/i.test(m))
+    return 'Der Browser konnte OpenAI gar nicht erst fragen. Das heißt: kein Internet, oder dein Netz lässt den Aufruf nicht durch. Der Schlüssel ist damit weder bestätigt noch widerlegt.';
+  if(/401|invalid[_ ]api[_ ]key|incorrect api key/i.test(m))
+    return 'OpenAI hat den Schlüssel abgelehnt. Prüfe, ob er vollständig kopiert ist und noch gültig.';
+  if(/quota|billing|insufficient|402/i.test(m))
+    return 'Auf dem OpenAI-Konto ist kein Guthaben. Ein Schlüssel allein genügt nicht — bei OpenAI muss Guthaben aufgeladen sein.';
+  if(/429|rate.?limit/i.test(m))
+    return 'OpenAI hat zu viele Anfragen gemeldet. Kurz warten und noch einmal versuchen.';
+  if(/\b400\b|unknown parameter|model/i.test(m))
+    return 'OpenAI hat die Anfrage abgelehnt — '+m;
+  return m||'Unbekannter Fehler — mehr steht in der Entwickler-Konsole.';
 }
 
 // ── KI-BILD-TAB ──────────────────────────────────────────────────────────────
@@ -5840,6 +5925,11 @@ async function startImgGen(){
   if(stopBtn){stopBtn.style.display='none';}
   if(btn){btn.style.display='flex';}
   if(saveBtn&&res.ok>0){saveBtn.style.display='flex';}
+  const fbox=document.getElementById('igFehlerBox');
+  if(fbox){
+    if(res.fail&&res.letzterFehler){fbox.textContent='⚠️ '+_imgFehlerText(res.letzterFehler);fbox.style.display='block';}
+    else{fbox.style.display='none';}
+  }
   if(res.ok>0){
     toast('✅ '+res.ok+' KI-Bild'+(res.ok===1?'':'er')+' im Rezeptbuch gespeichert');
     var hint=document.getElementById('igBackupHint');
@@ -6673,7 +6763,15 @@ async function startImgGenSingle(){
     if(lbl)lbl.textContent=p.ok?'✅ Bild gespeichert':'❌ Fehler';
   },{useIdb:false});
   if(stopBtn)stopBtn.style.display='none';
-  if(lbl)lbl.textContent=res.ok?'✅ Bild für „'+r.name+'" gespeichert':'❌ Generierung fehlgeschlagen';
+  if(lbl)lbl.textContent=res.ok?'✅ Bild für „'+r.name+'" gespeichert':'❌ Es hat nicht geklappt — der Grund steht darunter';
+  const fbox1=document.getElementById('igFehlerBox');
+  if(fbox1){
+    if(res.fail&&res.letzterFehler){fbox1.textContent='⚠️ '+_imgFehlerText(res.letzterFehler);fbox1.style.display='block';}
+    else{fbox1.style.display='none';}
+  }
+  // Fehlgeschlagen: der Knopf muss wiederkommen, sonst steht der Nutzer vor
+  // einem Fenster ohne Ausweg.
+  if(!res.ok&&sw)sw.style.display='block';
   if(res.ok>0){
     if(saveBtn)saveBtn.style.display='flex';
     toast('✅ KI-Bild für „'+r.name+'" gespeichert');
@@ -14834,7 +14932,6 @@ async function generateFreePhoto(rid){
 
 let _zineRid=null;
 let _zineB64s=[null,null,null];
-const _ZINE_IMG_URL='https://api.openai.com/v1/images/generations';
 
 // ── Prompts ───────────────────────────────────────────
 function buildZinePrompts(r){
@@ -14891,16 +14988,10 @@ function _zineSetError(idx,msg){
 
 // ── API: Sofort (kein Streaming) ──────────────────────
 async function _zineGenDallE3(prompt,idx){
-  const resp=await fetch(_ZINE_IMG_URL,{
-    method:'POST',
-    headers:{'Authorization':'Bearer '+getOpenAiImgKey(),'Content-Type':'application/json'},
-    body:JSON.stringify({model:'dall-e-3',prompt,n:1,size:'1024x1792',response_format:'b64_json'})
-  });
-  if(!resp.ok){const e=await resp.json().catch(()=>({}));throw new Error(e.error?.message||'HTTP '+resp.status);}
-  const data=await resp.json();
-  const b64=data.data?.[0]?.b64_json||null;
-  if(b64)_zineShowImg(idx,'data:image/png;base64,'+b64,true);
-  return b64;
+  // Dieselbe Naht wie die Rezeptbilder — nur das Hochformat ist eigen.
+  const datenUrl=await _bildHolen(prompt,'1024x1792');
+  if(datenUrl)_zineShowImg(idx,datenUrl,true);
+  return datenUrl;
 }
 
 // ── Schnell-Modus: Textseiten aus Rezeptdaten ─────────
