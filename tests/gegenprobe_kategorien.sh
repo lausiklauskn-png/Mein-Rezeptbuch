@@ -125,6 +125,27 @@ fall "das Scrollen beim Oeffnen kommt zurueck" "verschiebt die Liste nicht" \
   raster.hidden=false;
 }"
 
+fall "eine Familien-Kennung faellt aus den eigenen Kategorien" "decken die ganze Familie ab" \
+"const KAT_FAMILIE=[@@@const KAT_FAMILIE=[{id:'zzz_nicht_eigen',ico:'📦',de:'x',en:'x',ru:'x',zh:'x',es:'x',fr:'x',it:'x',pt:'x'},"
+
+fall "ein Name wird erfunden, wo das Woerterbuch schweigt" "keinen erfundenen Namen" \
+"      out.push({id:id,ico:'📦',de:id,col:'#7a5840',fremd:true,unbekannt:true});@@@      out.push({id:id,ico:'🍹',de:'Erfunden',col:'#7a5840',fremd:true,unbekannt:true});"
+
+fall "ein Rezept ohne Kategorie faellt wieder durch" "zaehlt BEIDE" \
+"  if(!id)return KAT_OHNE;@@@  if(!id)return '';"
+
+fall "ein toter Ordner gilt wieder als Zuhause" "zaehlt BEIDE" \
+"    return da?id:KAT_OHNE;@@@    return id;"
+
+fall "der Sammel-Reiter steht auch ohne Heimatlose da" "OHNE Heimatlose gibt es den Reiter nicht" \
+"  if(ohne>0){@@@  if(ohne>=0){"
+
+fall "die Alle-Ansicht fragt wieder das rohe Feld" "zeichnet das Rezept ohne Kategorie" \
+"      const grp=R.filter(r=>katVonRezept(r)===cat.id&&!r.blank&&r.name&&r.name.trim());if(!grp.length)continue;@@@      const grp=R.filter(r=>r.cat===cat.id&&!r.blank&&r.name&&r.name.trim());if(!grp.length)continue;"
+
+fall "die Getraenke-Symbole verschwinden wieder" "eigene Getraenke-Symbole" \
+'"🍶","🍼","🚰","⚗️","🫧","🍋‍🟩",@@@'
+
 echo
 echo "$gefangen gefangen · $durch durchgerutscht · $falsch aus falschem Grund · $tot tote Anker"
 cd /; rm -rf "$(dirname "$KOPIE")"
