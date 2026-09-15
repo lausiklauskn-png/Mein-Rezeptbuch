@@ -6989,8 +6989,8 @@ function _buildBookGroups(){
   const all=R.filter(r=>r.name&&!r.blank);
   const groups=[];
   const inFolder=new Set(all.filter(r=>r.folder).map(r=>r.id));
-  CATS.filter(c=>c.id!=='all').forEach(c=>{
-    const recs=all.filter(r=>r.cat===c.id&&!inFolder.has(r.id));
+  catsAlle().forEach(c=>{
+    const recs=all.filter(r=>katVonRezept(r)===c.id&&!inFolder.has(r.id));
     if(recs.length)groups.push({label:katBeschriftung(c),ico:katSymbol(c),recs});
   });
   FD.forEach(f=>{
@@ -7145,8 +7145,8 @@ function _kbFillZineSelect(){
   const cur=sel.value;
   const allRecs=R.filter(r=>r.name&&!r.blank);
   let html='<option value="">– Kein Lieblingsrezept –</option>';
-  CATS.filter(c=>c.id!=='all').forEach(c=>{
-    const recs=allRecs.filter(r=>r.cat===c.id);
+  catsAlle().forEach(c=>{
+    const recs=allRecs.filter(r=>katVonRezept(r)===c.id);
     if(!recs.length)return;
     html+=`<optgroup label="${katSymbol(c)} ${h(katBeschriftung(c))}">`;
     recs.forEach(r=>{html+=`<option value="${r.id}"${r.id===cur?' selected':''}>${r.name}</option>`;});
@@ -7154,7 +7154,7 @@ function _kbFillZineSelect(){
   });
   FD.forEach(f=>{
     const fid='fld_'+f.id;
-    const recs=allRecs.filter(r=>r.cat===fid);
+    const recs=allRecs.filter(r=>r.folder===String(f.id)||r.cat===fid);
     if(!recs.length)return;
     html+=`<optgroup label="${f.ico||'📁'} ${f.name}">`;
     recs.forEach(r=>{html+=`<option value="${r.id}"${r.id===cur?' selected':''}>${r.name}</option>`;});
@@ -9758,8 +9758,8 @@ function badge(){
   if(!b)return;b.style.display=f?'block':'none';b.textContent=f;
   const rc=R.filter(r=>!r.blank).length,rb=document.getElementById('recBadge');
   if(rb){rb.style.display=rc?'block':'none';rb.textContent=rc;}
-  const fldCats=CATS.filter(c=>c.id!=='all'&&R.some(r=>r.cat===c.id&&r.name)).length;
-  const fldFolders=FD.filter(f=>R.some(r=>r.folder===String(f.id)&&r.name)).length;
+  const fldCats=catsAlle().filter(c=>R.some(r=>katVonRezept(r)===c.id&&r.name)).length;
+  const fldFolders=FD.filter(f=>R.some(r=>(r.folder===String(f.id)||r.cat==='fld_'+f.id)&&r.name)).length;
   const fc=fldCats+fldFolders,fb=document.getElementById('fldBadge');
   if(fb){fb.style.display=fc?'block':'none';fb.textContent=fc;}
 }
@@ -10743,9 +10743,9 @@ function renderFolders(){
   const openGids=new Set([...tree.querySelectorAll('.fld-recs.open')].map(el=>el.closest('.fld-grp')?.dataset.gid).filter(Boolean));
   const groups=[
     ...catsAlle().map(c=>({id:'cat_'+c.id,name:katBeschriftung(c),ico:katSymbol(c),col:c.col,
-      recipes:R.filter(r=>r.cat===c.id&&r.name)})),
+      recipes:R.filter(r=>katVonRezept(r)===c.id&&r.name)})),
     ...FD.map(f=>({id:'cfd_'+f.id,name:f.name,ico:f.ico,col:'#7a5840',
-      recipes:R.filter(r=>r.folder===String(f.id)&&r.name)}))
+      recipes:R.filter(r=>(r.folder===String(f.id)||r.cat==='fld_'+f.id)&&r.name)}))
   ];
   tree.innerHTML=groups.map(g=>{
     const isFolder=g.id.startsWith('cfd_');
