@@ -749,6 +749,69 @@ rot, **ohne dass eine Zusicherung gefallen wäre** — ein früherer Abschnitt d
 Probe hatte der Kategorie längst ein eigenes Symbol gegeben. Verglichen wird
 jetzt gegen das Symbol, das die Kategorie **wirklich** trägt.
 
+### ⚠ UND DIE WURZEL LAG IM IMPORT, NICHT IM VERSCHIEBEN (Klaus 2026-09-16)
+
+Klaus, nach dem Sichttest: *„oben in der Navi-Leiste steht Sushi mit 7, im
+Ordner aber nur mit 1"* · *„da steht auch Sushi zweimal drin"* · *„wenn keine
+[Kategorie] da ist, soll eine erstellt werden — aber das sollte es schon
+geben."*
+
+**Der Verdacht vom selben Tag war zu eng.** Die Trennung von Ordner und
+Kategorie hat das Verschieben von Hand repariert; entstanden sind Klaus' sechs
+Gerichte ohne Kategorie aber woanders. **Gemessen im Code:**
+
+| Stelle | was sie tat |
+|---|---|
+| `_showCatMapDialog` | schlug für **jede** unbekannte Kategorie „📁 als eigener Ordner" vor — **vorausgewählt** |
+| `_applyCatMapping` | schrieb daraufhin `r.cat = 'fld_<id>'` — die Kategorie war weg |
+| `_normalizeRecs` | machte aus **jeder** unbekannten Kennung `'fleisch'` |
+
+**Daraus folgte alles Übrige:** das Gericht trug im Ordner 📁 statt seines
+Kategorie-Symbols · ein Symbolwechsel erreichte es nicht mehr · und in der
+Leiste standen **die alte Kategorie und der neue Ordner nebeneinander**, zweimal
+derselbe Name.
+
+**Klaus' eigener Satz weist darauf:** *„Avocado-Rolls habe ich ständig
+verschoben und das hat ein funktionierendes Emoji-Tauschen."* Das von Hand
+verschobene Rezept ist heil, die sechs unangetasteten sind es nicht — sie kamen
+aus einer Datei.
+
+⚠ **`_normalizeRecs` war die Abhilfe aus der Zeit VOR dem Fremd-Reiter.** Seit
+dem 2026-09-15 bekommt jede unbekannte Kennung über `catsFremd()` einen eigenen
+Reiter — die Kategorie **entsteht also von selbst**, und diese Zeile hat sie
+jedes Mal vorher weggeworfen. Ersetzt, nicht stillschweigend gestrichen.
+
+### Was jetzt gilt
+
+| | vorher | nachher |
+|---|---|---|
+| unbekannte Kategorie beim Import | Vorgabe **„als eigener Ordner"** | Vorgabe **„als eigene Kategorie behalten"** |
+| „in einen Ordner" gewählt | `r.cat` → `fld_…`, Kategorie weg | `r.folder` gesetzt, **Kategorie bleibt** |
+| unbekannte Kennung | wurde zu `fleisch` | **bleibt** und bekommt ihren Reiter |
+| Ordner-Bildschirm | „Sushi · 1 Rezept" | „Sushi · 1 Rezept **· +6 in Ordnern**" |
+
+Die letzte Zeile ist die Antwort auf „7 gegen 1": **beide Zahlen waren richtig
+gerechnet**, der Unterschied stand nur nirgends. Er wird jetzt danebengeschrieben,
+statt die Doppelung im Baum zurückzuholen.
+
+⚠ **UND DIE GEGENPROBE KONNTE EINEN TOTEN ANKER NICHT MELDEN.** Ihre
+Anker-Prüfung schrieb `io.open('"$ANKERFEHL"', ...)` — in einem **zitierten**
+Heredoc (`<<'PY'`) wird nichts ersetzt, also entstand eine Datei, die
+**wörtlich so hieß**, und `[ -f "$ANKERFEHL" ]` traf nie zu. Folge: ein toter
+Anker meldete sich als **„NICHT GEFANGEN"**, also als blinder Wächter.
+
+**Gemessen am 2026-09-16 an zwei Fällen, deren Zeile ich selbst verschoben
+hatte** — gemeldet wurden 3 durchgerutschte, davon waren **zwei tote Anker**.
+Genau die Verwechslung, vor der Sages Tafel warnt: *eine grün gebliebene
+Gegenprobe hat zwei mögliche Ursachen, die das Gegenteil voneinander verlangen*
+(„bau einen Wächter" gegen „zieh den Fall nach"). Der Pfad kommt jetzt aus der
+Umgebung.
+
+⚠ **Und der dritte war wirklich blind — eine Sabotage, die nichts ändert, was
+der Wächter SIEHT.** Sie entfernte `selected` von der ersten Option; ein
+`<select>` **ohne** `selected` wählt aber ohnehin den ersten Eintrag. Getauscht
+wird jetzt die Reihenfolge.
+
 ### Geprüft
 
 ```bash

@@ -8841,7 +8841,15 @@ function _normalizeRecs(recs){
   recs.forEach(r=>{if(!r.img)r.img='';if(r.folder===undefined)r.folder='';if(!r.rating)r.rating={stars:0,comment:'',imps:[]};if(!r.ings)r.ings=[];if(!r.steps)r.steps=[];if(!r.flavors)r.flavors=[];if(!r.servings)r.servings=4;if(!r.imgCrop)r.imgCrop={x:50,y:50,scale:1,h:1};else if(typeof r.imgCrop.h!=='number')r.imgCrop.h=1;/* ⚠ Leer heißt „Ohne Kategorie" und wird NICHT zu Fleisch geraten — seit
        Ordner und Kategorie getrennt sind, ist das ein gueltiger Zustand. */
     if(r.cat===undefined||r.cat===null)r.cat='';
-    if(r.cat&&!validCats.has(r.cat)&&!String(r.cat).startsWith('fld_'))r.cat='fleisch';});
+    /* ⚠ EINE FREMDE KENNUNG WIRD NICHT MEHR ZU FLEISCH GERATEN (Klaus
+       2026-09-16: „wenn keine da ist, soll eine erstellt werden"). Seit dem
+       2026-09-15 bekommt jede unbekannte Kennung ueber `catsFremd()` einen
+       eigenen Reiter — die Kategorie ENTSTEHT also von selbst, und diese Zeile
+       hat sie jedes Mal vorher weggeworfen. Was hier stand, war die Abhilfe aus
+       der Zeit VOR dem Reiter; sie ist ersetzt, nicht stillschweigend
+       gestrichen. `validCats` bleibt fuer den Dialog stehen, der die fremden
+       Kennungen auflistet. */
+    if(typeof r.cat!=='string')r.cat='';});
 }
 function _showImportChoiceDialog(recCount, onReplace, onMerge){
   const ov=document.createElement('div');
@@ -8862,9 +8870,24 @@ function _showImportChoiceDialog(recCount, onReplace, onMerge){
   ov.querySelector('#_impMerge').onclick=()=>{ov.remove();onMerge();};
   ov.querySelector('#_impCancel').onclick=()=>ov.remove();
 }
+/* ⚠ HIER ENTSTANDEN KLAUS' SECHS SUSHI OHNE KATEGORIE (gemessen 2026-09-16).
+   Der Zuordnungs-Dialog schlug fuer JEDE unbekannte Kategorie „als eigener
+   Ordner" vor — vorausgewaehlt —, und diese Zeile schrieb daraufhin
+   `r.cat='fld_<id>'`. Die Kategorie war damit weg: das Gericht trug im Ordner
+   das Symbol 📁, ein Kategorie-Wechsel erreichte es nicht mehr, und in der
+   Leiste standen die Kategorie UND der neue Ordner nebeneinander — zweimal
+   derselbe Name.
+   Ein Ordner ist jetzt ein ZWEITES Merkmal, kein Ersatz: `r.folder` wird
+   gesetzt, `r.cat` bleibt stehen. */
 function _applyCatMapping(recs,mapping){
   if(!mapping||!Object.keys(mapping).length)return;
-  recs.forEach(r=>{if(r.cat&&mapping[r.cat])r.cat=mapping[r.cat];});
+  recs.forEach(r=>{
+    if(!r.cat)return;
+    const ziel=mapping[r.cat];
+    if(!ziel||ziel==='__behalten__')return;
+    if(typeof ziel==='string'&&ziel.indexOf('fld_')===0){r.folder=ziel.slice(4);return;}
+    r.cat=ziel;
+  });
 }
 function _resolveFolderMappings(mapping){
   // Kategorien, die als Ordner behalten werden sollen (Wert '__folder__'),
@@ -8889,9 +8912,9 @@ function _showCatMapDialog(recs,onDone){
   const unknowns=Object.keys(unknownMap);
   if(!unknowns.length){onDone({});return;}
   const catOpts=catsAlle().map(c=>`<option value="${c.id}">${katSymbol(c)} ${h(katBeschriftung(c))}</option>`).join('');
-  const rows=unknowns.map(cat=>`<div class="catmap-row"><div class="catmap-src"><div class="catmap-lbl">"${h(cat)}"</div><div class="catmap-cnt">${unknownMap[cat]} Rezept${unknownMap[cat]!==1?'e':''}</div></div><select class="catmap-sel" data-cat="${h(cat)}"><option value="__folder__" selected>📁 ${T('catmapAsFolder')||'als eigener Ordner'} „${h(cat)}"</option>${catOpts}</select></div>`).join('');
+  const rows=unknowns.map(cat=>`<div class="catmap-row"><div class="catmap-src"><div class="catmap-lbl">"${h(cat)}"</div><div class="catmap-cnt">${unknownMap[cat]} Rezept${unknownMap[cat]!==1?'e':''}</div></div><select class="catmap-sel" data-cat="${h(cat)}"><option value="__behalten__" selected>🏷 als eigene Kategorie behalten „${h(cat)}"</option><option value="__folder__">📁 ${T('catmapAsFolder')||'zusaetzlich in einen Ordner'} „${h(cat)}"</option>${catOpts}</select></div>`).join('');
   const ov=document.createElement('div');ov.className='share-ov';
-  ov.innerHTML=`<div class="share-box catmap-box"><div style="font-size:1.3rem;margin-bottom:5px;text-align:center">🗂️</div><div class="share-box-title" style="text-align:center;margin-bottom:3px">${T('catmapTitle')||'Kategorien zuordnen'}</div><div class="share-box-sub" style="text-align:center;margin-bottom:10px">${T('catmapSub')||'Unbekannte Kategorien aus der Datei — als eigenen Ordner behalten oder einer festen Kategorie zuordnen:'}</div>${rows}<button class="share-btn-p" id="_catmapOk" style="margin-top:12px;background:var(--rust)">✅ ${T('catmapOk')||'Übernehmen'}</button><button class="share-btn-cl" id="_catmapSkip">${T('catmapSkip')||'Überspringen'}</button></div>`;
+  ov.innerHTML=`<div class="share-box catmap-box"><div style="font-size:1.3rem;margin-bottom:5px;text-align:center">🗂️</div><div class="share-box-title" style="text-align:center;margin-bottom:3px">${T('catmapTitle')||'Kategorien zuordnen'}</div><div class="share-box-sub" style="text-align:center;margin-bottom:10px">${T('catmapSub')||'Kategorien aus der Datei, die dieses Buch noch nicht kennt. Vorgabe: sie bleiben als eigene Kategorie erhalten.'}</div>${rows}<button class="share-btn-p" id="_catmapOk" style="margin-top:12px;background:var(--rust)">✅ ${T('catmapOk')||'Übernehmen'}</button><button class="share-btn-cl" id="_catmapSkip">${T('catmapSkip')||'Überspringen'}</button></div>`;
   document.body.appendChild(ov);
   ov.querySelector('#_catmapOk').onclick=()=>{const m={};ov.querySelectorAll('.catmap-sel').forEach(s=>{m[s.dataset.cat]=s.value;});_resolveFolderMappings(m);ov.remove();onDone(m);};
   ov.querySelector('#_catmapSkip').onclick=()=>{ov.remove();onDone({});};
@@ -10760,7 +10783,13 @@ function renderFolders(){
       /* ⚠ WER IN EINEM ORDNER LIEGT, STEHT NUR DORT. Seit Ordner und Kategorie
          getrennt sind, hat ein Ordner-Rezept BEIDES — ohne diesen Riegel stuende
          dasselbe Gericht im Baum zweimal, und das war genau Klaus' Befund. */
-      recipes:R.filter(r=>!r.folder&&katVonRezept(r)===c.id&&r.name)})),
+      recipes:R.filter(r=>!r.folder&&katVonRezept(r)===c.id&&r.name),
+      /* ⚠ DIE ZAHL SAGT, WAS FEHLT (Klaus 2026-09-16: „oben 7, im Ordner 1").
+         Beide Zahlen waren richtig gerechnet — die Leiste zaehlt ALLE Rezepte
+         einer Kategorie, dieser Baum nur die, die in keinem Ordner liegen.
+         Der Unterschied stand nirgends und sah deshalb aus wie ein Fehler.
+         Er wird jetzt danebengeschrieben, statt die Doppelung zurueckzuholen. */
+      imOrdner:R.filter(r=>r.folder&&katVonRezept(r)===c.id&&r.name).length})),
     ...FD.map(f=>({id:'cfd_'+f.id,name:f.name,ico:f.ico,col:'#7a5840',
       recipes:R.filter(r=>(r.folder===String(f.id)||r.cat==='fld_'+f.id)&&r.name)}))
   ];
@@ -10774,7 +10803,7 @@ function renderFolders(){
         <div class="fld-ico-c" style="background:${g.col}22">${g.ico}</div>
         <div class="fld-info" onclick="event.stopPropagation();${navTarget}" style="cursor:pointer;flex:1">
           <div class="fld-name">${h(g.name)}</div>
-          <div class="fld-cnt">${g.recipes.length} ${T('bnRec')}</div>
+          <div class="fld-cnt">${g.recipes.length} ${T('bnRec')}${g.imOrdner?` · +${g.imOrdner} ${T('fldInOrdnern')||'in Ordnern'}`:''}</div>
         </div>
         ${isFolder?`<button onclick="event.stopPropagation();deleteFolder('${fid}','${h(g.name)}')" style="background:transparent;border:none;color:var(--dim);font-size:1rem;cursor:pointer;padding:4px 6px;border-radius:6px" title="Ordner löschen">🗑</button>`:''}
         <div class="fld-chev">▼ aufklappen</div>

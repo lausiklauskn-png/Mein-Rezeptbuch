@@ -30,12 +30,20 @@ if lauf | grep -qE "^[0-9]+ grün · 0 ROT$"; then echo "Ausgangslage gruen"; el
 fall(){
   cp "$DATEI" "$SICH"
   ANKERFEHL="$ANKERFEHL" python3 - "$3" <<'PY'
-import io,sys,glob
+import io,os,sys,glob
 p=glob.glob('QC_*.html')[0]
 s=io.open(p,encoding='utf-8').read()
 alt,neu=sys.argv[1].split('@@@')
 if s.count(alt)!=1:
-    io.open('"$ANKERFEHL"','w').write('1'); sys.exit(0)
+    # ⚠ DER PFAD KOMMT AUS DER UMGEBUNG, nicht aus einer Zeichenkette im
+    #   ZITIERTEN Heredoc. Hier stand '"$ANKERFEHL"' — in einem <<'PY' wird
+    #   NICHTS ersetzt, also entstand eine Datei, die WOERTLICH so hiess, und
+    #   die Pruefung darauf traf nie zu. Folge: ein TOTER ANKER meldete sich
+    #   als „NICHT GEFANGEN" — also als blinder Waechter. Gemessen am
+    #   2026-09-16 an zwei Faellen, deren Zeile ich selbst verschoben hatte.
+    #   Die beiden Ausgaenge verlangen das Gegenteil voneinander: „bau einen
+    #   Waechter" gegen „zieh den Fall nach".
+    io.open(os.environ['ANKERFEHL'],'w').write('1'); sys.exit(0)
 io.open(p,'w',encoding='utf-8').write(s.replace(alt,neu,1))
 PY
   if [ -f "$ANKERFEHL" ]; then rm -f "$ANKERFEHL"
@@ -148,7 +156,7 @@ fall "die Getraenke-Symbole verschwinden wieder" "eigene Getraenke-Symbole" \
 
 # ── Die Ordner-Ansicht zaehlt wieder anders als die Leiste (Klaus 2026-09-16) ──
 fall "der Ordner-Baum fragt wieder das rohe Feld" "Leiste = Baum" \
-"      recipes:R.filter(r=>!r.folder&&katVonRezept(r)===c.id&&r.name)})),@@@      recipes:R.filter(r=>!r.folder&&r.cat===c.id&&r.name)})),"
+"      recipes:R.filter(r=>!r.folder&&katVonRezept(r)===c.id&&r.name),@@@      recipes:R.filter(r=>!r.folder&&r.cat===c.id&&r.name),"
 
 fall "ein Ordner-Rezept ohne r.folder faellt im Baum wieder heraus" "faellt nirgends heraus" \
 "      recipes:R.filter(r=>(r.folder===String(f.id)||r.cat==='fld_'+f.id)&&r.name)}))@@@      recipes:R.filter(r=>r.folder===String(f.id)&&r.name)}))"
@@ -168,7 +176,7 @@ fall "eine Altbestands-Kennung wird wieder mitgeschleppt" "nicht mitgeschleppt" 
 }@@@}"
 
 fall "ein Rezept steht im Ordner-Baum wieder zweimal" "zweimal" \
-"      recipes:R.filter(r=>!r.folder&&katVonRezept(r)===c.id&&r.name)})),@@@      recipes:R.filter(r=>katVonRezept(r)===c.id&&r.name)})),"
+"      recipes:R.filter(r=>!r.folder&&katVonRezept(r)===c.id&&r.name),@@@      recipes:R.filter(r=>katVonRezept(r)===c.id&&r.name),"
 
 fall "die Zeile im Ordner fragt wieder das rohe Feld" "Ohne-Kategorie statt" \
 '            <div style="font-size:.92rem">${catIco(katVonRezept(r))}</div>@@@            <div style="font-size:.92rem">${catIco(r.cat)}</div>'
@@ -183,6 +191,25 @@ fall "ein geloeschter Ordner raet wieder Fleisch" "erfindet keine Kategorie" \
 
 fall "der Ordner ueberstimmt die Kategorie in der Anlage-Maske wieder" "trotzdem seine Kategorie" \
 "  const catId=document.getElementById('newCat').value||'fleisch';@@@  const catId=folder?('fld_'+folder):(document.getElementById('newCat').value||'fleisch');"
+
+# ── Der Import nimmt einer Kategorie nicht ihr Zuhause (Klaus 2026-09-16) ──
+fall "der Import verwandelt die Kategorie wieder in eine Ordner-Kennung" "laesst die Kategorie stehen" \
+"    if(typeof ziel==='string'&&ziel.indexOf('fld_')===0){r.folder=ziel.slice(4);return;}@@@    if(typeof ziel==='string'&&ziel.indexOf('fld_')===0){r.cat=ziel;return;}"
+
+fall "der Import setzt den Ordner gar nicht" "setzt den Ordner wirklich" \
+"    if(typeof ziel==='string'&&ziel.indexOf('fld_')===0){r.folder=ziel.slice(4);return;}@@@    if(typeof ziel==='string'&&ziel.indexOf('fld_')===0){return;}"
+
+fall "eine fremde Kennung wird wieder zu Fleisch" "ueberlebt die Normalisierung" \
+"    if(typeof r.cat!=='string')r.cat='';});@@@    if(typeof r.cat!=='string')r.cat='';if(r.cat&&!validCats.has(r.cat)&&!String(r.cat).startsWith('fld_'))r.cat='fleisch';});"
+
+# ⚠ Ein <select> OHNE `selected` waehlt den ERSTEN Eintrag — `selected` bloss
+#   zu entfernen aendert nichts, was der Waechter sieht. Die Reihenfolge wird
+#   getauscht, so wie sie vor dem 2026-09-16 wirklich stand.
+fall "die Vorauswahl im Dialog steht wieder auf Ordner" "vorausgewaehlt" \
+'<option value="__behalten__" selected>🏷 als eigene Kategorie behalten „${h(cat)}"</option><option value="__folder__">@@@<option value="__folder__" selected>'
+
+fall "die Kategorie-Zeile verschweigt die in Ordnern wieder" "nennt die, die in Ordnern liegen" \
+'${g.imOrdner?` · +${g.imOrdner} ${T('"'"'fldInOrdnern'"'"')||'"'"'in Ordnern'"'"'}`:'"'"''"'"'}@@@'
 
 echo
 echo "$gefangen gefangen · $durch durchgerutscht · $falsch aus falschem Grund · $tot tote Anker"
