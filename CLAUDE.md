@@ -682,12 +682,83 @@ dass **beide Ansichten dieselbe Zahl nennen** — plus die Gegenrichtung, dass
 überhaupt eine mitgebrachte Kategorie mit Inhalt dabei ist (sonst wären alle
 Zahlen 0 und stimmten trivial überein).
 
+### ⚠ EIN ORDNER FRASS DIE KATEGORIE AUF (Klaus 2026-09-16)
+
+Klaus, drei Befunde aus einem Bild: *„das Sushi taucht zweimal auf"* · *„wenn ich
+es aufklappe, hat das Sushi Ordner als Emojis"* · *„wenn ich jetzt das Hauptemoji
+für die Kategorie ändere, ändern sich die unteren Emojis für die einzelnen
+Gerichte nicht."*
+
+**Eine Ursache für alle drei.** Ein Ordner-Umzug schrieb `r.cat='fld_<id>'` —
+an **drei** Stellen (Maus-Ablage, Finger auf eine Zeile, Finger auf eine Gruppe).
+Das Feld, in dem die Kategorie steht, trug danach eine Ordner-Kennung: das
+Gericht hatte **keine Kategorie mehr**, stand im Baum unter Kategorie *und*
+Ordner, und kein Kategorie-Symbol konnte es je wieder erreichen.
+
+**Gemessen, nicht geschlossen** (2026-09-16, echter Browser, 3 `r.cat`-Werte ×
+2 `r.folder`-Werte × 2 `FD`-Zustände):
+
+| | Befund |
+|---|---|
+| ein 📁 in einer Rezeptzeile | tritt **ausschließlich** dort auf, wo `r.cat` eine Ordner-Kennung trägt |
+| `cat='sushi'` + `folder` gesetzt | Zeile trägt 🍣, Symbolwechsel kommt an |
+| `cat='fld_…'` | Zeile trägt 📁, Symbolwechsel kommt **nicht** an |
+
+**Was jetzt gilt: ein Ordner setzt nur noch `r.folder`.** Die Kategorie bleibt
+stehen. Dazu drei Folgen, jede mit eigenem Wächter:
+
+- **Wer in einem Ordner liegt, steht im Baum nur dort.** Sonst stünde dasselbe
+  Gericht zweimal da — Klaus' erster Befund, nur andersherum.
+- **Ein gelöschter Ordner erfindet keine Kategorie.** `deleteFolder` setzte
+  `r.cat='fleisch'` für **jedes** Rezept des Ordners, auch für die mit eigener
+  Kategorie. Aufgelöst wird jetzt nur der Ordner.
+- **Die Anlage-Maske hat zwei Felder, und der Ordner überstimmt das
+  Kategorie-Feld nicht mehr.** Wer einen Ordner wählte, bekam ein Rezept ohne
+  Kategorie, ohne dass es irgendwo stand.
+
+⚠ **ALTBESTAND WIRD NICHT GERATEN.** Ein `fld_…` in `r.cat` ist der Rest des
+alten Weges, keine Kategorie. Beim Umzug wird es geleert und landet sichtbar
+unter **„Ohne Kategorie"** — welche es sein soll, entscheidet der Nutzer.
+**Klaus' sechs Sushi-Gerichte heilt das nicht von allein**; ihre Kategorie ist
+schon weg. Der Weg von Hand: im Ordner-Baum auf eine **Kategorie**-Gruppe ziehen
+(setzt die Kategorie, holt es aus dem Ordner), dann zurück auf den **Ordner**
+ziehen — der lässt die Kategorie jetzt stehen.
+
+⚠ **TAFEL-EVOLUTIONS-KLAUSEL, AUSDRÜCKLICH BENANNT.** Wächter 13 hieß seit dem
+Vortag *„jede Gruppe zeigt in BEIDEN Ansichten dieselbe Zahl"*. Das war richtig,
+solange ein Ordner die Kategorie auffraß — dann hatte ein Rezept entweder das
+eine oder das andere. Jetzt hat es **beides**, und die zwei Ansichten beantworten
+zwei Fragen:
+
+| | fragt |
+|---|---|
+| Kategorie-Leiste | „wie viele Rezepte **haben** diese Kategorie?" — die in Ordnern zählen mit |
+| Ordner-Baum | „was liegt **hier**?" — jedes Rezept steht genau einmal |
+
+Gemessen wird deshalb **`Leiste = Baum + die, die in einem Ordner liegen`** —
+der Unterschied wird ausgerechnet, nicht weggelassen.
+
+⚠ **UND EIN NEUER WÄCHTER WAR BEIM ERSTEN LAUF SELBST BLIND.** „Das Abzeichen
+zählt genau die Gruppen mit Inhalt" schob **ein** Rezept in einen Ordner — die
+Kategorie hatte aber noch ein zweites draußen und zählte deshalb so oder so mit.
+Gefangen hat es die Gegenprobe, nicht das Nachdenken. *Ein Fall, in dem beide
+Fassungen dieselbe Zahl ergeben, misst nichts.*
+
+⚠ **Ein zweiter hing an einem festgenagelten Zeichen:** „die Zeile trägt 🍣" war
+rot, **ohne dass eine Zusicherung gefallen wäre** — ein früherer Abschnitt der
+Probe hatte der Kategorie längst ein eigenes Symbol gegeben. Verglichen wird
+jetzt gegen das Symbol, das die Kategorie **wirklich** trägt.
+
 ### Geprüft
 
 ```bash
 node tests/smoke_kategorien.mjs        # echter Browser, an der GEBAUTEN index.html
 bash tests/gegenprobe_kategorien.sh    # Wegwerf-Kopie, MIT Bau-Schritt
 ```
+
+Zuletzt gemessen (2026-09-16, nach der Trennung): **56 grün · 0 ROT** ·
+Gegenprobe **37 gefangen · 0 durchgerutscht · 0 aus falschem Grund · 0 tote
+Anker**.
 
 ⚠ **Die Gegenprobe baut zwischen Sabotage und Messung neu.** Ohne
 `python3 build.py` misst sie die alte `index.html`, und jeder Fall wäre „nicht
