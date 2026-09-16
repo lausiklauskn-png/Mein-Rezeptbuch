@@ -211,6 +211,16 @@ fall "die Vorauswahl im Dialog steht wieder auf Ordner" "vorausgewaehlt" \
 fall "die Kategorie-Zeile verschweigt die in Ordnern wieder" "nennt die, die in Ordnern liegen" \
 '${g.imOrdner?` · +${g.imOrdner} ${T('"'"'fldInOrdnern'"'"')||'"'"'in Ordnern'"'"'}`:'"'"''"'"'}@@@'
 
+# ── Ein Text-Schluessel, den es nicht gibt (Klaus 2026-09-16: „+6 fldInOrdnern") ──
+fall "ein benutzter Schluessel fehlt in LANGS" "sind in LANGS.de vorhanden" \
+"fldInOrdnern:'in Ordnern',@@@"
+
+fall "die Ordner-Zeile zeigt wieder den Schluesselnamen" "mit einem Wort, nicht mit dem Schluesselnamen" \
+"fldInOrdnern:'in Ordnern',@@@fldInOrdnern:'fldInOrdnern',"
+
+fall "der Schluessel-Sammler findet gar nichts" "Sammler findet ueberhaupt Schluessel" \
+"function T(k){return(LANGS[CL]||LANGS.de)[k]||k;}@@@function T_(k){return(LANGS[CL]||LANGS.de)[k]||k;}function T(k){return T_(k);}"
+
 echo
 echo "$gefangen gefangen · $durch durchgerutscht · $falsch aus falschem Grund · $tot tote Anker"
 cd /; rm -rf "$(dirname "$KOPIE")"
