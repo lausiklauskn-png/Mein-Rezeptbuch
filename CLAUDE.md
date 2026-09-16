@@ -819,9 +819,52 @@ node tests/smoke_kategorien.mjs        # echter Browser, an der GEBAUTEN index.h
 bash tests/gegenprobe_kategorien.sh    # Wegwerf-Kopie, MIT Bau-Schritt
 ```
 
-Zuletzt gemessen (2026-09-16, nach der Import-Reparatur): **64 grün · 0 ROT** ·
-Gegenprobe **42 gefangen · 0 durchgerutscht · 0 aus falschem Grund · 0 tote
-Anker**.
+### ⚠ `T(k)` FÄLLT NICHT ZURÜCK — ES GIBT DEN SCHLÜSSEL HERAUS (Klaus 2026-09-16)
+
+Klaus im Bild: auf dem Ordner-Bildschirm stand **„1 Rezepte · +6
+fldInOrdnern"** — der Schlüsselname statt des Wortes.
+
+```js
+function T(k){ return (LANGS[CL]||LANGS.de)[k] || k; }
+```
+
+Bei einem **fehlenden** Schlüssel gibt `T(k)` den **Schlüssel zurück**, also
+immer etwas Wahres. Ein `T('x') || 'Rückfall'` dahinter kann deshalb **nie**
+greifen — der Rückfall sah aus wie eine Absicherung und war keine.
+
+**Dieselbe Familie wie `a ?? b` bei `null` und `${X:-vorgabe}` bei leerem X:**
+ein Ausdruck, den die Schnittstelle anders deutet als der Schreibende. *Der
+Prüfstein bleibt: schreib hin, was du meinst.*
+
+⚠ **DER WÄCHTER MISST DIE FAMILIE, NICHT DEN EINZELFALL.** Er sammelt jeden
+`T('…')` aus dem Quelltext und besteht darauf, dass der Schlüssel in `LANGS.de`
+steht. **Beim ersten Lauf hat er sofort fünf weitere gefunden** —
+`catmapAsFolder`, `catmapTitle`, `catmapSub`, `catmapOk`, `catmapSkip`,
+allesamt im Zuordnungs-Dialog beim Import, der deshalb seit längerem
+Schlüsselnamen anzeigte. Alle in acht Sprachen nachgetragen, dazu `catmapKeep`.
+Gemessen: **207 benutzte Schlüssel, alle vorhanden.**
+
+⚠ **Und der Wächter auf die Ordner-Zeile fragte nur nach der ZAHL** („+2") und
+war für das Wort daneben blind. **Gefunden hat es Klaus' Bild, keine Probe.**
+
+⚠ **ZWEI TOTE ANKER IM SELBEN LAUF — und diesmal hat die Gegenprobe es gesagt.**
+Beide zeigten auf Zeilen, die ich eine Stunde vorher selbst geändert hatte. Die
+am selben Tag reparierte Anker-Prüfung meldete sie **als tot** statt als blinde
+Wächter; vorher hätte dieselbe Lage „NICHT GEFANGEN" gemeldet und in die
+falsche Richtung gewiesen.
+
+⚠ **BENANNTE GRENZE:** für „der Schlüssel-Sammler findet überhaupt etwas" steht
+**kein** Gegenprobe-Fall. Um ihn leerlaufen zu lassen, müsste eine Sabotage
+**alle** `T('…')`-Aufrufe auf doppelte Anführungszeichen umstellen — `fall`
+ersetzt aber nur die erste Fundstelle. Mein erster Anlauf tauschte die
+**Definition** von `T()` aus; der Sammler liest die **Aufrufe**, und die blieben
+unverändert, also rutschte der Fall zu Recht durch. Gedeckt ist die Zusicherung
+trotzdem: der Haupt-Wächter verlangt ausdrücklich `gesamt > 20` und fällt damit
+mit aus. *Ein Fall, der nichts messen kann, sähe wie Deckung aus.*
+
+Zuletzt gemessen (2026-09-16, nach der Schlüssel-Reparatur): **67 grün · 0 ROT**
+(207 Schlüssel geprüft) · Gegenprobe **44 gefangen · 0 durchgerutscht · 0 aus
+falschem Grund · 0 tote Anker**.
 
 ⚠ **DIE ZAHL DAVOR BLEIBT DANEBEN STEHEN, weil sie den Fund gemacht hat:**
 derselbe Lauf meldete zuerst **39 gefangen · 3 durchgerutscht**. Zwei der drei
