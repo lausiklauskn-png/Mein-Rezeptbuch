@@ -819,9 +819,15 @@ node tests/smoke_kategorien.mjs        # echter Browser, an der GEBAUTEN index.h
 bash tests/gegenprobe_kategorien.sh    # Wegwerf-Kopie, MIT Bau-Schritt
 ```
 
-Zuletzt gemessen (2026-09-16, nach der Trennung): **56 grün · 0 ROT** ·
-Gegenprobe **37 gefangen · 0 durchgerutscht · 0 aus falschem Grund · 0 tote
+Zuletzt gemessen (2026-09-16, nach der Import-Reparatur): **64 grün · 0 ROT** ·
+Gegenprobe **42 gefangen · 0 durchgerutscht · 0 aus falschem Grund · 0 tote
 Anker**.
+
+⚠ **DIE ZAHL DAVOR BLEIBT DANEBEN STEHEN, weil sie den Fund gemacht hat:**
+derselbe Lauf meldete zuerst **39 gefangen · 3 durchgerutscht**. Zwei der drei
+waren tote Anker (Zeilen, die ich selbst verschoben hatte), einer ein wirklich
+blinder Wächter. Nur die zweite Zahl zu nennen hiesse, den Befund durch seine
+Reparatur zu ersetzen.
 
 ⚠ **Die Gegenprobe baut zwischen Sabotage und Messung neu.** Ohne
 `python3 build.py` misst sie die alte `index.html`, und jeder Fall wäre „nicht
