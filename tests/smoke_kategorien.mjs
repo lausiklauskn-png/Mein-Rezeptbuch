@@ -37,6 +37,29 @@ const BESTAND = [
 ];
 
 const browser = await chromium.launch({ executablePath:"/opt/pw-browsers/chromium-1194/chrome-linux/chrome", args:["--no-sandbox"] });
+
+/* ⚠ EINE PROBE, DIE WIRFT, IST ROT — NICHT EIN TOTER LAUF (2026-09-16).
+   Ohne diesen Fang starb die Probe bei einem null-Zugriff oder einem
+   `page.click`-Timeout OHNE Schlusszeile. Die Gegenprobe urteilt an den roten
+   Zeilen und an der Schlusszeile; fehlt beides, kann sie nur „ROT AUS FALSCHEM
+   GRUND" sagen — und der Fall, der sauber zugeschlagen hat, sieht aus wie ein
+   Fehler im Werkzeug. Gemessen an zwei Faellen desselben Tages, beide von Hand
+   nachgestellt. (Sages Laeufer kennt dieselbe Regel; hier gibt es keinen
+   Laeufer, also steht sie in der Probe selbst.)
+   Kein `process.exit()` — das verwirft den stdout-Puffer, und dann waeren die
+   roten Zeilen genau in dem Fall weg, in dem man sie am noetigsten braucht. */
+let _abgestuerzt=false;
+async function _schlussNachAbsturz(e){
+  if(_abgestuerzt)return; _abgestuerzt=true;
+  rot++;
+  console.log("  ✗ ROT — die Probe ist abgestuerzt: "+String((e&&e.message)||e).split("\n")[0]);
+  try{ await browser.close(); }catch(_){}
+  try{ server.close(); }catch(_){}
+  console.log(`\n${gruen} grün · ${rot} ROT`);
+  process.exitCode=1;
+}
+process.on("unhandledRejection",_schlussNachAbsturz);
+process.on("uncaughtException",_schlussNachAbsturz);
 const seite = await browser.newPage();
 let seitenfehler = [];
 seite.on("pageerror", e => seitenfehler.push(String(e)));
