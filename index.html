@@ -5558,6 +5558,21 @@ function katSymbol(c){if(!c)return'📦';const e=CATS_EIGEN[c.id];if(e&&e.ico)re
    Sie werden jetzt als EIGENE Kategorie gefuehrt, nicht repariert: welche
    Kategorie sie bekommen sollen, entscheidet Klaus, nicht die App. */
 const KAT_OHNE='__ohne';
+/* ⚠ EIN ORDNER, DEN ES NICHT GIBT, IST KEIN ORDNER (Klaus 2026-09-16).
+   Dieselbe Zusicherung wie `katVonRezept` fuer die Kategorie, nur am anderen
+   Feld. Zeigt `r.folder` auf eine Kennung, die in FD nicht steht, dann fiel
+   das Rezept aus JEDER Kategorie-Gruppe (die fragt `!r.folder`) UND es gab
+   keinen Ordner-Eintrag, in dem es stehen koennte: es blieb nur die Zahl
+   „+N in Ordnern" — ein Ordner, den man nicht oeffnen, nicht umbenennen und
+   nicht aufloesen kann. Klaus nannte ihn „ein unsichtbarer Ordner".
+   Ein rohes Feld zu lesen, wo eine Deutung gemeint ist, macht aus einer
+   Kennung zwei verschiedene — die Lehre vom Vortag, am zweiten Feld. */
+function ordnerVonRezept(r){
+  var f=(r&&r.folder!=null)?String(r.folder):'';
+  if(!f)return '';
+  var da=(typeof FD!=='undefined'&&Array.isArray(FD))&&FD.some(function(x){return String(x.id)===f;});
+  return da?f:'';
+}
 function katVonRezept(r){
   var id=(r&&typeof r.cat==='string')?r.cat.trim():'';
   if(!id)return KAT_OHNE;
@@ -7224,7 +7239,7 @@ function _kbFillZineSelect(){
   catsAlle().forEach(c=>{
     // Wer in einem Ordner liegt, steht unten unter seinem Ordner — sonst
     // stuende dasselbe Rezept zweimal in derselben Auswahlliste.
-    const recs=allRecs.filter(r=>!r.folder&&katVonRezept(r)===c.id);
+    const recs=allRecs.filter(r=>!ordnerVonRezept(r)&&katVonRezept(r)===c.id);
     if(!recs.length)return;
     html+=`<optgroup label="${katSymbol(c)} ${h(katBeschriftung(c))}">`;
     recs.forEach(r=>{html+=`<option value="${r.id}"${r.id===cur?' selected':''}>${r.name}</option>`;});
@@ -9883,7 +9898,7 @@ function badge(){
   if(!b)return;b.style.display=f?'block':'none';b.textContent=f;
   const rc=R.filter(r=>!r.blank).length,rb=document.getElementById('recBadge');
   if(rb){rb.style.display=rc?'block':'none';rb.textContent=rc;}
-  const fldCats=catsAlle().filter(c=>R.some(r=>!r.folder&&katVonRezept(r)===c.id&&r.name)).length;
+  const fldCats=catsAlle().filter(c=>R.some(r=>!ordnerVonRezept(r)&&katVonRezept(r)===c.id&&r.name)).length;
   const fldFolders=FD.filter(f=>R.some(r=>(r.folder===String(f.id)||r.cat==='fld_'+f.id)&&r.name)).length;
   const fc=fldCats+fldFolders,fb=document.getElementById('fldBadge');
   if(fb){fb.style.display=fc?'block':'none';fb.textContent=fc;}
@@ -10980,13 +10995,13 @@ function renderFolders(){
       /* ⚠ WER IN EINEM ORDNER LIEGT, STEHT NUR DORT. Seit Ordner und Kategorie
          getrennt sind, hat ein Ordner-Rezept BEIDES — ohne diesen Riegel stuende
          dasselbe Gericht im Baum zweimal, und das war genau Klaus' Befund. */
-      recipes:R.filter(r=>!r.folder&&katVonRezept(r)===c.id&&r.name),
+      recipes:R.filter(r=>!ordnerVonRezept(r)&&katVonRezept(r)===c.id&&r.name),
       /* ⚠ DIE ZAHL SAGT, WAS FEHLT (Klaus 2026-09-16: „oben 7, im Ordner 1").
          Beide Zahlen waren richtig gerechnet — die Leiste zaehlt ALLE Rezepte
          einer Kategorie, dieser Baum nur die, die in keinem Ordner liegen.
          Der Unterschied stand nirgends und sah deshalb aus wie ein Fehler.
          Er wird jetzt danebengeschrieben, statt die Doppelung zurueckzuholen. */
-      imOrdner:R.filter(r=>r.folder&&katVonRezept(r)===c.id&&r.name).length})),
+      imOrdner:R.filter(r=>ordnerVonRezept(r)&&katVonRezept(r)===c.id&&r.name).length})),
     ...FD.map(f=>({id:'cfd_'+f.id,name:f.name,ico:f.ico,col:'#7a5840',
       recipes:R.filter(r=>(r.folder===String(f.id)||r.cat==='fld_'+f.id)&&r.name)}))
   ];
@@ -11225,7 +11240,11 @@ function katZuSetzen(rid,kid){
   var pop=document.getElementById('katZuPop');if(pop)pop.remove();
   var r=R.find(function(x){return x.id===rid;});if(!r)return;
   r.cat=String(kid||'');
-  sv();render();badge();
+  /* ⚠ ALLE DREI ANSICHTEN ZIEHEN NACH, nicht nur die Rezeptliste. Der
+     Ordner-Baum liest dieselbe Quelle (`katVonRezept`), zeichnete sich aber
+     nicht neu — wer von dort kam, sah seine Aenderung nicht. Ein Wächter hat
+     es gefunden, nicht das Nachdenken. */
+  sv();render();renderCatNav();renderFolders();badge();
   var c=(catsAlle()||[]).filter(function(x){return x&&String(x.id)===String(kid);})[0];
   var name=c?(katBeschriftung(c)||String(kid)):T('katZuOhne');
   toast('🏷️ '+(rName(r)||r.name||'')+' — '+T('katZuOk')+' '+name);

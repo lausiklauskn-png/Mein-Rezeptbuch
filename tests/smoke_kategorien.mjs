@@ -938,6 +938,50 @@ ok("… das Rezept ist im selben Griff zugeordnet", kz.zugeordnet===true);
    vor"-Riegel haette zwei Sorten zu pruefen. */
 ok("… mit demselben Kennungs-Format wie aus dem Dialog", kz.formatGleich===true);
 
+/* ══ 20 · EIN ORDNER, DEN ES NICHT GIBT, IST KEIN ORDNER (Klaus 2026-09-16) ══
+   „sie werden immer nur innerhalb eines Ordners verschoben … als wenn sie in
+   einem eigenen Ordner waeren. Und dieser Ordner laesst sich nicht umbenennen,
+   sondern bleibt ein unsichtbarer Ordner."
+   Genau die Lage: r.folder zeigt auf eine Kennung, die in FD nicht steht. Das
+   Rezept faellt dann aus JEDER Kategorie-Gruppe (die fragt `!r.folder`) UND es
+   gibt keinen Ordner-Eintrag — es bleibt nur die Zahl „+N in Ordnern". Dieselbe
+   Luecke wie bei `r.cat='fld_…'` am Vortag, nur am anderen Feld. */
+const geist = await seite.evaluate(async () => {
+  const sichR = JSON.stringify(R), sichFD = JSON.stringify(FD);
+  FD = [];                                   // es gibt KEINEN Ordner
+  R = [
+    { id:81, name:"Geister-Sushi", cat:"", folder:"tot999", shut:true, ings:[], steps:[] },
+    { id:82, name:"Sichtbar-Ohne", cat:"",  folder:"",      shut:true, ings:[], steps:[] },
+  ];
+  CAT = "all"; render(); renderCatNav(); renderFolders();
+
+  const gruppe = [...document.querySelectorAll('#fldTree .fld-grp')]
+    .find(g => (g.dataset.gid||"") === "cat___ohne");
+  const imBaum = gruppe ? [...gruppe.querySelectorAll('.fld-rrow')]
+    .some(e => (e.textContent||"").includes("Geister-Sushi")) : false;
+  const zeile = gruppe ? (gruppe.querySelector('.fld-cnt')||{}).textContent || "" : "";
+  /* Gibt es ueberhaupt einen Ordner-Eintrag, in dem es stecken koennte? */
+  const ordnerDa = [...document.querySelectorAll('#fldTree .fld-grp')]
+    .some(g => (g.dataset.gid||"").startsWith("cfd_"));
+
+  /* und nach dem Zuordnen muss es in SEINER Kategorie stehen */
+  katZuSetzen(81, "sushi");
+  const gSushi = [...document.querySelectorAll('#fldTree .fld-grp')]
+    .find(g => (g.dataset.gid||"") === "cat_sushi");
+  const imZiel = gSushi ? [...gSushi.querySelectorAll('.fld-rrow')]
+    .some(e => (e.textContent||"").includes("Geister-Sushi")) : false;
+
+  R = JSON.parse(sichR); FD = JSON.parse(sichFD);
+  render(); renderCatNav(); renderFolders();
+  return { imBaum, zeile, ordnerDa, imZiel };
+});
+/* ⚠ DIE ZUSICHERUNG IST SICHTBARKEIT, NICHT EINE ZAHL. „+1 in Ordnern" waere
+   auch dann da, wenn das Rezept nirgends steht — und genau so sah es aus. */
+ok("ein Rezept mit totem Ordner steht im Baum unter „Ohne Kategorie“", geist.imBaum===true);
+ok("… es gibt dafuer naemlich gar keinen Ordner-Eintrag", geist.ordnerDa===false);
+ok("… und es zaehlt nicht als „in Ordnern“", !/\+\s*1/.test(geist.zeile));
+ok("… nach dem Zuordnen steht es in SEINER Kategorie", geist.imZiel===true);
+
 await browser.close(); server.close();
 console.log(`\n${gruen} grün · ${rot} ROT`);
 process.exit(rot?1:0);
