@@ -78,7 +78,15 @@ ok("die mitgebrachten sind gekennzeichnet", await seite.locator("#katRenameOv .k
 console.log("\n── 5 · Emoji-Auswahl ──");
 ok("das Raster ist zu, solange niemand tippt",
    await seite.evaluate(()=>document.getElementById("katEmojiRaster").hidden===true));
-await seite.click('#katRenameOv .kat-row[data-kid="sushi"] .kat-ico');
+/* ⚠ EINE PROBE, DIE ABSTUERZT STATT ZU MELDEN, ZEIGT AUF DEN BOTEN.
+   Fehlt die Zeile „sushi", wartete `page.click` dreissig Sekunden und warf —
+   die Probe starb ohne Schlusszeile, und die Gegenprobe meldete „ROT AUS
+   FALSCHEM GRUND" statt der gebrochenen Zusicherung. Dass die mitgebrachte
+   Kategorie ueberhaupt da ist, ist selbst ein BEFUND und gehoert als roter
+   Haken gemeldet, nicht als Absturz. */
+const sushiZeile = await seite.locator('#katRenameOv .kat-row[data-kid="sushi"] .kat-ico').count();
+ok("die mitgebrachte Kategorie „sushi\u201c hat eine Zeile im Dialog", sushiZeile===1);
+if(sushiZeile===1) await seite.click('#katRenameOv .kat-row[data-kid="sushi"] .kat-ico');
 console.log("    [messung] " + await seite.evaluate(()=>JSON.stringify({
   raster: document.querySelectorAll("#katEmojiRaster").length,
   overlays: document.querySelectorAll("#katRenameOv").length,

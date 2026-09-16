@@ -261,7 +261,9 @@ fall "das Aufloesen haengt die Rezepte nicht um" "lassen sich zusammenlegen" \
 fall "„Ohne Kategorie\" wird wie ein fehlender Wert behandelt" "ist eine Wahl, kein fehlender Wert" \
 "  if(ziel!==null)R.forEach(r=>{if(katVonRezept(r)===sid)r.cat=ziel;});@@@  if(ziel)R.forEach(r=>{if(katVonRezept(r)===sid)r.cat=ziel;});"
 
-fall "die aufgeloeste Kategorie bleibt in der Liste stehen" "verschwindet aus der Liste" \
+# ⚠ Der Suchtext nennt den Waechter, der WIRKLICH faellt: die mitgebrachte
+#   Kennung verschwindet ohnehin von selbst, der Riegel wirkt nur auf feste.
+fall "die aufgeloeste Kategorie bleibt in der Liste stehen" "der Riegel greift wirklich" \
 "  if(CATS_NEU.length===vorher&&CATS_AUS.indexOf(sid)<0)CATS_AUS.push(sid);@@@"
 
 fall "eine Kategorie MIT Inhalt wird still ausgeblendet" "MIT Inhalt bleibt sichtbar" \
