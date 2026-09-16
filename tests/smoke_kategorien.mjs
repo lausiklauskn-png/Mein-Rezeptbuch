@@ -844,9 +844,22 @@ const kz = await seite.evaluate(async () => {
   const cat92 = R.find(r=>r.id===92).cat;
 
   /* ＋ Neue Kategorie — anlegen UND zuordnen in EINEM Griff */
+  /* ⚠ EIN TICK ZWISCHEN DEN KLICKS, SONST MISST DIE PROBE EINE ANDERE APP.
+     Der „Tipp daneben"-Riegel haengt an einem `setTimeout(…,0)`. Klickt die
+     Probe alles synchron in EINEM Durchgang, ist er nie registriert — und
+     genau der Riegel war der Fehler, den Klaus am Tablet sah. Ein Finger ist
+     langsamer als ein Skript. Gemessen am 2026-09-16: mit Tick rot, ohne
+     Tick gruen, bei unveraendertem Code. */
+  const tick = () => new Promise(r => setTimeout(r, 0));
   const vorN = CATS_NEU.length;
   document.querySelector('.rcard-acts .kat-zu-btn').click();
+  await tick();
   document.getElementById('katZuPop').querySelector('.kzp-neu').click();
+  await tick();
+  /* ⚠ GEMESSEN WIRD, DASS ES OFFEN BLEIBT — nicht, dass es kurz aufging.
+     Genau daran ist Klaus' Tipp gescheitert: das Fenster tauschte den Inhalt,
+     und der „Tipp daneben"-Riegel schloss es im selben Atemzug wieder. Der
+     `await tick()` darueber ist der Teil, der das ueberhaupt sichtbar macht. */
   const feldDa = !!document.getElementById('katZuNeuIn');
   /* ohne Namen darf NICHTS entstehen */
   katZuNeuAnlegen(91);
@@ -859,17 +872,29 @@ const kz = await seite.evaluate(async () => {
      Absturz statt den Namen ihrer Zusicherung. Gemessen am 2026-09-16. */
   if (!document.getElementById('katZuNeuIn')) {
     document.querySelector('.rcard-acts .kat-zu-btn').click();
+    await tick();
     document.getElementById('katZuPop').querySelector('.kzp-neu').click();
+    await tick();
   }
   const vorN2 = CATS_NEU.length;      // erst JETZT zaehlen, sonst misst der
-  document.getElementById('katZuNeuIn').value = "Fisch-Rollen";
-  katZuNeuAnlegen(91);                // Waechter darunter die Sabotage mit
-  const nachN = CATS_NEU.length;
-  const neuKid = CATS_NEU[CATS_NEU.length-1] ? CATS_NEU[CATS_NEU.length-1].id : "";
-  const zugeordnet = R.find(r=>r.id===91).cat === neuKid;
-  const nameStimmt = katBeschriftung(catsAlle().find(c=>String(c.id)===String(neuKid))) === "Fisch-Rollen";
-  /* dieselbe Quelle wie der Dialog → dasselbe Kennungs-Format */
-  const formatGleich = /^eig_\d+$/.test(neuKid);
+  /* ⚠ FEHLT DAS FELD, WIRD GEMELDET STATT GEWORFEN. Baut eine Sabotage den
+     „Tipp daneben"-Riegel kaputt, macht sich das Fenster selbst zu — und ein
+     Zugriff auf das Feld warf, die Probe starb, und der Fall meldete sich als
+     „rot aus falschem Grund". Jetzt fallen die Waechter EINZELN, jeder mit
+     seinem eigenen Namen in der roten Zeile. */
+  let nachN = vorN2, neuKid = "", zugeordnet = false,
+      nameStimmt = false, formatGleich = false;
+  const feld = document.getElementById('katZuNeuIn');
+  if (feld) {                         // Waechter darunter die Sabotage mit
+    feld.value = "Fisch-Rollen";
+    katZuNeuAnlegen(91);
+    nachN = CATS_NEU.length;
+    neuKid = CATS_NEU[CATS_NEU.length-1] ? CATS_NEU[CATS_NEU.length-1].id : "";
+    zugeordnet = R.find(r=>r.id===91).cat === neuKid;
+    nameStimmt = katBeschriftung(catsAlle().find(c=>String(c.id)===String(neuKid))) === "Fisch-Rollen";
+    /* dieselbe Quelle wie der Dialog → dasselbe Kennungs-Format */
+    formatGleich = /^eig_\d+$/.test(neuKid);
+  }
 
   R = JSON.parse(sichR); CATS_NEU = JSON.parse(sichN); FD = []; svCatsNeu();
   document.getElementById('katZuPop')?.remove();

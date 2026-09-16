@@ -329,6 +329,14 @@ fall "das Anlegen bekommt ein zweites Format" "Kennungs-Format" \
 #   (das Popup haengt an document.body) — es verschiebt nur, WO die Auswahl
 #   steht. Der erste Anlauf zielte damit auf den falschen Waechter und rutschte
 #   durch. Wer die Karte wirklich bewegen will, haengt das Popup IN sie hinein.
+# ⚠ DAS FENSTER MACHT SICH SELBST WIEDER ZU. Ohne diesen Riegel haelt der
+#   „Tipp daneben"-Wachhund den Knopf, den ＋ Neue Kategorie gerade ersetzt hat,
+#   fuer einen Tipp nach DRAUSSEN — und schliesst. Genau das hat Klaus am
+#   Tablet gesehen. Die Probe war blind, weil sie synchron klickt; erst ein
+#   `tick()` zwischen den Klicks bildet einen Finger ab.
+fall "der Tipp-daneben-Riegel schliesst das eigene Fenster" "oeffnet ein Namensfeld" \
+"    if(!document.contains(e.target))return;@@@    if(false)return;"
+
 fall "die Auswahl steht nicht mehr beim Knopf" "steht beim Knopf" \
 ".kat-zu-pop{position:fixed;@@@.kat-zu-pop{position:relative;"
 
