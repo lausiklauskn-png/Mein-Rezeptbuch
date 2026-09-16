@@ -37,6 +37,29 @@ const BESTAND = [
 ];
 
 const browser = await chromium.launch({ executablePath:"/opt/pw-browsers/chromium-1194/chrome-linux/chrome", args:["--no-sandbox"] });
+
+/* ⚠ EINE PROBE, DIE WIRFT, IST ROT — NICHT EIN TOTER LAUF (2026-09-16).
+   Ohne diesen Fang starb die Probe bei einem null-Zugriff oder einem
+   `page.click`-Timeout OHNE Schlusszeile. Die Gegenprobe urteilt an den roten
+   Zeilen und an der Schlusszeile; fehlt beides, kann sie nur „ROT AUS FALSCHEM
+   GRUND" sagen — und der Fall, der sauber zugeschlagen hat, sieht aus wie ein
+   Fehler im Werkzeug. Gemessen an zwei Faellen desselben Tages, beide von Hand
+   nachgestellt. (Sages Laeufer kennt dieselbe Regel; hier gibt es keinen
+   Laeufer, also steht sie in der Probe selbst.)
+   Kein `process.exit()` — das verwirft den stdout-Puffer, und dann waeren die
+   roten Zeilen genau in dem Fall weg, in dem man sie am noetigsten braucht. */
+let _abgestuerzt=false;
+async function _schlussNachAbsturz(e){
+  if(_abgestuerzt)return; _abgestuerzt=true;
+  rot++;
+  console.log("  ✗ ROT — die Probe ist abgestuerzt: "+String((e&&e.message)||e).split("\n")[0]);
+  try{ await browser.close(); }catch(_){}
+  try{ server.close(); }catch(_){}
+  console.log(`\n${gruen} grün · ${rot} ROT`);
+  process.exitCode=1;
+}
+process.on("unhandledRejection",_schlussNachAbsturz);
+process.on("uncaughtException",_schlussNachAbsturz);
 const seite = await browser.newPage();
 let seitenfehler = [];
 seite.on("pageerror", e => seitenfehler.push(String(e)));
@@ -78,7 +101,15 @@ ok("die mitgebrachten sind gekennzeichnet", await seite.locator("#katRenameOv .k
 console.log("\n── 5 · Emoji-Auswahl ──");
 ok("das Raster ist zu, solange niemand tippt",
    await seite.evaluate(()=>document.getElementById("katEmojiRaster").hidden===true));
-await seite.click('#katRenameOv .kat-row[data-kid="sushi"] .kat-ico');
+/* ⚠ EINE PROBE, DIE ABSTUERZT STATT ZU MELDEN, ZEIGT AUF DEN BOTEN.
+   Fehlt die Zeile „sushi", wartete `page.click` dreissig Sekunden und warf —
+   die Probe starb ohne Schlusszeile, und die Gegenprobe meldete „ROT AUS
+   FALSCHEM GRUND" statt der gebrochenen Zusicherung. Dass die mitgebrachte
+   Kategorie ueberhaupt da ist, ist selbst ein BEFUND und gehoert als roter
+   Haken gemeldet, nicht als Absturz. */
+const sushiZeile = await seite.locator('#katRenameOv .kat-row[data-kid="sushi"] .kat-ico').count();
+ok("die mitgebrachte Kategorie „sushi\u201c hat eine Zeile im Dialog", sushiZeile===1);
+if(sushiZeile===1) await seite.click('#katRenameOv .kat-row[data-kid="sushi"] .kat-ico');
 console.log("    [messung] " + await seite.evaluate(()=>JSON.stringify({
   raster: document.querySelectorAll("#katEmojiRaster").length,
   overlays: document.querySelectorAll("#katRenameOv").length,
@@ -554,6 +585,159 @@ if(fehlend.fehlt.length)console.log("     fehlt: "+fehlend.fehlt.join(", "));
 /* ⚠ GEGENRICHTUNG: ohne diese Zeile waere der Waechter oben auch dann gruen,
    wenn der Sammler gar nichts findet. */
 ok("… und der Sammler findet ueberhaupt Schluessel", fehlend.gesamt>20);
+
+console.log("\n── 17 · Eine Kennung kommt genau einmal vor ──");
+/* ⚠ Klaus 2026-09-16 mit Bild: ZWEI Pillen „Sushi", und ein einziger Tipp
+   markierte BEIDE. Eine Pille traegt `on` genau dann, wenn `CAT===c.id` —
+   markiert ein Tipp zwei, tragen beide dieselbe Kennung. Es sind also nicht
+   zwei Kategorien, sondern EINE, die zweimal gezeichnet wird. */
+const doppelt = await seite.evaluate(()=>{
+  const sichC=CATS.slice(), sichR=JSON.parse(JSON.stringify(R));
+  const vorlage=CATS.find(c=>c.id==='fleisch');
+  // dieselbe Kennung ein zweites Mal in die Liste — Klaus' Lage nachgestellt
+  CATS.push(Object.assign({},vorlage));
+  const wieOft=catsAlle().filter(c=>c.id==='fleisch').length;
+  CAT='fleisch'; renderCatNav();
+  const markiert=[...document.querySelectorAll('#catNav .cpill.on')]
+    .filter(e=>/setCAT\('fleisch'\)/.test(e.getAttribute("onclick")||"")).length;
+  renderFolders();
+  const gruppen=document.querySelectorAll('#fldTree .fld-grp[data-gid="cat_fleisch"]').length;
+  // Gegenrichtung: ohne das Duplikat bleibt die Liste vollstaendig
+  CATS.length=0; sichC.forEach(c=>CATS.push(c));
+  const normal=catsAlle().length, ohneAll=CATS.filter(c=>c.id!=='all').length;
+  R=sichR; CAT='all'; renderCatNav(); renderFolders();
+  return {wieOft,markiert,gruppen,normal,ohneAll};
+});
+ok("eine doppelte Kennung erscheint in catsAlle nur EINMAL", doppelt.wieOft===1);
+ok("… ein Tipp markiert genau eine Pille (Klaus' Befund)", doppelt.markiert===1);
+ok("… und der Ordner-Baum zeichnet die Gruppe nur einmal", doppelt.gruppen===1);
+/* ⚠ GEGENRICHTUNG: ein Riegel, der zu viel wegwirft, waere schlimmer als das
+   Duplikat — dann fehlten Kategorien. Gemessen wird, dass ohne Duplikat
+   nichts verloren geht. */
+ok("… und ohne Duplikat geht keine Kategorie verloren",
+   doppelt.normal>=doppelt.ohneAll && doppelt.ohneAll>0);
+/* ⚠ UND DIE QUELLE WIRD GEMESSEN: kommt das Duplikat aus der fest
+   eingebauten Liste, sagt es dieser Waechter — sonst raetselt man an der
+   falschen Stelle. */
+ok("die fest eingebaute Liste CATS traegt keine Kennung zweimal",
+   await seite.evaluate(()=>{
+     const ids=CATS.map(c=>c.id);
+     return new Set(ids).size===ids.length;
+   }));
+/* ⚠ UND DIE KENNUNG STEHT IM DIALOG, MIT ZEICHENZAHL. Zwei Kategorien
+   koennen denselben NAMEN tragen — die Kennung ist das, woran die Rezepte
+   haengen. Ein fuehrendes oder folgendes Leerzeichen sieht man nur so. */
+const kennung = await seite.evaluate(()=>{
+  const sichR=JSON.parse(JSON.stringify(R));
+  R.push({id:88010,name:"Mit-Leerzeichen",cat:"luecke ",folder:"",blank:false});
+  openKatUmbenennen();
+  const row=document.querySelector('#katRenameOv .kat-row[data-kid="luecke "]');
+  /* ⚠ EINE PROBE, DIE ABSTUERZT STATT ZU MELDEN, ZEIGT AUF DEN BOTEN.
+     Fehlt `.kat-kenn`, warf der Zugriff — und die Gegenprobe meldete „ROT AUS
+     FALSCHEM GRUND" statt der gebrochenen Zusicherung. */
+  const k=row&&row.querySelector('.kat-kenn');
+  const txt=k?k.textContent.trim():"";
+  const ov=document.getElementById('katRenameOv'); if(ov)ov.remove();
+  R=sichR; renderCatNav(); renderFolders();
+  return txt;
+});
+ok("der Dialog zeigt die Kennung", /luecke/.test(kennung));
+ok("… in Anfuehrungszeichen, sodass ein Leerzeichen sichtbar wird",
+   kennung.indexOf('"luecke "')===0);
+ok("… und mit der Zeichenzahl daneben", /·7$/.test(kennung));
+if(!/·7$/.test(kennung))console.log(`     gelesen: „${kennung}"`);
+
+console.log("\n── 18 · Kategorien loeschen, zusammenlegen, neu anlegen ──");
+/* ⚠ Klaus 2026-09-16: „mache es bitte moeglich, die Kategorien einzeln zu
+   loeschen, auch ganze Kategorien zu loeschen und neu zu erstellen."
+   Das ZUSAMMENLEGEN ist derselbe Weg: die eine Kategorie wird in die andere
+   aufgeloest. Damit legt er seine zwei „Sushi" zusammen. */
+const aufl = await seite.evaluate(()=>{
+  const sichR=JSON.parse(JSON.stringify(R)), sichN=JSON.parse(JSON.stringify(CATS_NEU));
+  const sichA=CATS_AUS.slice(), sichE=JSON.parse(JSON.stringify(CATS_EIGEN));
+  R.push({id:91001,name:"Sushi-A-1",cat:"sushiA",folder:"",blank:false});
+  R.push({id:91002,name:"Sushi-A-2",cat:"sushiA",folder:"",blank:false});
+  R.push({id:91003,name:"Sushi-B-1",cat:"sushiB",folder:"",blank:false});
+
+  const vorher=katAnzahl("sushiB");
+  // zusammenlegen: B in A aufloesen
+  katWegNehmen("sushiB","sushiA");
+  const nachA=katAnzahl("sushiA"), nachB=katAnzahl("sushiB");
+  /* ⚠ EINE MITGEBRACHTE KENNUNG VERSCHWINDET VON SELBST, sobald kein Rezept
+     mehr auf sie zeigt — `catsFremd()` sammelt sie ja aus `R`. Der Waechter
+     war damit BLIND fuer den Riegel, um den es geht (CATS_AUS): die
+     Gegenprobe konnte ihn ausbauen, und „verschwindet aus der Liste" blieb
+     gruen. Gemessen wird deshalb an einer FESTEN Kategorie — die steht im
+     Code und geht nur ueber das Ausblenden weg. */
+  const bWeg=!catsAlle().some(c=>String(c.id)==="sushiB");
+  const fest=String(CATS.find(c=>c.id!=="all").id);
+  R.push({id:91004,name:"Fest-1",cat:fest,folder:"",blank:false});
+  katWegNehmen(fest,"sushiA");
+  const festWeg=!catsAlle().some(c=>String(c.id)===fest);
+
+  // in „Ohne Kategorie" aufloesen ist eine WAHL, kein fehlender Wert
+  katWegNehmen("sushiA","");
+  const ohne=R.filter(r=>[91001,91002,91003].indexOf(r.id)>=0&&katVonRezept(r)===KAT_OHNE).length;
+
+  document.querySelectorAll('#katRenameOv,#katAuflOv').forEach(e=>e.remove());
+  R=sichR;CATS_NEU=sichN;CATS_AUS=sichA;CATS_EIGEN=sichE;
+  renderCatNav();renderFolders();
+  return {vorher,nachA,nachB,bWeg,festWeg,ohne};
+});
+ok("zwei Kategorien lassen sich zusammenlegen", aufl.vorher===1 && aufl.nachA===3);
+ok("… die aufgeloeste ist danach leer", aufl.nachB===0);
+ok("… und verschwindet aus der Liste", aufl.bWeg);
+ok("… auch eine FESTE Kategorie verschwindet (der Riegel greift wirklich)", aufl.festWeg);
+ok("„Ohne Kategorie“ ist eine Wahl, kein fehlender Wert", aufl.ohne===3);
+
+/* ⚠ EINE KATEGORIE MIT INHALT WIRD NICHT STILL AUSGEBLENDET. Das waere der
+   Schaden vom 2026-09-15 zurueck: Rezepte liegen in R, werden gespeichert und
+   mitexportiert — und tauchen nirgends auf. */
+ok("eine ausgeblendete Kategorie MIT Inhalt bleibt sichtbar",
+   await seite.evaluate(()=>{
+     const sichR=JSON.parse(JSON.stringify(R)), sichA=CATS_AUS.slice();
+     R.push({id:91010,name:"Noch-da",cat:"bleibt9",folder:"",blank:false});
+     CATS_AUS.push("bleibt9");
+     const sichtbar=catsAlle().some(c=>String(c.id)==="bleibt9");
+     // Gegenrichtung: ohne Inhalt verschwindet sie sehr wohl
+     R=R.filter(r=>r.id!==91010);
+     const wegOhneInhalt=!catsAlle().some(c=>String(c.id)==="bleibt9");
+     R=sichR;CATS_AUS=sichA;renderCatNav();renderFolders();
+     return sichtbar && wegOhneInhalt;
+   }));
+
+/* ⚠ EINE NEUE KATEGORIE IST EINE NEUE ZEILE, kein zweiter Dialog — der Nutzer
+   tippt den Namen dort, wo er alle anderen auch tippt. */
+const neuK = await seite.evaluate(()=>{
+  const sichN=JSON.parse(JSON.stringify(CATS_NEU)), sichE=JSON.parse(JSON.stringify(CATS_EIGEN));
+  openKatUmbenennen();
+  const vorher=document.querySelectorAll('#katRenameOv .kat-row').length;
+  katNeuAnlegen();
+  const rows=[...document.querySelectorAll('#katRenameOv .kat-row')];
+  const nachher=rows.length;
+  /* ⚠ NICHT „die letzte Zeile" — `catsAlle()` haengt die mitgebrachten
+     Kategorien dahinter. Gesucht wird die Zeile mit der NEUEN Kennung. */
+  const neue=rows.find(r=>/^eig_/.test(r.dataset.kid||""));
+  const kid=neue?neue.dataset.kid:"";
+  const fokus=!!neue&&document.activeElement===neue.querySelector('.kat-name');
+  const istLetzte=rows.length>0&&rows[rows.length-1]===neue;
+  // ohne Namen wird sie beim Speichern wieder entfernt — sonst bliebe eine
+  // leere „Neue Kategorie" stehen, obwohl der Nutzer abgebrochen hat
+  katSpeichern();
+  const bleibtOhneNamen=CATS_NEU.some(c=>c.id===kid);
+  CATS_NEU=sichN;CATS_EIGEN=sichE;svCatsNeu();svCatsEigen();
+  document.querySelectorAll('#katRenameOv,#katAuflOv').forEach(e=>e.remove());
+  renderCatNav();renderFolders();
+  return {vorher,nachher,kid,fokus,istLetzte,bleibtOhneNamen};
+});
+ok("„＋ Neue Kategorie“ legt eine Zeile an", neuK.nachher===neuK.vorher+1);
+ok("… mit eigener Kennung", /^eig_/.test(neuK.kid));
+/* ⚠ UND ER STEHT IN DER RICHTIGEN ZEILE. Die erste Fassung nahm „die letzte",
+   und das war eine FREMDE Kategorie — wer lostippt, benennt die falsche um.
+   Gefunden hat es dieser Waechter, nicht das Nachdenken. */
+ok("… und der Finger steht gleich im Namensfeld DER NEUEN", neuK.fokus===true);
+ok("… obwohl sie nicht die letzte Zeile ist", neuK.istLetzte===false);
+ok("… ohne Namen wird sie beim Speichern wieder entfernt", neuK.bleibtOhneNamen===false);
 
 await browser.close(); server.close();
 console.log(`\n${gruen} grün · ${rot} ROT`);

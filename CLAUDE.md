@@ -876,6 +876,94 @@ Reparatur zu ersetzen.
 `python3 build.py` misst sie die alte `index.html`, und jeder Fall wäre „nicht
 gefangen".
 
+### ⚠ EINE KENNUNG MUSS GENAU EINMAL VORKOMMEN — zwei „Sushi" waren zwei Reiter (Klaus 2026-09-16)
+
+Klaus mit Bild: *„oben sind zwei Kategorien Sushi selektiert. Also bei der
+Arbeit, die du jetzt gemacht hast, passiert genau das. Oben zwei selektiert,
+obwohl ich nur eine angeklickt habe."*
+
+**Das war keine Anzeigefrage, sondern eine Rechenfrage.** Eine Pille trägt
+`on` genau dann, wenn `CAT===c.id`. Standen **zwei** Einträge mit derselben
+Kennung in der Liste, markierte ein Tipp folgerichtig **beide** — sie sind
+für die App dieselbe Kategorie. `catsAlle()` hängte `CATS`, `CATS_NEU` und
+`catsFremd()` aneinander, **ohne zu prüfen, ob eine Kennung schon dabei war.**
+
+**Was jetzt gilt: `catsAlle()` gibt jede Kennung genau einmal heraus**, die
+erste gewinnt. Das ist kein Filter auf der Anzeige, sondern eine Zusicherung
+an der Quelle — jede Zähl- und Zeichen-Stelle liest dieselbe Liste.
+
+⚠ **UND DIE KENNUNG IST JETZT ZU SEHEN.** Zwei Kategorien dürfen denselben
+**Namen** tragen; sie zu unterscheiden war bisher unmöglich. Der
+Umbenennen-Dialog zeigt neben jedem Namen die Kennung **mit ihrer
+Zeichenzahl** (`"sushi" ·5`) — ohne die Zahl sehen `"sushi"` und `"sushi "`
+gleich aus, und genau so entstehen zwei Einträge, die keiner auseinanderhält.
+
+### Kategorien löschen, zusammenlegen, neu anlegen (Klaus 2026-09-16)
+
+*„Kategorie löschen und zusammenlegen bauen."* Der Weg: 📂 **Ordner** →
+**✎ Kategorien umbenennen** → 🗑 an einer Zeile bzw. **＋ Neue Kategorie**.
+
+Löschen fragt **immer** nach dem Ziel, denn eine Kategorie zu entfernen heißt,
+ihre Rezepte umzuhängen. Drei Antworten, und sie sind **drei**, nicht zwei:
+
+| Wahl | was mit `r.cat` geschieht |
+|---|---|
+| eine andere Kategorie | trägt deren Kennung |
+| **ausdrücklich ohne** (`''`) | leer — landet sichtbar unter „Ohne Kategorie" |
+| **es war nichts zu verschieben** (`null`) | gar nichts, die Kategorie war leer |
+
+⚠ **`null` und `''` AUSEINANDERZUHALTEN IST DER GANZE PUNKT.** Wer beides als
+„leer" liest, meldet dem Nutzer ein Umhängen, das nie stattfand — dieselbe
+Familie wie `${X:-vorgabe}` bei leerem X. *Schreib hin, was du meinst.*
+
+**Eine feste Kategorie verschwindet über `CATS_AUS` (`mrzcatsaus9m`), und
+nur solange sie leer ist.** `katAnzahl(id)===0` wird bei jedem `catsAlle()`
+neu gerechnet: kommt wieder ein Rezept hinein, ist der Reiter von selbst
+zurück. Ein Riegel, der eine Kategorie mit Inhalt verschwinden ließe, wäre
+ein stiller Datenverlust.
+
+⚠ **UND EIN WÄCHTER DAZU WAR BLIND — er löschte eine FREMDE Kategorie.** Die
+verschwindet ohnehin, sobald kein Rezept mehr auf sie zeigt; der `CATS_AUS`-
+Riegel wurde dabei **nie gemessen**. Gemessen wird jetzt an einer **festen**
+Kategorie, die nur dieser Riegel wegnehmen kann.
+
+⚠ **UND `＋ Neue Kategorie` SETZTE DEN FINGER IN EINE FREMDE ZEILE.** Es
+fokussierte „die letzte" — `catsAlle()` hängt die mitgebrachten aber **hinter**
+die eigenen, also stand der Cursor im Namensfeld einer fremden Kategorie.
+Gesucht wird jetzt **nach der Kennung** der neu angelegten Zeile. Gefunden hat
+es ein Wächter, nicht das Nachdenken.
+
+### ⚠ EINE PROBE, DIE WIRFT, IST ROT — NICHT EIN TOTER LAUF
+
+`page.click` auf ein `[data-kid="sushi"]`, das nicht da ist, wartete 30 s und
+warf. Die Probe starb **ohne ihre Schlusszeile**, und die Gegenprobe urteilt an
+den roten Zeilen — ein Absturz sah damit aus wie ein blinder Wächter, und man
+suchte am falschen Ende. Kimhubs Lehre vom 2026-08-24, an einer anderen Tür.
+
+Ein Absturz-Fänger (`unhandledRejection`/`uncaughtException`) zählt jetzt ein
+ROT, schließt Browser und Server und **druckt die Schlusszeile**.
+`process.exit()` ist dabei tabu: es wirft den stdout-Puffer weg.
+
+⚠ **UND EINE SABOTAGE DARF DIE VORBEDINGUNG NICHT TREFFEN.** Der Fall
+„catsFremd findet nichts mehr" ersetzte den **Rückgabewert** der Funktion
+durch eine leere Liste — das nimmt den Sammel-Reiter „Ohne Kategorie" mit,
+`renderCatNav` zeichnet gar keine Pille, und die Probe stirbt an ihrem
+**Wartepunkt**, bevor ein Wächter seine rote Zeile drucken konnte. Rot war es
+beides Mal; nur trug die rote Zeile den falschen Namen. Übersprungen wird
+jetzt genau das Mitgebrachte. *Eine Sabotage muss treffen, was der Wächter
+misst — und die rote Zeile muss den Namen der Zusicherung tragen.*
+
+### Geprüft
+
+Zuletzt gemessen (2026-09-16, nach dem Löschen/Zusammenlegen): **87 grün ·
+0 ROT** · Gegenprobe **55 gefangen · 0 durchgerutscht · 0 aus falschem Grund ·
+0 tote Anker**. Beide Rückgabewerte **direkt** gelesen, nicht hinter einer Pipe.
+
+⚠ **Die Zahl davor bleibt daneben stehen, weil sie den Fund gemacht hat:**
+derselbe Lauf meldete zuerst **54 gefangen · 1 aus falschem Grund**. Der eine
+war kein Fehler im Code, sondern eine Sabotage, die die Vorbedingung traf —
+siehe oben.
+
 ---
 
 ## Netzweit — gilt in jedem Repo, steht in Sage
