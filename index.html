@@ -340,6 +340,18 @@ body.nav-collapsed{padding-bottom:calc(16px + var(--sb))}
 .kat-zu-pop .kzp-neu{border-top:1px solid var(--sand2);margin-top:3px;padding-top:10px;color:var(--teal);font-weight:800}
 .kat-zu-pop .kzp-neu-zeile{display:flex;gap:6px;align-items:center;padding:6px 10px 10px}
 .kat-zu-pop .kzp-neu-in{flex:1;min-width:0;height:34px;border:1.5px solid var(--sand2);border-radius:9px;padding:0 9px;font-size:.78rem;font-family:inherit;color:var(--ink);background:#fff}
+.kat-zu-pop .kzp-ohne-hin{margin-left:6px;font-size:.58rem;opacity:.62;font-weight:600;white-space:nowrap}
+/* Kategorien umsortieren — der Einfuege-Strich zeigt, WOHIN es faellt.
+   ⚠ Er liegt als `box-shadow` an, nicht als `border`: ein Rand aendert die
+   Breite der Pille, und dann wandert die Leiste unter dem Finger weg —
+   derselbe Fehler wie bei der Emoji-Auswahl am 2026-09-15. */
+.cpill.kat-zieht,.fld-grp.kat-zieht{opacity:.42}
+.cpill.kat-vor{box-shadow:inset 3px 0 0 var(--teal,#36706a)}
+.cpill.kat-nach{box-shadow:inset -3px 0 0 var(--teal,#36706a)}
+.fld-grp.kat-vor{box-shadow:inset 0 3px 0 var(--teal,#36706a)}
+.fld-grp.kat-nach{box-shadow:inset 0 -3px 0 var(--teal,#36706a)}
+.fld-grp-hdl{flex:0 0 auto;display:flex;align-items:center;justify-content:center;width:22px;min-height:34px;color:var(--dim);cursor:grab;touch-action:none;opacity:.55}
+.fld-grp-hdl:active{cursor:grabbing;opacity:1}
 .kat-zu-pop .kzp-neu-ok{min-width:34px;height:34px;padding:0;border-radius:9px;background:var(--teals);color:var(--teal);border:1.5px solid var(--teal);font-weight:800;justify-content:center}
 .img-act-pop .iap-del{color:var(--rust)}
 .ra-zine{background:linear-gradient(135deg,rgba(184,85,53,0.18),rgba(160,64,26,0.18));border:1px solid rgba(184,85,53,0.45);color:var(--rust);height:36px;padding:0 16px;border-radius:18px;font-size:.72rem}
@@ -3703,7 +3715,7 @@ const LANGS={
     menuTitle:'🍽️ Menüplaner',mActAdd:'Gang hinzufügen',mActView:'Menü & Einkaufsliste',
     mvTitle:'Mein Menü',mvTabTl:'🗓️ Ablauf',mvTabSh:'🛒 Einkaufen',mvTabCk:'👩‍🍳 Kochen',mvTabAl:'📋 Gesamt',
     mvPrint:'🖨️ Drucken / PDF',mvClose:'Schließen',
-    bnRec:'Rezepte',katZuTtl:'Kategorie zuordnen',katZuOhne:'ohne Kategorie',katZuOk:'verschoben nach',fldInOrdnern:'in Ordnern',catmapTitle:'Kategorien zuordnen',catmapSub:'Kategorien aus der Datei, die dieses Buch noch nicht kennt. Vorgabe: sie bleiben als eigene Kategorie erhalten.',catmapKeep:'als eigene Kategorie behalten',catmapAsFolder:'zusätzlich in einen Ordner',catmapOk:'Übernehmen',catmapSkip:'Überspringen',bnFld:'Ordner',bnMen:'Menü',bnSet:'Einst.',bnBv:'Tresor',
+    bnRec:'Rezepte',katSortTtl:'Kategorie verschieben — ziehen zum Umsortieren',katZuTtl:'Kategorie zuordnen',katZuOhne:'ohne Kategorie',katZuOk:'verschoben nach',fldInOrdnern:'in Ordnern',catmapTitle:'Kategorien zuordnen',catmapSub:'Kategorien aus der Datei, die dieses Buch noch nicht kennt. Vorgabe: sie bleiben als eigene Kategorie erhalten.',catmapKeep:'als eigene Kategorie behalten',catmapAsFolder:'zusätzlich in einen Ordner',catmapOk:'Übernehmen',catmapSkip:'Überspringen',bnFld:'Ordner',bnMen:'Menü',bnSet:'Einst.',bnBv:'Tresor',
     impTitle:'📥 Importieren',impTabImg:'🖼️ Bilder',impTabWeb:'🌐 Web',impTabScan:'📄 KI-Scan',impTabTxt:'📝 Text',impTabJson:'📥 Rezept laden',impTabImgGen:'🎨 KI-Bild',
     imgDropLbl:'Bilder auswählen oder hierher ziehen',
     imgInfoTitle:'🖼️ Bilder zu Rezepten hinzufügen',
@@ -3851,7 +3863,7 @@ const LANGS={
     menuTitle:'🍽️ Menu Planner',mActAdd:'Add course',mActView:'View menu',
     mvTitle:'My Menu',mvTabTl:'🗓️ Overview',mvTabSh:'🛒 Shopping',mvTabCk:'👩‍🍳 Cooking',mvTabAl:'📋 Total',
     mvPrint:'🖨️ Print / PDF',mvClose:'Close',
-    bnRec:'Recipes',katZuTtl:'Assign category',katZuOhne:'no category',katZuOk:'moved to',fldInOrdnern:'in folders',catmapTitle:'Assign categories',catmapSub:'Categories from the file that this book does not know yet. Default: they are kept as their own category.',catmapKeep:'keep as its own category',catmapAsFolder:'additionally into a folder',catmapOk:'Apply',catmapSkip:'Skip',bnFld:'Folders',bnMen:'Planner',bnSet:'Settings',bnBv:'Vault',
+    bnRec:'Recipes',katSortTtl:'Move category — drag to reorder',katZuTtl:'Assign category',katZuOhne:'no category',katZuOk:'moved to',fldInOrdnern:'in folders',catmapTitle:'Assign categories',catmapSub:'Categories from the file that this book does not know yet. Default: they are kept as their own category.',catmapKeep:'keep as its own category',catmapAsFolder:'additionally into a folder',catmapOk:'Apply',catmapSkip:'Skip',bnFld:'Folders',bnMen:'Planner',bnSet:'Settings',bnBv:'Vault',
     impTitle:'📥 Import',impTabImg:'🖼️ Images',impTabWeb:'🌐 Web',impTabScan:'📄 AI Scan',impTabTxt:'📝 Text',impTabJson:'📥 Load recipes',impTabImgGen:'🎨 AI Image',
     imgDropLbl:'Select images or drag here',
     imgInfoTitle:'🖼️ Add images to recipes',
@@ -3999,7 +4011,7 @@ const LANGS={
     menuTitle:'🍽️ Планировщик',mActAdd:'Добавить блюдо',mActView:'Просмотр меню',
     mvTitle:'Моё меню',mvTabTl:'🗓️ Обзор',mvTabSh:'🛒 Покупки',mvTabCk:'👩‍🍳 Готовка',mvTabAl:'📋 Итого',
     mvPrint:'🖨️ Печать / PDF',mvClose:'Закрыть',
-    bnRec:'Рецепты',katZuTtl:'Назначить категорию',katZuOhne:'без категории',katZuOk:'перемещено в',fldInOrdnern:'в папках',catmapTitle:'Сопоставить категории',catmapSub:'Категории из файла, которые эта книга ещё не знает. По умолчанию они сохраняются как отдельная категория.',catmapKeep:'сохранить как отдельную категорию',catmapAsFolder:'дополнительно в папку',catmapOk:'Применить',catmapSkip:'Пропустить',bnFld:'Папки',bnMen:'Планир.',bnSet:'Настр.',bnBv:'Архив',
+    bnRec:'Рецепты',katSortTtl:'Переместить категорию — перетащите для сортировки',katZuTtl:'Назначить категорию',katZuOhne:'без категории',katZuOk:'перемещено в',fldInOrdnern:'в папках',catmapTitle:'Сопоставить категории',catmapSub:'Категории из файла, которые эта книга ещё не знает. По умолчанию они сохраняются как отдельная категория.',catmapKeep:'сохранить как отдельную категорию',catmapAsFolder:'дополнительно в папку',catmapOk:'Применить',catmapSkip:'Пропустить',bnFld:'Папки',bnMen:'Планир.',bnSet:'Настр.',bnBv:'Архив',
     impTitle:'📥 Импорт',impTabImg:'🖼️ Фото',impTabWeb:'🌐 Интернет',impTabScan:'📄 ИИ-скан',impTabTxt:'📝 Текст',impTabJson:'📥 Загрузить',impTabImgGen:'🎨 ИИ-Фото',
     imgDropLbl:'Выбрать фото или перетащить',
     imgInfoTitle:'🖼️ Добавить фото к рецептам',
@@ -4146,7 +4158,7 @@ const LANGS={
     menuTitle:'🍽️ 菜单计划',mActAdd:'添加菜品',mActView:'查看菜单',
     mvTitle:'我的菜单',mvTabTl:'🗓️ 概览',mvTabSh:'🛒 购物',mvTabCk:'👩‍🍳 烹饪',mvTabAl:'📋 汇总',
     mvPrint:'🖨️ 打印 / PDF',mvClose:'关闭',
-    bnRec:'食谱',katZuTtl:'分配类别',katZuOhne:'无类别',katZuOk:'已移至',fldInOrdnern:'在文件夹中',catmapTitle:'分配类别',catmapSub:'此书尚不认识的文件中的类别。默认：保留为独立类别。',catmapKeep:'保留为独立类别',catmapAsFolder:'另外放入文件夹',catmapOk:'应用',catmapSkip:'跳过',bnFld:'文件夹',bnMen:'菜单计划',bnSet:'设置',bnBv:'备份',
+    bnRec:'食谱',katSortTtl:'移动类别 — 拖动可重新排序',katZuTtl:'分配类别',katZuOhne:'无类别',katZuOk:'已移至',fldInOrdnern:'在文件夹中',catmapTitle:'分配类别',catmapSub:'此书尚不认识的文件中的类别。默认：保留为独立类别。',catmapKeep:'保留为独立类别',catmapAsFolder:'另外放入文件夹',catmapOk:'应用',catmapSkip:'跳过',bnFld:'文件夹',bnMen:'菜单计划',bnSet:'设置',bnBv:'备份',
     impTitle:'📥 导入',impTabImg:'🖼️ 图片',impTabWeb:'🌐 网络',impTabScan:'📄 AI扫描',impTabTxt:'📝 文本',impTabJson:'📥 加载食谱',impTabImgGen:'🎨 AI图片',
     imgDropLbl:'选择或拖拽图片至此',
     imgInfoTitle:'🖼️ 为食谱添加图片',
@@ -4293,7 +4305,7 @@ const LANGS={
     menuTitle:'🍽️ Planificador',mActAdd:'Añadir plato',mActView:'Ver menú',
     mvTitle:'Mi menú',mvTabTl:'🗓️ Orden',mvTabSh:'🛒 Comprar',mvTabCk:'👩‍🍳 Cocinar',mvTabAl:'📋 Total',
     mvPrint:'🖨️ Imprimir / PDF',mvClose:'Cerrar',
-    bnRec:'Recetas',katZuTtl:'Asignar categoría',katZuOhne:'sin categoría',katZuOk:'movido a',fldInOrdnern:'en carpetas',catmapTitle:'Asignar categorías',catmapSub:'Categorías del archivo que este libro aún no conoce. Por defecto: se conservan como categoría propia.',catmapKeep:'conservar como categoría propia',catmapAsFolder:'además en una carpeta',catmapOk:'Aplicar',catmapSkip:'Omitir',bnFld:'Carpetas',bnMen:'Planif.',bnSet:'Ajustes',bnBv:'Bóveda',
+    bnRec:'Recetas',katSortTtl:'Mover categoría — arrastra para reordenar',katZuTtl:'Asignar categoría',katZuOhne:'sin categoría',katZuOk:'movido a',fldInOrdnern:'en carpetas',catmapTitle:'Asignar categorías',catmapSub:'Categorías del archivo que este libro aún no conoce. Por defecto: se conservan como categoría propia.',catmapKeep:'conservar como categoría propia',catmapAsFolder:'además en una carpeta',catmapOk:'Aplicar',catmapSkip:'Omitir',bnFld:'Carpetas',bnMen:'Planif.',bnSet:'Ajustes',bnBv:'Bóveda',
     impTitle:'📥 Importar',impTabImg:'🖼️ Imágenes',impTabWeb:'🌐 Web',impTabScan:'📄 Scan IA',impTabTxt:'📝 Texto',impTabJson:'📥 Cargar recetas',impTabImgGen:'🎨 IA Imagen',
     imgDropLbl:'Seleccionar imágenes o arrastrar aquí',
     imgInfoTitle:'🖼️ Añadir imágenes a recetas',
@@ -4457,7 +4469,7 @@ const LANGS={
     mvTabAl:'📋 Total',
     mvPrint:'🖨️ Imprimer',
     mvClose:'Fermer',
-    bnRec:'Recettes',katZuTtl:'Attribuer une catégorie',katZuOhne:'sans catégorie',katZuOk:'déplacé vers',fldInOrdnern:'dans des dossiers',catmapTitle:'Attribuer les catégories',catmapSub:'Catégories du fichier que ce livre ne connaît pas encore. Par défaut : elles sont conservées comme catégorie propre.',catmapKeep:'conserver comme catégorie propre',catmapAsFolder:'en plus dans un dossier',catmapOk:'Appliquer',catmapSkip:'Passer',
+    bnRec:'Recettes',katSortTtl:'Déplacer la catégorie — glisser pour réordonner',katZuTtl:'Attribuer une catégorie',katZuOhne:'sans catégorie',katZuOk:'déplacé vers',fldInOrdnern:'dans des dossiers',catmapTitle:'Attribuer les catégories',catmapSub:'Catégories du fichier que ce livre ne connaît pas encore. Par défaut : elles sont conservées comme catégorie propre.',catmapKeep:'conserver comme catégorie propre',catmapAsFolder:'en plus dans un dossier',catmapOk:'Appliquer',catmapSkip:'Passer',
     bnFld:'Dossiers',
     bnMen:'Planif.',
     bnSet:'Réglages',
@@ -4714,7 +4726,7 @@ const LANGS={
     mvTabAl:'📋 Totale',
     mvPrint:'🖨️ Stampa',
     mvClose:'Chiudi',
-    bnRec:'Ricette',katZuTtl:'Assegna categoria',katZuOhne:'senza categoria',katZuOk:'spostato in',fldInOrdnern:'in cartelle',catmapTitle:'Assegna categorie',catmapSub:'Categorie dal file che questo libro non conosce ancora. Predefinito: restano come categoria propria.',catmapKeep:'mantieni come categoria propria',catmapAsFolder:'inoltre in una cartella',catmapOk:'Applica',catmapSkip:'Salta',
+    bnRec:'Ricette',katSortTtl:'Sposta categoria — trascina per riordinare',katZuTtl:'Assegna categoria',katZuOhne:'senza categoria',katZuOk:'spostato in',fldInOrdnern:'in cartelle',catmapTitle:'Assegna categorie',catmapSub:'Categorie dal file che questo libro non conosce ancora. Predefinito: restano come categoria propria.',catmapKeep:'mantieni come categoria propria',catmapAsFolder:'inoltre in una cartella',catmapOk:'Applica',catmapSkip:'Salta',
     bnFld:'Cartelle',
     bnMen:'Pianif.',
     bnSet:'Impostazioni',
@@ -4970,7 +4982,7 @@ const LANGS={
     mvTabAl:'📋 Total',
     mvPrint:'🖨️ Imprimir',
     mvClose:'Fechar',
-    bnRec:'Receitas',katZuTtl:'Atribuir categoria',katZuOhne:'sem categoria',katZuOk:'movido para',fldInOrdnern:'em pastas',catmapTitle:'Atribuir categorias',catmapSub:'Categorias do ficheiro que este livro ainda não conhece. Predefinição: são mantidas como categoria própria.',catmapKeep:'manter como categoria própria',catmapAsFolder:'adicionalmente numa pasta',catmapOk:'Aplicar',catmapSkip:'Ignorar',
+    bnRec:'Receitas',katSortTtl:'Mover categoria — arraste para reordenar',katZuTtl:'Atribuir categoria',katZuOhne:'sem categoria',katZuOk:'movido para',fldInOrdnern:'em pastas',catmapTitle:'Atribuir categorias',catmapSub:'Categorias do ficheiro que este livro ainda não conhece. Predefinição: são mantidas como categoria própria.',catmapKeep:'manter como categoria própria',catmapAsFolder:'adicionalmente numa pasta',catmapOk:'Aplicar',catmapSkip:'Ignorar',
     bnFld:'Pastas',
     bnMen:'Planeja.',
     bnSet:'Definições',
@@ -5524,6 +5536,13 @@ function svCatsNeu(){
 ladeCatsNeu();
 /* Wie viele SICHTBARE Rezepte haengen an dieser Kennung? Blanks und namenlose
    zaehlen nicht — sie sind kein Inhalt. */
+const CATS_ORD_KEY='mrzcatord9m';
+let CATS_ORD=[];
+function ladeCatsOrd(){
+  try{const r=JSON.parse(localStorage.getItem(CATS_ORD_KEY)||'[]');CATS_ORD=Array.isArray(r)?r.map(String):[];}catch(e){CATS_ORD=[];}
+}
+function svCatsOrd(){try{localStorage.setItem(CATS_ORD_KEY,JSON.stringify(CATS_ORD));}catch(e){}}
+ladeCatsOrd();
 function katAnzahl(id){
   if(typeof R==='undefined'||!Array.isArray(R))return 0;
   return R.filter(r=>r&&!r.blank&&r.name&&String(r.name).trim()&&katVonRezept(r)===id).length;
@@ -5676,7 +5695,37 @@ function catsAlle(){
     if(gesehen.has(id))return;
     gesehen.add(id);out.push(c);
   });
+  if(CATS_ORD&&CATS_ORD.length){
+    const pos={};CATS_ORD.forEach((id,i)=>{pos[String(id)]=i;});
+    const gross=CATS_ORD.length,idx=new Map();
+    out.forEach((c,i)=>idx.set(c,i));
+    out.sort((a,b)=>{
+      const pa=pos[String(a.id)],pb=pos[String(b.id)];
+      const ka=(pa===undefined)?gross+idx.get(a):pa;
+      const kb=(pb===undefined)?gross+idx.get(b):pb;
+      return ka-kb;
+    });
+  }
   return out;
+}
+
+/* Verschiebt `vonId` vor oder hinter `nachId`.
+   ⚠ DIE LISTE WIRD VOLLSTAENDIG NEU GESCHRIEBEN, nicht ergaenzt. Eine
+   Teil-Liste haette Luecken: alle Nicht-Genannten spraengen ans Ende, und der
+   Nutzer haette mit einem Zug die ganze Ordnung umgeworfen. */
+function katUmsortieren(vonId,nachId,wohin){
+  const von=String(vonId||''),nach=String(nachId||'');
+  if(!von||!nach||von===nach)return false;
+  const ids=catsAlle().map(c=>String(c.id));
+  const i=ids.indexOf(von);if(i<0)return false;
+  ids.splice(i,1);
+  let j=ids.indexOf(nach);if(j<0)return false;
+  if(wohin==='nach')j++;
+  ids.splice(j,0,von);
+  CATS_ORD=ids;svCatsOrd();
+  renderCatNav();if(typeof renderFolders==='function')renderFolders();
+  if(typeof badge==='function')badge();
+  return true;
 }
 
 function catName(id){if(typeof id==='string'&&id.indexOf('fld_')===0){const f=FD.find(f=>String(f.id)===id.slice(4));return f?f.name:id;}const c=catsAlle().find(x=>x.id===id);if(!c)return id;return katBeschriftung(c);}
@@ -7861,7 +7910,7 @@ window.addEventListener('DOMContentLoaded',()=>{
 // ═══════════════════════════════════════════════════════
 // DRAG & DROP — Karten, Zutaten, Schritte
 // ═══════════════════════════════════════════════════════
-let _dd={type:null,rid:null,iid:null,sid:null,overRow:null,overPos:null},_tdd=null,_tddRowPending=null,_sliPending=null,_rcardPending=null,_fldHdlPending=null,_autoScroll=null;
+let _dd={type:null,rid:null,iid:null,sid:null,overRow:null,overPos:null},_tdd=null,_tddRowPending=null,_sliPending=null,_rcardPending=null,_fldHdlPending=null,_katHdlPending=null,_autoScroll=null;
 
 function _startAutoScroll(clientY){
   const zone=80,h=window.innerHeight;
@@ -7911,7 +7960,39 @@ function cardDrop(e,rid){
 }
 
 // ── 2. Karte auf Kategorie-Pill droppen ─────────────
+/* ⚠ EINE KATEGORIE, DIE GEZOGEN WIRD, STEHT IN EINER EIGENEN KENNUNG —
+   nicht in `_dd`. `_dd` traegt den Rezept-Zug; wer beides in einen Topf legt,
+   bekommt genau die Verwechslung, gegen die die Weiche oben gebaut ist. */
+let _katZieh=null,_katWohin=null;
+/* Die Einfuege-Marken werden an VIER Stellen weggeraeumt (Maus-Ende,
+   Maus-Ueberfahrt in Leiste und Baum, Finger). Vier Fassungen derselben Liste
+   liefen auseinander, und dann blieb je nach Weg ein Strich stehen. */
+function katZiehMarkenWeg(){
+  document.querySelectorAll('.cpill.kat-vor,.cpill.kat-nach,.fld-grp.kat-vor,.fld-grp.kat-nach')
+    .forEach(el=>el.classList.remove('kat-vor','kat-nach'));
+}
+function katZiehStart(e,id){
+  _katZieh=String(id);_katWohin=null;
+  try{e.dataTransfer.effectAllowed='move';e.dataTransfer.setData('text/plain','kat:'+id);}catch(_e){}
+  const el=e.currentTarget;setTimeout(()=>el&&el.classList.add('kat-zieht'),0);
+}
+function katZiehEnde(e){
+  _katZieh=null;_katWohin=null;
+  document.querySelectorAll('.kat-zieht').forEach(p=>p.classList.remove('kat-zieht'));
+  katZiehMarkenWeg();
+}
 function pillDragOver(e,cat){
+  if(_katZieh){
+    /* die eigene Pille ist kein Ziel */
+    if(String(cat)===_katZieh)return;
+    e.preventDefault();
+    const rect=e.currentTarget.getBoundingClientRect();
+    const wohin=e.clientX<rect.left+rect.width/2?'vor':'nach';
+    document.querySelectorAll('.cpill').forEach(p=>p.classList.remove('kat-vor','kat-nach'));
+    e.currentTarget.classList.add('kat-'+wohin);
+    _katWohin=wohin;
+    return;
+  }
   if(_dd.type!=='card')return;
   e.preventDefault();
   document.querySelectorAll('.cpill').forEach(p=>p.classList.remove('drag-over'));
@@ -7944,6 +8025,15 @@ function setzeOrdner(r,fid){
 function pillDrop(e,cat){
   e.preventDefault();
   e.currentTarget.classList.remove('drag-over');
+  if(_katZieh){
+    /* ⚠ ERST ABLESEN, DANN AUFRAEUMEN. `katZiehEnde` setzt `_katWohin` auf
+       null — wer danach liest, bekommt IMMER den Rueckfall `'vor'`, und
+       „nach" gab es damit gar nicht. Dieselbe Falle wie `_tdd` im Finger-Weg,
+       nur an der Maus. */
+    const von=_katZieh,wohin=_katWohin||'vor';katZiehEnde();
+    katUmsortieren(von,cat,wohin);
+    return;
+  }
   if(_dd.type!=='card')return;
   const r=R.find(r=>r.id===_dd.rid);
   if(!r||r.cat===cat)return;
@@ -7967,6 +8057,21 @@ function fldRecDragEnd(e){
   _stopAutoScroll();
 }
 function fldGrpDragOver(e,gid){
+  if(_katZieh){
+    /* ⚠ NUR KATEGORIE-GRUPPEN SIND ZIELE. Ein Ordner steht in `FD` und hat
+       seine eigene Reihenfolge — ihn hier mitzusortieren hiesse, zwei
+       verschiedene Ordnungen in eine Liste zu schreiben. */
+    if(String(gid||'').indexOf('cat_')!==0)return;
+    const ziel=String(gid).slice(4);
+    if(ziel===_katZieh)return;
+    e.preventDefault();e.stopPropagation();
+    const rect=e.currentTarget.getBoundingClientRect();
+    const wohin=e.clientY<rect.top+rect.height/2?'vor':'nach';
+    document.querySelectorAll('.fld-grp').forEach(g=>g.classList.remove('kat-vor','kat-nach'));
+    e.currentTarget.classList.add('kat-'+wohin);
+    _katWohin=wohin;
+    return;
+  }
   if(_dd.type!=='card')return;
   e.preventDefault();
   e.stopPropagation();
@@ -7994,6 +8099,11 @@ function fldGrpDragLeave(e){
 function fldGrpDrop(e,gid){
   e.preventDefault();
   e.stopPropagation();
+  if(_katZieh){
+    const von=_katZieh,wohin=_katWohin||'vor';katZiehEnde();
+    if(String(gid||'').indexOf('cat_')===0)katUmsortieren(von,String(gid).slice(4),wohin);
+    return;
+  }
   document.querySelectorAll('.fld-grp').forEach(g=>g.classList.remove('fld-drop-over'));
   document.querySelectorAll('.fld-rrow').forEach(r=>r.classList.remove('fld-drop-before','fld-drop-after'));
   if(_dd.type!=='card')return;
@@ -9861,7 +9971,7 @@ function renderCatNav(){
   let pills=CATS.filter(c=>c.id==='all').concat(catsAlle()).map(c=>{
     const cnt=c.id==='all'?R.filter(r=>r.name&&!r.blank).length:R.filter(r=>katVonRezept(r)===c.id&&r.name&&!r.blank).length;
     if(cnt===0&&c.id!=='all')return '';
-    const dragEvts=c.id!=='all'?`ondragover="pillDragOver(event,'${c.id}')" ondragleave="pillDragLeave(event)" ondrop="pillDrop(event,'${c.id}')"` :'';
+    const dragEvts=c.id!=='all'?`draggable="true" data-kid="${c.id}" ondragstart="katZiehStart(event,'${c.id}')" ondragend="katZiehEnde(event)" ondragover="pillDragOver(event,'${c.id}')" ondragleave="pillDragLeave(event)" ondrop="pillDrop(event,'${c.id}')"` :'';
     return`<div class="cpill ${CAT===c.id?'on':''}" onclick="setCAT('${c.id}')" ${dragEvts}>${c.id==='all'?c.ico:katSymbol(c)} ${h(c.id==='all'?(c[CL]||c.de):katBeschriftung(c))} <span style="opacity:.65;font-size:.6rem">${cnt}</span></div>`;
   }).join('');
   // Selbst angelegte Ordner IMMER als Chip zeigen — auch mit 0 Rezepten.
@@ -9875,6 +9985,13 @@ function renderCatNav(){
   const fldSel=document.getElementById('newFolder');
   if(fldSel)fldSel.innerHTML=`<option value="">— ${T('noFolder')} —</option>`+
     FD.map(f=>`<option value="${f.id}">${f.ico} ${h(f.name)}</option>`).join('');
+  /* ⚠ WER DIE LEISTE NEU ZEICHNET, VERLIERT IHRE FINGER-GRIFFE. `el.innerHTML`
+     wirft die alten Pillen weg — samt der touchstart-Anmeldung. `render()`
+     zieht das nach, `renderCatNav()` wird aber auch ALLEIN gerufen, unter
+     anderem von `katUmsortieren` selbst: nach dem ERSTEN Verschieben mit dem
+     Finger haette sich nichts mehr verschieben lassen. Gefunden hat es der
+     Finger-Waechter, nicht das Nachdenken. */
+  if(typeof setupTouchDrag==='function')setupTouchDrag();
 }
 function setCAT(id){
   CAT=id;
@@ -11012,6 +11129,7 @@ function renderFolders(){
     return`
     <div class="fld-grp" data-gid="${g.id}" ondragover="fldGrpDragOver(event,'${g.id}')" ondragleave="fldGrpDragLeave(event)" ondrop="fldGrpDrop(event,'${g.id}')">
       <div class="fld-hdr" onclick="tglFld(this)">
+        ${isFolder?'':`<span class="fld-grp-hdl" data-hdl="kat" data-kid="${g.id.slice(4)}" draggable="true" ondragstart="katZiehStart(event,'${g.id.slice(4)}')" ondragend="katZiehEnde(event)" onclick="event.stopPropagation()" title="${h(T('katSortTtl'))}" aria-label="${h(T('katSortTtl'))}"><svg width="11" height="14" viewBox="0 0 11 14" fill="currentColor" style="display:block"><path d="M5.5 0L2 4h7z"/><rect x="1.5" y="5.5" width="8" height="1.3" rx=".65"/><rect x="1.5" y="7.2" width="8" height="1.3" rx=".65"/><path d="M5.5 14L2 10h7z"/></svg></span>`}
         <div class="fld-ico-c" style="background:${g.col}22">${g.ico}</div>
         <div class="fld-info" onclick="event.stopPropagation();${navTarget}" style="cursor:pointer;flex:1">
           <div class="fld-name">${h(g.name)}</div>
@@ -11183,8 +11301,23 @@ function katZuPop(rid,btn){
   });
   /* "ohne Kategorie" ist der Weg ZURUECK, kein Thema — deshalb unten und
      abgesetzt. Ohne ihn gaebe es keine Umkehr fuer einen Fehlgriff. */
+  /* ⚠ EIN EIMER, EIN NAME (Klaus 2026-09-16: „bei Kategorie zuordnen aus den
+     Rezepten erscheint die Kategorie Sushi nicht"). Sie erschien sehr wohl —
+     nur unter dem fest verdrahteten Text „ohne Kategorie", waehrend Leiste und
+     Ordner-Baum den Namen zeigen, den er selbst vergeben hat: er hatte den
+     Sammel-Eimer `__ohne` auf „Sushi" umbenannt (seine eigene Aufnahme des
+     Umbenennen-Dialogs zeigt „Sushi" mit der Kennung „__ohne").
+     Dieselbe Sorte wie „zwei Stellen zaehlten dieselbe Sache verschieden",
+     nur am NAMEN statt an der Zahl.
+     ⚠ UND DER ZUSTAND BLEIBT DANEBEN STEHEN. `__ohne` ist ein Zustand, kein
+     Thema: wer ihn umbenennt, gibt JEDEM kuenftigen Rezept ohne Kategorie
+     diesen Namen. Das gehoert sichtbar, nicht verschwiegen. */
+  var eimer={id:KAT_OHNE,ico:'📂',de:T('katZuOhne')};eimer[CL]=T('katZuOhne');
+  var eimerName=katBeschriftung(eimer),eimerSym=katSymbol(eimer);
+  var eigenerName=eimerName!==T('katZuOhne');
   teile.push('<button class="kzp-ohne'+(jetzt===KAT_OHNE?' kzp-jetzt':'')+'" onclick="katZuSetzen('+rid+',\'\')">'
-    +'<span>📂</span><span>'+h(T('katZuOhne'))+'</span>'
+    +'<span>'+h(eimerSym)+'</span><span>'+h(eimerName)+'</span>'
+    +(eigenerName?'<span class="kzp-ohne-hin">'+h(T('katZuOhne'))+'</span>':'')
     +(jetzt===KAT_OHNE?'<span style="margin-left:auto">✓</span>':'')+'</button>');
   /* ＋ NEUE KATEGORIE, direkt aus dem Rezept heraus (Klaus 2026-09-16):
      „ich kann eine neue Kategorie anlegen, direkt aus dem Rezeptbuch. Und es
@@ -11764,6 +11897,12 @@ function setupTouchDrag(){
     hd.removeEventListener('touchstart',_rcardHdStart);
     hd.addEventListener('touchstart',_rcardHdStart,{passive:true});
   });
+  /* ⚠ DER FINGER BRAUCHT SEINEN EIGENEN WEG. `draggable="true"` ist eine
+     MAUS-Sache; am Tablet loest es nichts aus. */
+  document.querySelectorAll('.fld-grp-hdl[data-kid],.cpill[data-kid]').forEach(el=>{
+    el.removeEventListener('touchstart',_katHdlStart);
+    el.addEventListener('touchstart',_katHdlStart,{passive:true});
+  });
 }
 function _tddRowStart(e){
   if(_tdd||_tddRowPending)return;
@@ -11927,6 +12066,76 @@ function _fldHdlEnd(){
   document.removeEventListener('touchcancel',_fldHdlEnd);
   _fldHdlPending=null;
 }
+// ── Kategorie umsortieren mit dem Finger: Long-Press (300 ms) ──
+/* ⚠ EIN TIPP AUF EINE PILLE WECHSELT DIE KATEGORIE — das ist ihr erster Zweck
+   und bleibt es. Das Ziehen haengt deshalb am LANGDRUCK, nicht am Antippen:
+   ein zweiter Zweck am selben kurzen Griff waere eine Regel, die niemand lernt
+   (dieselbe Entscheidung wie bei der Emoji-Auswahl am 2026-09-15). */
+function _katHdlStart(e){
+  if(_tdd||_katHdlPending)return;
+  const el=e.currentTarget;
+  const kid=el.dataset.kid;if(!kid)return;
+  const t=e.touches[0];
+  const timer=setTimeout(()=>{
+    if(!_katHdlPending)return;
+    _katHdlPending.ready=true;
+    el.style.transition='box-shadow .12s';
+    el.style.boxShadow='0 0 0 2px var(--teal,#36706a)';
+    document.removeEventListener('touchmove',_katHdlCheck);
+    document.addEventListener('touchmove',_katHdlDrag,{passive:false});
+  },300);
+  _katHdlPending={el,kid,startX:t.clientX,startY:t.clientY,timer,ready:false};
+  document.addEventListener('touchmove',_katHdlCheck,{passive:true});
+  document.addEventListener('touchend',_katHdlEnd,{passive:true});
+  document.addEventListener('touchcancel',_katHdlEnd,{passive:true});
+}
+function _katHdlCheck(e){
+  if(!_katHdlPending||_katHdlPending.ready)return;
+  const t=e.touches[0];
+  if(Math.abs(t.clientX-_katHdlPending.startX)>8||Math.abs(t.clientY-_katHdlPending.startY)>8)_katHdlEnd();
+}
+function _katHdlDrag(e){
+  if(!_katHdlPending)return;
+  const t=e.touches[0];
+  e.preventDefault();
+  const{el,kid}=_katHdlPending;
+  el.style.boxShadow='';el.style.transition='';
+  document.removeEventListener('touchmove',_katHdlDrag);
+  document.removeEventListener('touchend',_katHdlEnd);
+  document.removeEventListener('touchcancel',_katHdlEnd);
+  _katHdlPending=null;
+  if(_tdd){_tdd.ghost?.remove();_tdd.li&&(_tdd.li.style.opacity='');_tdd=null;}
+  /* Gezogen wird die PILLE, auch wenn der Finger am Anfasser im Ordner-Baum
+     liegt — ein Schattenbild des Anfassers waere ein 22-px-Strich, an dem
+     niemand sieht, WAS er gerade verschiebt. */
+  /* ⚠ DIE KOPFZEILE HEISST `.fld-hdr`. Beim ersten Bau stand hier
+     `.fld-grp-hd` — ein Selektor, der ins Leere greift, und der Rueckfall
+     `||el` machte das Schattenbild zum 22 px breiten Anfasser: man haette
+     gezogen, ohne zu sehen WAS. Derselbe Griff daneben wie `.fld-rec` statt
+     `.fld-rrow` am 2026-09-16, nur eine Datei weiter. */
+  const quelle=el.classList.contains('cpill')?el:(el.closest('.fld-grp')?.querySelector('.fld-hdr')||el);
+  const rect=quelle.getBoundingClientRect();
+  const ghost=quelle.cloneNode(true);
+  ghost.id='tdd-ghost';
+  ghost.style.cssText=`position:fixed;left:${rect.left}px;top:${rect.top}px;width:${rect.width}px;z-index:9999;pointer-events:none;opacity:.85;background:var(--parch);color:var(--ink);box-shadow:0 4px 16px rgba(0,0,0,.3);border-radius:6px;margin:0`;
+  document.body.appendChild(ghost);
+  quelle.style.opacity='.3';
+  _tdd={type:'kat',rid:null,id:kid,li:quelle,ghost,offsetY:t.clientY-rect.top};
+  document.addEventListener('touchmove',_tddMove,{passive:false});
+  document.addEventListener('touchend',_tddEnd,{passive:true});
+  document.addEventListener('touchcancel',_tddEnd,{passive:true});
+}
+function _katHdlEnd(){
+  if(!_katHdlPending)return;
+  clearTimeout(_katHdlPending.timer);
+  const{el}=_katHdlPending;
+  if(el){el.style.boxShadow='';el.style.transition='';}
+  document.removeEventListener('touchmove',_katHdlCheck);
+  document.removeEventListener('touchmove',_katHdlDrag);
+  document.removeEventListener('touchend',_katHdlEnd);
+  document.removeEventListener('touchcancel',_katHdlEnd);
+  _katHdlPending=null;
+}
 // ── Ganze rcard-hd als Drag-Quelle (Meine-Ordner-Muster für Rezepte) ──
 function _rcardHdStart(e){
   if(_tdd||_rcardPending)return;
@@ -12023,6 +12232,30 @@ function _tddMove(e){
   _tdd.ghost.style.display='none';
   const el=document.elementFromPoint(t.clientX,t.clientY);
   _tdd.ghost.style.display='';
+  if(_tdd.type==='kat'){
+    katZiehMarkenWeg();
+    /* In der LEISTE liegen die Pillen nebeneinander, im BAUM untereinander —
+       die Mitte wird deshalb je Ziel an der passenden Achse gemessen. Eine
+       Achse fuer beides zeigte in einer der zwei Ansichten immer dieselbe
+       Seite an. */
+    const zpill=el?.closest('.cpill[data-kid]');
+    if(zpill&&zpill.dataset.kid!==_tdd.id){
+      const rect=zpill.getBoundingClientRect();
+      const wohin=t.clientX<rect.left+rect.width/2?'vor':'nach';
+      zpill.classList.add('kat-'+wohin);
+      _tdd.over=zpill;_tdd.overPos=wohin;
+    }else{
+      const zgrp=el?.closest('.fld-grp');
+      const gid=zgrp?.dataset.gid||'';
+      if(gid.startsWith('cat_')&&gid.slice(4)!==_tdd.id){
+        const rect=zgrp.getBoundingClientRect();
+        const wohin=t.clientY<rect.top+rect.height/2?'vor':'nach';
+        zgrp.classList.add('kat-'+wohin);
+        _tdd.over=zgrp;_tdd.overPos=wohin;
+      }else{_tdd.over=null;_tdd.overPos=null;}
+    }
+    return;
+  }
   if(_tdd.type==='fld'){
     document.querySelectorAll('.fld-rrow').forEach(r=>r.classList.remove('fld-drop-before','fld-drop-after'));
     document.querySelectorAll('.fld-grp').forEach(g=>g.classList.remove('fld-drop-over'));
@@ -12080,6 +12313,26 @@ function _tddEnd(){
   document.removeEventListener('touchcancel',_tddEnd);
   _tdd.ghost.remove();
   _tdd.li.style.opacity='';
+  if(_tdd.type==='kat'){
+    /* ⚠ HIER STAND EIN `katZiehMarkenWeg()` — und keine Probe konnte es von
+       seinem Fehlen unterscheiden: `_tddMove` raeumt die Marken bei JEDER
+       Bewegung als Erstes weg, und ein Treffer zeichnet ohnehin neu. Ein
+       Riegel, den keine Probe von seinem Fehlen unterscheiden kann, ist eine
+       Behauptung — er ist raus (Befund aus Muttis Rezeptbuch, 2026-09-16).
+       ⚠ ERST ABLESEN, DANN AUFRAEUMEN. `katUmsortieren` zeichnet die Leiste und
+       den Baum neu — wer danach noch aus `_tdd` liest, liest aus einem Zustand,
+       den das Neuzeichnen schon weggeraeumt hat. */
+    const vonId=_tdd.id,ziel=_tdd.over,wohin=_tdd.overPos;
+    _tdd=null;
+    if(ziel){
+      const zid=ziel.dataset.kid||(ziel.dataset.gid||'').slice(4);
+      /* Beide Wege — Maus und Finger — laufen durch dieselbe Funktion. Zwei
+         Fassungen derselben Umsortierung liefen auseinander, und dann sortierte
+         der Finger anders als die Maus. */
+      if(zid)katUmsortieren(vonId,zid,wohin);
+    }
+    return;
+  }
   if(_tdd.type==='wkslot'){
     document.querySelectorAll('.wk-slot').forEach(s=>s.classList.remove('wk-drop-before','wk-drop-after'));
     document.querySelectorAll('.wk-meal').forEach(m=>m.classList.remove('wk-drop-target'));
