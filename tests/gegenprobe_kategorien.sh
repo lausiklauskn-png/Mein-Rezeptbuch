@@ -24,8 +24,20 @@ echo "Kopie: $KOPIE · Quelldatei: $DATEI"
 gefangen=0; durch=0; falsch=0; tot=0
 lauf(){ python3 build.py >/dev/null 2>&1; node tests/smoke_kategorien.mjs 2>&1; }
 
+# ⚠ EIN TOTER ANKER FIEL BISHER ERST NACH EINEM VOLLEN LAUF AUF — also nach
+#   Minuten, und nur wenn ihn jemand fuhr. Wer eine Zeile aendert, auf die ein
+#   Fall zeigt, bewegt den Anker mit; die Regel dagegen steht seit dem
+#   2026-09-16 in der Verfassung und wurde am selben Tag zweimal verletzt.
+#   Eine Regel, an die man sich erinnern muss, ist keine.
+#   `NUR_ANKER=1 bash tests/gegenprobe_kategorien.sh` prueft in Sekunden NUR,
+#   ob jeder Anker genau einmal trifft — es wird keine Probe gefahren.
+#   (Kimhub hat denselben Gang; hier fehlte er.)
+if [ -n "${NUR_ANKER:-}" ]; then
+  lauf(){ echo "0 grün · 0 ROT"; }
+else
 if lauf | grep -qE "^[0-9]+ grün · 0 ROT$"; then echo "Ausgangslage gruen"; else
   echo "ABBRUCH: schon ohne Eingriff rot."; lauf | tail -4; exit 2; fi
+fi
 
 fall(){
   cp "$DATEI" "$SICH"
@@ -276,6 +288,67 @@ fall "der Finger landet wieder in der letzten statt in der neuen Zeile" "im Name
 
 fall "eine namenlose neue Kategorie bleibt stehen" "wird sie beim Speichern wieder entfernt" \
 "  CATS_NEU=CATS_NEU.filter(c=>!!(CATS_EIGEN[c.id]&&CATS_EIGEN[c.id].name)||katAnzahl(c.id)>0);@@@"
+
+# ══ 19 · Kategorie zuordnen aus der Rezeptzeile (Klaus 2026-09-16) ══
+
+# Die Lage ist die Bestellung — der Knopf wandert HINTER den Papierkorb.
+# Die Lage ist die Bestellung. Sabotiert wird ueber `order` im Flex-Container —
+# das verschiebt genau das, was Klaus SIEHT, und laesst die Reihenfolge im
+# Dokument unberuehrt. Ein Waechter auf zwei Indizes waere hier blind geblieben.
+fall "der Knopf rutscht hinter den Papierkorb" "LINKS neben dem Papierkorb" \
+".ra:active{opacity:.65}@@@.ra:active{opacity:.65}
+.kat-zu-btn{order:9}"
+
+# ⚠ DER KERN: das Zuordnen frisst den Ordner mit auf — genau der Fehler vom
+#   2026-09-16, nur von der anderen Seite.
+fall "das Zuordnen nimmt den Ordner mit" "laesst den Ordner in Ruhe" \
+"  r.cat=String(kid||'');@@@  r.cat=String(kid||'');r.folder='';"
+
+# Ein `fld_…`-Altbestand bleibt stehen statt ersetzt zu werden.
+fall "ein fld_-Altbestand wird nicht mehr ersetzt" "ERSETZT, nicht danebengelegt" \
+"  r.cat=String(kid||'');@@@  if(String(r.cat||'').indexOf('fld_')!==0)r.cat=String(kid||'');"
+
+# „ohne Kategorie" ist der Weg zurueck — er wird zur Sackgasse.
+fall "der Weg zurueck fuehrt nicht mehr nach leer" "leert die Kategorie wirklich" \
+"katZuSetzen('+rid+',\\'\\')@@@katZuSetzen('+rid+',\\'fleisch\\')"
+
+# Eine namenlose Kategorie waere ein Reiter, den niemand wiederfindet.
+fall "eine namenlose Kategorie entsteht doch" "ohne Namen entsteht KEINE" \
+"  if(!name){if(f)f.focus();return;}@@@  if(!name){}"
+
+# Ein Fenster, das zugeht und nichts getan hat, sieht aus wie ein kaputter Knopf.
+fall "das leere Feld geht still zu" "Feld bleibt stehen" \
+"  if(!name){if(f)f.focus();return;}@@@  if(!name){document.getElementById('katZuPop')?.remove();return;}"
+
+# ⚠ ZWEI FASSUNGEN DES ANLEGENS — genau das, was katAnlegen verhindert.
+fall "das Anlegen bekommt ein zweites Format" "Kennungs-Format" \
+"  katZuSetzen(rid,katAnlegen(name));@@@  var kid2='neu_'+Date.now();CATS_NEU.push({id:kid2,ico:'🏷',de:name,col:'#7a5840',eigen:true});svCatsNeu();katZuSetzen(rid,kid2);"
+
+# Die Auswahl bewegt das Layout — dieselbe Falle wie die Emoji-Auswahl.
+# ⚠ ZWEI ZUSICHERUNGEN, ZWEI FAELLE. `position:relative` bewegt die Karte NICHT
+#   (das Popup haengt an document.body) — es verschiebt nur, WO die Auswahl
+#   steht. Der erste Anlauf zielte damit auf den falschen Waechter und rutschte
+#   durch. Wer die Karte wirklich bewegen will, haengt das Popup IN sie hinein.
+fall "die Auswahl steht nicht mehr beim Knopf" "steht beim Knopf" \
+".kat-zu-pop{position:fixed;@@@.kat-zu-pop{position:relative;"
+
+# ⚠ ZWEI RIEGEL, DIE EINANDER DECKEN, GEHOEREN IN EINE SABOTAGE. Die Karte kann
+#   sich nur bewegen, wenn die Auswahl IN ihr haengt UND im Fluss steht:
+#   `position:fixed` allein haelt sie schon draussen, `document.body` allein
+#   auch. Der erste Anlauf nahm nur das Anhaengen — und rutschte durch, obwohl
+#   nichts am Waechter falsch war. Dieselbe Lehre wie `umask`+`chmod` in
+#   Kimhubs Schluessel-Ablagefach.
+# ⚠ Und der Anker braucht seinen Nachbarn: `document.body.appendChild` steht
+#   auch im Bild-Popup, ein Anker, der zweimal trifft, ist keiner.
+fall "die Auswahl haengt im Fluss der Karte" "bewegt die Rezeptkarte nicht" \
+"  pop.innerHTML=teile.join('');
+  document.body.appendChild(pop);@@@  pop.innerHTML=teile.join('');
+  btn.parentNode.appendChild(pop);pop.style.position='static';"
+
+# Ohne Markierung weiss niemand, wo das Rezept gerade steht.
+fall "die aktuelle Kategorie wird nicht mehr markiert" "aktuelle ist darin markiert" \
+"(id===jetzt?'kzp-jetzt':'')@@@(false?'kzp-jetzt':'')"
+
 
 echo
 echo "$gefangen gefangen · $durch durchgerutscht · $falsch aus falschem Grund · $tot tote Anker"
