@@ -1286,6 +1286,103 @@ Reparatur zu ersetzen.
 ---
 
 
+---
+
+## 🧬 HERKUNFT AM REZEPT UND EINE KENNUNG, DIE UMBENENNEN ÜBERSTEHT (Klaus 2026-09-16)
+
+Klaus: *„das Rezept Export, dass es die Spore trägt. Wenn ich es wieder einfüge,
+soll die Spur mit drin bleiben."* — und sein eigener Einwand gleich danach:
+*„dann haben wir zwei Spuren drin, das könnte einen Konflikt geben."*
+
+### Der Konflikt löst sich auf, wenn man zwei Dinge trennt
+
+| | was es ist | wie viele |
+|---|---|---|
+| **die Spore** | *wer bin ich* — die Identität der App in diesem Browser | **genau eine** je App, kommt **nie** aus einer Datei |
+| **die Herkunft** | *woher kommt dieses Rezept* | eine je Rezept, wird nur **angehängt** |
+
+Ein Rezept trägt deshalb **keine Spore**, sondern einen Vermerk (`r.herkunft`).
+Hundert Rezepte dürfen hundert Herkünfte tragen — das ist Auskunft, keine
+Kollision. Eine Import-Datei ist `untrusted external data`; sie darf nie ändern,
+**wer diese App ist**.
+
+### ⚠ Die Kennung war das Stück, auf das es ankam
+
+Bis zum 2026-09-16 stand im Hinzufügen-Weg:
+
+```js
+newRecs.forEach((r,i)=>{r.id=maxId+i+1;});   // die mitgebrachte Nummer flog weg
+```
+
+Es gab damit **keine Identität, die über zwei Geräte hinweg gilt** — „ist das
+dasselbe Rezept?" musste am **Namen** entschieden werden. Daraus folgte beides,
+was Klaus erlebt hat:
+
+| | vorher | jetzt |
+|---|---|---|
+| ein Rezept **umbenannt**, alte Datei importiert | kam als **zweites** dazu | wird an `r.uid` erkannt — **kein Doppel** |
+| zwei **verschiedene** Rezepte, gleicher Name | das zweite verschwand **still** | beide landen, jedes mit eigener Kennung |
+| eine Datei **ohne** `uid` (alles vor v10) | — | geht weiter den alten Namens-Weg |
+
+`r.id` bleibt die **lokale** Nummer (der Platz in dieser App), `r.uid` ist die
+**Identität** des Rezepts. Zwei Dinge, zwei Felder.
+
+### Die Kette (Weg 3, Klaus' Wahl)
+
+`r.herkunft` ist eine Liste von Stationen `{k, d}` — Kennung und Datum.
+
+- **Gedeckelt auf 5** (`HERK_MAX`). Wird gekürzt, steht `herkGekuerzt: true` dabei
+  — *wo gekürzt wurde, steht dass gekürzt wurde.*
+- **Keine Wiederholung** direkt hintereinander: zweimal exportieren hängt nichts an.
+- ⚠ **NUR DIE KENNUNG, NIE EIN GERÄTENAME.** „Klaus-Handy" wäre ein Hinweis auf
+  eine **Person** und wandert mit jedem Rezept zu Fremden. Die Kennung tut das nicht.
+- Kommt dasselbe Rezept auf zwei Wegen zurück, **gewinnt die längere Kette** — sie
+  weiß mehr. Das ist die einzige Stelle, an der zwei Herkünfte aufeinandertreffen.
+- ⚠ **`lokal-…` ist kein Beweis**, nur eine stabile Marke dieses Browsers. Wer nie
+  ans Netz angedockt hat, hat keine signierte Kennung; eine ehrliche lokale Marke
+  ist besser als gar keine Herkunft, und sie **sagt es im Namen**.
+
+### ⚠ Und ein vierter Befund fiel beim Lesen heraus: der Merge-Weg brachte die Ordner nicht mit
+
+`onMerge` fasste `FD` **nicht** an. Ein Rezept, das in der Datei in einem Ordner
+lag, zeigte danach auf einen Ordner, den es hier nicht gibt — **Klaus'
+„unsichtbarer Ordner"**, an seiner Quelle statt an der Anzeige. Fehlende Ordner
+kommen jetzt mit; **vorhandene werden nicht überschrieben**.
+
+Nebenwirkung, und eine gute: seitdem gilt für „was kommt unsichtbar mit?" **eine**
+Zahl für beide Weisen. Vorher wären es zwei verschiedene gewesen.
+
+### Der Import sagt jetzt, was man nicht sehen wird
+
+> ℹ️ **2** ohne Kategorie — sie erscheinen unter „Ohne Kategorie"
+
+Klaus' sechs Sushi lagen in der Datei und waren in der App nirgends gezeichnet.
+*Die Auskunft war da, nur nicht dort, wo jemand hinsieht.*
+
+### ⚠ Drei blinde Stellen, alle von der Gegenprobe entlarvt — keine im Code
+
+| Was | warum es nichts maß |
+|---|---|
+| „der eigene Ordner wurde nicht überschrieben" | las `find(id).name` — und `concat` legt den fremden **daneben**, `find` trifft den ersten. Gemessen wird jetzt **zusätzlich**, dass keine Kennung doppelt vorkommt |
+| „die mitgebrachte Kennung bleibt" | **gab es gar nicht.** Der Fall rutschte durch, weil die Zusicherung fehlte — ohne sie wäre der ganze Weg umsonst |
+| zwei Sabotagen trafen den **Nachbarn** | ein Gerätename in einem dritten Feld wirft „genau zwei Felder" um, an `k` geklebt „die Station ist dieser Knoten". Sabotiert wird jetzt `_knotenKennung()` selbst — dann bleibt der Identitäts-Wächter grün und **nur** der Namens-Wächter kann fallen |
+
+### Geprüft
+
+```bash
+node tests/smoke_herkunft.mjs        # echter Browser, an der GEBAUTEN index.html
+bash tests/gegenprobe_herkunft.sh    # Wegwerf-Kopie, MIT Bau-Schritt
+```
+
+Zuletzt gemessen (2026-09-16): **34 grün · 0 ROT** · Gegenprobe **11 gefangen ·
+0 durchgerutscht · 0 aus falschem Grund · 0 tote Anker** · `smoke_kategorien`
+unverändert **145 grün · 0 ROT**. Beide Rückgabewerte **direkt** gelesen.
+
+⚠ **Der Export ist auf `version: 10` gehoben** und trägt zusätzlich `knoten`.
+Ältere Fassungen lesen die Datei weiter (die neuen Felder stören sie nicht) —
+aber sie **nutzen** sie nicht. *„Von dir zu Mutti und zurück" trägt erst, wenn
+beide Bücher es können.*
+
 ## Netzweit — gilt in jedem Repo, steht in Sage
 
 Freibrief · Gerätename · frisch von `origin/main` · Ton · kein PII · Ehrlichkeit:
