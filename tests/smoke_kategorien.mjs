@@ -447,6 +447,86 @@ ok("ein im Ordner angelegtes Rezept bekommt trotzdem seine Kategorie",
      return gut;
    }));
 
+console.log("\n── 15 · Der Import nimmt einer Kategorie nicht ihr Zuhause ──");
+/* ⚠ HIER LAG DIE WURZEL, gemessen am 2026-09-16. Klaus' sechs Sushi ohne
+   Kategorie sind NICHT beim Verschieben von Hand entstanden, sondern beim
+   IMPORT: der Zuordnungs-Dialog schlug fuer jede unbekannte Kategorie „als
+   eigener Ordner" vor — vorausgewaehlt —, und `_applyCatMapping` schrieb
+   daraufhin `r.cat='fld_<id>'`. Danach stand in der Leiste die Kategorie UND
+   der neue Ordner: zweimal derselbe Name. */
+const einf = await seite.evaluate(()=>{
+  const sichR=JSON.parse(JSON.stringify(R)), sichF=JSON.parse(JSON.stringify(FD));
+  FD.push({id:"6601",name:"Sushi",ico:"🐟"});
+  const probe=[{id:66010,name:"Maki",cat:"sushi",folder:"",blank:false},
+               {id:66011,name:"Nigiri",cat:"sushi",folder:"",blank:false}];
+  _applyCatMapping(probe,{sushi:"fld_6601"});
+  const a=probe[0];
+  const ordnerWeg={kat:a.cat, ordner:String(a.folder||"")};
+
+  // „behalten" aendert gar nichts
+  const probe2=[{id:66020,name:"Temaki",cat:"sushi",folder:"",blank:false}];
+  _applyCatMapping(probe2,{sushi:"__behalten__"});
+  const behalten={kat:probe2[0].cat, ordner:String(probe2[0].folder||"")};
+
+  // eine echte Zuordnung auf eine feste Kategorie wirkt weiter
+  const probe3=[{id:66030,name:"Reisbowl",cat:"sushi",folder:"",blank:false}];
+  _applyCatMapping(probe3,{sushi:"fleisch"});
+  const umgehaengt=probe3[0].cat;
+
+  // eine fremde Kennung ueberlebt die Normalisierung
+  const probe4=[{id:66040,name:"Fremd",cat:"sushi",folder:"",blank:false}];
+  _normalizeRecs(probe4);
+  const ueberlebt=probe4[0].cat;
+
+  R=sichR; FD=sichF; renderCatNav(); renderFolders();
+  return {ordnerWeg,behalten,umgehaengt,ueberlebt};
+});
+ok("ein Ordner aus dem Import laesst die Kategorie stehen", einf.ordnerWeg.kat==="sushi");
+/* ⚠ GEGENRICHTUNG: ohne diese Zeile waere „die Kategorie bleibt" auch dann
+   gruen, wenn die Zuordnung ueberhaupt nichts tut. */
+ok("… und setzt den Ordner wirklich", einf.ordnerWeg.ordner==="6601");
+ok("„behalten“ laesst Kategorie UND Ordner unberuehrt",
+   einf.behalten.kat==="sushi" && einf.behalten.ordner==="");
+ok("eine Zuordnung auf eine feste Kategorie wirkt weiter", einf.umgehaengt==="fleisch");
+/* ⚠ Bis 2026-09-16 machte `_normalizeRecs` aus jeder unbekannten Kennung
+   „fleisch" — die Kategorie war nach einem Import weg, bevor der Nutzer sie
+   ueberhaupt zu sehen bekam. */
+ok("eine fremde Kennung ueberlebt die Normalisierung", einf.ueberlebt==="sushi");
+/* ⚠ UND DIE VORAUSWAHL IM DIALOG IST DIE EIGENTLICHE ENTSCHEIDUNG. Wer den
+   Dialog wegklickt, bekommt die Vorgabe — und die hat bisher die Kategorie
+   zerstoert. Gemessen wird der WIRKLICH gewaehlte Wert, nicht der Quelltext. */
+ok("der Zuordnungs-Dialog hat „Kategorie behalten“ vorausgewaehlt",
+   await seite.evaluate(()=>{
+     const sichR=JSON.parse(JSON.stringify(R));
+     let gewaehlt=null;
+     _showCatMapDialog([{id:1,name:"X",cat:"voellig-unbekannt-9911",folder:""}],()=>{});
+     const sel=document.querySelector(".catmap-sel");
+     if(sel)gewaehlt=sel.value;
+     const ov=sel&&sel.closest(".share-ov"); if(ov)ov.remove();
+     R=sichR;
+     return gewaehlt==="__behalten__";
+   }));
+/* ⚠ UND DIE ZAHL AUF DEM ORDNER-BILDSCHIRM SAGT, WAS FEHLT. Klaus: „oben
+   steht Sushi mit 7, im Ordner mit 1." Beide Zahlen waren richtig — der
+   Unterschied stand nirgends. */
+const zusatz = await seite.evaluate(()=>{
+  const sichR=JSON.parse(JSON.stringify(R)), sichF=JSON.parse(JSON.stringify(FD));
+  FD.push({id:"6602",name:"Probe-Ordner",ico:"📁"});
+  R.push({id:66120,name:"Drin-1",cat:"sushi",folder:"6602",blank:false});
+  R.push({id:66121,name:"Drin-2",cat:"sushi",folder:"6602",blank:false});
+  renderFolders();
+  const mit=document.querySelector('#fldTree .fld-grp[data-gid="cat_sushi"] .fld-cnt').textContent.trim();
+  // Gegenrichtung: ohne welche in Ordnern steht dort NICHTS dazu
+  R=R.filter(r=>r.id!==66120&&r.id!==66121);
+  renderFolders();
+  const ohne=document.querySelector('#fldTree .fld-grp[data-gid="cat_sushi"] .fld-cnt').textContent.trim();
+  R=sichR; FD=sichF; renderCatNav(); renderFolders();
+  return {mit,ohne};
+});
+ok("die Kategorie-Zeile nennt die, die in Ordnern liegen", /\+2 /.test(zusatz.mit));
+ok("… und schweigt, wenn keines in einem Ordner liegt", !/\+/.test(zusatz.ohne));
+if(!/\+2 /.test(zusatz.mit))console.log(`     mit: „${zusatz.mit}" · ohne: „${zusatz.ohne}"`);
+
 await browser.close(); server.close();
 console.log(`\n${gruen} grün · ${rot} ROT`);
 process.exit(rot?1:0);
