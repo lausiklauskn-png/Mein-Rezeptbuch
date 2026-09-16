@@ -76,10 +76,18 @@ fall "das eigene Symbol wird ignoriert" "Symbol steht davor" \
 "function katSymbol(c){if(!c)return'📦';const e=CATS_EIGEN[c.id];if(e&&e.ico)return e.ico;@@@function katSymbol(c){if(!c)return'📦';const e=null;if(e&&e.ico)return e.ico;"
 
 fall "gespeichert wird nicht" "Neuladen" \
-"  CATS_EIGEN=neu;svCatsEigen();@@@  CATS_EIGEN=neu;"
+"  CATS_EIGEN=neu;svCatsEigen();
+  /* Eine frisch angelegte@@@  CATS_EIGEN=neu;
+  /* Eine frisch angelegte"
 
 fall "das Umbenennen aendert die KENNUNG mit" "Speicher-Weg bleibt r.cat" \
-"    if(nm||ic){neu[id]={};if(nm)neu[id].name=nm;if(ic)neu[id].ico=ic;}@@@    if(nm||ic){neu[id]={};if(nm)neu[id].name=nm;if(ic)neu[id].ico=ic;R.forEach(r=>{if(r.cat===id)r.cat=nm||id;});}"
+"    if(nm||ic){neu[id]={};if(nm)neu[id].name=nm;if(ic)neu[id].ico=ic;}
+  });
+  CATS_EIGEN=neu;svCatsEigen();
+  /* Eine frisch angelegte@@@    if(nm||ic){neu[id]={};if(nm)neu[id].name=nm;if(ic)neu[id].ico=ic;R.forEach(r=>{if(r.cat===id)r.cat=nm||id;});}
+  });
+  CATS_EIGEN=neu;svCatsEigen();
+  /* Eine frisch angelegte"
 
 fall "die Alle-Ansicht laeuft wieder nur ueber CATS" "Maki-Rolle" \
 "    for(const cat of catsAlle()){@@@    for(const cat of CATS.filter(c=>c.id!=='all')){"

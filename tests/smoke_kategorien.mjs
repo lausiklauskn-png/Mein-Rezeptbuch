@@ -632,7 +632,17 @@ const aufl = await seite.evaluate(()=>{
   // zusammenlegen: B in A aufloesen
   katWegNehmen("sushiB","sushiA");
   const nachA=katAnzahl("sushiA"), nachB=katAnzahl("sushiB");
+  /* ⚠ EINE MITGEBRACHTE KENNUNG VERSCHWINDET VON SELBST, sobald kein Rezept
+     mehr auf sie zeigt — `catsFremd()` sammelt sie ja aus `R`. Der Waechter
+     war damit BLIND fuer den Riegel, um den es geht (CATS_AUS): die
+     Gegenprobe konnte ihn ausbauen, und „verschwindet aus der Liste" blieb
+     gruen. Gemessen wird deshalb an einer FESTEN Kategorie — die steht im
+     Code und geht nur ueber das Ausblenden weg. */
   const bWeg=!catsAlle().some(c=>String(c.id)==="sushiB");
+  const fest=String(CATS.find(c=>c.id!=="all").id);
+  R.push({id:91004,name:"Fest-1",cat:fest,folder:"",blank:false});
+  katWegNehmen(fest,"sushiA");
+  const festWeg=!catsAlle().some(c=>String(c.id)===fest);
 
   // in „Ohne Kategorie" aufloesen ist eine WAHL, kein fehlender Wert
   katWegNehmen("sushiA","");
@@ -641,11 +651,12 @@ const aufl = await seite.evaluate(()=>{
   document.querySelectorAll('#katRenameOv,#katAuflOv').forEach(e=>e.remove());
   R=sichR;CATS_NEU=sichN;CATS_AUS=sichA;CATS_EIGEN=sichE;
   renderCatNav();renderFolders();
-  return {vorher,nachA,nachB,bWeg,ohne};
+  return {vorher,nachA,nachB,bWeg,festWeg,ohne};
 });
 ok("zwei Kategorien lassen sich zusammenlegen", aufl.vorher===1 && aufl.nachA===3);
 ok("… die aufgeloeste ist danach leer", aufl.nachB===0);
 ok("… und verschwindet aus der Liste", aufl.bWeg);
+ok("… auch eine FESTE Kategorie verschwindet (der Riegel greift wirklich)", aufl.festWeg);
 ok("„Ohne Kategorie“ ist eine Wahl, kein fehlender Wert", aufl.ohne===3);
 
 /* ⚠ EINE KATEGORIE MIT INHALT WIRD NICHT STILL AUSGEBLENDET. Das waere der
