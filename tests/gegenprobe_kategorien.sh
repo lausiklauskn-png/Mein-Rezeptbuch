@@ -178,7 +178,7 @@ fall "die Getraenke-Symbole verschwinden wieder" "eigene Getraenke-Symbole" \
 
 # ── Die Ordner-Ansicht zaehlt wieder anders als die Leiste (Klaus 2026-09-16) ──
 fall "der Ordner-Baum fragt wieder das rohe Feld" "Leiste = Baum" \
-"      recipes:R.filter(r=>!r.folder&&katVonRezept(r)===c.id&&r.name),@@@      recipes:R.filter(r=>!r.folder&&r.cat===c.id&&r.name),"
+"      recipes:R.filter(r=>!ordnerVonRezept(r)&&katVonRezept(r)===c.id&&r.name),@@@      recipes:R.filter(r=>!ordnerVonRezept(r)&&r.cat===c.id&&r.name),"
 
 fall "ein Ordner-Rezept ohne r.folder faellt im Baum wieder heraus" "faellt nirgends heraus" \
 "      recipes:R.filter(r=>(r.folder===String(f.id)||r.cat==='fld_'+f.id)&&r.name)}))@@@      recipes:R.filter(r=>r.folder===String(f.id)&&r.name)}))"
@@ -198,13 +198,13 @@ fall "eine Altbestands-Kennung wird wieder mitgeschleppt" "nicht mitgeschleppt" 
 }@@@}"
 
 fall "ein Rezept steht im Ordner-Baum wieder zweimal" "zweimal" \
-"      recipes:R.filter(r=>!r.folder&&katVonRezept(r)===c.id&&r.name),@@@      recipes:R.filter(r=>katVonRezept(r)===c.id&&r.name),"
+"      recipes:R.filter(r=>!ordnerVonRezept(r)&&katVonRezept(r)===c.id&&r.name),@@@      recipes:R.filter(r=>katVonRezept(r)===c.id&&r.name),"
 
 fall "die Zeile im Ordner fragt wieder das rohe Feld" "Ohne-Kategorie statt" \
 '            <div style="font-size:.92rem">${catIco(katVonRezept(r))}</div>@@@            <div style="font-size:.92rem">${catIco(r.cat)}</div>'
 
 fall "das Abzeichen zaehlt die Ordner-Rezepte doppelt" "Gruppen mit Inhalt" \
-"  const fldCats=catsAlle().filter(c=>R.some(r=>!r.folder&&katVonRezept(r)===c.id&&r.name)).length;@@@  const fldCats=catsAlle().filter(c=>R.some(r=>katVonRezept(r)===c.id&&r.name)).length;"
+"  const fldCats=catsAlle().filter(c=>R.some(r=>!ordnerVonRezept(r)&&katVonRezept(r)===c.id&&r.name)).length;@@@  const fldCats=catsAlle().filter(c=>R.some(r=>katVonRezept(r)===c.id&&r.name)).length;"
 
 fall "ein geloeschter Ordner raet wieder Fleisch" "erfindet keine Kategorie" \
 "    if(r.cat===('fld_'+String(fid)))r.cat='';
@@ -356,6 +356,27 @@ fall "die Auswahl haengt im Fluss der Karte" "bewegt die Rezeptkarte nicht" \
 # Ohne Markierung weiss niemand, wo das Rezept gerade steht.
 fall "die aktuelle Kategorie wird nicht mehr markiert" "aktuelle ist darin markiert" \
 "(id===jetzt?'kzp-jetzt':'')@@@(false?'kzp-jetzt':'')"
+
+# ══ 20 · Ein Ordner, den es nicht gibt, ist kein Ordner (Klaus 2026-09-16) ══
+
+# Der Helfer prueft FD nicht mehr — ein toter Ordner gilt wieder als Ordner.
+fall "ein toter Ordner gilt wieder als Ordner" "steht im Baum unter" \
+"  return da?f:'';@@@  return f;"
+
+# Die Kategorie-Gruppe liest wieder das ROHE Feld — die Lehre vom Vortag,
+# rueckgaengig gemacht.
+fall "die Kategorie-Gruppe liest r.folder wieder roh" "steht im Baum unter" \
+"      recipes:R.filter(r=>!ordnerVonRezept(r)&&katVonRezept(r)===c.id&&r.name),@@@      recipes:R.filter(r=>!r.folder&&katVonRezept(r)===c.id&&r.name),"
+
+# Die Zahl „+N in Ordnern" zaehlt wieder Geister mit.
+fall "die Ordner-Zahl zaehlt wieder Geister" "zaehlt nicht als" \
+"      imOrdner:R.filter(r=>ordnerVonRezept(r)&&katVonRezept(r)===c.id&&r.name).length})),@@@      imOrdner:R.filter(r=>r.folder&&katVonRezept(r)===c.id&&r.name).length})),"
+
+# Nach dem Zuordnen bleibt der Ordner-Baum stehen — die Aenderung ist da,
+# man sieht sie nur nicht.
+fall "der Ordner-Baum zieht nach dem Zuordnen nicht nach" "steht es in SEINER Kategorie" \
+"  sv();render();renderCatNav();renderFolders();badge();@@@  sv();render();badge();"
+
 
 
 echo
