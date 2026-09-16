@@ -739,6 +739,152 @@ ok("… und der Finger steht gleich im Namensfeld DER NEUEN", neuK.fokus===true)
 ok("… obwohl sie nicht die letzte Zeile ist", neuK.istLetzte===false);
 ok("… ohne Namen wird sie beim Speichern wieder entfernt", neuK.bleibtOhneNamen===false);
 
+/* ══ 19 · KATEGORIE ZUORDNEN AUS DER REZEPTZEILE (Klaus 2026-09-16) ══
+   „links neben dem Papierkorb da noch einen reinmachen, zu einer anderen
+   Kategorie zuordnen … dann geht eine Leiste auf und ich kann waehlen."
+   Dazu: „ich kann eine neue Kategorie anlegen, direkt aus dem Rezeptbuch."  */
+const kz = await seite.evaluate(async () => {
+  const sichR = JSON.stringify(R), sichN = JSON.stringify(CATS_NEU);
+  /* Ein Rezept, das in einem ORDNER liegt UND eine Kategorie hat — nur an dem
+     laesst sich messen, dass das Zuordnen den Ordner in Ruhe laesst. */
+  FD = [{ id:"o1", name:"Japanisch" }];
+  R = [
+    { id:91, name:"Maki-im-Ordner", cat:"sushi", folder:"o1", shut:true, ings:[], steps:[] },
+    { id:92, name:"Alt-Ordnerkennung", cat:"fld_999", shut:true, ings:[], steps:[] },
+  ];
+  CAT = "all"; render(); renderCatNav();
+
+  const zeile = document.querySelector('.rcard-acts');
+  const knoepfe = [...zeile.querySelectorAll('button')];
+  const iZu = knoepfe.findIndex(b => b.classList.contains('kat-zu-btn'));
+  const iWeg = knoepfe.findIndex(b => b.classList.contains('del'));
+
+  /* ⚠ GEMESSEN WIRD DIE LAGE, NICHT DIE ANWESENHEIT. „der Knopf ist da" waere
+     auch dann gruen, wenn er am anderen Ende der Zeile stuende — und genau
+     seine Stelle hat Klaus bestellt.
+     ⚠ UND GEMESSEN WIRD, WAS MAN SIEHT, NICHT DIE REIHENFOLGE IM DOM. Die
+     erste Fassung verglich zwei Indizes. `.rcard-acts` ist aber ein Flex-
+     Container: ein `order:9` schoebe den Knopf ans Ende der Zeile, und der
+     Waechter waere gruen geblieben, waehrend Klaus ihn rechts vom Papierkorb
+     sieht. Dieselbe Familie wie „ein Waechter auf die Lage misst nicht die
+     Sichtbarkeit" (2026-09-15) — nur andersherum. */
+  const rZu  = iZu  >= 0 ? knoepfe[iZu].getBoundingClientRect()  : null;
+  const rWeg = iWeg >= 0 ? knoepfe[iWeg].getBoundingClientRect() : null;
+  const dazwischen = (rZu && rWeg) ? knoepfe.filter(b => {
+    const r = b.getBoundingClientRect();
+    return r.left > rZu.left && r.left < rWeg.left && Math.abs(r.top - rWeg.top) < 4;
+  }).length : -1;
+  const linksNebenWeg = !!rZu && !!rWeg
+    && rZu.left < rWeg.left && Math.abs(rZu.top - rWeg.top) < 4 && dazwischen === 0;
+
+  const karteVor = document.querySelector('.rcard').getBoundingClientRect().top;
+  knoepfe[iZu].click();
+  const pop = document.getElementById('katZuPop');
+  const karteNach = document.querySelector('.rcard').getBoundingClientRect().top;
+  const offen = !!pop;
+  const eintraege = pop ? [...pop.querySelectorAll('button')].length : 0;
+  const hatOhne = !!(pop && pop.querySelector('.kzp-ohne'));
+  const hatNeu  = !!(pop && pop.querySelector('.kzp-neu'));
+  const zeigtJetzt = !!(pop && pop.querySelector('.kzp-jetzt'));
+
+  /* zu „fleisch" umhaengen */
+  const ziel = [...pop.querySelectorAll('button')]
+    .find(b => (b.textContent||"").includes(katBeschriftung(catsAlle().find(c=>c.id==="fleisch"))));
+  ziel.click();
+  const r91 = R.find(r => r.id === 91);
+  const catNachher = r91.cat, ordnerNachher = r91.folder;
+  const popWeg = !document.getElementById('katZuPop');
+  /* ⚠ GEMESSEN WIRD DIE UEBEREINSTIMMUNG, NICHT EINE ZAHL. „die Leiste zeigt 2"
+     war beim ersten Lauf zu Recht rot — ich hatte falsch gezaehlt, und der
+     Waechter haette bei jedem Bestands-Wechsel wieder gelogen. Eine Zahl in
+     einer Pruefung ist kein Vertrag. */
+  /* ⚠ DIE PILLE TRAEGT KEIN `data-cid` — sie haengt an ihrem `setCAT('…')`.
+     Mein erster Selektor traf nichts und war ROT AUS DEM FALSCHEM GRUND: er
+     meldete -1, also „die Leiste zieht nicht nach", waehrend sie es tat.
+     Ein Waechter, der ins Leere greift, misst nicht, was er zu messen glaubt. */
+  const fleischLeiste = (() => {
+    const p = [...document.querySelectorAll('#catNav .cpill')]
+      .find(e => (e.getAttribute('onclick')||"").includes("setCAT('fleisch')"));
+    if (!p) return -1;
+    const z = p.querySelector('span');           // die Zahl steht im letzten span
+    return z ? +String(z.textContent).trim() : -1;
+  })();
+  const fleischEcht = R.filter(r => r.name && katVonRezept(r) === "fleisch").length;
+
+  /* der Weg ZURUECK */
+  document.querySelector('.rcard-acts .kat-zu-btn').click();
+  document.getElementById('katZuPop').querySelector('.kzp-ohne').click();
+  const catOhne = R.find(r => r.id === 91).cat;
+  const ordnerOhne = R.find(r => r.id === 91).folder;
+
+  /* ⚠ ALTBESTAND: ein `fld_…` in r.cat wird ERSETZT, nicht danebengelegt. */
+  R.find(r=>r.id===92).cat = "fld_999";
+  render();
+  const zeile92 = [...document.querySelectorAll('.rcard')]
+    .find(k => (k.textContent||"").includes("Alt-Ordnerkennung"));
+  zeile92.querySelector('.kat-zu-btn').click();
+  [...document.getElementById('katZuPop').querySelectorAll('button')]
+    .find(b => (b.textContent||"").includes(katBeschriftung(catsAlle().find(c=>c.id==="fleisch")))).click();
+  const cat92 = R.find(r=>r.id===92).cat;
+
+  /* ＋ Neue Kategorie — anlegen UND zuordnen in EINEM Griff */
+  const vorN = CATS_NEU.length;
+  document.querySelector('.rcard-acts .kat-zu-btn').click();
+  document.getElementById('katZuPop').querySelector('.kzp-neu').click();
+  const feldDa = !!document.getElementById('katZuNeuIn');
+  /* ohne Namen darf NICHTS entstehen */
+  katZuNeuAnlegen(91);
+  const leerLegtAn = CATS_NEU.length !== vorN;
+  const feldBleibt = !!document.getElementById('katZuNeuIn');
+  document.getElementById('katZuNeuIn').value = "Fisch-Rollen";
+  katZuNeuAnlegen(91);
+  const nachN = CATS_NEU.length;
+  const neuKid = CATS_NEU[CATS_NEU.length-1] ? CATS_NEU[CATS_NEU.length-1].id : "";
+  const zugeordnet = R.find(r=>r.id===91).cat === neuKid;
+  const nameStimmt = katBeschriftung(catsAlle().find(c=>String(c.id)===String(neuKid))) === "Fisch-Rollen";
+  /* dieselbe Quelle wie der Dialog → dasselbe Kennungs-Format */
+  const formatGleich = /^eig_\d+$/.test(neuKid);
+
+  R = JSON.parse(sichR); CATS_NEU = JSON.parse(sichN); FD = []; svCatsNeu();
+  document.getElementById('katZuPop')?.remove();
+  render(); renderCatNav(); renderFolders();
+  return { linksNebenWeg, offen, eintraege, hatOhne, hatNeu, zeigtJetzt,
+           bewegt: Math.abs(karteNach - karteVor), catNachher, ordnerNachher,
+           popWeg, fleischLeiste, fleischEcht, catOhne, ordnerOhne, cat92,
+           feldDa, leerLegtAn, feldBleibt, vorN, nachN, zugeordnet, nameStimmt, formatGleich };
+});
+ok("der Zuordnen-Knopf steht LINKS neben dem Papierkorb", kz.linksNebenWeg===true);
+ok("ein Tipp oeffnet die Auswahl", kz.offen===true);
+ok("… und sie traegt mehrere Kategorien", kz.eintraege>3);
+ok("… die aktuelle ist darin markiert", kz.zeigtJetzt===true);
+ok("… „ohne Kategorie“ steht als Weg zurueck darin", kz.hatOhne===true);
+ok("… und „＋ Neue Kategorie“ ebenfalls", kz.hatNeu===true);
+/* ⚠ DIE AUSWAHL DARF DAS LAYOUT NICHT BEWEGEN. Waanderte die Karte unter dem
+   Finger weg, landete der Klick auf einer anderen — wortgleich derselbe
+   Fehler wie bei der Emoji-Auswahl am 2026-09-15, nur an einer anderen Tuer. */
+ok("… und bewegt die Rezeptkarte nicht", kz.bewegt<1);
+ok("eine Wahl setzt die Kategorie", kz.catNachher==="fleisch");
+/* ⚠ DER KERN: der Ordner bleibt, wo er ist. Ein Griff, der beides aendert,
+   frisst das eine mit dem anderen auf — Klaus' Befund vom 2026-09-16. */
+ok("… und laesst den Ordner in Ruhe", kz.ordnerNachher==="o1");
+ok("… die Auswahl schliesst sich danach", kz.popWeg===true);
+ok("… und die Reiter-Leiste zieht von selbst nach", kz.fleischLeiste===kz.fleischEcht && kz.fleischEcht>0);
+ok("„ohne Kategorie“ leert die Kategorie wirklich", kz.catOhne==="");
+ok("… auch dabei bleibt der Ordner stehen", kz.ordnerOhne==="o1");
+ok("ein `fld_…`-Altbestand wird ERSETZT, nicht danebengelegt", kz.cat92==="fleisch");
+ok("„＋ Neue Kategorie“ oeffnet ein Namensfeld", kz.feldDa===true);
+/* Ein Fenster, das auf einen Tipp hin zugeht und nichts getan hat, sieht aus
+   wie ein kaputter Knopf — deshalb bleibt das Feld bei leerer Eingabe stehen. */
+ok("… ohne Namen entsteht KEINE Kategorie", kz.leerLegtAn===false);
+ok("… und das Feld bleibt stehen statt still zuzugehen", kz.feldBleibt===true);
+ok("… mit Namen entsteht genau eine", kz.nachN===kz.vorN+1);
+ok("… sie traegt den getippten Namen", kz.nameStimmt===true);
+ok("… das Rezept ist im selben Griff zugeordnet", kz.zugeordnet===true);
+/* ⚠ EINE QUELLE, ZWEI WEGE: das Anlegen liegt in `katAnlegen`. Zwei Fassungen
+   ergaeben zwei Kennungs-Formate — und der „eine Kennung kommt genau einmal
+   vor"-Riegel haette zwei Sorten zu pruefen. */
+ok("… mit demselben Kennungs-Format wie aus dem Dialog", kz.formatGleich===true);
+
 await browser.close(); server.close();
 console.log(`\n${gruen} grün · ${rot} ROT`);
 process.exit(rot?1:0);
