@@ -11185,6 +11185,17 @@ function katZuPop(rid,btn){
   pop.style.top=(oben?Math.max(6,rc.top-6-ph):Math.min(rc.bottom+6,window.innerHeight-ph-6))+'px';
   pop.style.left=Math.max(6,Math.min(rc.left,window.innerWidth-pw-6))+'px';
   setTimeout(function(){document.addEventListener('click',function schliess(e){
+    /* ⚠ EIN ZIEL, DAS NICHT MEHR IM DOKUMENT HAENGT, IST KEIN TIPP NACH DRAUSSEN.
+       „＋ Neue Kategorie" tauscht den Inhalt dieses Fensters aus. Danach feuert
+       dieser Riegel, findet den geklickten Knopf nicht mehr DARIN — und hielt
+       das fuer einen Tipp daneben: das Fenster machte sich selbst wieder zu,
+       und es sah aus, als taete der Knopf nichts. Klaus hat es am Tablet
+       gesehen; die Probe war blind, weil sie synchron klickt und dieser
+       `setTimeout` dort nie zum Zug kam.
+       Geprueft wird die URSACHE, nicht der eine Knopf — jeder kuenftige, der
+       den Inhalt ersetzt, ist damit mitgedeckt. Wortgleich dieselbe Falle wie
+       bei der Emoji-Auswahl am 2026-09-15, nur mit anderem Ausloeser. */
+    if(!document.contains(e.target))return;
     if(!pop.contains(e.target)){pop.remove();document.removeEventListener('click',schliess);}
   });},0);
 }

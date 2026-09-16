@@ -1028,10 +1028,57 @@ steht in dieser Datei und wurde am selben Tag zweimal verletzt. **Eine Regel,
 an die man sich erinnern muss, ist keine.** (Kimhub hat denselben Gang; hier
 fehlte er.) In dieser einen Sitzung hat er **dreimal** zugeschlagen.
 
+### ⚠ UND DAS AUSWAHL-FENSTER MACHTE SICH SELBST WIEDER ZU (Klaus 2026-09-16)
+
+Klaus am Tablet: *„wenn ich anklicke plus Kategorie, geht kein Feld auf, wie
+ich das benennen kann."*
+
+**＋ Neue Kategorie tauscht den Inhalt des Fensters** gegen das Namensfeld.
+Danach feuert der „Tipp daneben"-Riegel, sucht den geklickten Knopf **darin**
+— und findet ihn nicht mehr, weil er gerade ersetzt wurde. Er hielt das für
+einen Tipp nach draußen und schloss. Für Klaus sah es aus, als täte der Knopf
+nichts.
+
+⚠ **WORTGLEICH DIESELBE FALLE WIE DIE EMOJI-AUSWAHL AM 2026-09-15**, nur mit
+einem anderen Auslöser: dort verschob `scrollIntoView` das Feld unter dem
+Finger, hier verschwindet das Ziel aus dem Dokument. *Ein Auswahl-Feld, das
+sich selbst wieder zumacht* — zum zweiten Mal in zwei Tagen.
+
+**Repariert wird die URSACHE, nicht der eine Knopf:**
+
+```js
+if(!document.contains(e.target))return;   // gerade ersetzt ≠ Tipp nach draußen
+```
+
+Jeder künftige Knopf, der den Inhalt ersetzt, ist damit mitgedeckt. *Ein
+Riegel am Einzelfall ist morgen am Nachbarn blind.*
+
+### ⚠ UND DIE PROBE WAR DAFÜR BLIND, WEIL SIE SYNCHRON KLICKT
+
+Das ist der Befund, der über diesen Fall hinausreicht. Der Riegel hängt an
+einem **`setTimeout(…,0)`**. Klickt eine Probe alles in **einem** Durchgang,
+läuft dazwischen kein Timer — der Riegel ist nie registriert, und die Probe
+misst eine App, die es so nicht gibt.
+
+| | gemessen am 2026-09-16, **unveränderter Code** |
+|---|---|
+| Probe klickt synchron | **grün** |
+| Probe mit `await tick()` zwischen den Klicks | **ROT** — Klaus' Befund |
+
+**Ein Finger ist langsamer als ein Skript.** Wer eine Bedienung prüft, deren
+Code mit `setTimeout`, `requestIdleCallback` oder `requestAnimationFrame`
+arbeitet, lässt zwischen den Griffen einen Tick verstreichen — sonst prüft er
+den halb aufgebauten Zustand. Erst rot bekommen, dann reparieren.
+
+⚠ **Und fehlt das Feld, wird GEMELDET statt geworfen.** Vorher starb die Probe
+am Zugriff auf `null`, und der Fall meldete sich als „rot aus falschem Grund".
+Jetzt fallen **sechs** Wächter einzeln, jeder mit seinem Namen in der roten
+Zeile.
+
 ### Geprüft
 
 Zuletzt gemessen (2026-09-16, nach dem Zuordnen-Knopf): **109 grün · 0 ROT**
-· Gegenprobe **65 gefangen · 0 durchgerutscht · 0 aus falschem Grund · 0 tote
+· Gegenprobe **66 gefangen · 0 durchgerutscht · 0 aus falschem Grund · 0 tote
 Anker**. Beide Rückgabewerte **direkt** gelesen, nicht hinter einer Pipe;
 der Baum war vor und nach dem Lauf sauber.
 
