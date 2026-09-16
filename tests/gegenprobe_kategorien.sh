@@ -62,12 +62,14 @@ PY
 
 echo "── Gegenprobe Kategorien ──"
 
+# ⚠ DIE SABOTAGE TRIFFT DIE SCHLEIFE, NICHT DEN RUECKGABEWERT. `return [];`
+#   nimmt auch den „Ohne Kategorie“-Reiter mit — dann wird in renderCatNav
+#   gar nichts mehr gezeichnet, und die Probe stirbt an einer VORBEDINGUNG,
+#   bevor irgendein Waechter seine rote Zeile drucken konnte. Rot war es
+#   beides, nur trug die rote Zeile den Namen des Wartepunkts statt den der
+#   Zusicherung. Uebersprungen wird deshalb genau das Mitgebrachte.
 fall "catsFremd findet nichts mehr" "sushi" \
-'  return out;
-}
-/* ⚠ EINE KENNUNG KOMMT GENAU EINMAL VOR@@@  return [];
-}
-function catsAlle(){'
+'    if(!id||bekannt.has(id)||gesehen.has(id))continue;@@@    if(!id||bekannt.has(id)||gesehen.has(id)||true)continue;'
 
 fall "der eigene Name wird ignoriert" "Japanisch" \
 "function katBeschriftung(c){if(!c)return'';const e=CATS_EIGEN[c.id];if(e&&e.name)return e.name;@@@function katBeschriftung(c){if(!c)return'';const e=null;if(e&&e.name)return e.name;"
