@@ -601,7 +601,11 @@ const kennung = await seite.evaluate(()=>{
   R.push({id:88010,name:"Mit-Leerzeichen",cat:"luecke ",folder:"",blank:false});
   openKatUmbenennen();
   const row=document.querySelector('#katRenameOv .kat-row[data-kid="luecke "]');
-  const txt=row?row.querySelector('.kat-kenn').textContent.trim():"";
+  /* ⚠ EINE PROBE, DIE ABSTUERZT STATT ZU MELDEN, ZEIGT AUF DEN BOTEN.
+     Fehlt `.kat-kenn`, warf der Zugriff — und die Gegenprobe meldete „ROT AUS
+     FALSCHEM GRUND" statt der gebrochenen Zusicherung. */
+  const k=row&&row.querySelector('.kat-kenn');
+  const txt=k?k.textContent.trim():"";
   const ov=document.getElementById('katRenameOv'); if(ov)ov.remove();
   R=sichR; renderCatNav(); renderFolders();
   return txt;
@@ -611,6 +615,87 @@ ok("… in Anfuehrungszeichen, sodass ein Leerzeichen sichtbar wird",
    kennung.indexOf('"luecke "')===0);
 ok("… und mit der Zeichenzahl daneben", /·7$/.test(kennung));
 if(!/·7$/.test(kennung))console.log(`     gelesen: „${kennung}"`);
+
+console.log("\n── 18 · Kategorien loeschen, zusammenlegen, neu anlegen ──");
+/* ⚠ Klaus 2026-09-16: „mache es bitte moeglich, die Kategorien einzeln zu
+   loeschen, auch ganze Kategorien zu loeschen und neu zu erstellen."
+   Das ZUSAMMENLEGEN ist derselbe Weg: die eine Kategorie wird in die andere
+   aufgeloest. Damit legt er seine zwei „Sushi" zusammen. */
+const aufl = await seite.evaluate(()=>{
+  const sichR=JSON.parse(JSON.stringify(R)), sichN=JSON.parse(JSON.stringify(CATS_NEU));
+  const sichA=CATS_AUS.slice(), sichE=JSON.parse(JSON.stringify(CATS_EIGEN));
+  R.push({id:91001,name:"Sushi-A-1",cat:"sushiA",folder:"",blank:false});
+  R.push({id:91002,name:"Sushi-A-2",cat:"sushiA",folder:"",blank:false});
+  R.push({id:91003,name:"Sushi-B-1",cat:"sushiB",folder:"",blank:false});
+
+  const vorher=katAnzahl("sushiB");
+  // zusammenlegen: B in A aufloesen
+  katWegNehmen("sushiB","sushiA");
+  const nachA=katAnzahl("sushiA"), nachB=katAnzahl("sushiB");
+  const bWeg=!catsAlle().some(c=>String(c.id)==="sushiB");
+
+  // in „Ohne Kategorie" aufloesen ist eine WAHL, kein fehlender Wert
+  katWegNehmen("sushiA","");
+  const ohne=R.filter(r=>[91001,91002,91003].indexOf(r.id)>=0&&katVonRezept(r)===KAT_OHNE).length;
+
+  document.querySelectorAll('#katRenameOv,#katAuflOv').forEach(e=>e.remove());
+  R=sichR;CATS_NEU=sichN;CATS_AUS=sichA;CATS_EIGEN=sichE;
+  renderCatNav();renderFolders();
+  return {vorher,nachA,nachB,bWeg,ohne};
+});
+ok("zwei Kategorien lassen sich zusammenlegen", aufl.vorher===1 && aufl.nachA===3);
+ok("… die aufgeloeste ist danach leer", aufl.nachB===0);
+ok("… und verschwindet aus der Liste", aufl.bWeg);
+ok("„Ohne Kategorie“ ist eine Wahl, kein fehlender Wert", aufl.ohne===3);
+
+/* ⚠ EINE KATEGORIE MIT INHALT WIRD NICHT STILL AUSGEBLENDET. Das waere der
+   Schaden vom 2026-09-15 zurueck: Rezepte liegen in R, werden gespeichert und
+   mitexportiert — und tauchen nirgends auf. */
+ok("eine ausgeblendete Kategorie MIT Inhalt bleibt sichtbar",
+   await seite.evaluate(()=>{
+     const sichR=JSON.parse(JSON.stringify(R)), sichA=CATS_AUS.slice();
+     R.push({id:91010,name:"Noch-da",cat:"bleibt9",folder:"",blank:false});
+     CATS_AUS.push("bleibt9");
+     const sichtbar=catsAlle().some(c=>String(c.id)==="bleibt9");
+     // Gegenrichtung: ohne Inhalt verschwindet sie sehr wohl
+     R=R.filter(r=>r.id!==91010);
+     const wegOhneInhalt=!catsAlle().some(c=>String(c.id)==="bleibt9");
+     R=sichR;CATS_AUS=sichA;renderCatNav();renderFolders();
+     return sichtbar && wegOhneInhalt;
+   }));
+
+/* ⚠ EINE NEUE KATEGORIE IST EINE NEUE ZEILE, kein zweiter Dialog — der Nutzer
+   tippt den Namen dort, wo er alle anderen auch tippt. */
+const neuK = await seite.evaluate(()=>{
+  const sichN=JSON.parse(JSON.stringify(CATS_NEU)), sichE=JSON.parse(JSON.stringify(CATS_EIGEN));
+  openKatUmbenennen();
+  const vorher=document.querySelectorAll('#katRenameOv .kat-row').length;
+  katNeuAnlegen();
+  const rows=[...document.querySelectorAll('#katRenameOv .kat-row')];
+  const nachher=rows.length;
+  /* ⚠ NICHT „die letzte Zeile" — `catsAlle()` haengt die mitgebrachten
+     Kategorien dahinter. Gesucht wird die Zeile mit der NEUEN Kennung. */
+  const neue=rows.find(r=>/^eig_/.test(r.dataset.kid||""));
+  const kid=neue?neue.dataset.kid:"";
+  const fokus=!!neue&&document.activeElement===neue.querySelector('.kat-name');
+  const istLetzte=rows.length>0&&rows[rows.length-1]===neue;
+  // ohne Namen wird sie beim Speichern wieder entfernt — sonst bliebe eine
+  // leere „Neue Kategorie" stehen, obwohl der Nutzer abgebrochen hat
+  katSpeichern();
+  const bleibtOhneNamen=CATS_NEU.some(c=>c.id===kid);
+  CATS_NEU=sichN;CATS_EIGEN=sichE;svCatsNeu();svCatsEigen();
+  document.querySelectorAll('#katRenameOv,#katAuflOv').forEach(e=>e.remove());
+  renderCatNav();renderFolders();
+  return {vorher,nachher,kid,fokus,istLetzte,bleibtOhneNamen};
+});
+ok("„＋ Neue Kategorie“ legt eine Zeile an", neuK.nachher===neuK.vorher+1);
+ok("… mit eigener Kennung", /^eig_/.test(neuK.kid));
+/* ⚠ UND ER STEHT IN DER RICHTIGEN ZEILE. Die erste Fassung nahm „die letzte",
+   und das war eine FREMDE Kategorie — wer lostippt, benennt die falsche um.
+   Gefunden hat es dieser Waechter, nicht das Nachdenken. */
+ok("… und der Finger steht gleich im Namensfeld DER NEUEN", neuK.fokus===true);
+ok("… obwohl sie nicht die letzte Zeile ist", neuK.istLetzte===false);
+ok("… ohne Namen wird sie beim Speichern wieder entfernt", neuK.bleibtOhneNamen===false);
 
 await browser.close(); server.close();
 console.log(`\n${gruen} grün · ${rot} ROT`);

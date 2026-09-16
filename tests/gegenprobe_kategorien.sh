@@ -65,7 +65,7 @@ echo "── Gegenprobe Kategorien ──"
 fall "catsFremd findet nichts mehr" "sushi" \
 '  return out;
 }
-function catsAlle(){@@@  return [];
+/* ⚠ EINE KENNUNG KOMMT GENAU EINMAL VOR@@@  return [];
 }
 function catsAlle(){'
 
@@ -245,6 +245,25 @@ fall "die Anfuehrungszeichen um die Kennung fallen weg" "sodass ein Leerzeichen 
 
 fall "die Zeichenzahl faellt weg" "mit der Zeichenzahl daneben" \
 '" ·${String(c.id).length}</div>@@@"</div>'
+
+# ── Loeschen, Zusammenlegen, Neu-Anlegen (Klaus 2026-09-16) ──
+fall "das Aufloesen haengt die Rezepte nicht um" "lassen sich zusammenlegen" \
+"  if(ziel!==null)R.forEach(r=>{if(katVonRezept(r)===sid)r.cat=ziel;});@@@"
+
+fall "„Ohne Kategorie\" wird wie ein fehlender Wert behandelt" "ist eine Wahl, kein fehlender Wert" \
+"  if(ziel!==null)R.forEach(r=>{if(katVonRezept(r)===sid)r.cat=ziel;});@@@  if(ziel)R.forEach(r=>{if(katVonRezept(r)===sid)r.cat=ziel;});"
+
+fall "die aufgeloeste Kategorie bleibt in der Liste stehen" "verschwindet aus der Liste" \
+"  if(CATS_NEU.length===vorher&&CATS_AUS.indexOf(sid)<0)CATS_AUS.push(sid);@@@"
+
+fall "eine Kategorie MIT Inhalt wird still ausgeblendet" "MIT Inhalt bleibt sichtbar" \
+"  const aus=new Set((CATS_AUS||[]).filter(id=>katAnzahl(id)===0));@@@  const aus=new Set(CATS_AUS||[]);"
+
+fall "der Finger landet wieder in der letzten statt in der neuen Zeile" "im Namensfeld DER NEUEN" \
+"  const zeile=document.querySelector('#katRenameOv .kat-row[data-kid=\"'+kid+'\"]');@@@  const _r=document.querySelectorAll('#katRenameOv .kat-row');const zeile=_r[_r.length-1];"
+
+fall "eine namenlose neue Kategorie bleibt stehen" "wird sie beim Speichern wieder entfernt" \
+"  CATS_NEU=CATS_NEU.filter(c=>!!(CATS_EIGEN[c.id]&&CATS_EIGEN[c.id].name)||katAnzahl(c.id)>0);@@@"
 
 echo
 echo "$gefangen gefangen · $durch durchgerutscht · $falsch aus falschem Grund · $tot tote Anker"

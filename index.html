@@ -616,6 +616,10 @@ body.nav-collapsed{padding-bottom:calc(16px + var(--sb))}
 .kat-name{flex:1 1 auto;min-width:0;font-size:.82rem;padding:7px 8px;border:1px solid var(--line,#d8cdbb);border-radius:8px;background:var(--card,#fff);color:var(--ink)}
 .kat-reset{flex:0 0 auto;min-width:34px;min-height:34px;border:0;border-radius:8px;background:transparent;color:var(--dim);font-size:.95rem;cursor:pointer}
 .kat-reset:disabled{opacity:.28;cursor:default}
+.kat-weg{flex:0 0 auto;min-width:34px;min-height:34px;border:0;border-radius:8px;background:transparent;color:var(--dim);font-size:.95rem;cursor:pointer}
+.kat-neu-btn{width:100%;min-height:40px;border:1px dashed var(--dim);border-radius:10px;background:transparent;color:var(--dim);font-size:.8rem;cursor:pointer;margin-bottom:8px}
+.kat-aufl{margin:8px 0}
+.kat-aufl select{width:100%;min-height:40px;margin-top:6px}
 .kat-fremd{flex:0 0 auto;font-size:.6rem;color:var(--dim);background:rgba(0,0,0,.06);padding:2px 6px;border-radius:6px}
 .kat-note{font-size:.68rem;line-height:1.45;color:var(--dim);text-align:left;margin:0 0 12px}
 /* Emoji-Auswahl: ein Raster, das unter die bearbeitete Zeile wandert.
@@ -5479,6 +5483,37 @@ let CATS_EIGEN={};
 function ladeCatsEigen(){try{const r=JSON.parse(localStorage.getItem(CATS_KEY)||'{}');CATS_EIGEN=(r&&typeof r==='object')?r:{};}catch(e){CATS_EIGEN={};}}
 function svCatsEigen(){try{localStorage.setItem(CATS_KEY,JSON.stringify(CATS_EIGEN));}catch(e){}}
 ladeCatsEigen();
+
+/* ══ SELBST ANGELEGTE UND AUSGEBLENDETE KATEGORIEN (Klaus 2026-09-16) ══════
+   Klaus: „mache es bitte moeglich, die Kategorien einzeln zu loeschen, auch
+   ganze Kategorien zu loeschen und neu zu erstellen."
+
+   ⚠ DIE SCHLUESSEL SIND APP-EIGEN, wie `mrzcats9m` — beide Rezeptbuecher
+   teilen sich den localStorage derselben github.io-Adresse.
+
+   ⚠ UND AUSBLENDEN WIRKT NUR AUF LEERE KATEGORIEN. Eine Kategorie mit Inhalt
+   verschwinden zu lassen hiesse, ihre Rezepte heimatlos zu machen — genau der
+   Schaden vom 2026-09-15, als Rezepte in `R` lagen, gespeichert und
+   mitexportiert wurden und trotzdem nirgends auftauchten. Wer eine Kategorie
+   mit Rezepten loswerden will, sagt vorher, wohin sie sollen; geraten wird
+   nichts. */
+const CATS_NEU_KEY='mrzcatsneu9m', CATS_AUS_KEY='mrzcatsaus9m';
+let CATS_NEU=[], CATS_AUS=[];
+function ladeCatsNeu(){
+  try{const r=JSON.parse(localStorage.getItem(CATS_NEU_KEY)||'[]');CATS_NEU=Array.isArray(r)?r.filter(c=>c&&c.id):[];}catch(e){CATS_NEU=[];}
+  try{const a=JSON.parse(localStorage.getItem(CATS_AUS_KEY)||'[]');CATS_AUS=Array.isArray(a)?a.map(String):[];}catch(e){CATS_AUS=[];}
+}
+function svCatsNeu(){
+  try{localStorage.setItem(CATS_NEU_KEY,JSON.stringify(CATS_NEU));}catch(e){}
+  try{localStorage.setItem(CATS_AUS_KEY,JSON.stringify(CATS_AUS));}catch(e){}
+}
+ladeCatsNeu();
+/* Wie viele SICHTBARE Rezepte haengen an dieser Kennung? Blanks und namenlose
+   zaehlen nicht — sie sind kein Inhalt. */
+function katAnzahl(id){
+  if(typeof R==='undefined'||!Array.isArray(R))return 0;
+  return R.filter(r=>r&&!r.blank&&r.name&&String(r.name).trim()&&katVonRezept(r)===id).length;
+}
 /* EINE Stelle fuer den angezeigten Namen. Zwei Stellen liefen auseinander,
    und dann stuende im Reiter etwas anderes als in der Auswahlliste.
    ⚠ Die Namen sind mit Bedacht anders als `catName`/`catIco`: die gibt es
@@ -5602,7 +5637,11 @@ function catsFremd(){
    woher das Duplikat kommt. Der erste Eintrag gewinnt (CATS vor catsFremd). */
 function catsAlle(){
   const out=[],gesehen=new Set();
-  CATS.filter(c=>c.id!=='all').concat(catsFremd()).forEach(c=>{
+  /* ⚠ AUSGEBLENDET WIRD NUR, WAS LEER IST. Sonst waeren die Rezepte darin
+     nirgends mehr zu sehen — und genau dafuer gibt es „Ohne Kategorie". */
+  const aus=new Set((CATS_AUS||[]).filter(id=>katAnzahl(id)===0));
+  CATS.filter(c=>c.id!=='all').concat(CATS_NEU||[]).concat(catsFremd()).forEach(c=>{
+    if(c&&aus.has(String(c.id)))return;
     if(!c||c.id===undefined||c.id===null)return;
     const id=String(c.id);
     if(gesehen.has(id))return;
@@ -10591,28 +10630,28 @@ function openFolderSheet(){document.getElementById('folderSheet').style.display=
 const KAT_TXT={
   de:{t:'✎ Kategorien umbenennen',s:'Gib den Kategorien deine eigenen Namen und Symbole. Aus „Mocktails" wird deine „Salatbar".',
       n:'⚠ Der Name gilt in allen Sprachen — du hast ihn selbst geschrieben. Die Kennung bleibt unveraendert, deine Rezepte behalten ihr Zuhause.',sym:'Symbol antippen und aussuchen',fuer:'Symbol fuer',ohne:'Ohne Kategorie',
-      f:'mitgebracht',kenn:'Kennung — daran haengen deine Rezepte',z:'↺ zuruecksetzen',ok:'Speichern',ab:'Abbrechen',g:'✅ Kategorien gespeichert'},
+      f:'mitgebracht',kenn:'Kennung — daran haengen deine Rezepte',weg:'Kategorie aufloesen',neu:'Neue Kategorie',neuName:'Neue Kategorie',auflT:'Kategorie aufloesen',auflS:'{0} Rezepte liegen in „{1}". Wohin sollen sie? Geraten wird nichts.',auflOk:'Aufloesen',auflG:'Kategorie aufgeloest',z:'↺ zuruecksetzen',ok:'Speichern',ab:'Abbrechen',g:'✅ Kategorien gespeichert'},
   en:{t:'✎ Rename categories',s:'Give the categories your own names and icons. “Mocktails” becomes your “Salad bar”.',
       n:'⚠ The name applies in every language — you wrote it yourself. The internal id stays, so your recipes keep their home.',sym:'Tap the icon to pick one',fuer:'Icon for',ohne:'No category',
-      f:'imported',kenn:'Internal id — your recipes hang on this',z:'↺ reset',ok:'Save',ab:'Cancel',g:'✅ Categories saved'},
+      f:'imported',kenn:'Internal id — your recipes hang on this',weg:'Dissolve category',neu:'New category',neuName:'New category',auflT:'Dissolve category',auflS:'{0} recipes are in “{1}”. Where should they go? Nothing is guessed.',auflOk:'Dissolve',auflG:'Category dissolved',z:'↺ reset',ok:'Save',ab:'Cancel',g:'✅ Categories saved'},
   ru:{t:'✎ Переименовать категории',s:'Дайте категориям свои названия и значки.',
       n:'⚠ Название действует на всех языках. Идентификатор не меняется — рецепты остаются на месте.',sym:'Нажмите на значок и выберите',fuer:'Значок для',ohne:'Без категории',
-      f:'импортировано',kenn:'Идентификатор — к нему привязаны рецепты',z:'↺ сбросить',ok:'Сохранить',ab:'Отмена',g:'✅ Сохранено'},
+      f:'импортировано',kenn:'Идентификатор — к нему привязаны рецепты',weg:'Распустить категорию',neu:'Новая категория',neuName:'Новая категория',auflT:'Распустить категорию',auflS:'{0} рецептов в «{1}». Куда их перенести? Ничего не угадывается.',auflOk:'Распустить',auflG:'Категория распущена',z:'↺ сбросить',ok:'Сохранить',ab:'Отмена',g:'✅ Сохранено'},
   zh:{t:'✎ 重命名分类',s:'为分类设置你自己的名称和图标。',
       n:'⚠ 该名称适用于所有语言。内部标识不变，菜谱不会丢失。',sym:'点按图标即可选择',fuer:'图标：',ohne:'未分类',
-      f:'导入',kenn:'内部标识 — 你的食谱挂在它上面',z:'↺ 重置',ok:'保存',ab:'取消',g:'✅ 已保存'},
+      f:'导入',kenn:'内部标识 — 你的食谱挂在它上面',weg:'解散类别',neu:'新建类别',neuName:'新建类别',auflT:'解散类别',auflS:'「{1}」中有 {0} 个食谱。它们该去哪里？不作猜测。',auflOk:'解散',auflG:'类别已解散',z:'↺ 重置',ok:'保存',ab:'取消',g:'✅ 已保存'},
   es:{t:'✎ Renombrar categorías',s:'Da a las categorías tus propios nombres e iconos.',
       n:'⚠ El nombre vale en todos los idiomas. El identificador no cambia: tus recetas conservan su sitio.',sym:'Toca el icono para elegir',fuer:'Icono para',ohne:'Sin categoría',
-      f:'importado',kenn:'Identificador — tus recetas dependen de él',z:'↺ restablecer',ok:'Guardar',ab:'Cancelar',g:'✅ Guardado'},
+      f:'importado',kenn:'Identificador — tus recetas dependen de él',weg:'Disolver categoría',neu:'Nueva categoría',neuName:'Nueva categoría',auflT:'Disolver categoría',auflS:'{0} recetas están en «{1}». ¿Adónde deben ir? No se adivina nada.',auflOk:'Disolver',auflG:'Categoría disuelta',z:'↺ restablecer',ok:'Guardar',ab:'Cancelar',g:'✅ Guardado'},
   fr:{t:'✎ Renommer les catégories',s:'Donnez aux catégories vos propres noms et icônes.',
       n:'⚠ Le nom vaut dans toutes les langues. L’identifiant ne change pas : vos recettes gardent leur place.',sym:'Touchez l’icône pour choisir',fuer:'Icône pour',ohne:'Sans catégorie',
-      f:'importé',kenn:'Identifiant — vos recettes y sont rattachées',z:'↺ réinitialiser',ok:'Enregistrer',ab:'Annuler',g:'✅ Enregistré'},
+      f:'importé',kenn:'Identifiant — vos recettes y sont rattachées',weg:'Dissoudre la catégorie',neu:'Nouvelle catégorie',neuName:'Nouvelle catégorie',auflT:'Dissoudre la catégorie',auflS:'{0} recettes sont dans « {1} ». Où doivent-elles aller ? Rien n’est deviné.',auflOk:'Dissoudre',auflG:'Catégorie dissoute',z:'↺ réinitialiser',ok:'Enregistrer',ab:'Annuler',g:'✅ Enregistré'},
   it:{t:'✎ Rinomina categorie',s:'Dai alle categorie i tuoi nomi e le tue icone.',
       n:'⚠ Il nome vale in tutte le lingue. L’identificativo resta: le ricette mantengono il loro posto.',sym:'Tocca l’icona per sceglierne una',fuer:'Icona per',ohne:'Senza categoria',
-      f:'importato',kenn:'Identificatore — le tue ricette vi sono legate',z:'↺ ripristina',ok:'Salva',ab:'Annulla',g:'✅ Salvato'},
+      f:'importato',kenn:'Identificatore — le tue ricette vi sono legate',weg:'Sciogli la categoria',neu:'Nuova categoria',neuName:'Nuova categoria',auflT:'Sciogli la categoria',auflS:'{0} ricette sono in «{1}». Dove devono andare? Non si indovina nulla.',auflOk:'Sciogli',auflG:'Categoria sciolta',z:'↺ ripristina',ok:'Salva',ab:'Annulla',g:'✅ Salvato'},
   pt:{t:'✎ Renomear categorias',s:'Dê às categorias os seus próprios nomes e ícones.',
       n:'⚠ O nome vale em todos os idiomas. O identificador permanece: as receitas mantêm o seu lugar.',sym:'Toque no ícone para escolher',fuer:'Ícone para',ohne:'Sem categoria',
-      f:'importado',kenn:'Identificador — as tuas receitas dependem dele',z:'↺ repor',ok:'Guardar',ab:'Cancelar',g:'✅ Guardado'}
+      f:'importado',kenn:'Identificador — as tuas receitas dependem dele',weg:'Dissolver categoria',neu:'Nova categoria',neuName:'Nova categoria',auflT:'Dissolver categoria',auflS:'{0} receitas estão em «{1}». Para onde devem ir? Nada é adivinhado.',auflOk:'Dissolver',auflG:'Categoria dissolvida',z:'↺ repor',ok:'Guardar',ab:'Cancelar',g:'✅ Guardado'}
 };
 /* ══ EMOJI-AUSWAHL (Klaus 2026-09-15) ════════════════════════════════════
    „Einmal anklicken, Emojis aussuchen." Ein Symbol von Hand zu tippen setzt
@@ -10755,6 +10794,7 @@ function openKatUmbenennen(){
         <div class="kat-kenn" title="${h(X.kenn||'Kennung')}">"${h(c.id)}" ·${String(c.id).length}</div>
       </div>
       <button class="kat-reset" onclick="katZuruecksetzen('${h(c.id)}')" ${hatEigen?'':'disabled'} title="${h(X.z)}">↺</button>
+      <button class="kat-weg" onclick="katAufloesen('${h(String(c.id).replace(/'/g,"\\'"))}')" title="${h(X.weg)}" aria-label="${h(X.weg)}">🗑</button>
       ${c.fremd?`<span class="kat-fremd">${h(X.f)}</span>`:''}
     </div>`;
   }).join('');
@@ -10762,6 +10802,7 @@ function openKatUmbenennen(){
     <div class="share-box-title">${h(X.t)}</div>
     <div class="share-box-sub">${h(X.s)}</div>
     <div class="kat-list">${zeilen}</div>
+    <button class="kat-neu-btn" onclick="katNeuAnlegen()">＋ ${h(X.neu)}</button>
     ${katEmojiRaster()}
     <div class="kat-note">${h(X.n)}</div>
     <button class="share-btn-p" onclick="katSpeichern()">${h(X.ok)}</button>
@@ -10787,6 +10828,90 @@ function openKatUmbenennen(){
   ov.addEventListener('keydown',function(e){ if(e.key==='Escape')katEmojiSchliessen(); });
   document.body.appendChild(ov);
 }
+/* Die Eingaben der offenen Liste uebernehmen, OHNE den Dialog zu schliessen.
+   Ohne das ginge jede halb getippte Zeile verloren, sobald jemand eine
+   Kategorie aufloest oder eine neue anlegt. */
+function katEingabenUebernehmen(){
+  const ov=document.getElementById('katRenameOv');if(!ov)return;
+  const neu={};
+  ov.querySelectorAll('.kat-row').forEach(row=>{
+    const id=row.dataset.kid;
+    const nm=(row.querySelector('.kat-name').value||'').trim();
+    const ic=(row.querySelector('.kat-ico').value||'').trim();
+    if(nm||ic){neu[id]={};if(nm)neu[id].name=nm;if(ic)neu[id].ico=ic;}
+  });
+  CATS_EIGEN=neu;svCatsEigen();
+}
+/* Eine neue Kategorie ist eine neue ZEILE, kein zweiter Dialog. Der Nutzer
+   tippt den Namen dort, wo er alle anderen auch tippt. */
+function katNeuAnlegen(){
+  katEingabenUebernehmen();
+  const X=KAT_TXT[CL]||KAT_TXT.de;
+  const kid='eig_'+Date.now();
+  CATS_NEU.push({id:kid,ico:'🏷',de:X.neuName||'Neue Kategorie',col:'#7a5840',eigen:true});
+  svCatsNeu();
+  const ov=document.getElementById('katRenameOv');if(ov)ov.remove();
+  openKatUmbenennen();
+  /* ⚠ DIE NEUE ZEILE WIRD AN IHRER KENNUNG GESUCHT, nicht als „die letzte".
+     `catsAlle()` haengt die mitgebrachten Kategorien und „Ohne Kategorie"
+     HINTER die eigenen — die letzte Zeile ist also eine fremde. Gemessen am
+     2026-09-16: der Finger stand danach im Namensfeld einer FREMDEN Kategorie,
+     und wer lostippt, benennt die falsche um. */
+  const zeile=document.querySelector('#katRenameOv .kat-row[data-kid="'+kid+'"]');
+  if(zeile){const f=zeile.querySelector('.kat-name');if(f){f.focus();zeile.scrollIntoView({block:'nearest'});}}
+}
+/* ⚠ EINE KATEGORIE MIT INHALT WIRD NICHT STILL WEGGENOMMEN. Wohin ihre
+   Rezepte sollen, entscheidet der Nutzer — die App raet nichts. Genau das ist
+   auch das „Zusammenlegen": zwei Kategorien mit demselben Namen werden eine,
+   indem die eine in die andere aufgeloest wird. */
+function katAufloesen(id){
+  katEingabenUebernehmen();
+  const X=KAT_TXT[CL]||KAT_TXT.de;
+  const n=katAnzahl(id);
+  if(n===0){katWegNehmen(id,null);return;}
+  const ziele=catsAlle().filter(c=>String(c.id)!==String(id)&&c.id!==KAT_OHNE)
+    .map(c=>`<option value="${h(c.id)}">${katSymbol(c)} ${h(katBeschriftung(c))}</option>`).join('');
+  const ov=document.createElement('div');
+  ov.id='katAuflOv';ov.className='share-ov';
+  const c=catsAlle().find(x=>String(x.id)===String(id));
+  ov.innerHTML=`<div class="share-box kat-box">
+    <div class="share-box-title">🗑 ${h(X.auflT)}</div>
+    <div class="share-box-sub">${h((X.auflS||'').replace('{0}',String(n)).replace('{1}',c?katBeschriftung(c):String(id)))}</div>
+    <div class="kat-aufl">
+      <select id="katAuflZiel"><option value="__ohne__">❓ ${h(X.ohne)}</option>${ziele}</select>
+    </div>
+    <button class="share-btn-p" onclick="katAuflBestaetigen('${h(String(id).replace(/'/g,"\\'"))}')">${h(X.auflOk)}</button>
+    <button class="share-btn-cl" onclick="document.getElementById('katAuflOv').remove()">${h(X.ab)}</button>
+  </div>`;
+  ov.addEventListener('click',e=>{if(e.target===ov)ov.remove();});
+  document.body.appendChild(ov);
+}
+function katAuflBestaetigen(id){
+  const sel=document.getElementById('katAuflZiel');
+  const ziel=sel?sel.value:'__ohne__';
+  const ov=document.getElementById('katAuflOv');if(ov)ov.remove();
+  katWegNehmen(id,ziel==='__ohne__'?'':ziel);
+}
+/* `ziel === null` heisst „die Kategorie war leer, es gab nichts umzuhaengen".
+   `ziel === ''` heisst ausdruecklich „Ohne Kategorie" — das ist eine Wahl,
+   kein fehlender Wert. Die beiden auseinanderzuhalten ist der ganze Punkt. */
+function katWegNehmen(id,ziel){
+  const sid=String(id);
+  if(ziel!==null)R.forEach(r=>{if(katVonRezept(r)===sid)r.cat=ziel;});
+  const vorher=CATS_NEU.length;
+  CATS_NEU=CATS_NEU.filter(c=>String(c.id)!==sid);
+  /* Eine selbst angelegte Kategorie ist wirklich weg. Eine fest eingebaute
+     laesst sich nicht loeschen — sie steht im Code —, also wird sie
+     ausgeblendet; und das gilt nur, solange sie leer ist (siehe catsAlle). */
+  if(CATS_NEU.length===vorher&&CATS_AUS.indexOf(sid)<0)CATS_AUS.push(sid);
+  delete CATS_EIGEN[sid];
+  svCatsNeu();svCatsEigen();sv();
+  if(CAT===sid)CAT='all';
+  const ov=document.getElementById('katRenameOv');if(ov)ov.remove();
+  renderCatNav();render();if(typeof renderFolders==='function')renderFolders();badge();
+  openKatUmbenennen();
+  toast('🗑 '+((KAT_TXT[CL]||KAT_TXT.de).auflG||'aufgeloest'));
+}
 function katZuruecksetzen(id){
   const row=document.querySelector('#katRenameOv .kat-row[data-kid="'+id+'"]');
   if(!row)return;
@@ -10807,6 +10932,11 @@ function katSpeichern(){
     if(nm||ic){neu[id]={};if(nm)neu[id].name=nm;if(ic)neu[id].ico=ic;}
   });
   CATS_EIGEN=neu;svCatsEigen();
+  /* Eine frisch angelegte Kategorie ohne Namen ist keine — sie wuerde als
+     „Neue Kategorie" stehenbleiben, obwohl der Nutzer abgebrochen hat. */
+  const vorNeu=CATS_NEU.length;
+  CATS_NEU=CATS_NEU.filter(c=>!!(CATS_EIGEN[c.id]&&CATS_EIGEN[c.id].name)||katAnzahl(c.id)>0);
+  if(CATS_NEU.length!==vorNeu)svCatsNeu();
   ov.remove();
   renderCatNav();render();if(typeof renderFolders==='function')renderFolders();
   toast((KAT_TXT[CL]||KAT_TXT.de).g);

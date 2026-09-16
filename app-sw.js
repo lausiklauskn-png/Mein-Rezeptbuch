@@ -2,7 +2,7 @@ self.SBKIM_SW_STANDALONE = false;
 importScripts("./sbkim-sw-v3.js");
 console.info("SBKIM-SW geladen via importScripts (Variante 3b)");
 // Service Worker for Mein Rezeptbuch (Hauptapp)
-const CACHE = 'meinrezeptbuch-v74';
+const CACHE = 'meinrezeptbuch-v75';
 
 /* ⚠ NUR EIGENE VORRAETE AUFRAEUMEN — `caches` gehoert dem URSPRUNG, nicht dem
  * Pfad. Auf lausiklauskn-png.github.io liegen rund zwanzig Apps; ein Filter,
