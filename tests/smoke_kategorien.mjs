@@ -523,9 +523,37 @@ const zusatz = await seite.evaluate(()=>{
   R=sichR; FD=sichF; renderCatNav(); renderFolders();
   return {mit,ohne};
 });
+/* ⚠ UND ER PRUEFT DAS WORT, NICHT NUR DIE ZAHL. Die erste Fassung fragte nur
+   nach „+2" — und war blind dafuer, dass daneben der SCHLUESSELNAME stand
+   („+6 fldInOrdnern"). Klaus hat es im Bild gesehen, keine Probe. */
 ok("die Kategorie-Zeile nennt die, die in Ordnern liegen", /\+2 /.test(zusatz.mit));
+ok("… und zwar mit einem Wort, nicht mit dem Schluesselnamen",
+   /\+2 in Ordnern/.test(zusatz.mit) && !/fldInOrdnern/.test(zusatz.mit));
 ok("… und schweigt, wenn keines in einem Ordner liegt", !/\+/.test(zusatz.ohne));
 if(!/\+2 /.test(zusatz.mit))console.log(`     mit: „${zusatz.mit}" · ohne: „${zusatz.ohne}"`);
+
+console.log("\n── 16 · Jeder benutzte Text-Schluessel steht wirklich in LANGS ──");
+/* ⚠ `T(k)` gibt bei einem FEHLENDEN Schluessel den Schluessel ZURUECK:
+     function T(k){return(LANGS[CL]||LANGS.de)[k]||k;}
+   Der Rueckgabewert ist damit immer truthy — ein `T('x')||'Rueckfall'`
+   dahinter kann NIE greifen, und auf dem Schirm steht der Schluesselname.
+   Genau das ist am 2026-09-16 passiert („+6 fldInOrdnern"), und gefunden hat
+   es Klaus im Bild, nicht diese Probe. Gemessen wird deshalb die FAMILIE:
+   jeder Schluessel, den der Code benutzt, muss in LANGS.de stehen. */
+const fehlend = await seite.evaluate(()=>{
+  const quelle=document.documentElement.innerHTML;
+  const schluessel=new Set();
+  const re=/\bT\(\s*'([A-Za-z_][A-Za-z0-9_]*)'\s*\)/g;
+  let m; while((m=re.exec(quelle)))schluessel.add(m[1]);
+  const de=(typeof LANGS!=="undefined"&&LANGS.de)||{};
+  return {gesamt:schluessel.size, fehlt:[...schluessel].filter(k=>!(k in de))};
+});
+ok(`alle ${fehlend.gesamt} benutzten Schluessel sind in LANGS.de vorhanden`,
+   fehlend.gesamt>20 && fehlend.fehlt.length===0);
+if(fehlend.fehlt.length)console.log("     fehlt: "+fehlend.fehlt.join(", "));
+/* ⚠ GEGENRICHTUNG: ohne diese Zeile waere der Waechter oben auch dann gruen,
+   wenn der Sammler gar nichts findet. */
+ok("… und der Sammler findet ueberhaupt Schluessel", fehlend.gesamt>20);
 
 await browser.close(); server.close();
 console.log(`\n${gruen} grün · ${rot} ROT`);
