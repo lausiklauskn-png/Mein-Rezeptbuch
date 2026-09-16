@@ -2600,8 +2600,8 @@ body:not([data-theme]) #bnav{
       </div>
       <div class="sett-row" onclick="toggleMistralKeyField()">
         <div class="sett-ico">📄</div>
-        <div class="sett-body"><div class="sett-lbl">Mistral-Schlüssel (EU)</div>
-          <div class="sett-sub">Für Texterkennung im KI-Scan</div></div>
+        <div class="sett-body"><div class="sett-lbl" id="sMistralLbl">Mistral-Schlüssel (EU)</div>
+          <div class="sett-sub" id="sMistralSub">Für Texterkennung im KI-Scan</div></div>
         <div class="sett-arr" id="mistralKeyArr">›</div>
       </div>
       <div id="mistralKeyPanel" style="display:none;padding:12px 16px 14px;border-bottom:1px solid var(--sand2);background:var(--bg)">
@@ -2617,31 +2617,31 @@ body:not([data-theme]) #bnav{
       </div>
     </div>
     <div class="sett-sec">
-      <div class="sett-head">🌐 NETZWERK (SBKIM)</div>
+      <div class="sett-head" id="sNetzHead">🌐 NETZWERK (SBKIM)</div>
       <div class="sett-row" onclick="if(window.SbkimRendezvousUI){window.SbkimRendezvousUI.show()}else{alert('Netz-Modul lädt noch — kurz warten und erneut tippen.')}">
         <div class="sett-ico">🌐</div>
         <div class="sett-body">
-          <div class="sett-lbl">Mit dem Netz verbinden</div>
-          <div class="sett-sub">Im gemeinsamen Raum anmelden &amp; andere Knoten finden (serverlos)</div>
+          <div class="sett-lbl" id="sNetzLbl">Mit dem Netz verbinden</div>
+          <div class="sett-sub" id="sNetzSub">Im gemeinsamen Raum anmelden &amp; andere Knoten finden (serverlos)</div>
         </div>
         <div class="sett-arr">›</div>
       </div>
     </div>
     <div class="sett-sec">
-      <div class="sett-head">🧩 WERKZEUGE</div>
+      <div class="sett-head" id="sToolsHead">🧩 WERKZEUGE</div>
       <div class="sett-row" onclick="window.open('https://lausiklauskn-png.github.io/Sage-Protokol/such-tool/','_blank','noopener')">
         <div class="sett-ico">🔍</div>
         <div class="sett-body">
-          <div class="sett-lbl">Such-Werkzeug</div>
-          <div class="sett-sub">Semantische Suche nach Bedeutung (eigenständige PWA)</div>
+          <div class="sett-lbl" id="sToolsSuchLbl">Such-Werkzeug</div>
+          <div class="sett-sub" id="sToolsSuchSub">Semantische Suche nach Bedeutung (eigenständige PWA)</div>
         </div>
         <div class="sett-arr">›</div>
       </div>
       <div class="sett-row" onclick="window.open('https://lausiklauskn-png.github.io/Sage-Protokol/pinnwand/','_blank','noopener')">
         <div class="sett-ico">📌</div>
         <div class="sett-body">
-          <div class="sett-lbl">Pinnwand</div>
-          <div class="sett-sub">Frage-Antwort-Brett (Bedeutungs-Sortierung &amp; KI-Richter)</div>
+          <div class="sett-lbl" id="sToolsPinLbl">Pinnwand</div>
+          <div class="sett-sub" id="sToolsPinSub">Frage-Antwort-Brett (Bedeutungs-Sortierung &amp; KI-Richter)</div>
         </div>
         <div class="sett-arr">›</div>
       </div>
@@ -2700,7 +2700,7 @@ body:not([data-theme]) #bnav{
       <div class="sett-row ntap">
         <div class="sett-ico" onclick="_iTap()" style="cursor:default;user-select:none;-webkit-user-select:none">📖</div>
         <div class="sett-body"><div class="sett-lbl">Mein Rezeptbuch</div>
-          <div class="sett-sub">Version 10.0 · Offline-fähig</div>
+          <div class="sett-sub">Version 10.0 · <span id="sOfflineCap">Offline-fähig</span></div>
           <div class="sett-sub" style="margin-top:3px;color:var(--dim)">© 2026 by Klaus Nitzsche</div>
           <div class="sett-sub" style="margin-top:1px"><a href="mailto:info@family-projekt.de" style="color:var(--br);font-size:.7rem">info@family-projekt.de</a></div></div>
       </div>
@@ -3838,7 +3838,7 @@ const LANGS={
     ,apiKeyHelpTtl:'Fragen und Hilfe zum API-Key'
     ,sManualHead:'📚 HANDBUCH'
     ,sManualLbl:'Bedienungsanleitung'
-    ,sReloadHead:'🔄 APP',sReloadLbl:'Aktualisieren & neu laden',sReloadSub:'Cache leeren, neueste Version holen'
+    ,sReloadHead:'🔄 APP',sReloadLbl:'Aktualisieren & neu laden',sReloadSub:'Cache leeren, neueste Version holen',sMistralLbl:'Mistral-Schlüssel (EU)',sMistralSub:'Für Texterkennung im KI-Scan',sNetzHead:'🌐 NETZWERK (SBKIM)',sNetzLbl:'Mit dem Netz verbinden',sNetzSub:'Im gemeinsamen Raum anmelden & andere Knoten finden (serverlos)',sToolsHead:'🧩 WERKZEUGE',sToolsSuchLbl:'Such-Werkzeug',sToolsSuchSub:'Semantische Suche nach Bedeutung (eigenständige PWA)',sToolsPinLbl:'Pinnwand',sToolsPinSub:'Frage-Antwort-Brett (Bedeutungs-Sortierung & KI-Richter)',sOfflineCap:'Offline-fähig',updateStatus:'Updates werden automatisch im Hintergrund bereitgestellt.'
     ,sManualSub:'Alle Funktionen erklärt · PDF-Download'
     ,manOvTitle:'📚 Handbuch'
     ,manPdfLbl:'PDF'
@@ -3986,7 +3986,7 @@ const LANGS={
     ,apiKeyHelpTtl:'Questions & help about the API Key'
     ,sManualHead:'📚 MANUAL'
     ,sManualLbl:'User Guide'
-    ,sReloadHead:'🔄 APP',sReloadLbl:'Refresh & reload',sReloadSub:'Clear cache, get the latest version'
+    ,sReloadHead:'🔄 APP',sReloadLbl:'Refresh & reload',sReloadSub:'Clear cache, get the latest version',sMistralLbl:'Mistral key (EU)',sMistralSub:'For text recognition in the AI scan',sNetzHead:'🌐 NETWORK (SBKIM)',sNetzLbl:'Connect to the node network',sNetzSub:'Sign in to the shared room & find other nodes (server-less)',sToolsHead:'🧩 TOOLS',sToolsSuchLbl:'Search tool',sToolsSuchSub:'Semantic search by meaning (standalone PWA)',sToolsPinLbl:'Pinboard',sToolsPinSub:'Question-and-answer board (sorted by meaning & AI judge)',sOfflineCap:'Works offline',updateStatus:'Updates are provided automatically in the background.'
     ,sManualSub:'All features explained · PDF download'
     ,manOvTitle:'📚 Manual'
     ,manPdfLbl:'PDF'
@@ -4133,7 +4133,7 @@ const LANGS={
     ,apiKeyHelpTtl:'Вопросы и помощь по API-ключу'
     ,sManualHead:'📚 РУКОВОДСТВО'
     ,sManualLbl:'Руководство пользователя'
-    ,sReloadHead:'🔄 ПРИЛОЖЕНИЕ',sReloadLbl:'Обновить и перезагрузить',sReloadSub:'Очистить кэш, загрузить новую версию'
+    ,sReloadHead:'🔄 ПРИЛОЖЕНИЕ',sReloadLbl:'Обновить и перезагрузить',sReloadSub:'Очистить кэш, загрузить новую версию',sMistralLbl:'Ключ Mistral (ЕС)',sMistralSub:'Для распознавания текста в ИИ-сканере',sNetzHead:'🌐 СЕТЬ (SBKIM)',sNetzLbl:'Подключиться к сети узлов',sNetzSub:'Войти в общую комнату и найти другие узлы (без сервера)',sToolsHead:'🧩 ИНСТРУМЕНТЫ',sToolsSuchLbl:'Инструмент поиска',sToolsSuchSub:'Семантический поиск по смыслу (отдельное PWA)',sToolsPinLbl:'Доска',sToolsPinSub:'Доска вопросов и ответов (сортировка по смыслу и ИИ-судья)',sOfflineCap:'Работает офлайн',updateStatus:'Обновления предоставляются автоматически в фоновом режиме.'
     ,sManualSub:'Все функции объяснены · Скачать PDF'
     ,manOvTitle:'📚 Руководство'
     ,manPdfLbl:'PDF'
@@ -4280,7 +4280,7 @@ const LANGS={
     ,apiKeyHelpTtl:'关于API密钥的问题与帮助'
     ,sManualHead:'📚 手册'
     ,sManualLbl:'用户手册'
-    ,sReloadHead:'🔄 应用',sReloadLbl:'刷新并重新加载',sReloadSub:'清除缓存，获取最新版本'
+    ,sReloadHead:'🔄 应用',sReloadLbl:'刷新并重新加载',sReloadSub:'清除缓存，获取最新版本',sMistralLbl:'Mistral 密钥（欧盟）',sMistralSub:'用于 AI 扫描中的文字识别',sNetzHead:'🌐 网络 (SBKIM)',sNetzLbl:'连接节点网络',sNetzSub:'登录共享空间并查找其他节点（无服务器）',sToolsHead:'🧩 工具',sToolsSuchLbl:'搜索工具',sToolsSuchSub:'按含义进行语义搜索（独立 PWA）',sToolsPinLbl:'留言板',sToolsPinSub:'问答板（按含义排序与 AI 评审）',sOfflineCap:'可离线使用',updateStatus:'更新会在后台自动提供。'
     ,sManualSub:'所有功能说明 · PDF下载'
     ,manOvTitle:'📚 手册'
     ,manPdfLbl:'PDF'
@@ -4425,7 +4425,7 @@ const LANGS={
     ,apiKeyHelpTtl:'Preguntas y ayuda sobre el API Key'
     ,sManualHead:'📚 MANUAL'
     ,sManualLbl:'Manual de usuario'
-    ,sReloadHead:'🔄 APP',sReloadLbl:'Actualizar y recargar',sReloadSub:'Vaciar caché, obtener la última versión'
+    ,sReloadHead:'🔄 APP',sReloadLbl:'Actualizar y recargar',sReloadSub:'Vaciar caché, obtener la última versión',sMistralLbl:'Clave Mistral (UE)',sMistralSub:'Para el reconocimiento de texto en el escaneo con IA',sNetzHead:'🌐 RED (SBKIM)',sNetzLbl:'Conectar con la red de nodos',sNetzSub:'Entrar en la sala compartida y encontrar otros nodos (sin servidor)',sToolsHead:'🧩 HERRAMIENTAS',sToolsSuchLbl:'Herramienta de búsqueda',sToolsSuchSub:'Búsqueda semántica por significado (PWA independiente)',sToolsPinLbl:'Tablón',sToolsPinSub:'Tablón de preguntas y respuestas (orden por significado y juez de IA)',sOfflineCap:'Funciona sin conexión',updateStatus:'Las actualizaciones se proporcionan automáticamente en segundo plano.'
     ,sManualSub:'Todas las funciones explicadas · Descargar PDF'
     ,manOvTitle:'📚 Manual'
     ,manPdfLbl:'PDF'
@@ -4682,7 +4682,7 @@ const LANGS={
     ,apiKeyHelpTtl:'Questions et aide sur la clé API'
     ,sManualHead:'📚 MANUEL'
     ,sManualLbl:'Guide d\'utilisation'
-    ,sReloadHead:'🔄 APPLI',sReloadLbl:'Actualiser et recharger',sReloadSub:'Vider le cache, obtenir la dernière version'
+    ,sReloadHead:'🔄 APPLI',sReloadLbl:'Actualiser et recharger',sReloadSub:'Vider le cache, obtenir la dernière version',sMistralLbl:'Clé Mistral (UE)',sMistralSub:'Pour la reconnaissance de texte dans le scan IA',sNetzHead:'🌐 RÉSEAU (SBKIM)',sNetzLbl:'Se connecter au réseau de nœuds',sNetzSub:'Rejoindre la salle partagée et trouver les autres nœuds (sans serveur)',sToolsHead:'🧩 OUTILS',sToolsSuchLbl:'Outil de recherche',sToolsSuchSub:'Recherche sémantique par le sens (PWA autonome)',sToolsPinLbl:'Tableau',sToolsPinSub:'Tableau de questions-réponses (tri par le sens et juge IA)',sOfflineCap:'Fonctionne hors ligne',updateStatus:'Les mises à jour sont fournies automatiquement en arrière-plan.'
     ,sManualSub:'Toutes les fonctions expliquées · Télécharger PDF'
     ,manOvTitle:'📚 Manuel'
     ,manPdfLbl:'PDF'
@@ -4938,7 +4938,7 @@ const LANGS={
     ,apiKeyHelpTtl:'Domande e aiuto sulla chiave API'
     ,sManualHead:'📚 MANUALE'
     ,sManualLbl:'Manuale utente'
-    ,sReloadHead:'🔄 APP',sReloadLbl:'Aggiorna e ricarica',sReloadSub:'Svuota la cache, scarica l\'ultima versione'
+    ,sReloadHead:'🔄 APP',sReloadLbl:'Aggiorna e ricarica',sReloadSub:'Svuota la cache, scarica l\'ultima versione',sMistralLbl:'Chiave Mistral (UE)',sMistralSub:'Per il riconoscimento del testo nella scansione IA',sNetzHead:'🌐 RETE (SBKIM)',sNetzLbl:'Collegarsi alla rete di nodi',sNetzSub:'Accedere alla stanza condivisa e trovare altri nodi (senza server)',sToolsHead:'🧩 STRUMENTI',sToolsSuchLbl:'Strumento di ricerca',sToolsSuchSub:'Ricerca semantica per significato (PWA autonoma)',sToolsPinLbl:'Bacheca',sToolsPinSub:'Bacheca di domande e risposte (ordinata per significato e giudice IA)',sOfflineCap:'Funziona offline',updateStatus:'Gli aggiornamenti vengono forniti automaticamente in background.'
     ,sManualSub:'Tutte le funzioni spiegate · Scarica PDF'
     ,manOvTitle:'📚 Manuale'
     ,manPdfLbl:'PDF'
@@ -5189,7 +5189,7 @@ const LANGS={
     ,apiKeyHelpTtl:'Perguntas e ajuda sobre a chave API'
     ,sManualHead:'📚 MANUAL'
     ,sManualLbl:'Manual do utilizador'
-    ,sReloadHead:'🔄 APP',sReloadLbl:'Atualizar e recarregar',sReloadSub:'Limpar cache, obter a versão mais recente'
+    ,sReloadHead:'🔄 APP',sReloadLbl:'Atualizar e recarregar',sReloadSub:'Limpar cache, obter a versão mais recente',sMistralLbl:'Chave Mistral (UE)',sMistralSub:'Para o reconhecimento de texto na digitalização com IA',sNetzHead:'🌐 REDE (SBKIM)',sNetzLbl:'Ligar à rede de nós',sNetzSub:'Entrar na sala partilhada e encontrar outros nós (sem servidor)',sToolsHead:'🧩 FERRAMENTAS',sToolsSuchLbl:'Ferramenta de pesquisa',sToolsSuchSub:'Pesquisa semântica por significado (PWA autónoma)',sToolsPinLbl:'Quadro',sToolsPinSub:'Quadro de perguntas e respostas (ordenado por significado e juiz de IA)',sOfflineCap:'Funciona offline',updateStatus:'As atualizações são fornecidas automaticamente em segundo plano.'
     ,sManualSub:'Todas as funções explicadas · Baixar PDF'
     ,manOvTitle:'📚 Manual'
     ,manPdfLbl:'PDF'
@@ -6675,6 +6675,8 @@ function applyLang(code){
     'sInfo','sStore','sClear','sClearSub',
     'sManualHead','sManualLbl','sManualSub','manOvTitle','manPdfLbl',
     'sReloadHead','sReloadLbl','sReloadSub',
+    'updateStatus',
+    'sMistralLbl','sMistralSub','sNetzHead','sNetzLbl','sNetzSub','sToolsHead','sToolsSuchLbl','sToolsSuchSub','sToolsPinLbl','sToolsPinSub','sOfflineCap',
     'fldTitle','fldSearch','fldNew','fldShTitle','fldNameLbl','fldIconLbl','fldCancel','fldSave',
     'cshTitle','csCancel','csConfirm','pwaText','pwaBtn','updText','updBtn','sUpdLbl','sDonateTitle','sDonateSub','sDonateText','sDonateBtn','sDonateNote','sImprintLbl','sImprintSub','sImprintFooter',
     'hAddLbl',
