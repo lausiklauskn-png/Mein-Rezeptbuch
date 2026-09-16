@@ -206,10 +206,10 @@ fall "eine fremde Kennung wird wieder zu Fleisch" "ueberlebt die Normalisierung"
 #   zu entfernen aendert nichts, was der Waechter sieht. Die Reihenfolge wird
 #   getauscht, so wie sie vor dem 2026-09-16 wirklich stand.
 fall "die Vorauswahl im Dialog steht wieder auf Ordner" "vorausgewaehlt" \
-'<option value="__behalten__" selected>🏷 als eigene Kategorie behalten „${h(cat)}"</option><option value="__folder__">@@@<option value="__folder__" selected>'
+'<option value="__behalten__" selected>🏷 ${T('"'"'catmapKeep'"'"')} „${h(cat)}"</option><option value="__folder__">@@@<option value="__folder__" selected>'
 
 fall "die Kategorie-Zeile verschweigt die in Ordnern wieder" "nennt die, die in Ordnern liegen" \
-'${g.imOrdner?` · +${g.imOrdner} ${T('"'"'fldInOrdnern'"'"')||'"'"'in Ordnern'"'"'}`:'"'"''"'"'}@@@'
+'${g.imOrdner?` · +${g.imOrdner} ${T('"'"'fldInOrdnern'"'"')}`:'"'"''"'"'}@@@'
 
 # ── Ein Text-Schluessel, den es nicht gibt (Klaus 2026-09-16: „+6 fldInOrdnern") ──
 fall "ein benutzter Schluessel fehlt in LANGS" "sind in LANGS.de vorhanden" \
@@ -218,8 +218,16 @@ fall "ein benutzter Schluessel fehlt in LANGS" "sind in LANGS.de vorhanden" \
 fall "die Ordner-Zeile zeigt wieder den Schluesselnamen" "mit einem Wort, nicht mit dem Schluesselnamen" \
 "fldInOrdnern:'in Ordnern',@@@fldInOrdnern:'fldInOrdnern',"
 
-fall "der Schluessel-Sammler findet gar nichts" "Sammler findet ueberhaupt Schluessel" \
-"function T(k){return(LANGS[CL]||LANGS.de)[k]||k;}@@@function T_(k){return(LANGS[CL]||LANGS.de)[k]||k;}function T(k){return T_(k);}"
+# ⚠ BENANNTE GRENZE — hier steht KEIN Fall, und das ist gemessen, nicht
+#   bequem. Fuer „der Sammler findet ueberhaupt Schluessel" braeuchte es eine
+#   Sabotage, die das SUCHMUSTER der Probe leerlaufen laesst (etwa alle
+#   `T('…')`-Aufrufe auf doppelte Anfuehrungszeichen umstellen) — `fall`
+#   ersetzt aber nur die ERSTE Fundstelle. Mein erster Anlauf tauschte die
+#   DEFINITION von `T()` aus; der Sammler liest die AUFRUFE, die dabei
+#   unveraendert blieben, und der Fall rutschte zu Recht durch.
+#   Gedeckt ist die Zusicherung trotzdem: der Haupt-Waechter verlangt
+#   ausdruecklich `gesamt>20`, faellt also MIT aus, wenn der Sammler
+#   leerlaeuft. Ein Fall, der nichts messen kann, saehe wie Deckung aus.
 
 echo
 echo "$gefangen gefangen · $durch durchgerutscht · $falsch aus falschem Grund · $tot tote Anker"
