@@ -777,10 +777,17 @@ const kz = await seite.evaluate(async () => {
   const linksNebenWeg = !!rZu && !!rWeg
     && rZu.left < rWeg.left && Math.abs(rZu.top - rWeg.top) < 4 && dazwischen === 0;
 
-  const karteVor = document.querySelector('.rcard').getBoundingClientRect().top;
+  /* ⚠ GEMESSEN WIRD, WAS DER FINGER ERLEBT — nicht die ERSTE Karte. Die
+     bewegt sich nie: haengt die Auswahl in ihrer Knopfzeile, waechst sie nach
+     UNTEN, und ihr eigenes `top` bleibt stehen. Der erste Wächter war genau
+     dadurch blind, und die Gegenprobe hat es gesagt. Gemessen werden der
+     ANGETIPPTE KNOPF und die Karte DARUNTER. */
+  const knopfVor  = knoepfe[iZu].getBoundingClientRect().top;
+  const untenVor  = document.querySelectorAll('.rcard')[1].getBoundingClientRect().top;
   knoepfe[iZu].click();
   const pop = document.getElementById('katZuPop');
-  const karteNach = document.querySelector('.rcard').getBoundingClientRect().top;
+  const knopfNach = knoepfe[iZu].getBoundingClientRect().top;
+  const untenNach = document.querySelectorAll('.rcard')[1].getBoundingClientRect().top;
   const offen = !!pop;
   /* ⚠ „die Karte bewegt sich nicht" allein war BLIND. Das Popup haengt an
      `document.body` — es kann die Karte gar nicht schieben, egal welche
@@ -868,7 +875,8 @@ const kz = await seite.evaluate(async () => {
   document.getElementById('katZuPop')?.remove();
   render(); renderCatNav(); renderFolders();
   return { linksNebenWeg, offen, popNahAmKnopf, eintraege, hatOhne, hatNeu, zeigtJetzt,
-           bewegt: Math.abs(karteNach - karteVor), catNachher, ordnerNachher,
+           bewegt: Math.max(Math.abs(knopfNach-knopfVor), Math.abs(untenNach-untenVor)),
+           catNachher, ordnerNachher,
            popWeg, fleischLeiste, fleischEcht, catOhne, ordnerOhne, cat92,
            feldDa, leerLegtAn, feldBleibt, vorN2, nachN, zugeordnet, nameStimmt, formatGleich };
 });

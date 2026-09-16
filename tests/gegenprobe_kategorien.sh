@@ -332,12 +332,18 @@ fall "das Anlegen bekommt ein zweites Format" "Kennungs-Format" \
 fall "die Auswahl steht nicht mehr beim Knopf" "steht beim Knopf" \
 ".kat-zu-pop{position:fixed;@@@.kat-zu-pop{position:relative;"
 
-# ⚠ EIN ANKER, DER ZWEIMAL TRIFFT, IST KEIN ANKER. `document.body.appendChild`
-#   steht auch im Bild-Popup; erweitert um seinen eindeutigen Nachbarn.
-fall "die Auswahl haengt in der Karte statt an der Seite" "bewegt die Rezeptkarte nicht" \
+# ⚠ ZWEI RIEGEL, DIE EINANDER DECKEN, GEHOEREN IN EINE SABOTAGE. Die Karte kann
+#   sich nur bewegen, wenn die Auswahl IN ihr haengt UND im Fluss steht:
+#   `position:fixed` allein haelt sie schon draussen, `document.body` allein
+#   auch. Der erste Anlauf nahm nur das Anhaengen — und rutschte durch, obwohl
+#   nichts am Waechter falsch war. Dieselbe Lehre wie `umask`+`chmod` in
+#   Kimhubs Schluessel-Ablagefach.
+# ⚠ Und der Anker braucht seinen Nachbarn: `document.body.appendChild` steht
+#   auch im Bild-Popup, ein Anker, der zweimal trifft, ist keiner.
+fall "die Auswahl haengt im Fluss der Karte" "bewegt die Rezeptkarte nicht" \
 "  pop.innerHTML=teile.join('');
   document.body.appendChild(pop);@@@  pop.innerHTML=teile.join('');
-  btn.parentNode.appendChild(pop);"
+  btn.parentNode.appendChild(pop);pop.style.position='static';"
 
 # Ohne Markierung weiss niemand, wo das Rezept gerade steht.
 fall "die aktuelle Kategorie wird nicht mehr markiert" "aktuelle ist darin markiert" \
