@@ -964,6 +964,82 @@ derselbe Lauf meldete zuerst **54 gefangen · 1 aus falschem Grund**. Der eine
 war kein Fehler im Code, sondern eine Sabotage, die die Vorbedingung traf —
 siehe oben.
 
+### 🏷️ KATEGORIE ZUORDNEN AUS DER REZEPTZEILE (Klaus 2026-09-16)
+
+Klaus: *„links neben dem Papierkorb da noch einen reinmachen, zu einer
+anderen Kategorie zuordnen … dann geht eine Leiste auf und ich kann wählen"*
+· *„ich kann eine neue Kategorie anlegen, direkt aus dem Rezeptbuch. Und es
+wandelt dahin."*
+
+Das **🏷️** steht links neben dem Papierkorb. Die Auswahl trägt alle
+Kategorien (die aktuelle mit ✓), darunter abgesetzt **„ohne Kategorie"** als
+Weg zurück und **＋ Neue Kategorie**: Namen tippen, fertig — die Kategorie
+entsteht **und** das Rezept ist im selben Griff dort.
+
+**Gesetzt wird NUR `r.cat`.** Der Ordner bleibt, wo er ist — die Trennung vom
+selben Tag. Ein `fld_…`-Altbestand in `r.cat` wird dabei **ersetzt**, nicht
+danebengelegt.
+
+⚠ **DER TRICK FUNKTIONIERT, UND ZWAR OHNE ZUTUN.** Klaus: *„dann müsste auch
+der Ordner-Button sich in Fisch umwandeln, so wie es bei den anderen auch
+passiert."* Leiste, Ordner-Baum und Zeilen-Symbol lesen **alle**
+`katVonRezept(r)` — dieselbe Quelle. Wer umhängt, sieht es überall sofort,
+und der Weg zurück ebenso.
+
+⚠ **„KOMPLETT" GEHT SCHON — an einer anderen Stelle.** Eine **ganze**
+Kategorie hängt 📂 Ordner → ✎ Kategorien umbenennen → 🗑 → Ziel wählen um.
+Der neue Knopf ist für **einzelne** Rezepte. Beides zu haben ist kein
+Widerspruch: das eine ist ein Handgriff, das andere eine Entscheidung über
+alle.
+
+⚠ **EINE QUELLE FÜR ZWEI WEGE.** Eine Kategorie entsteht jetzt an **zwei**
+Stellen. Das Anlegen liegt deshalb in `katAnlegen(name)`, und der
+Umbenennen-Dialog ruft es auf. Zwei Fassungen ergäben zwei Kennungs-Formate
+— und der „eine Kennung kommt genau einmal vor"-Riegel hätte zwei Sorten zu
+prüfen.
+
+### ⚠ Sechs eigene Fehler, alle im PRÜFWERKZEUG — keiner im Code
+
+Das ist der Befund dieses Durchgangs, und er gehört so aufgeschrieben: **der
+Code stand nach dem ersten Bau; sechsmal falsch war die Messung.**
+
+| Was | warum es nichts (oder das Falsche) mass |
+|---|---|
+| **eine genagelte Zahl** — „die Leiste zeigt 2" | ich hatte falsch gezählt. Gemessen wird jetzt die **Übereinstimmung** zwischen Leiste und Bestand. *Eine Zahl in einer Prüfung ist kein Vertrag.* |
+| **ein toter Selektor** — `.cpill[data-cid="fleisch"]` | die Pille trägt **kein** `data-cid`, sie hängt an ihrem `setCAT('…')`. Der Wächter meldete −1, also „zieht nicht nach", während sie nachzog — **rot aus dem falschen Grund, im Wächter** |
+| **die Reihenfolge im DOM statt der sichtbaren Lage** | `.rcard-acts` ist ein Flex-Container: ein `order:9` schöbe den Knopf ans Ende, und zwei Indizes blieben grün. Gemessen wird jetzt, **was man sieht** |
+| **zwei Fälle brachten die Probe zum STOLPERN** | ohne den „ohne Namen"-Riegel schliesst sich das Popup, der nächste Zugriff aufs Feld warf. Beide Fälle schlugen sauber zu und meldeten sich als **„rot aus falschem Grund"** — die rote Zeile trug den Absturz statt den Namen ihrer Zusicherung |
+| **zwei Riegel deckten einander** | die Auswahl schiebt die Karte nur, wenn sie **in** ihr hängt **und** im Fluss steht. `position:fixed` allein hält sie draussen, `document.body` allein auch. Die Sabotage nimmt jetzt beide — dieselbe Lehre wie `umask`+`chmod` |
+| **der Bewegungs-Wächter mass die ERSTE Karte** | die bewegt sich nie: hängt die Auswahl in ihrer Knopfzeile, wächst die Karte nach **unten**, ihr `top` bleibt stehen. Gemessen werden jetzt der **angetippte Knopf** und die Karte **darunter** — was der Finger erlebt |
+
+⚠ **UND EIN ANKER, DER ZWEIMAL TRIFFT, IST KEIN ANKER.**
+`document.body.appendChild(pop)` steht auch im Bild-Popup.
+
+### ✅ `NUR_ANKER=1` — tote Anker in Sekunden statt nach neun Minuten
+
+```bash
+NUR_ANKER=1 bash tests/gegenprobe_kategorien.sh
+```
+
+Fährt **keine** Probe, sondern prüft nur, ob jeder Anker **genau einmal**
+trifft. Ein toter Anker fiel bisher erst nach einem vollen Lauf auf — die
+Regel *„wer eine Zeile ändert, auf die ein Fall zeigt, zieht den Fall mit"*
+steht in dieser Datei und wurde am selben Tag zweimal verletzt. **Eine Regel,
+an die man sich erinnern muss, ist keine.** (Kimhub hat denselben Gang; hier
+fehlte er.) In dieser einen Sitzung hat er **dreimal** zugeschlagen.
+
+### Geprüft
+
+Zuletzt gemessen (2026-09-16, nach dem Zuordnen-Knopf): **109 grün · 0 ROT**
+· Gegenprobe **65 gefangen · 0 durchgerutscht · 0 aus falschem Grund · 0 tote
+Anker**. Beide Rückgabewerte **direkt** gelesen, nicht hinter einer Pipe;
+der Baum war vor und nach dem Lauf sauber.
+
+⚠ **Die Zahlen davor bleiben daneben stehen, weil sie die Funde gemacht
+haben:** derselbe Durchgang meldete nacheinander **61/1/2**, dann **64/1**.
+Nur die letzte zu nennen hiesse, die Befunde durch ihre Reparatur zu
+ersetzen.
+
 ---
 
 ## Netzweit — gilt in jedem Repo, steht in Sage
