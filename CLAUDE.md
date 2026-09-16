@@ -1406,6 +1406,104 @@ unverändert **145 grün · 0 ROT**. Beide Rückgabewerte **direkt** gelesen.
 aber sie **nutzen** sie nicht. *„Von dir zu Mutti und zurück" trägt erst, wenn
 beide Bücher es können.*
 
+## 🌐 DER EINSTELLUNGS-BILDSCHIRM SPRACH STELLENWEISE NUR DEUTSCH (Klaus 2026-09-16)
+
+Klaus, mit Bild aus der **englischen** Oberfläche: *„Mit dem Netzwerk verbinden
+in Einstellungen ist nicht übersetzt worden und genauso Mistral-Schlüssel"* —
+und gleich danach: *„Und Werkzeuge und Pinnwand. Die beschreibenden Texte sind
+auch nicht übersetzt."*
+
+### Der Mechanismus — und wo er still durchfällt
+
+Eine Beschriftung wird übersetzt, wenn **beides** stimmt: sie trägt eine `id`,
+**und** diese id steht in der Namensliste des Setzers in `applyLang`. Fehlt
+eines von beidem, bleibt sie **still deutsch** — kein Fehler, keine rote Zeile,
+nur ein deutscher Satz in einer englischen Oberfläche.
+
+**Gemessen am 2026-09-16:** 13 Beschriftungen des Einstellungs-Bildschirms
+hatten keine `id`. Nachgetragen sind **elf** Schlüssel in **acht** Sprachen:
+
+| | |
+|---|---|
+| `sMistralLbl` · `sMistralSub` | der Mistral-Schlüssel (EU) und seine Erklärung |
+| `sNetzHead` · `sNetzLbl` · `sNetzSub` | 🌐 NETZWERK (SBKIM) — „Mit dem Netz verbinden" |
+| `sToolsHead` · `sToolsSuchLbl` · `sToolsSuchSub` | 🧩 WERKZEUGE — Such-Werkzeug |
+| `sToolsPinLbl` · `sToolsPinSub` | Pinnwand |
+| `sOfflineCap` | „Offline-fähig" in der Versionszeile |
+
+⚠ **DIE VERSIONSNUMMER BLEIBT AN EINER STELLE.** Die Zeile heisst jetzt
+`Version 10.0 · <span id="sOfflineCap">Offline-fähig</span>` — nur das **Wort**
+wird übersetzt. Die ganze Zeile in acht Sprachen zu führen hiesse, dieselbe
+Nummer achtmal zu pflegen, und die siebte wäre beim nächsten Versionssprung
+falsch.
+
+### ⚠ Und der Wächter fragte zuerst nach dem NAMEN statt nach der WIRKUNG
+
+Mein erster Anlauf verlangte: *„trägt die Zeile eine id, die ein LANGS-Schlüssel
+ist?"* — und meldete prompt **drei Zeilen als stumm, die sehr wohl übersetzt
+werden**: sie hängen an einem Schlüssel mit **anderem Namen**
+(`sApiKeyLbl` ← `T('apiKeyLbl')`, `sA11yHead` ← `T('a11yHead')`). *Ein Wächter
+auf den Namen misst nicht, was ein Nutzer erlebt — und er meldet in die
+FALSCHE Richtung.*
+
+**Was jetzt gemessen wird:** derselbe Bildschirm auf Deutsch und auf Englisch,
+über den echten Weg (Navi-Knopf, dann die Sprach-Auswahl). **Jede Beschriftung,
+die dabei stehen bleibt, braucht einen Grund** — entweder steht ihr Satz im
+Wörterbuch und ist dort in beiden Sprachen derselbe, oder sie steht namentlich
+als Ausnahme da (Eigenname der App, ©-Zeile, E-Mail, Versionsnummer, der
+Zähler). Alles andere ist rot, **mit dem stehengebliebenen Satz in der roten
+Zeile**.
+
+### ⚠ Der Fund, den erst diese Messung gemacht hat
+
+`updateStatus` trug den Satz *„Updates werden automatisch im Hintergrund
+bereitgestellt."* fest im Markup. Er wird nur ersetzt, wenn jemand auf „Auf
+Updates prüfen" tippt — auf Englisch stand er also dauerhaft auf Deutsch. Meine
+Quelltext-Inventur hat ihn **nicht** gesehen (er hat ja eine `id`); gefunden hat
+ihn der Lauf im Browser.
+
+⚠ **BENANNTE GRENZE:** er steht jetzt in der Namensliste, also setzt ein
+Sprachwechsel die Zeile auf ihren Ruhesatz zurück — eine gerade angezeigte
+Update-Meldung ginge dabei verloren. Der Update-Hinweis selbst hängt an einem
+eigenen Banner (`#updBanner`) und bleibt davon unberührt.
+
+### ⚠ Zwei Fallen beim Bau der Probe, beide netzweit schon aufgeschrieben
+
+- **`window.LANGS` gibt es nicht.** `const LANGS={…}` auf oberster Ebene hängt
+  **nicht** am window-Objekt — dieselbe Falle, die in Muttis Rezeptbuch die
+  Inhalts-Stufe still tot gelegt hat (`window.R`). Die Probe greift auf den
+  globalen Lexikal-Bereich zu (`typeof LANGS!=="undefined"`), nicht aufs Fenster.
+- **Warten auf die Bedingung, nicht auf die Uhr.** Mein Mixarium legt beim Start
+  eine Animation über den Schirm und klappt danach seine Navi-Leiste zusammen;
+  der Knopf ist da, hat Grösse und ist trotzdem nicht zu treffen. Die Probe
+  wartet darauf, dass er **wirklich obenauf liegt** (`elementFromPoint`), und
+  fährt die Leiste über denselben Weg heraus wie eine Maus. Hier trifft beides
+  sofort zu — die Zeile steht trotzdem in allen drei Apps gleich, damit nicht
+  zwei Fassungen entstehen.
+
+### Geprüft
+
+```bash
+node tests/smoke_einstellungen_sprache.mjs        # echter Browser, DE → EN → DE
+bash tests/gegenprobe_einstellungen_sprache.sh    # Wegwerf-Kopie, MIT Bau-Schritt
+```
+
+Zuletzt gemessen (2026-09-16): **41 grün · 0 ROT** · Gegenprobe **7 gefangen ·
+0 durchgerutscht · 0 aus falschem Grund · 0 tote Anker** · `smoke_kategorien`
+unverändert **145 grün**, `smoke_herkunft` **37 grün**. Beide Rückgabewerte
+**direkt** gelesen, nicht hinter einer Pipe.
+
+⚠ **Die Zahlen davor bleiben daneben stehen, weil sie die Funde gemacht haben:**
+derselbe Durchgang meldete zuerst **29 grün · 2 ROT** (vier Zeilen als „stumm",
+davon drei zu Unrecht — siehe oben) und die Gegenprobe **6 gefangen · 1 aus
+falschem Grund** (eine Sabotage, die eine fremde Zusicherung umwarf).
+
+⚠ **Und derselbe Ausgangslagen-Riegel wie in der Nachbar-Gegenprobe:**
+`grep -q "0 ROT"` liest „10 ROT" als Erfolg. In `gegenprobe_herkunft.sh` stand
+er noch so und ist mit nachgezogen — gemessen wird die ganze Schlusszeile.
+
+---
+
 ## Netzweit — gilt in jedem Repo, steht in Sage
 
 Freibrief · Gerätename · frisch von `origin/main` · Ton · kein PII · Ehrlichkeit:
