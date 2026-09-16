@@ -1087,6 +1087,77 @@ haben:** derselbe Durchgang meldete nacheinander **61/1/2**, dann **64/1**.
 Nur die letzte zu nennen hiesse, die Befunde durch ihre Reparatur zu
 ersetzen.
 
+### ⚠ EIN ORDNER, DEN ES NICHT GIBT, IST KEIN ORDNER (Klaus 2026-09-16)
+
+Klaus am Tablet: *„sie werden immer nur innerhalb eines Ordners verschoben …
+als wenn sie in einem eigenen Ordner wären. Und dieser Ordner lässt sich nicht
+umbenennen, also lässt sich auch nicht zuordnen, sondern bleibt ein
+**unsichtbarer Ordner**."*
+
+**Sein Wort war genau richtig.** Seine sechs KI-erfassten Sushi-Rollen tragen
+in `r.folder` eine Kennung, die in `FD` **nicht steht**. Daraus folgt beides,
+was er sieht:
+
+| | |
+|---|---|
+| die Kategorie-Gruppe im Baum | fragt `!r.folder` — sie **fallen heraus** |
+| ein Ordner-Eintrag | **gibt es nicht**, der Ordner steht ja nicht in `FD` |
+| übrig bleibt | nur die Zahl **„+6 in Ordnern"** |
+
+Ein Ordner, den man nicht öffnen, nicht umbenennen und nicht auflösen kann.
+
+⚠ **DIESELBE LÜCKE WIE AM VORTAG, NUR AM ANDEREN FELD.** Für `r.cat='fld_…'`
+ist sie mit `katVonRezept` geschlossen worden; **`r.folder` blieb roh.** *Ein
+rohes Feld zu lesen, wo eine Deutung gemeint ist, macht aus einer Kennung zwei
+verschiedene* — die Lehre stand seit einem Tag in dieser Datei und traf am
+nächsten das Nachbarfeld.
+
+`ordnerVonRezept(r)` ist das Gegenstück: es gibt den Ordner **nur** zurück,
+wenn es ihn in `FD` wirklich gibt. Eingesetzt an den **vier** Anzeige-Stellen,
+die „liegt es in einem Ordner?" fragen.
+
+⚠ **UND EIN ZWEITER FEHLER KAM DABEI HERAUS.** `katZuSetzen` zeichnete die
+Rezeptliste neu, aber **nicht den Ordner-Baum** — wer von dort kam, sah seine
+Änderung nicht. Gefunden hat es ein Wächter, nicht das Nachdenken.
+
+**Erst die Probe rot bekommen (drei Wächter), dann repariert.**
+
+⚠ **ZUM ZWEITEN MAL AN EINEM TAG EIN TOTER SELEKTOR IM WÄCHTER.** Die Zeile im
+Baum heißt `.fld-rrow`, nicht `.fld-rec`; der Wächter meldete „steht nicht im
+Baum", während es dastand. Beim ersten Mal war es `.cpill[data-cid]`.
+*Ein Selektor, der ins Leere greift, misst nicht, was er zu messen glaubt* —
+und er meldet in die **falsche** Richtung.
+
+⚠ **UND DREI ÄLTERE FÄLLE ZEIGTEN AUF ZEILEN, DIE DIESE ÄNDERUNG BEWEGT HAT.**
+Der `NUR_ANKER`-Gang hat sie in **Sekunden** gemeldet — zum vierten Mal an
+diesem Tag. Ohne ihn wären es drei „NICHT GEFANGEN" nach neun Minuten gewesen,
+und die weisen in die entgegengesetzte Richtung („bau einen Wächter" statt
+„zieh den Fall nach").
+
+### Was Klaus dabei gefragt hat — und die Antwort
+
+*„Wenn ich ein Rezept einer anderen Kategorie zuordne, muss die Kennung
+angepasst werden? … sonst weist die Kennung auf seinen Ursprung, aber nicht
+auf das, was er jetzt ist."*
+
+**Drei Dinge, die man auseinanderhalten muss:**
+
+| | ändert sich beim Zuordnen? |
+|---|---|
+| **`r.id`** — die Kennung des Rezepts | **nein**, sie gehört dem Rezept |
+| **`r.cat`** — auf welche Kategorie es zeigt | **ja, sie wird überschrieben** |
+| **`c.id`** — die Kennung der Kategorie | **nein**, sie gehört der Kategorie |
+
+Seine Sorge trifft also nicht zu: `r.cat` wird wirklich ersetzt, nichts weist
+danach auf den Ursprung. Ein Rezept lässt sich beliebig oft umhängen.
+
+### Geprüft
+
+Zuletzt gemessen (2026-09-16, nach `ordnerVonRezept`): **113 grün · 0 ROT** ·
+Gegenprobe **70 gefangen · 0 durchgerutscht · 0 aus falschem Grund · 0 tote
+Anker**. Beide Rückgabewerte **direkt** gelesen; der Baum war vor und nach dem
+Lauf sauber.
+
 ---
 
 ## Netzweit — gilt in jedem Repo, steht in Sage
