@@ -325,8 +325,19 @@ fall "das Anlegen bekommt ein zweites Format" "Kennungs-Format" \
 "  katZuSetzen(rid,katAnlegen(name));@@@  var kid2='neu_'+Date.now();CATS_NEU.push({id:kid2,ico:'🏷',de:name,col:'#7a5840',eigen:true});svCatsNeu();katZuSetzen(rid,kid2);"
 
 # Die Auswahl bewegt das Layout — dieselbe Falle wie die Emoji-Auswahl.
-fall "die Auswahl schiebt die Karte weg" "bewegt die Rezeptkarte nicht" \
+# ⚠ ZWEI ZUSICHERUNGEN, ZWEI FAELLE. `position:relative` bewegt die Karte NICHT
+#   (das Popup haengt an document.body) — es verschiebt nur, WO die Auswahl
+#   steht. Der erste Anlauf zielte damit auf den falschen Waechter und rutschte
+#   durch. Wer die Karte wirklich bewegen will, haengt das Popup IN sie hinein.
+fall "die Auswahl steht nicht mehr beim Knopf" "steht beim Knopf" \
 ".kat-zu-pop{position:fixed;@@@.kat-zu-pop{position:relative;"
+
+# ⚠ EIN ANKER, DER ZWEIMAL TRIFFT, IST KEIN ANKER. `document.body.appendChild`
+#   steht auch im Bild-Popup; erweitert um seinen eindeutigen Nachbarn.
+fall "die Auswahl haengt in der Karte statt an der Seite" "bewegt die Rezeptkarte nicht" \
+"  pop.innerHTML=teile.join('');
+  document.body.appendChild(pop);@@@  pop.innerHTML=teile.join('');
+  btn.parentNode.appendChild(pop);"
 
 # Ohne Markierung weiss niemand, wo das Rezept gerade steht.
 fall "die aktuelle Kategorie wird nicht mehr markiert" "aktuelle ist darin markiert" \

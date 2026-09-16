@@ -782,6 +782,15 @@ const kz = await seite.evaluate(async () => {
   const pop = document.getElementById('katZuPop');
   const karteNach = document.querySelector('.rcard').getBoundingClientRect().top;
   const offen = !!pop;
+  /* ⚠ „die Karte bewegt sich nicht" allein war BLIND. Das Popup haengt an
+     `document.body` — es kann die Karte gar nicht schieben, egal welche
+     Position es traegt. Gefangen hat das die Gegenprobe: `position:relative`
+     aenderte nichts an der Karte, wohl aber daran, WO die Auswahl steht (ans
+     Ende der Seite statt an den Knopf). Gemessen wird deshalb beides. */
+  const popNahAmKnopf = pop ? (() => {
+    const rp = pop.getBoundingClientRect(), rb = knoepfe[iZu].getBoundingClientRect();
+    return Math.abs(rp.left - rb.left) < 260 && Math.abs(rp.top - rb.bottom) < 420;
+  })() : false;
   const eintraege = pop ? [...pop.querySelectorAll('button')].length : 0;
   const hatOhne = !!(pop && pop.querySelector('.kzp-ohne'));
   const hatNeu  = !!(pop && pop.querySelector('.kzp-neu'));
@@ -836,8 +845,18 @@ const kz = await seite.evaluate(async () => {
   katZuNeuAnlegen(91);
   const leerLegtAn = CATS_NEU.length !== vorN;
   const feldBleibt = !!document.getElementById('katZuNeuIn');
+  /* ⚠ EINE PROBE DARF AN EINER SABOTAGE NICHT STOLPERN. Ist der Riegel
+     ausgebaut, schliesst sich das Popup — und der naechste Zugriff aufs Feld
+     warf. Die Probe starb, und ZWEI Faelle, die sauber zugeschlagen hatten,
+     meldeten sich als „rot aus falschem Grund": die rote Zeile trug den
+     Absturz statt den Namen ihrer Zusicherung. Gemessen am 2026-09-16. */
+  if (!document.getElementById('katZuNeuIn')) {
+    document.querySelector('.rcard-acts .kat-zu-btn').click();
+    document.getElementById('katZuPop').querySelector('.kzp-neu').click();
+  }
+  const vorN2 = CATS_NEU.length;      // erst JETZT zaehlen, sonst misst der
   document.getElementById('katZuNeuIn').value = "Fisch-Rollen";
-  katZuNeuAnlegen(91);
+  katZuNeuAnlegen(91);                // Waechter darunter die Sabotage mit
   const nachN = CATS_NEU.length;
   const neuKid = CATS_NEU[CATS_NEU.length-1] ? CATS_NEU[CATS_NEU.length-1].id : "";
   const zugeordnet = R.find(r=>r.id===91).cat === neuKid;
@@ -848,13 +867,14 @@ const kz = await seite.evaluate(async () => {
   R = JSON.parse(sichR); CATS_NEU = JSON.parse(sichN); FD = []; svCatsNeu();
   document.getElementById('katZuPop')?.remove();
   render(); renderCatNav(); renderFolders();
-  return { linksNebenWeg, offen, eintraege, hatOhne, hatNeu, zeigtJetzt,
+  return { linksNebenWeg, offen, popNahAmKnopf, eintraege, hatOhne, hatNeu, zeigtJetzt,
            bewegt: Math.abs(karteNach - karteVor), catNachher, ordnerNachher,
            popWeg, fleischLeiste, fleischEcht, catOhne, ordnerOhne, cat92,
-           feldDa, leerLegtAn, feldBleibt, vorN, nachN, zugeordnet, nameStimmt, formatGleich };
+           feldDa, leerLegtAn, feldBleibt, vorN2, nachN, zugeordnet, nameStimmt, formatGleich };
 });
 ok("der Zuordnen-Knopf steht LINKS neben dem Papierkorb", kz.linksNebenWeg===true);
 ok("ein Tipp oeffnet die Auswahl", kz.offen===true);
+ok("… und sie steht beim Knopf, nicht irgendwo auf der Seite", kz.popNahAmKnopf===true);
 ok("… und sie traegt mehrere Kategorien", kz.eintraege>3);
 ok("… die aktuelle ist darin markiert", kz.zeigtJetzt===true);
 ok("… „ohne Kategorie“ steht als Weg zurueck darin", kz.hatOhne===true);
@@ -877,7 +897,7 @@ ok("„＋ Neue Kategorie“ oeffnet ein Namensfeld", kz.feldDa===true);
    wie ein kaputter Knopf — deshalb bleibt das Feld bei leerer Eingabe stehen. */
 ok("… ohne Namen entsteht KEINE Kategorie", kz.leerLegtAn===false);
 ok("… und das Feld bleibt stehen statt still zuzugehen", kz.feldBleibt===true);
-ok("… mit Namen entsteht genau eine", kz.nachN===kz.vorN+1);
+ok("… mit Namen entsteht genau eine", kz.nachN===kz.vorN2+1);
 ok("… sie traegt den getippten Namen", kz.nameStimmt===true);
 ok("… das Rezept ist im selben Griff zugeordnet", kz.zugeordnet===true);
 /* ⚠ EINE QUELLE, ZWEI WEGE: das Anlegen liegt in `katAnlegen`. Zwei Fassungen
