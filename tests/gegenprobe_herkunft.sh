@@ -95,13 +95,13 @@ fall "die mitgebrachte Kennung wird wieder weggeworfen" \
   "Kennung"
 
 fall "verglichen wird wieder nur am Namen" \
-  "            if(r.uid){" \
-  "            if(false){" \
+  "    if(r.uid){" \
+  "    if(false){" \
   "umbenannte"
 
 fall "die Ordner kommen beim Hinzufügen nicht mit" \
-  "          if(neueOrdner.length){FD=FD.concat(neueOrdner);svFD();}" \
-  "          if(false){FD=FD.concat(neueOrdner);svFD();}" \
+  "  if(neueOrdner.length){FD=FD.concat(neueOrdner);svFD();}" \
+  "  if(false){FD=FD.concat(neueOrdner);svFD();}" \
   "fehlende Ordner"
 
 # ⚠ ZWEI VERSCHIEDENE SCHAEDEN, ZWEI FAELLE. Der erste Anlauf hiess
@@ -110,19 +110,27 @@ fall "die Ordner kommen beim Hinzufügen nicht mit" \
 # ersten trifft. Das ist genau der blinde Waechter, den dieser Lauf gefunden
 # hat. Jetzt steht je ein Fall fuer jeden der beiden Schaeden.
 fall "der fremde Ordner drängt sich neben den eigenen" \
-  "          const neueOrdner=(d.folders||[]).filter(f=>f&&!habeFid.has(String(f.id)));" \
-  "          const neueOrdner=(d.folders||[]).filter(f=>!!f);" \
+  "  const neueOrdner=(ordnerAusDatei||[]).filter(f=>f&&!habeFid.has(String(f.id)));" \
+  "  const neueOrdner=(ordnerAusDatei||[]).filter(f=>!!f);" \
   "doppelt"
 
 fall "der fremde Ordner ersetzt den eigenen wirklich" \
-  "          if(neueOrdner.length){FD=FD.concat(neueOrdner);svFD();}" \
-  "          {const fr=(d.folders||[]).filter(f=>!!f);FD=fr.concat(FD.filter(f=>!fr.some(n=>String(n.id)===String(f.id))));svFD();}" \
+  "  if(neueOrdner.length){FD=FD.concat(neueOrdner);svFD();}" \
+  "  {const fr=(ordnerAusDatei||[]).filter(f=>!!f);FD=fr.concat(FD.filter(f=>!fr.some(n=>String(n.id)===String(f.id))));svFD();}" \
   "nicht überschrieben"
 
 fall "der Import verschweigt wieder, was unsichtbar mitkommt" \
   '    ${ohneKat?`<div class="imp-ohnekat"' \
   '    ${false?`<div class="imp-ohnekat"' \
   "Zahl ohne Zuhause"
+
+# ⚠ Der Fall, der den Fund von heute festnagelt: ein zweiter Weg baut sich
+# seinen eigenen Dubletten-Riegel. Genau so ist der Tresor-Import beim ersten
+# Bau durchgerutscht.
+fall "ein zweiter Import-Weg baut sich seinen eigenen Riegel" \
+  "          const _zf=_zusammenfuehren(recs, (data&&data.folders)||[]);" \
+  "          const existingNames=new Set(R.filter(r=>r.name).map(r=>r.name.trim().toLowerCase()));const _zf={newRecs:recs.filter(r=>r.name&&!existingNames.has(r.name.trim().toLowerCase())),neueOrdner:[]};" \
+  "genau einmal im Code"
 
 echo
 echo "$gefangen gefangen · $durch durchgerutscht · $falsch aus falschem Grund · $tot tote Anker"

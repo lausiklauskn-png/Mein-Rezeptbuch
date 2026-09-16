@@ -206,6 +206,21 @@ ok("der Dialog nennt die Zahl ohne Zuhause", /\b2\b/.test(hinweis));
 ok("und sagt, wo sie erscheinen", /Ohne Kategorie/i.test(hinweis));
 await seite.evaluate(()=>{ const o=document.querySelector("#importChoiceOv"); if(o)o.remove(); });
 
+console.log("\n── 12 · ⚠ Das Zusammenführen steht an EINER Stelle ──");
+/* Beim ersten Bau habe ich nur EINEN der zwei Import-Wege gefunden: die Datei
+   nennt ihre Liste `imported`, der Tresor `recs`. Gemergt war damit eine HALBE
+   Reparatur. Dieser Wächter misst die URSACHE, nicht den Einzelfall — ein
+   dritter Weg, der morgen dazukommt und sich seinen eigenen Dubletten-Riegel
+   baut, wird hier rot. */
+const quelle = readFileSync(join(WURZEL,"index.html"),"utf8");
+const ohneKommentare = quelle.replace(/\/\*[\s\S]*?\*\//g,"");
+ok("der Dubletten-Riegel steht genau einmal im Code",
+   (ohneKommentare.match(/const existingNames=new Set/g)||[]).length===1);
+ok("und die gemeinsame Funktion wird von MEHREREN Wegen gerufen",
+   (ohneKommentare.match(/_zusammenfuehren\(/g)||[]).length>=3);
+ok("beide bekannten Import-Wege gehen durch sie hindurch",
+   /_zusammenfuehren\(\s*imported/.test(ohneKommentare) && /_zusammenfuehren\(\s*recs/.test(ohneKommentare));
+
 ok("kein Seitenfehler über den ganzen Lauf"+(seitenfehler.length?" — "+seitenfehler[0].slice(0,110):""), seitenfehler.length===0);
 await browser.close(); server.close();
 console.log(`\n${gruen} grün · ${rot} ROT`);

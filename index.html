@@ -9168,6 +9168,52 @@ function _normalizeRecs(recs){
        Kennungen auflistet. */
     if(typeof r.cat!=='string')r.cat='';});
 }
+
+/* ⚠ ES GIBT ZWEI IMPORT-WEGE, UND BEIM ERSTEN BAU HABE ICH NUR EINEN GEFUNDEN
+   (2026-09-16). Die Datei kommt ueber `importData(e)` herein, der Tresor ueber
+   `importJsonFromVault(input)` — der eine nennt seine Liste `imported`, der
+   andere `recs`. Meine Bestandsaufnahme suchte nach der ersten Form und fand
+   den zweiten Weg nicht; gemergt war damit eine HALBE Reparatur, und der
+   Tresor-Weg haette weiter am Namen verglichen.
+
+   „0 Treffer" ist erst dann eine Aussage, wenn man belegt hat, dass man
+   ueberall hineingesehen hat.
+
+   Das Zusammenfuehren steht deshalb an EINER Stelle. Ein dritter Weg, der
+   morgen dazukommt, ist damit von selbst richtig — und `smoke_herkunft`
+   besteht darauf, dass es bei einer Stelle bleibt. */
+function _zusammenfuehren(eingehend, ordnerAusDatei){
+  _uidSichern(R);
+  const vorhandenUid=new Set(R.filter(r=>r.uid).map(r=>r.uid));
+  const existingNames=new Set(R.filter(r=>r.name).map(r=>r.name.trim().toLowerCase()));
+  const nachUid=new Map(R.filter(r=>r.uid).map(r=>[r.uid,r]));
+  const newRecs=(eingehend||[]).filter(r=>{
+    if(!r||!r.name)return false;
+    if(r.uid){
+      if(vorhandenUid.has(r.uid)){
+        /* Dasselbe Rezept, zurueckgekommen: nicht noch einmal anlegen, nur die
+           laengere Herkunfts-Kette uebernehmen. */
+        const mein=nachUid.get(r.uid);
+        if(mein)mein.herkunft=_herkunftVereinen(mein.herkunft,r.herkunft);
+        return false;
+      }
+      return true;                       // eigene Kennung, hier unbekannt → wirklich neu
+    }
+    return !existingNames.has(r.name.trim().toLowerCase());   // Rueckfall fuer Dateien vor v10
+  });
+  /* ⚠ DIE MITGEBRACHTE `uid` BLEIBT. Nur die LOKALE Nummer `r.id` wird neu
+     vergeben — sie ist der Platz in dieser App, nicht die Identitaet des
+     Rezepts. Schriebe der Import eine neue Kennung darueber, erkennt der
+     Absender sein eigenes Rezept beim Zurueckkommen nicht wieder. */
+  const maxId=R.reduce((m,r)=>Math.max(m,r.id||0),0);
+  newRecs.forEach((r,i)=>{r.id=maxId+i+1; if(!r.uid)r.uid=_neueUid();});
+  /* ⚠ UND DIE ORDNER KOMMEN MIT. Vorhandene werden NICHT ueberschrieben. */
+  const habeFid=new Set(FD.map(f=>String(f.id)));
+  const neueOrdner=(ordnerAusDatei||[]).filter(f=>f&&!habeFid.has(String(f.id)));
+  if(neueOrdner.length){FD=FD.concat(neueOrdner);svFD();}
+  return {newRecs:newRecs, neueOrdner:neueOrdner};
+}
+
 function _showImportChoiceDialog(recCount, onReplace, onMerge, ohneKat){
   const ov=document.createElement('div');
   ov.id='importChoiceOv';ov.className='share-ov';
@@ -9275,37 +9321,8 @@ function importData(e){
              und zwei verschiedene Rezepte mit gleichem Namen verschwanden
              still zu einem. Beides ist damit vorbei; Dateien ohne `uid`
              (alles vor v10) gehen weiter den alten Weg. */
-          _uidSichern(R);
-          const vorhandenUid=new Set(R.filter(r=>r.uid).map(r=>r.uid));
-          const existingNames=new Set(R.filter(r=>r.name).map(r=>r.name.trim().toLowerCase()));
-          const nachUid=new Map(R.filter(r=>r.uid).map(r=>[r.uid,r]));
-          const newRecs=imported.filter(r=>{
-            if(!r||!r.name)return false;
-            if(r.uid){
-              if(vorhandenUid.has(r.uid)){
-                /* Dasselbe Rezept, zurueckgekommen: nicht noch einmal anlegen,
-                   nur die laengere Herkunfts-Kette uebernehmen. */
-                const mein=nachUid.get(r.uid);
-                if(mein)mein.herkunft=_herkunftVereinen(mein.herkunft,r.herkunft);
-                return false;
-              }
-              return true;                       // eigene Kennung, hier unbekannt → wirklich neu
-            }
-            return !existingNames.has(r.name.trim().toLowerCase());
-          });
-          /* ⚠ DIE MITGEBRACHTE `uid` BLEIBT. Nur die LOKALE Nummer `r.id`
-             wird neu vergeben — sie ist der Platz in dieser App, nicht die
-             Identitaet des Rezepts. */
-          const maxId=R.reduce((m,r)=>Math.max(m,r.id||0),0);
-          newRecs.forEach((r,i)=>{r.id=maxId+i+1; if(!r.uid)r.uid=_neueUid();});
-          /* ⚠ UND DIE ORDNER KOMMEN JETZT MIT. Bis zum 2026-09-16 fasste
-             dieser Weg `FD` nicht an: ein Rezept, das in der Datei in einem
-             Ordner lag, zeigte danach auf einen Ordner, den es hier nicht
-             gibt — Klaus' „unsichtbarer Ordner". Vorhandene Ordner werden
-             NICHT ueberschrieben; es kommen nur die dazu, die fehlen. */
-          const habeFid=new Set(FD.map(f=>String(f.id)));
-          const neueOrdner=(d.folders||[]).filter(f=>f&&!habeFid.has(String(f.id)));
-          if(neueOrdner.length){FD=FD.concat(neueOrdner);svFD();}
+          const _zf=_zusammenfuehren(imported, d.folders);
+          const newRecs=_zf.newRecs, neueOrdner=_zf.neueOrdner;
           _showCatMapDialog(newRecs,mapping=>{_applyCatMapping(newRecs,mapping);_normalizeRecs(newRecs);R.unshift(...newRecs);R.forEach(r=>r.shut=true);sv();badge();render();setUpSt(`✅ ${newRecs.length} ${T('impAdded')}${neueOrdner.length?' · '+neueOrdner.length+' '+T('impFoldersToo'):''}`,'ok');});
         },
         _ohneZuhause(imported, d.folders)
@@ -14835,16 +14852,14 @@ function importJsonFromVault(input){
           });
         },
         ()=>{
-          // Hinzufügen (Merge)
-          const existingNames=new Set(R.filter(r=>r.name).map(r=>r.name.trim().toLowerCase()));
-          const newRecs=recs.filter(r=>r.name&&!existingNames.has(r.name.trim().toLowerCase()));
-          const maxId=R.reduce((m,r)=>Math.max(m,r.id||0),0);
-          newRecs.forEach((r,i)=>{r.id=maxId+i+1;});
+          /* Hinzufügen (Merge) — DERSELBE Weg wie beim Datei-Import. */
+          const _zf=_zusammenfuehren(recs, (data&&data.folders)||[]);
+          const newRecs=_zf.newRecs, neueOrdner=_zf.neueOrdner;
           _showCatMapDialog(newRecs,mapping=>{
             _applyCatMapping(newRecs,mapping);_normalizeRecs(newRecs);
             R.unshift(...newRecs);sv();badge();render();
             closeBackupVault();
-            toast('✅ '+newRecs.length+' neue Rezepte hinzugefügt');
+            toast('✅ '+newRecs.length+' '+T('impAdded')+(neueOrdner.length?' · '+neueOrdner.length+' '+T('impFoldersToo'):''));
           });
         }
       );

@@ -1367,6 +1367,29 @@ Klaus' sechs Sushi lagen in der Datei und waren in der App nirgends gezeichnet.
 | „die mitgebrachte Kennung bleibt" | **gab es gar nicht.** Der Fall rutschte durch, weil die Zusicherung fehlte — ohne sie wäre der ganze Weg umsonst |
 | zwei Sabotagen trafen den **Nachbarn** | ein Gerätename in einem dritten Feld wirft „genau zwei Felder" um, an `k` geklebt „die Station ist dieser Knoten". Sabotiert wird jetzt `_knotenKennung()` selbst — dann bleibt der Identitäts-Wächter grün und **nur** der Namens-Wächter kann fallen |
 
+
+### ⚠ UND ES GAB ZWEI IMPORT-WEGE — beim ersten Bau fand ich nur einen
+
+Die Datei kommt über `importData(e)` herein und nennt ihre Liste `imported`;
+der **Tresor** kommt über `importJsonFromVault(input)` und nennt sie `recs`.
+Meine Bestandsaufnahme suchte nach der ersten Form. **Gemergt war damit eine
+halbe Reparatur** — der Tresor-Weg hätte weiter am Namen verglichen, und genau
+dort liegen Klaus' Sicherungen.
+
+Aufgefallen ist es beim Nachziehen nach Muttis Rezeptbuch: dort stand
+`existingNames` **zweimal**. *„0 Treffer" ist erst dann eine Aussage, wenn man
+belegt hat, dass man überall hineingesehen hat.*
+
+**Repariert wird die Ursache, nicht der zweite Fall:** das Zusammenführen steht
+jetzt an **einer** Stelle (`_zusammenfuehren`), beide Wege gehen hindurch. Ein
+dritter Weg, der morgen dazukommt, ist damit von selbst richtig — und ein
+Wächter besteht darauf, dass der Dubletten-Riegel **genau einmal** im Code steht.
+
+⚠ **Und vier Gegenprobe-Fälle wurden dabei zu toten Ankern**, weil der Code in
+die gemeinsame Funktion wanderte. Die Anker-Prüfung hat sie als **tot** gemeldet,
+nicht als „nicht gefangen" — das ist der Unterschied zwischen „zieh den Fall
+nach" und „bau einen Wächter", und er weist in entgegengesetzte Richtungen.
+
 ### Geprüft
 
 ```bash
@@ -1374,8 +1397,8 @@ node tests/smoke_herkunft.mjs        # echter Browser, an der GEBAUTEN index.htm
 bash tests/gegenprobe_herkunft.sh    # Wegwerf-Kopie, MIT Bau-Schritt
 ```
 
-Zuletzt gemessen (2026-09-16): **34 grün · 0 ROT** · Gegenprobe **11 gefangen ·
-0 durchgerutscht · 0 aus falschem Grund · 0 tote Anker** · `smoke_kategorien`
+Zuletzt gemessen (2026-09-16, nach dem Tresor-Weg): **37 grün · 0 ROT** ·
+Gegenprobe **12 gefangen · 0 durchgerutscht · 0 aus falschem Grund · 0 tote Anker** · `smoke_kategorien`
 unverändert **145 grün · 0 ROT**. Beide Rückgabewerte **direkt** gelesen.
 
 ⚠ **Der Export ist auf `version: 10` gehoben** und trägt zusätzlich `knoten`.
