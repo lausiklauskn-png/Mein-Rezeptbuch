@@ -609,6 +609,9 @@ body.nav-collapsed{padding-bottom:calc(16px + var(--sb))}
 .kat-box{position:relative;max-width:420px;width:94%;display:block !important;flex-direction:column !important;text-align:left !important;align-items:stretch !important}
 .kat-list{max-height:46vh;overflow-y:auto;margin:10px 0 8px;display:flex;flex-direction:column;gap:6px}
 .kat-row{display:flex;align-items:center;gap:6px}
+.kat-feld{flex:1 1 auto;min-width:0;display:flex;flex-direction:column;gap:1px}
+.kat-feld .kat-name{width:100%}
+.kat-kenn{font-size:.55rem;color:var(--dim);font-family:ui-monospace,Menlo,Consolas,monospace;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;padding-left:2px}
 .kat-ico{width:52px;flex:0 0 52px;text-align:center;font-size:1rem;padding:7px 2px;border:1px solid var(--line,#d8cdbb);border-radius:8px;background:var(--card,#fff);color:var(--ink)}
 .kat-name{flex:1 1 auto;min-width:0;font-size:.82rem;padding:7px 8px;border:1px solid var(--line,#d8cdbb);border-radius:8px;background:var(--card,#fff);color:var(--ink)}
 .kat-reset{flex:0 0 auto;min-width:34px;min-height:34px;border:0;border-radius:8px;background:transparent;color:var(--dim);font-size:.95rem;cursor:pointer}
@@ -5586,7 +5589,27 @@ function catsFremd(){
   }
   return out;
 }
-function catsAlle(){return CATS.filter(c=>c.id!=='all').concat(catsFremd());}
+/* ⚠ EINE KENNUNG KOMMT GENAU EINMAL VOR (Klaus 2026-09-16, mit Bild).
+   Er hatte ZWEI Pillen „Sushi", und ein einziger Tipp markierte BEIDE. Eine
+   Pille traegt `on` genau dann, wenn `CAT===c.id` — markiert ein Tipp zwei,
+   dann tragen beide dieselbe Kennung. Es sind also nicht zwei Kategorien,
+   sondern EINE, die zweimal gezeichnet wird; deshalb zeigten beide dieselbe
+   Zahl und dieselbe Zeile im Ordner-Baum.
+   Zwei Eintraege mit derselben Kennung sind IMMER falsch: zwei Pillen, zwei
+   Gruppen im Baum, zwei Zeilen im Umbenennen-Dialog — und alle reagieren
+   gleichzeitig, weil sie dasselbe meinen. Das ist eine Invariante dieser
+   Liste, keine Vermutung ueber die Ursache, und sie gilt unabhaengig davon,
+   woher das Duplikat kommt. Der erste Eintrag gewinnt (CATS vor catsFremd). */
+function catsAlle(){
+  const out=[],gesehen=new Set();
+  CATS.filter(c=>c.id!=='all').concat(catsFremd()).forEach(c=>{
+    if(!c||c.id===undefined||c.id===null)return;
+    const id=String(c.id);
+    if(gesehen.has(id))return;
+    gesehen.add(id);out.push(c);
+  });
+  return out;
+}
 
 function catName(id){if(typeof id==='string'&&id.indexOf('fld_')===0){const f=FD.find(f=>String(f.id)===id.slice(4));return f?f.name:id;}const c=catsAlle().find(x=>x.id===id);if(!c)return id;return katBeschriftung(c);}
 function catCol(id){if(typeof id==='string'&&id.indexOf('fld_')===0){return'#7a5840';}return catsAlle().find(x=>x.id===id)?.col||'#7a5840';}
@@ -10568,28 +10591,28 @@ function openFolderSheet(){document.getElementById('folderSheet').style.display=
 const KAT_TXT={
   de:{t:'✎ Kategorien umbenennen',s:'Gib den Kategorien deine eigenen Namen und Symbole. Aus „Mocktails" wird deine „Salatbar".',
       n:'⚠ Der Name gilt in allen Sprachen — du hast ihn selbst geschrieben. Die Kennung bleibt unveraendert, deine Rezepte behalten ihr Zuhause.',sym:'Symbol antippen und aussuchen',fuer:'Symbol fuer',ohne:'Ohne Kategorie',
-      f:'mitgebracht',z:'↺ zuruecksetzen',ok:'Speichern',ab:'Abbrechen',g:'✅ Kategorien gespeichert'},
+      f:'mitgebracht',kenn:'Kennung — daran haengen deine Rezepte',z:'↺ zuruecksetzen',ok:'Speichern',ab:'Abbrechen',g:'✅ Kategorien gespeichert'},
   en:{t:'✎ Rename categories',s:'Give the categories your own names and icons. “Mocktails” becomes your “Salad bar”.',
       n:'⚠ The name applies in every language — you wrote it yourself. The internal id stays, so your recipes keep their home.',sym:'Tap the icon to pick one',fuer:'Icon for',ohne:'No category',
-      f:'imported',z:'↺ reset',ok:'Save',ab:'Cancel',g:'✅ Categories saved'},
+      f:'imported',kenn:'Internal id — your recipes hang on this',z:'↺ reset',ok:'Save',ab:'Cancel',g:'✅ Categories saved'},
   ru:{t:'✎ Переименовать категории',s:'Дайте категориям свои названия и значки.',
       n:'⚠ Название действует на всех языках. Идентификатор не меняется — рецепты остаются на месте.',sym:'Нажмите на значок и выберите',fuer:'Значок для',ohne:'Без категории',
-      f:'импортировано',z:'↺ сбросить',ok:'Сохранить',ab:'Отмена',g:'✅ Сохранено'},
+      f:'импортировано',kenn:'Идентификатор — к нему привязаны рецепты',z:'↺ сбросить',ok:'Сохранить',ab:'Отмена',g:'✅ Сохранено'},
   zh:{t:'✎ 重命名分类',s:'为分类设置你自己的名称和图标。',
       n:'⚠ 该名称适用于所有语言。内部标识不变，菜谱不会丢失。',sym:'点按图标即可选择',fuer:'图标：',ohne:'未分类',
-      f:'导入',z:'↺ 重置',ok:'保存',ab:'取消',g:'✅ 已保存'},
+      f:'导入',kenn:'内部标识 — 你的食谱挂在它上面',z:'↺ 重置',ok:'保存',ab:'取消',g:'✅ 已保存'},
   es:{t:'✎ Renombrar categorías',s:'Da a las categorías tus propios nombres e iconos.',
       n:'⚠ El nombre vale en todos los idiomas. El identificador no cambia: tus recetas conservan su sitio.',sym:'Toca el icono para elegir',fuer:'Icono para',ohne:'Sin categoría',
-      f:'importado',z:'↺ restablecer',ok:'Guardar',ab:'Cancelar',g:'✅ Guardado'},
+      f:'importado',kenn:'Identificador — tus recetas dependen de él',z:'↺ restablecer',ok:'Guardar',ab:'Cancelar',g:'✅ Guardado'},
   fr:{t:'✎ Renommer les catégories',s:'Donnez aux catégories vos propres noms et icônes.',
       n:'⚠ Le nom vaut dans toutes les langues. L’identifiant ne change pas : vos recettes gardent leur place.',sym:'Touchez l’icône pour choisir',fuer:'Icône pour',ohne:'Sans catégorie',
-      f:'importé',z:'↺ réinitialiser',ok:'Enregistrer',ab:'Annuler',g:'✅ Enregistré'},
+      f:'importé',kenn:'Identifiant — vos recettes y sont rattachées',z:'↺ réinitialiser',ok:'Enregistrer',ab:'Annuler',g:'✅ Enregistré'},
   it:{t:'✎ Rinomina categorie',s:'Dai alle categorie i tuoi nomi e le tue icone.',
       n:'⚠ Il nome vale in tutte le lingue. L’identificativo resta: le ricette mantengono il loro posto.',sym:'Tocca l’icona per sceglierne una',fuer:'Icona per',ohne:'Senza categoria',
-      f:'importato',z:'↺ ripristina',ok:'Salva',ab:'Annulla',g:'✅ Salvato'},
+      f:'importato',kenn:'Identificatore — le tue ricette vi sono legate',z:'↺ ripristina',ok:'Salva',ab:'Annulla',g:'✅ Salvato'},
   pt:{t:'✎ Renomear categorias',s:'Dê às categorias os seus próprios nomes e ícones.',
       n:'⚠ O nome vale em todos os idiomas. O identificador permanece: as receitas mantêm o seu lugar.',sym:'Toque no ícone para escolher',fuer:'Ícone para',ohne:'Sem categoria',
-      f:'importado',z:'↺ repor',ok:'Guardar',ab:'Cancelar',g:'✅ Guardado'}
+      f:'importado',kenn:'Identificador — as tuas receitas dependem dele',z:'↺ repor',ok:'Guardar',ab:'Cancelar',g:'✅ Guardado'}
 };
 /* ══ EMOJI-AUSWAHL (Klaus 2026-09-15) ════════════════════════════════════
    „Einmal anklicken, Emojis aussuchen." Ein Symbol von Hand zu tippen setzt
@@ -10721,7 +10744,16 @@ function openKatUmbenennen(){
        Vorgabe unterscheiden — und „zuruecksetzen" haette nichts zu tun. */
     return `<div class="kat-row" data-kid="${h(c.id)}">
       <input class="kat-ico" value="${h(eigen.ico||'')}" placeholder="${h(c.ico||'📦')}" maxlength="4" aria-label="${h(X.sym)}" title="${h(X.sym)}" onclick="katEmojiOeffnen(this)">
-      <input class="kat-name" value="${h(eigen.name||'')}" placeholder="${h(c[CL]||c.de||c.id)}" aria-label="Name">
+      <div class="kat-feld">
+        <input class="kat-name" value="${h(eigen.name||'')}" placeholder="${h(c[CL]||c.de||c.id)}" aria-label="Name">
+        <!-- ⚠ DIE KENNUNG STEHT DA, MIT ZEICHENZAHL. Zwei Kategorien koennen
+             denselben NAMEN tragen (der Nutzer vergibt ihn selbst) — die
+             Kennung ist das, woran die Rezepte haengen. Ohne sie sind zwei
+             Zeilen „Sushi" nicht auseinanderzuhalten. Die Anfuehrungszeichen
+             zeigen ein fuehrendes oder folgendes Leerzeichen, die Zahl
+             bestaetigt es. -->
+        <div class="kat-kenn" title="${h(X.kenn||'Kennung')}">"${h(c.id)}" ·${String(c.id).length}</div>
+      </div>
       <button class="kat-reset" onclick="katZuruecksetzen('${h(c.id)}')" ${hatEigen?'':'disabled'} title="${h(X.z)}">↺</button>
       ${c.fremd?`<span class="kat-fremd">${h(X.f)}</span>`:''}
     </div>`;

@@ -555,6 +555,63 @@ if(fehlend.fehlt.length)console.log("     fehlt: "+fehlend.fehlt.join(", "));
    wenn der Sammler gar nichts findet. */
 ok("… und der Sammler findet ueberhaupt Schluessel", fehlend.gesamt>20);
 
+console.log("\n── 17 · Eine Kennung kommt genau einmal vor ──");
+/* ⚠ Klaus 2026-09-16 mit Bild: ZWEI Pillen „Sushi", und ein einziger Tipp
+   markierte BEIDE. Eine Pille traegt `on` genau dann, wenn `CAT===c.id` —
+   markiert ein Tipp zwei, tragen beide dieselbe Kennung. Es sind also nicht
+   zwei Kategorien, sondern EINE, die zweimal gezeichnet wird. */
+const doppelt = await seite.evaluate(()=>{
+  const sichC=CATS.slice(), sichR=JSON.parse(JSON.stringify(R));
+  const vorlage=CATS.find(c=>c.id==='fleisch');
+  // dieselbe Kennung ein zweites Mal in die Liste — Klaus' Lage nachgestellt
+  CATS.push(Object.assign({},vorlage));
+  const wieOft=catsAlle().filter(c=>c.id==='fleisch').length;
+  CAT='fleisch'; renderCatNav();
+  const markiert=[...document.querySelectorAll('#catNav .cpill.on')]
+    .filter(e=>/setCAT\('fleisch'\)/.test(e.getAttribute("onclick")||"")).length;
+  renderFolders();
+  const gruppen=document.querySelectorAll('#fldTree .fld-grp[data-gid="cat_fleisch"]').length;
+  // Gegenrichtung: ohne das Duplikat bleibt die Liste vollstaendig
+  CATS.length=0; sichC.forEach(c=>CATS.push(c));
+  const normal=catsAlle().length, ohneAll=CATS.filter(c=>c.id!=='all').length;
+  R=sichR; CAT='all'; renderCatNav(); renderFolders();
+  return {wieOft,markiert,gruppen,normal,ohneAll};
+});
+ok("eine doppelte Kennung erscheint in catsAlle nur EINMAL", doppelt.wieOft===1);
+ok("… ein Tipp markiert genau eine Pille (Klaus' Befund)", doppelt.markiert===1);
+ok("… und der Ordner-Baum zeichnet die Gruppe nur einmal", doppelt.gruppen===1);
+/* ⚠ GEGENRICHTUNG: ein Riegel, der zu viel wegwirft, waere schlimmer als das
+   Duplikat — dann fehlten Kategorien. Gemessen wird, dass ohne Duplikat
+   nichts verloren geht. */
+ok("… und ohne Duplikat geht keine Kategorie verloren",
+   doppelt.normal>=doppelt.ohneAll && doppelt.ohneAll>0);
+/* ⚠ UND DIE QUELLE WIRD GEMESSEN: kommt das Duplikat aus der fest
+   eingebauten Liste, sagt es dieser Waechter — sonst raetselt man an der
+   falschen Stelle. */
+ok("die fest eingebaute Liste CATS traegt keine Kennung zweimal",
+   await seite.evaluate(()=>{
+     const ids=CATS.map(c=>c.id);
+     return new Set(ids).size===ids.length;
+   }));
+/* ⚠ UND DIE KENNUNG STEHT IM DIALOG, MIT ZEICHENZAHL. Zwei Kategorien
+   koennen denselben NAMEN tragen — die Kennung ist das, woran die Rezepte
+   haengen. Ein fuehrendes oder folgendes Leerzeichen sieht man nur so. */
+const kennung = await seite.evaluate(()=>{
+  const sichR=JSON.parse(JSON.stringify(R));
+  R.push({id:88010,name:"Mit-Leerzeichen",cat:"luecke ",folder:"",blank:false});
+  openKatUmbenennen();
+  const row=document.querySelector('#katRenameOv .kat-row[data-kid="luecke "]');
+  const txt=row?row.querySelector('.kat-kenn').textContent.trim():"";
+  const ov=document.getElementById('katRenameOv'); if(ov)ov.remove();
+  R=sichR; renderCatNav(); renderFolders();
+  return txt;
+});
+ok("der Dialog zeigt die Kennung", /luecke/.test(kennung));
+ok("… in Anfuehrungszeichen, sodass ein Leerzeichen sichtbar wird",
+   kennung.indexOf('"luecke "')===0);
+ok("… und mit der Zeichenzahl daneben", /·7$/.test(kennung));
+if(!/·7$/.test(kennung))console.log(`     gelesen: „${kennung}"`);
+
 await browser.close(); server.close();
 console.log(`\n${gruen} grün · ${rot} ROT`);
 process.exit(rot?1:0);

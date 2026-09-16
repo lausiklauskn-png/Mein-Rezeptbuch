@@ -229,6 +229,23 @@ fall "die Ordner-Zeile zeigt wieder den Schluesselnamen" "mit einem Wort, nicht 
 #   ausdruecklich `gesamt>20`, faellt also MIT aus, wenn der Sammler
 #   leerlaeuft. Ein Fall, der nichts messen kann, saehe wie Deckung aus.
 
+# ── Eine Kennung kommt genau einmal vor (Klaus 2026-09-16, zwei Pillen) ──
+fall "catsAlle laesst Duplikate wieder durch" "nur EINMAL" \
+"    if(gesehen.has(id))return;
+    gesehen.add(id);out.push(c);@@@    gesehen.add(id);out.push(c);"
+
+fall "der Riegel wirft zu viel weg (dedupt auf den NAMEN)" "geht keine Kategorie verloren" \
+"    const id=String(c.id);@@@    const id=String(c.de||c.id).slice(0,1);"
+
+fall "der Dialog verschweigt die Kennung wieder" "der Dialog zeigt die Kennung" \
+'        <div class="kat-kenn" title="${h(X.kenn||'"'"'Kennung'"'"')}">"${h(c.id)}" ·${String(c.id).length}</div>@@@'
+
+fall "die Anfuehrungszeichen um die Kennung fallen weg" "sodass ein Leerzeichen sichtbar wird" \
+'">"${h(c.id)}" ·${String(c.id).length}</div>@@@">${h(c.id)} ·${String(c.id).length}</div>'
+
+fall "die Zeichenzahl faellt weg" "mit der Zeichenzahl daneben" \
+'" ·${String(c.id).length}</div>@@@"</div>'
+
 echo
 echo "$gefangen gefangen · $durch durchgerutscht · $falsch aus falschem Grund · $tot tote Anker"
 cd /; rm -rf "$(dirname "$KOPIE")"
