@@ -147,11 +147,42 @@ fall "die Getraenke-Symbole verschwinden wieder" "eigene Getraenke-Symbole" \
 '"🍶","🍼","🚰","⚗️","🫧","🍋‍🟩",@@@'
 
 # ── Die Ordner-Ansicht zaehlt wieder anders als die Leiste (Klaus 2026-09-16) ──
-fall "der Ordner-Baum fragt wieder das rohe Feld" "dieselbe Zahl" \
-"      recipes:R.filter(r=>katVonRezept(r)===c.id&&r.name)})),@@@      recipes:R.filter(r=>r.cat===c.id&&r.name)})),"
+fall "der Ordner-Baum fragt wieder das rohe Feld" "Leiste = Baum" \
+"      recipes:R.filter(r=>!r.folder&&katVonRezept(r)===c.id&&r.name)})),@@@      recipes:R.filter(r=>!r.folder&&r.cat===c.id&&r.name)})),"
 
 fall "ein Ordner-Rezept ohne r.folder faellt im Baum wieder heraus" "faellt nirgends heraus" \
 "      recipes:R.filter(r=>(r.folder===String(f.id)||r.cat==='fld_'+f.id)&&r.name)}))@@@      recipes:R.filter(r=>r.folder===String(f.id)&&r.name)}))"
+
+# ── Ordner und Kategorie sind zwei Sachen (Klaus 2026-09-16) ──
+fall "ein Ordner-Umzug frisst die Kategorie wieder auf" "laesst die Kategorie stehen" \
+"  r.folder=String(fid);
+  if(typeof r.cat==='string'&&r.cat.indexOf('fld_')===0)r.cat='';@@@  r.folder=String(fid);
+  r.cat='fld_'+String(fid);"
+
+fall "der Umzug setzt den Ordner gar nicht mehr" "setzt den Ordner wirklich" \
+"  if(!r)return;
+  r.folder=String(fid);@@@  if(!r)return;"
+
+fall "eine Altbestands-Kennung wird wieder mitgeschleppt" "nicht mitgeschleppt" \
+"  if(typeof r.cat==='string'&&r.cat.indexOf('fld_')===0)r.cat='';
+}@@@}"
+
+fall "ein Rezept steht im Ordner-Baum wieder zweimal" "zweimal" \
+"      recipes:R.filter(r=>!r.folder&&katVonRezept(r)===c.id&&r.name)})),@@@      recipes:R.filter(r=>katVonRezept(r)===c.id&&r.name)})),"
+
+fall "die Zeile im Ordner fragt wieder das rohe Feld" "Ohne-Kategorie statt" \
+'            <div style="font-size:.92rem">${catIco(katVonRezept(r))}</div>@@@            <div style="font-size:.92rem">${catIco(r.cat)}</div>'
+
+fall "das Abzeichen zaehlt die Ordner-Rezepte doppelt" "Gruppen mit Inhalt" \
+"  const fldCats=catsAlle().filter(c=>R.some(r=>!r.folder&&katVonRezept(r)===c.id&&r.name)).length;@@@  const fldCats=catsAlle().filter(c=>R.some(r=>katVonRezept(r)===c.id&&r.name)).length;"
+
+fall "ein geloeschter Ordner raet wieder Fleisch" "erfindet keine Kategorie" \
+"    if(r.cat===('fld_'+String(fid)))r.cat='';
+    r.folder='';}});@@@    r.cat='fleisch';
+    r.folder='';}});"
+
+fall "der Ordner ueberstimmt die Kategorie in der Anlage-Maske wieder" "trotzdem seine Kategorie" \
+"  const catId=document.getElementById('newCat').value||'fleisch';@@@  const catId=folder?('fld_'+folder):(document.getElementById('newCat').value||'fleisch');"
 
 echo
 echo "$gefangen gefangen · $durch durchgerutscht · $falsch aus falschem Grund · $tot tote Anker"
