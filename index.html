@@ -11884,7 +11884,7 @@ function render(){
     if(!grp.length)html+=`<div class="empty-state"><div class="empty-state__icon">🍽️</div><h3 class="empty-state__title">${T('noRecipes')}</h3></div>`;
   }
   c.innerHTML=html;renderCatNav();badge();restoreTranslPanels();setupTouchDrag();
-  const cw=c.offsetWidth;if(cw>=50){const drkCats=new Set(['drk']);if(typeof FD!=='undefined'&&FD){FD.forEach(f=>{if(/getr|drink|bever|bevande|boisson|bebida|напит/i.test(f.name))drkCats.add('fld_'+f.id);});}document.querySelectorAll('.rcard').forEach(card=>{const ch=parseFloat(card.dataset.h)||1;if(drkCats.has(card.dataset.cat)){const h=Math.round(cw*4/3*ch);const wrap=card.querySelector('.rcard-img-wrap');const img=card.querySelector('.rcard-img');if(wrap)wrap.style.setProperty('height',h+'px','important');if(img)img.style.setProperty('height',h+'px','important');}else if(ch!==1){const h=Math.round(160*ch);const wrap=card.querySelector('.rcard-img-wrap');const img=card.querySelector('.rcard-img');if(wrap)wrap.style.setProperty('height',h+'px','important');if(img)img.style.setProperty('height',h+'px','important');}});}
+  const cw=c.offsetWidth;if(cw>=50){const drkCats=_getraenkKats();document.querySelectorAll('.rcard').forEach(card=>{const ch=parseFloat(card.dataset.h)||1;if(drkCats.has(card.dataset.cat)){const h=Math.round(cw*4/3*ch);const wrap=card.querySelector('.rcard-img-wrap');const img=card.querySelector('.rcard-img');if(wrap)wrap.style.setProperty('height',h+'px','important');if(img)img.style.setProperty('height',h+'px','important');}else if(ch!==1){const h=Math.round(160*ch);const wrap=card.querySelector('.rcard-img-wrap');const img=card.querySelector('.rcard-img');if(wrap)wrap.style.setProperty('height',h+'px','important');if(img)img.style.setProperty('height',h+'px','important');}});}
 }
 function rndDiv(cat,grp){
   const filled=grp.filter(r=>r.name).length,name=katBeschriftung(cat);
@@ -12843,9 +12843,11 @@ function cropAnSicht(){
   ov.style.inset='auto';
   ov.style.left=vv.offsetLeft+'px';ov.style.top=vv.offsetTop+'px';
   ov.style.width=vv.width+'px';ov.style.height=vv.height+'px';
+  applyCropFrameHeight();
 }
 function cropAnSichtAn(){
   cropAnSicht();
+  applyCropFrameHeight();
   if(window.visualViewport){visualViewport.addEventListener('resize',cropAnSicht);visualViewport.addEventListener('scroll',cropAnSicht);}
 }
 function cropAnSichtAus(){
@@ -12920,9 +12922,43 @@ function onCropHeight(val){
   document.getElementById('cropHeightVal').textContent=CE.h.toFixed(2)+'×';
 }
 
+// ── Der Rahmen hat die FORM DER KARTE, nicht eine eigene ─────────────────
+// Klaus 2026-10-12, drei Bilder: im Dialog ein flacher Streifen, auf der
+// Hauptseite ein hohes Bild — „die Größe der Ausschnitte stimmt nicht
+// überein mit dem Endergebnis". Der Rahmen war höchstens 496 px breit und
+// seine Höhe hing an der HÖHE DES DIALOGS (`calc((100% - 24px) * .42)` in
+// einem Flex-Kind meint die Höhe), die Karte dagegen ist so breit wie die
+// Liste und 160 px × Faktor hoch. Gemessen auf dem Tablet: Karte 1,57 : 1,
+// Rahmen 2,9 : 1 — derselbe Ausschnitt, eine andere Form, ein anderes Bild.
+// Jetzt: die Maße der Karte nach DERSELBEN Regel wie render(), dann nur
+// maßstabsgetreu in den Dialog eingepasst. object-fit:cover und der
+// Zoom hängen allein am Seitenverhältnis — gleiche Form, gleiches Bild.
+function _getraenkKats(){
+  const s=new Set(['drk']);
+  if(typeof FD!=='undefined'&&FD)FD.forEach(f=>{if(/getr|drink|bever|bevande|boisson|bebida|напит/i.test(f.name))s.add('fld_'+f.id);});
+  return s;
+}
+function cropKartenMass(){
+  const r=R.find(x=>x.id===CE.rid);
+  let w=0;
+  const wrap=document.querySelector('#c'+CE.rid+' .rcard-img-wrap');
+  if(wrap&&wrap.offsetWidth>=50)w=wrap.offsetWidth;
+  if(!w){const c=document.getElementById('rcont');if(c&&c.offsetWidth>=50)w=c.offsetWidth;}
+  if(!w)w=496;   // Liste gerade nicht sichtbar (Ordner-Ansicht): Breite der App-Spalte
+  const drk=r&&_getraenkKats().has(r.cat);
+  return {w,h:drk?w*4/3*CE.h:160*CE.h};
+}
 function applyCropFrameHeight(){
   const cf=document.getElementById('cropFrame');
-  if(cf)cf.style.setProperty('--ch',CE.h);
+  if(!cf)return;
+  cf.style.setProperty('--ch',CE.h);
+  const st=cf.parentElement;
+  const aw=(st?.clientWidth||0)-24,ah=(st?.clientHeight||0)-24;
+  if(aw<50||ah<50)return;   // Dialog noch nicht offen — cropAnSichtAn misst nach
+  const k=cropKartenMass();
+  const f=Math.min(1,aw/k.w,ah/k.h);
+  cf.style.maxWidth='none';cf.style.maxHeight='none';
+  cf.style.width=Math.round(k.w*f)+'px';cf.style.height=Math.round(k.h*f)+'px';
 }
 
 function cropPreset(pos){
