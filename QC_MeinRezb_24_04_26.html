@@ -782,6 +782,11 @@ body.nav-collapsed{padding-bottom:calc(16px + var(--sb))}
 .aibk2-gen{width:100%;padding:13px;border:none;border-radius:9px;background:linear-gradient(135deg,var(--br),var(--br2));color:#fff;font-size:.86rem;font-weight:700;cursor:pointer;margin-top:9px}
 .aibk2-back{background:none;border:none;color:var(--dim);font-size:.76rem;cursor:pointer;padding:6px 0;display:block;margin-bottom:4px}
 .aibk2-zine-lbl{font-family:Georgia,serif;font-size:.88rem;font-weight:700;color:var(--br);margin:4px 0 6px}
+.fz-bild-wahl{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:8px}
+.fz-bild-opt{font-size:.74rem;font-weight:700;padding:7px 11px;border-radius:9px;border:1.5px solid var(--sand2);background:var(--sand);color:var(--ink);cursor:pointer;font-family:inherit}
+.fz-bild-opt.on{border-color:var(--br2);background:var(--br);color:#fff}
+.fz-bild-vorschau{display:flex;align-items:center;gap:10px;margin-bottom:6px;font-size:.72rem;color:var(--dim)}
+.fz-bild-vorschau img{width:84px;height:84px;object-fit:cover;border-radius:9px;border:1.5px solid var(--sand2)}
 .aibk2-zine-pick-lbl{font-size:.72rem;font-weight:700;color:var(--dim);text-transform:uppercase;letter-spacing:.04em;margin-bottom:5px}
 .aibk2-zine-sel{min-height:auto;height:auto;padding:7px 10px;font-size:.77rem;margin-bottom:4px;cursor:pointer}
 
@@ -3431,6 +3436,10 @@ Vielen Dank für deine Unterstützung.</div>
             onchange="document.getElementById('aiBookPromptBox').value=_kbBuildCpPrompt()">
             <option value="">– Kein Lieblingsrezept –</option>
           </select>
+          <div class="aibk2-zine-pick-lbl" style="margin-top:10px" id="fzBildLblEl">Bild für die KI:</div>
+          <div class="fz-bild-wahl" id="fzBildWahl"></div>
+          <input type="file" id="fzEigenIn" accept="image/*" style="display:none" onchange="_fzEigenLaden(this.files[0]);this.value=''">
+          <div class="fz-bild-vorschau" id="fzBildVorschau"></div>
           <div class="aibk2-zine-pick-lbl" style="margin-top:10px">Format wählen:</div>
           <div class="fz-fmt-grid" id="fzFmtGrid"></div>
           <div class="fz-extras">
@@ -3852,7 +3861,7 @@ const LANGS={
     ,apiKeyHelpTtl:'Fragen und Hilfe zum API-Key'
     ,sManualHead:'📚 HANDBUCH'
     ,sManualLbl:'Bedienungsanleitung'
-    ,sReloadHead:'🔄 APP',sReloadLbl:'Aktualisieren & neu laden',sReloadSub:'Cache leeren, neueste Version holen',keyDel:'🗑 Löschen',keyDelAsk:'Gespeicherten Schlüssel löschen? Danach kannst du einen neuen einfügen.',keyDelDone:'🗑 Schlüssel gelöscht — jetzt kannst du einen neuen einfügen',keyAlt:'Gespeichert',webBildLaedt:'🖼️ Rezeptbild wird übernommen…',sMistralLbl:'Mistral-Schlüssel (EU)',sMistralSub:'Für Texterkennung im KI-Scan',sNetzHead:'🌐 NETZWERK (SBKIM)',sNetzLbl:'Mit dem Netz verbinden',sNetzSub:'Im gemeinsamen Raum anmelden & andere Knoten finden (serverlos)',sToolsHead:'🧩 WERKZEUGE',sToolsSuchLbl:'Such-Werkzeug',sToolsSuchSub:'Semantische Suche nach Bedeutung (eigenständige PWA)',sToolsPinLbl:'Pinnwand',sToolsPinSub:'Frage-Antwort-Brett (Bedeutungs-Sortierung & KI-Richter)',sOfflineCap:'Offline-fähig',updateStatus:'Updates werden automatisch im Hintergrund bereitgestellt.'
+    ,sReloadHead:'🔄 APP',sReloadLbl:'Aktualisieren & neu laden',sReloadSub:'Cache leeren, neueste Version holen',keyDel:'🗑 Löschen',keyDelAsk:'Gespeicherten Schlüssel löschen? Danach kannst du einen neuen einfügen.',keyDelDone:'🗑 Schlüssel gelöscht — jetzt kannst du einen neuen einfügen',keyAlt:'Gespeichert',webBildLaedt:'🖼️ Rezeptbild wird übernommen…',fzBildLbl:'Bild für die KI:',fzBildRezept:'📷 Bild aus Rezept',fzBildEigen:'📎 Eigenes Bild',fzBildOhne:'Ohne Bild',fzBildAndere:'Anderes Bild…',fzBildKeins:'Dieses Rezept hat noch kein Bild.',fzBildHinweis:'📷 Das beigefügte Foto zeigt das echte Gericht — nutze es als Vorlage für das Bild.',fzBildKopiert:'📋 Text und Bild kopiert — in ChatGPT einfach einfügen',fzBildNurText:'📋 Nur der Text ist kopiert — dieser Browser nimmt kein Bild in die Zwischenablage',sMistralLbl:'Mistral-Schlüssel (EU)',sMistralSub:'Für Texterkennung im KI-Scan',sNetzHead:'🌐 NETZWERK (SBKIM)',sNetzLbl:'Mit dem Netz verbinden',sNetzSub:'Im gemeinsamen Raum anmelden & andere Knoten finden (serverlos)',sToolsHead:'🧩 WERKZEUGE',sToolsSuchLbl:'Such-Werkzeug',sToolsSuchSub:'Semantische Suche nach Bedeutung (eigenständige PWA)',sToolsPinLbl:'Pinnwand',sToolsPinSub:'Frage-Antwort-Brett (Bedeutungs-Sortierung & KI-Richter)',sOfflineCap:'Offline-fähig',updateStatus:'Updates werden automatisch im Hintergrund bereitgestellt.'
     ,sManualSub:'Alle Funktionen erklärt · PDF-Download'
     ,manOvTitle:'📚 Handbuch'
     ,manPdfLbl:'PDF'
@@ -4000,7 +4009,7 @@ const LANGS={
     ,apiKeyHelpTtl:'Questions & help about the API Key'
     ,sManualHead:'📚 MANUAL'
     ,sManualLbl:'User Guide'
-    ,sReloadHead:'🔄 APP',sReloadLbl:'Refresh & reload',sReloadSub:'Clear cache, get the latest version',keyDel:'🗑 Delete',keyDelAsk:'Delete the saved key? You can then paste a new one.',keyDelDone:'🗑 Key deleted — you can now paste a new one',keyAlt:'Saved',webBildLaedt:'🖼️ Fetching the recipe photo…',sMistralLbl:'Mistral key (EU)',sMistralSub:'For text recognition in the AI scan',sNetzHead:'🌐 NETWORK (SBKIM)',sNetzLbl:'Connect to the node network',sNetzSub:'Sign in to the shared room & find other nodes (server-less)',sToolsHead:'🧩 TOOLS',sToolsSuchLbl:'Search tool',sToolsSuchSub:'Semantic search by meaning (standalone PWA)',sToolsPinLbl:'Pinboard',sToolsPinSub:'Question-and-answer board (sorted by meaning & AI judge)',sOfflineCap:'Works offline',updateStatus:'Updates are provided automatically in the background.'
+    ,sReloadHead:'🔄 APP',sReloadLbl:'Refresh & reload',sReloadSub:'Clear cache, get the latest version',keyDel:'🗑 Delete',keyDelAsk:'Delete the saved key? You can then paste a new one.',keyDelDone:'🗑 Key deleted — you can now paste a new one',keyAlt:'Saved',webBildLaedt:'🖼️ Fetching the recipe photo…',fzBildLbl:'Image for the AI:',fzBildRezept:'📷 Recipe photo',fzBildEigen:'📎 My own image',fzBildOhne:'No image',fzBildAndere:'Other image…',fzBildKeins:'This recipe has no image yet.',fzBildHinweis:'📷 The attached photo shows the real dish — use it as the reference for the image.',fzBildKopiert:'📋 Text and image copied — just paste them into ChatGPT',fzBildNurText:'📋 Only the text was copied — this browser cannot put an image on the clipboard',sMistralLbl:'Mistral key (EU)',sMistralSub:'For text recognition in the AI scan',sNetzHead:'🌐 NETWORK (SBKIM)',sNetzLbl:'Connect to the node network',sNetzSub:'Sign in to the shared room & find other nodes (server-less)',sToolsHead:'🧩 TOOLS',sToolsSuchLbl:'Search tool',sToolsSuchSub:'Semantic search by meaning (standalone PWA)',sToolsPinLbl:'Pinboard',sToolsPinSub:'Question-and-answer board (sorted by meaning & AI judge)',sOfflineCap:'Works offline',updateStatus:'Updates are provided automatically in the background.'
     ,sManualSub:'All features explained · PDF download'
     ,manOvTitle:'📚 Manual'
     ,manPdfLbl:'PDF'
@@ -4147,7 +4156,7 @@ const LANGS={
     ,apiKeyHelpTtl:'Вопросы и помощь по API-ключу'
     ,sManualHead:'📚 РУКОВОДСТВО'
     ,sManualLbl:'Руководство пользователя'
-    ,sReloadHead:'🔄 ПРИЛОЖЕНИЕ',sReloadLbl:'Обновить и перезагрузить',sReloadSub:'Очистить кэш, загрузить новую версию',keyDel:'🗑 Удалить',keyDelAsk:'Удалить сохранённый ключ? Затем можно вставить новый.',keyDelDone:'🗑 Ключ удалён — теперь можно вставить новый',keyAlt:'Сохранён',webBildLaedt:'🖼️ Загружается фото рецепта…',sMistralLbl:'Ключ Mistral (ЕС)',sMistralSub:'Для распознавания текста в ИИ-сканере',sNetzHead:'🌐 СЕТЬ (SBKIM)',sNetzLbl:'Подключиться к сети узлов',sNetzSub:'Войти в общую комнату и найти другие узлы (без сервера)',sToolsHead:'🧩 ИНСТРУМЕНТЫ',sToolsSuchLbl:'Инструмент поиска',sToolsSuchSub:'Семантический поиск по смыслу (отдельное PWA)',sToolsPinLbl:'Доска',sToolsPinSub:'Доска вопросов и ответов (сортировка по смыслу и ИИ-судья)',sOfflineCap:'Работает офлайн',updateStatus:'Обновления предоставляются автоматически в фоновом режиме.'
+    ,sReloadHead:'🔄 ПРИЛОЖЕНИЕ',sReloadLbl:'Обновить и перезагрузить',sReloadSub:'Очистить кэш, загрузить новую версию',keyDel:'🗑 Удалить',keyDelAsk:'Удалить сохранённый ключ? Затем можно вставить новый.',keyDelDone:'🗑 Ключ удалён — теперь можно вставить новый',keyAlt:'Сохранён',webBildLaedt:'🖼️ Загружается фото рецепта…',fzBildLbl:'Изображение для ИИ:',fzBildRezept:'📷 Фото рецепта',fzBildEigen:'📎 Своё изображение',fzBildOhne:'Без изображения',fzBildAndere:'Другое изображение…',fzBildKeins:'У этого рецепта пока нет изображения.',fzBildHinweis:'📷 Приложенное фото показывает настоящее блюдо — используй его как образец.',fzBildKopiert:'📋 Текст и изображение скопированы — просто вставь в ChatGPT',fzBildNurText:'📋 Скопирован только текст — этот браузер не копирует изображения',sMistralLbl:'Ключ Mistral (ЕС)',sMistralSub:'Для распознавания текста в ИИ-сканере',sNetzHead:'🌐 СЕТЬ (SBKIM)',sNetzLbl:'Подключиться к сети узлов',sNetzSub:'Войти в общую комнату и найти другие узлы (без сервера)',sToolsHead:'🧩 ИНСТРУМЕНТЫ',sToolsSuchLbl:'Инструмент поиска',sToolsSuchSub:'Семантический поиск по смыслу (отдельное PWA)',sToolsPinLbl:'Доска',sToolsPinSub:'Доска вопросов и ответов (сортировка по смыслу и ИИ-судья)',sOfflineCap:'Работает офлайн',updateStatus:'Обновления предоставляются автоматически в фоновом режиме.'
     ,sManualSub:'Все функции объяснены · Скачать PDF'
     ,manOvTitle:'📚 Руководство'
     ,manPdfLbl:'PDF'
@@ -4294,7 +4303,7 @@ const LANGS={
     ,apiKeyHelpTtl:'关于API密钥的问题与帮助'
     ,sManualHead:'📚 手册'
     ,sManualLbl:'用户手册'
-    ,sReloadHead:'🔄 应用',sReloadLbl:'刷新并重新加载',sReloadSub:'清除缓存，获取最新版本',keyDel:'🗑 删除',keyDelAsk:'删除已保存的密钥？之后可以粘贴新的密钥。',keyDelDone:'🗑 密钥已删除 — 现在可以粘贴新的密钥',keyAlt:'已保存',webBildLaedt:'🖼️ 正在获取菜谱图片…',sMistralLbl:'Mistral 密钥（欧盟）',sMistralSub:'用于 AI 扫描中的文字识别',sNetzHead:'🌐 网络 (SBKIM)',sNetzLbl:'连接节点网络',sNetzSub:'登录共享空间并查找其他节点（无服务器）',sToolsHead:'🧩 工具',sToolsSuchLbl:'搜索工具',sToolsSuchSub:'按含义进行语义搜索（独立 PWA）',sToolsPinLbl:'留言板',sToolsPinSub:'问答板（按含义排序与 AI 评审）',sOfflineCap:'可离线使用',updateStatus:'更新会在后台自动提供。'
+    ,sReloadHead:'🔄 应用',sReloadLbl:'刷新并重新加载',sReloadSub:'清除缓存，获取最新版本',keyDel:'🗑 删除',keyDelAsk:'删除已保存的密钥？之后可以粘贴新的密钥。',keyDelDone:'🗑 密钥已删除 — 现在可以粘贴新的密钥',keyAlt:'已保存',webBildLaedt:'🖼️ 正在获取菜谱图片…',fzBildLbl:'给 AI 的图片：',fzBildRezept:'📷 菜谱图片',fzBildEigen:'📎 自己的图片',fzBildOhne:'不附图片',fzBildAndere:'换一张…',fzBildKeins:'这个菜谱还没有图片。',fzBildHinweis:'📷 附上的照片是真实的菜品——请以它为参考生成图片。',fzBildKopiert:'📋 文字和图片已复制——直接粘贴到 ChatGPT',fzBildNurText:'📋 只复制了文字——此浏览器无法复制图片',sMistralLbl:'Mistral 密钥（欧盟）',sMistralSub:'用于 AI 扫描中的文字识别',sNetzHead:'🌐 网络 (SBKIM)',sNetzLbl:'连接节点网络',sNetzSub:'登录共享空间并查找其他节点（无服务器）',sToolsHead:'🧩 工具',sToolsSuchLbl:'搜索工具',sToolsSuchSub:'按含义进行语义搜索（独立 PWA）',sToolsPinLbl:'留言板',sToolsPinSub:'问答板（按含义排序与 AI 评审）',sOfflineCap:'可离线使用',updateStatus:'更新会在后台自动提供。'
     ,sManualSub:'所有功能说明 · PDF下载'
     ,manOvTitle:'📚 手册'
     ,manPdfLbl:'PDF'
@@ -4439,7 +4448,7 @@ const LANGS={
     ,apiKeyHelpTtl:'Preguntas y ayuda sobre el API Key'
     ,sManualHead:'📚 MANUAL'
     ,sManualLbl:'Manual de usuario'
-    ,sReloadHead:'🔄 APP',sReloadLbl:'Actualizar y recargar',sReloadSub:'Vaciar caché, obtener la última versión',keyDel:'🗑 Eliminar',keyDelAsk:'¿Eliminar la clave guardada? Después puedes pegar una nueva.',keyDelDone:'🗑 Clave eliminada — ya puedes pegar una nueva',keyAlt:'Guardada',webBildLaedt:'🖼️ Obteniendo la foto de la receta…',sMistralLbl:'Clave Mistral (UE)',sMistralSub:'Para el reconocimiento de texto en el escaneo con IA',sNetzHead:'🌐 RED (SBKIM)',sNetzLbl:'Conectar con la red de nodos',sNetzSub:'Entrar en la sala compartida y encontrar otros nodos (sin servidor)',sToolsHead:'🧩 HERRAMIENTAS',sToolsSuchLbl:'Herramienta de búsqueda',sToolsSuchSub:'Búsqueda semántica por significado (PWA independiente)',sToolsPinLbl:'Tablón',sToolsPinSub:'Tablón de preguntas y respuestas (orden por significado y juez de IA)',sOfflineCap:'Funciona sin conexión',updateStatus:'Las actualizaciones se proporcionan automáticamente en segundo plano.'
+    ,sReloadHead:'🔄 APP',sReloadLbl:'Actualizar y recargar',sReloadSub:'Vaciar caché, obtener la última versión',keyDel:'🗑 Eliminar',keyDelAsk:'¿Eliminar la clave guardada? Después puedes pegar una nueva.',keyDelDone:'🗑 Clave eliminada — ya puedes pegar una nueva',keyAlt:'Guardada',webBildLaedt:'🖼️ Obteniendo la foto de la receta…',fzBildLbl:'Imagen para la IA:',fzBildRezept:'📷 Foto de la receta',fzBildEigen:'📎 Imagen propia',fzBildOhne:'Sin imagen',fzBildAndere:'Otra imagen…',fzBildKeins:'Esta receta aún no tiene imagen.',fzBildHinweis:'📷 La foto adjunta muestra el plato real: úsala como referencia para la imagen.',fzBildKopiert:'📋 Texto e imagen copiados: pégalos en ChatGPT',fzBildNurText:'📋 Solo se copió el texto: este navegador no copia imágenes',sMistralLbl:'Clave Mistral (UE)',sMistralSub:'Para el reconocimiento de texto en el escaneo con IA',sNetzHead:'🌐 RED (SBKIM)',sNetzLbl:'Conectar con la red de nodos',sNetzSub:'Entrar en la sala compartida y encontrar otros nodos (sin servidor)',sToolsHead:'🧩 HERRAMIENTAS',sToolsSuchLbl:'Herramienta de búsqueda',sToolsSuchSub:'Búsqueda semántica por significado (PWA independiente)',sToolsPinLbl:'Tablón',sToolsPinSub:'Tablón de preguntas y respuestas (orden por significado y juez de IA)',sOfflineCap:'Funciona sin conexión',updateStatus:'Las actualizaciones se proporcionan automáticamente en segundo plano.'
     ,sManualSub:'Todas las funciones explicadas · Descargar PDF'
     ,manOvTitle:'📚 Manual'
     ,manPdfLbl:'PDF'
@@ -4696,7 +4705,7 @@ const LANGS={
     ,apiKeyHelpTtl:'Questions et aide sur la clé API'
     ,sManualHead:'📚 MANUEL'
     ,sManualLbl:'Guide d\'utilisation'
-    ,sReloadHead:'🔄 APPLI',sReloadLbl:'Actualiser et recharger',sReloadSub:'Vider le cache, obtenir la dernière version',keyDel:'🗑 Supprimer',keyDelAsk:'Supprimer la clé enregistrée ? Tu pourras ensuite en coller une nouvelle.',keyDelDone:'🗑 Clé supprimée — tu peux maintenant en coller une nouvelle',keyAlt:'Enregistrée',webBildLaedt:'🖼️ Récupération de la photo de la recette…',sMistralLbl:'Clé Mistral (UE)',sMistralSub:'Pour la reconnaissance de texte dans le scan IA',sNetzHead:'🌐 RÉSEAU (SBKIM)',sNetzLbl:'Se connecter au réseau de nœuds',sNetzSub:'Rejoindre la salle partagée et trouver les autres nœuds (sans serveur)',sToolsHead:'🧩 OUTILS',sToolsSuchLbl:'Outil de recherche',sToolsSuchSub:'Recherche sémantique par le sens (PWA autonome)',sToolsPinLbl:'Tableau',sToolsPinSub:'Tableau de questions-réponses (tri par le sens et juge IA)',sOfflineCap:'Fonctionne hors ligne',updateStatus:'Les mises à jour sont fournies automatiquement en arrière-plan.'
+    ,sReloadHead:'🔄 APPLI',sReloadLbl:'Actualiser et recharger',sReloadSub:'Vider le cache, obtenir la dernière version',keyDel:'🗑 Supprimer',keyDelAsk:'Supprimer la clé enregistrée ? Tu pourras ensuite en coller une nouvelle.',keyDelDone:'🗑 Clé supprimée — tu peux maintenant en coller une nouvelle',keyAlt:'Enregistrée',webBildLaedt:'🖼️ Récupération de la photo de la recette…',fzBildLbl:'Image pour l\'IA :',fzBildRezept:'📷 Photo de la recette',fzBildEigen:'📎 Ma propre image',fzBildOhne:'Sans image',fzBildAndere:'Autre image…',fzBildKeins:'Cette recette n\'a pas encore d\'image.',fzBildHinweis:'📷 La photo jointe montre le vrai plat — utilise-la comme référence pour l\'image.',fzBildKopiert:'📋 Texte et image copiés — colle-les dans ChatGPT',fzBildNurText:'📋 Seul le texte est copié — ce navigateur ne copie pas d\'image',sMistralLbl:'Clé Mistral (UE)',sMistralSub:'Pour la reconnaissance de texte dans le scan IA',sNetzHead:'🌐 RÉSEAU (SBKIM)',sNetzLbl:'Se connecter au réseau de nœuds',sNetzSub:'Rejoindre la salle partagée et trouver les autres nœuds (sans serveur)',sToolsHead:'🧩 OUTILS',sToolsSuchLbl:'Outil de recherche',sToolsSuchSub:'Recherche sémantique par le sens (PWA autonome)',sToolsPinLbl:'Tableau',sToolsPinSub:'Tableau de questions-réponses (tri par le sens et juge IA)',sOfflineCap:'Fonctionne hors ligne',updateStatus:'Les mises à jour sont fournies automatiquement en arrière-plan.'
     ,sManualSub:'Toutes les fonctions expliquées · Télécharger PDF'
     ,manOvTitle:'📚 Manuel'
     ,manPdfLbl:'PDF'
@@ -4952,7 +4961,7 @@ const LANGS={
     ,apiKeyHelpTtl:'Domande e aiuto sulla chiave API'
     ,sManualHead:'📚 MANUALE'
     ,sManualLbl:'Manuale utente'
-    ,sReloadHead:'🔄 APP',sReloadLbl:'Aggiorna e ricarica',sReloadSub:'Svuota la cache, scarica l\'ultima versione',keyDel:'🗑 Elimina',keyDelAsk:'Eliminare la chiave salvata? Poi potrai incollarne una nuova.',keyDelDone:'🗑 Chiave eliminata — ora puoi incollarne una nuova',keyAlt:'Salvata',webBildLaedt:'🖼️ Recupero della foto della ricetta…',sMistralLbl:'Chiave Mistral (UE)',sMistralSub:'Per il riconoscimento del testo nella scansione IA',sNetzHead:'🌐 RETE (SBKIM)',sNetzLbl:'Collegarsi alla rete di nodi',sNetzSub:'Accedere alla stanza condivisa e trovare altri nodi (senza server)',sToolsHead:'🧩 STRUMENTI',sToolsSuchLbl:'Strumento di ricerca',sToolsSuchSub:'Ricerca semantica per significato (PWA autonoma)',sToolsPinLbl:'Bacheca',sToolsPinSub:'Bacheca di domande e risposte (ordinata per significato e giudice IA)',sOfflineCap:'Funziona offline',updateStatus:'Gli aggiornamenti vengono forniti automaticamente in background.'
+    ,sReloadHead:'🔄 APP',sReloadLbl:'Aggiorna e ricarica',sReloadSub:'Svuota la cache, scarica l\'ultima versione',keyDel:'🗑 Elimina',keyDelAsk:'Eliminare la chiave salvata? Poi potrai incollarne una nuova.',keyDelDone:'🗑 Chiave eliminata — ora puoi incollarne una nuova',keyAlt:'Salvata',webBildLaedt:'🖼️ Recupero della foto della ricetta…',fzBildLbl:'Immagine per l\'IA:',fzBildRezept:'📷 Foto della ricetta',fzBildEigen:'📎 Immagine propria',fzBildOhne:'Senza immagine',fzBildAndere:'Altra immagine…',fzBildKeins:'Questa ricetta non ha ancora un\'immagine.',fzBildHinweis:'📷 La foto allegata mostra il piatto vero: usala come riferimento per l\'immagine.',fzBildKopiert:'📋 Testo e immagine copiati: incollali in ChatGPT',fzBildNurText:'📋 Copiato solo il testo: questo browser non copia immagini',sMistralLbl:'Chiave Mistral (UE)',sMistralSub:'Per il riconoscimento del testo nella scansione IA',sNetzHead:'🌐 RETE (SBKIM)',sNetzLbl:'Collegarsi alla rete di nodi',sNetzSub:'Accedere alla stanza condivisa e trovare altri nodi (senza server)',sToolsHead:'🧩 STRUMENTI',sToolsSuchLbl:'Strumento di ricerca',sToolsSuchSub:'Ricerca semantica per significato (PWA autonoma)',sToolsPinLbl:'Bacheca',sToolsPinSub:'Bacheca di domande e risposte (ordinata per significato e giudice IA)',sOfflineCap:'Funziona offline',updateStatus:'Gli aggiornamenti vengono forniti automaticamente in background.'
     ,sManualSub:'Tutte le funzioni spiegate · Scarica PDF'
     ,manOvTitle:'📚 Manuale'
     ,manPdfLbl:'PDF'
@@ -5203,7 +5212,7 @@ const LANGS={
     ,apiKeyHelpTtl:'Perguntas e ajuda sobre a chave API'
     ,sManualHead:'📚 MANUAL'
     ,sManualLbl:'Manual do utilizador'
-    ,sReloadHead:'🔄 APP',sReloadLbl:'Atualizar e recarregar',sReloadSub:'Limpar cache, obter a versão mais recente',keyDel:'🗑 Apagar',keyDelAsk:'Apagar a chave guardada? Depois podes colar uma nova.',keyDelDone:'🗑 Chave apagada — agora podes colar uma nova',keyAlt:'Guardada',webBildLaedt:'🖼️ A obter a foto da receita…',sMistralLbl:'Chave Mistral (UE)',sMistralSub:'Para o reconhecimento de texto na digitalização com IA',sNetzHead:'🌐 REDE (SBKIM)',sNetzLbl:'Ligar à rede de nós',sNetzSub:'Entrar na sala partilhada e encontrar outros nós (sem servidor)',sToolsHead:'🧩 FERRAMENTAS',sToolsSuchLbl:'Ferramenta de pesquisa',sToolsSuchSub:'Pesquisa semântica por significado (PWA autónoma)',sToolsPinLbl:'Quadro',sToolsPinSub:'Quadro de perguntas e respostas (ordenado por significado e juiz de IA)',sOfflineCap:'Funciona offline',updateStatus:'As atualizações são fornecidas automaticamente em segundo plano.'
+    ,sReloadHead:'🔄 APP',sReloadLbl:'Atualizar e recarregar',sReloadSub:'Limpar cache, obter a versão mais recente',keyDel:'🗑 Apagar',keyDelAsk:'Apagar a chave guardada? Depois podes colar uma nova.',keyDelDone:'🗑 Chave apagada — agora podes colar uma nova',keyAlt:'Guardada',webBildLaedt:'🖼️ A obter a foto da receita…',fzBildLbl:'Imagem para a IA:',fzBildRezept:'📷 Foto da receita',fzBildEigen:'📎 Imagem própria',fzBildOhne:'Sem imagem',fzBildAndere:'Outra imagem…',fzBildKeins:'Esta receita ainda não tem imagem.',fzBildHinweis:'📷 A foto anexa mostra o prato real — usa-a como referência para a imagem.',fzBildKopiert:'📋 Texto e imagem copiados — cola-os no ChatGPT',fzBildNurText:'📋 Só o texto foi copiado — este navegador não copia imagens',sMistralLbl:'Chave Mistral (UE)',sMistralSub:'Para o reconhecimento de texto na digitalização com IA',sNetzHead:'🌐 REDE (SBKIM)',sNetzLbl:'Ligar à rede de nós',sNetzSub:'Entrar na sala partilhada e encontrar outros nós (sem servidor)',sToolsHead:'🧩 FERRAMENTAS',sToolsSuchLbl:'Ferramenta de pesquisa',sToolsSuchSub:'Pesquisa semântica por significado (PWA autónoma)',sToolsPinLbl:'Quadro',sToolsPinSub:'Quadro de perguntas e respostas (ordenado por significado e juiz de IA)',sOfflineCap:'Funciona offline',updateStatus:'As atualizações são fornecidas automaticamente em segundo plano.'
     ,sManualSub:'Todas as funções explicadas · Baixar PDF'
     ,manOvTitle:'📚 Manual'
     ,manPdfLbl:'PDF'
@@ -7783,6 +7792,7 @@ function _kbBuildCpPrompt(){
   if(_kbCpStyle==='zine'){
     const zineSelId=+(document.getElementById('aiBookZineRec')?.value||0);
     const zineFav=zineSelId?R.find(r=>r.id===zineSelId):null;
+    _fzBildRender(zineFav);
     if(!zineFav)return'';
     const r=zineFav;
     const ingLines=(r.ings||[]).map(i=>'• '+[(i.amt||''),(i.unit||''),(i.name||'')].filter(Boolean).join(' ')).join('\n');
@@ -7987,8 +7997,69 @@ function _kbBuildCpPrompt(){
   return prompts[CL]||prompts.de;
 }
 
+// ── FOOD-ZINE: BILD UND TEXT ZUSAMMEN IN DIE ZWISCHENABLAGE ────────────────
+// Klaus 2026-10-12: „wenn ich aus einem Rezept ein Food-Zine-Bild machen will,
+// wird nicht das Bild mit übernommen … sodass ich bei dem Klick auf ChatGPT
+// sowohl das Bild als auch den Text einfügen kann." Kopiert wurde bisher nur
+// der TEXT (writeText). Jetzt: Wahl „Bild aus Rezept / eigenes Bild / ohne",
+// und Kopieren legt Text UND Bild in EINEN Zwischenablage-Eintrag.
+// ⚠ Das PNG wird beim WÄHLEN vorbereitet, nicht beim Klick: clipboard.write
+// braucht ein fokussiertes Dokument, und der ChatGPT-Knopf öffnet sofort einen
+// neuen Reiter. Eine Umrechnung erst beim Klick käme zu spät.
+const _fzBild={wahl:'rezept',eigen:'',png:null,quelle:'',rid:0};
+function _fzBildQuelle(r){
+  if(_fzBild.wahl==='eigen')return _fzBild.eigen||'';
+  if(_fzBild.wahl==='rezept')return (r&&r.img)||'';
+  return '';
+}
+function _fzBildRender(r){
+  const box=document.getElementById('fzBildWahl');if(!box)return;
+  const lbl=document.getElementById('fzBildLblEl');if(lbl)lbl.textContent=T('fzBildLbl');
+  const opt=(w,t)=>`<button type="button" class="fz-bild-opt${_fzBild.wahl===w?' on':''}" data-fzwahl="${w}" onclick="_fzBildWahl('${w}')">${h(t)}</button>`;
+  box.innerHTML=opt('rezept',T('fzBildRezept'))+opt('eigen',T('fzBildEigen'))+opt('ohne',T('fzBildOhne'));
+  _fzBild.rid=r?r.id:0;
+  const q=_fzBildQuelle(r);
+  const vs=document.getElementById('fzBildVorschau');
+  if(vs){
+    if(q)vs.innerHTML=`<img src="${h(q)}" alt="" onerror="this.remove()">`+(_fzBild.wahl==='eigen'?`<button type="button" class="fz-bild-opt" onclick="document.getElementById('fzEigenIn').click()">${h(T('fzBildAndere'))}</button>`:'');
+    else if(_fzBild.wahl==='rezept'&&r)vs.textContent=T('fzBildKeins');
+    else vs.innerHTML='';
+  }
+  if(q!==_fzBild.quelle){_fzBild.quelle=q;_fzBild.png=null;if(q)_fzAlsPng(q).then(b=>{if(_fzBild.quelle===q)_fzBild.png=b;}).catch(()=>{});}
+}
+function _fzBildWahl(w){
+  _fzBild.wahl=w;
+  if(w==='eigen'&&!_fzBild.eigen)document.getElementById('fzEigenIn')?.click();
+  _fzBildRender(R.find(x=>x.id===_fzBild.rid));
+}
+function _fzEigenLaden(f){
+  if(!f)return;
+  const fr=new FileReader();
+  fr.onload=async ev=>{_fzBild.eigen=await resizeImage(ev.target.result,1200,0.88);_fzBild.wahl='eigen';_fzBildRender(R.find(x=>x.id===_fzBild.rid));};
+  fr.readAsDataURL(f);
+}
+// Die Zwischenablage nimmt verlässlich nur PNG — jedes Bild geht über die Leinwand.
+async function _fzAlsPng(q){
+  let src=q;
+  if(!/^data:/.test(q)){const b=await (await fetch(q)).blob();src=await new Promise(ok=>{const fr=new FileReader();fr.onload=()=>ok(fr.result);fr.readAsDataURL(b);});}
+  const img=await new Promise((ok,nein)=>{const i=new Image();i.onload=()=>ok(i);i.onerror=nein;i.src=src;});
+  const k=Math.min(1,1600/Math.max(img.naturalWidth,img.naturalHeight));
+  const c=document.createElement('canvas');c.width=Math.round(img.naturalWidth*k);c.height=Math.round(img.naturalHeight*k);
+  c.getContext('2d').drawImage(img,0,0,c.width,c.height);
+  return await new Promise((ok,nein)=>c.toBlob(b=>b?ok(b):nein(new Error('png')),'image/png'));
+}
+function _fzMitBild(){return _kbCpStyle==='zine'&&_fzBild.wahl!=='ohne'&&!!_fzBild.png;}
+
 function _kbCpCopy(){
-  const txt=document.getElementById('aiBookPromptBox')?.value||'';
+  let txt=document.getElementById('aiBookPromptBox')?.value||'';
+  if(_fzMitBild()&&navigator.clipboard&&window.ClipboardItem){
+    txt+='\n\n'+T('fzBildHinweis');
+    const item=new ClipboardItem({'text/plain':new Blob([txt],{type:'text/plain'}),'image/png':_fzBild.png});
+    navigator.clipboard.write([item]).then(()=>toast(T('fzBildKopiert'))).catch(()=>{
+      navigator.clipboard.writeText(txt).then(()=>toast(T('fzBildNurText'))).catch(()=>{});
+    });
+    return;
+  }
   if(navigator.clipboard){navigator.clipboard.writeText(txt).then(()=>{
     const btn=document.getElementById('aiBookCopyBtn');
     if(btn){const orig=btn.textContent;btn.textContent=T('aiBookCopied');setTimeout(()=>btn.textContent=orig,2000);}
@@ -7999,6 +8070,9 @@ function _kbCpCopy(){
 }
 
 function _kbCpOpen(url){
+  // ⚠ `hints=image` ist bei OpenAI nicht dokumentiert; ein unbekannter
+  // Parameter wird ignoriert. Ob er das Bild-Werkzeug öffnet, zeigt erst das Gerät.
+  if(_kbCpStyle==='zine'&&/chatgpt\.com/.test(url))url='https://chatgpt.com/?hints=image';
   _kbCpCopy();
   const a=document.createElement('a');
   a.href=url;
