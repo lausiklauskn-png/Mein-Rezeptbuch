@@ -116,7 +116,10 @@ try {
 
   // ── 2 · ChatGPT: kopiert UND öffnet ──
   await leeren();
-  await seite.click('#aiBookGptBtn', { noWaitAfter: true });
+  // ⚠ page.click hing hier sporadisch (1 von ~6 Läufen) VOR dem App-Code — die
+  // Klickbarkeits-Prüfung kollidierte mit dem sich öffnenden Reiter. Ausgelöst
+  // wird deshalb das Klick-Ereignis selbst; gemessen wird weiter das Ergebnis.
+  await seite.locator('#aiBookGptBtn').dispatchEvent('click');
   await seite.waitForTimeout(400);
   z = await lies();
   ok('der ChatGPT-Knopf kopiert ebenfalls Bild und Text', z.bildGr > 500 && /Zwetschgenkuchen/.test(z.text), JSON.stringify(z.typen));
@@ -150,6 +153,30 @@ try {
   await leeren(); await seite.click('#aiBookCopyBtn'); await seite.waitForTimeout(300);
   z = await lies();
   ok('außerhalb von Food-Zine bleibt Kopieren reiner Text', z.bildGr === 0, JSON.stringify(z.typen));
+
+  // ── 8 · Ergiebigkeit im Zine-Text (Klaus: „ein Blechkuchen sind ungefähr 20 Portionen") ──
+  const zt = await seite.evaluate(() => {
+    _kbCpStyle = 'zine';
+    R.unshift({ id: 987103, name: 'Blechkuchen', cat: 'kuchen', img: '', servings: 20, yieldText: '1 Blech (ca. 20 Stück)', ings: [], steps: [], rating: { stars: 0, comment: '', imps: [] } });
+    R.unshift({ id: 987104, name: 'Napfkuchen', cat: 'kuchen', img: '', servings: 12, ings: [], steps: [], rating: { stars: 0, comment: '', imps: [] } });
+    _kbFillZineSelect();
+    const s = document.getElementById('aiBookZineRec');
+    s.value = '987103'; const a = _kbBuildCpPrompt();
+    s.value = '987104'; const b = _kbBuildCpPrompt();
+    return { a, b };
+  });
+  ok('der Zine-Text nennt die Ergiebigkeit der Seite („Ergibt: 1 Blech (ca. 20 Stück)")', zt.a.includes('Ergibt: 1 Blech (ca. 20 Stück)'), zt.a.split('\n').find(l => /👥/.test(l)));
+  ok('… und schreibt bei Kuchen nie „Personen"', !/Personen/.test(zt.a) && /12 Stück/.test(zt.b), zt.b.split('\n').find(l => /👥/.test(l)));
+
+  // ── 9 · Eine tote Bild-Adresse zeigt keinen leeren Rahmen ──
+  const rahmen = await seite.evaluate(async () => {
+    R.unshift({ id: 987105, name: 'Totes Bild', cat: 'kuchen', img: 'https://img.chefkoch-cdn.de/gibt-es-nicht.jpg', ings: [], steps: [], rating: { stars: 0, comment: '', imps: [] } });
+    closeAiBook && closeAiBook(); CAT = 'all'; showSc('recipes'); render();
+    await new Promise(z => setTimeout(z, 600));
+    const w = document.querySelector('#c987105 .rcard-img-wrap');
+    return w ? getComputedStyle(w).display : 'fehlt';
+  });
+  ok('eine Karte mit toter Bild-Adresse blendet den Bildrahmen aus', rahmen === 'none', rahmen);
 
   // ── 7 · 8 Sprachen ──
   const fehlt = await seite.evaluate(() => ['de','en','ru','zh','es','fr','it','pt'].flatMap(l => ['fzBildLbl','fzBildRezept','fzBildEigen','fzBildOhne','fzBildAndere','fzBildKeins','fzBildHinweis','fzBildKopiert','fzBildNurText'].filter(k => !LANGS[l][k]).map(k => l + '.' + k)));
