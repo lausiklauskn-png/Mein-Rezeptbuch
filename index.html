@@ -17126,6 +17126,7 @@ function saveZinePage(idx){
      #lamp-fremd + #sbkim-siegel-badge im DOM sind, bevor Modul 15/16
      ihre Click-Handler attachen. -->
 <script>window.SBKIM_DB_SUFFIX="rezeptbuch";</script>
+<script>/* Sprachmodell vom eigenen Server (Klaus 2026-10-13, Weg A: die App setzt die Adresse, Modul 03 bleibt neutral). Antwortet er nicht, nimmt Modul 03 Hugging Face. */window.SBKIM_MODEL_ROOT=window.SBKIM_MODEL_ROOT||"https://family-projekt.de/models/";</script>
 <script>
 /* SBKIM-Stapel erst NACH dem Laden holen — byte-gleiches Muster aus
    Mein-WorkFloh (dort seit 2026-08-06 in Betrieb).
