@@ -1751,3 +1751,18 @@ Proben:
 - Gegenprobe `NUR_FALL="QUALITÄT"`: 2 gefangen.
 
 Am Tablet nicht gemessen.
+
+## 🪪 Manifest-id: eine EIGENE Kennung, nicht die Hauptadresse (Klaus 2026-10-18)
+
+Gemessen an `chrome://webapks` am Tablet: `"id": "./index.html"` ergab für Mein Rezeptbuch
+**und** Muttis Rezeptbuch dieselbe Kennung `https://lausiklauskn-png.github.io/index.html` —
+Chrome rechnet `id` vom **Ursprung** aus, nicht vom Ordner der App. Chrome hielt beide für
+**eine** App: das Menü sagte „Diese App wurde bereits installiert", das Öffnen scheiterte
+(„App konnte nicht geöffnet werden"). Derselbe Fehler ist am selben Tag in Mein-Mixarium behoben (#264).
+
+- `app-manifest.json`: `"id": "/Mein-Rezeptbuch/index.html"` — die Startadresse ohne Anhängsel, also genau
+  die Kennung, die Chrome ohne `id` genommen hätte. Cache `meinrezeptbuch-v110 → meinrezeptbuch-v111`.
+- Probe: `node tests/smoke_manifest_id.mjs`, läuft in `npm test` mit (`test/manifest_id.test.js`) (rechnet wie Chrome, fragt die Rechnung an
+  gestellten Lagen; mit dem alten Wert von Hand nachgestellt: 2 ROT).
+- ⚠ Eine schon installierte Kopie behält die alte Kennung: **einmal deinstallieren und neu
+  installieren.** Die Rezepte hängen an der Adresse, nicht an der App — vorher trotzdem ein Export.
