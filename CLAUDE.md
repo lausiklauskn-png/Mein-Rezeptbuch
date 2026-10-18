@@ -1766,3 +1766,17 @@ Chrome rechnet `id` vom **Ursprung** aus, nicht vom Ordner der App. Chrome hielt
   gestellten Lagen; mit dem alten Wert von Hand nachgestellt: 2 ROT).
 - ⚠ Eine schon installierte Kopie behält die alte Kennung: **einmal deinstallieren und neu
   installieren.** Die Rezepte hängen an der Adresse, nicht an der App — vorher trotzdem ein Export.
+
+## ⬇ Installieren auch oben in der Kopfleiste (Klaus 2026-10-18)
+
+Klaus: *„da, wo der Installationsbutton in den Einstellungen zu finden ist, vermutet keiner, dass er die App
+installieren kann … setze den Installationsbutton oben in die Navi-Leiste zusätzlich."* `#pwaKopfBtn` steht als erster
+Knopf in `.hbtns` (bis 479 px nur ⬇, darüber „⬇ Installieren"; Name aus `T('pwaBtn')`, alle 8 Sprachen). Er steht
+**immer** da, solange die App nicht installiert läuft — nicht erst nach `beforeinstallprompt`. Weg als App (CSS über
+`display-mode`, damit nichts springt, dazu `pwaKopfRefresh()` in `pwaRefresh`) und nach `appinstalled` (`_pwaInstalliert`).
+Ein Tipp nimmt dieselbe Logik wie die Leiste (`triggerPWA`); ohne Angebot des Browsers steht die Anleitung
+(`pwaHow`/`pwaHowIos`) als `#pwaKopfHilfe` dunkel auf weiß unter der Kopfleiste (gemessen Kontrast 17,4).
+Bis 359 px weicht die Versions-Pille (steht in den Einstellungen), nur im Browser. Cache v112.
+Gemessen (Playwright, `/Mein-Rezeptbuch/`): sichtbar bei 320 · 360 · 412 · 1280 px ohne Angebot · kein Querlaufen,
+Kopfhöhe unverändert 30 px · standalone: Kopf- und Einstellungs-Knopf weg · nach `appinstalled` weg · mit gestelltem
+Angebot ruft er `prompt()` · keine Installierbarkeits-Fehler. ⚠ Am Tablet nicht gemessen.
