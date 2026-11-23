@@ -299,3 +299,17 @@ test('Text-Import: Bar- und US-Einheiten (oz, fl oz, Barlöffel, Dash, Schuss, B
   assert.equal(f('4 cl weißer Rum'), '4|cl|weißer Rum'); assert.equal(f('200 g Gin-Gurken'), '200|g|Gin-Gurken', '„g“ vor „Gin“ bleibt Gramm');
   assert.equal(f('2 Ozeanfische'), '2||Ozeanfische', '„oz“ nur als ganzes Wort'); assert.equal(f('20 Dolden Holunderblüten'), '20|Dolden|Holunderblüten');
 });
+
+test('Ladebalken: bytesMitAnteil liest vollständig und meldet steigenden Anteil bis 1', async () => {
+  const { bytesMitAnteil, modellFortschritt } = await import('../kern/oberflaeche/warten.mjs');
+  const daten = new Uint8Array(1000).map((_, i) => i % 251);
+  const strom = new ReadableStream({ start(c) { for (let i = 0; i < 1000; i += 250) c.enqueue(daten.slice(i, i + 250)); c.close(); } });
+  const anteile = []; const aus = await bytesMitAnteil(new Response(strom, { headers: { 'content-length': '1000' } }), (a) => anteile.push(a));
+  assert.deepEqual([...aus], [...daten]); assert.deepEqual(anteile, [0.25, 0.5, 0.75, 1]);
+  const ohne = await bytesMitAnteil(new Response(daten)); assert.equal(ohne.length, 1000);
+  const w = new EventTarget(), m = []; const ab = modellFortschritt((a, g, t) => m.push([a, g, t]), w);
+  w.dispatchEvent(new CustomEvent('sbkim:embedding-progress', { detail: { file: 'a', loaded: 1048576, total: 4 * 1048576 } }));
+  w.dispatchEvent(new CustomEvent('sbkim:embedding-progress', { detail: { file: 'b', status: 'done', total: 4 * 1048576 } }));
+  ab(); w.dispatchEvent(new CustomEvent('sbkim:embedding-progress', { detail: { file: 'a', loaded: 4 * 1048576, total: 4 * 1048576 } }));
+  assert.deepEqual(m, [[0.25, 1, 4], [0.625, 5, 8]]);
+});

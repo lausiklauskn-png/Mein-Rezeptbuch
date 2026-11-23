@@ -19,11 +19,12 @@ import { rezeptAusText, zutatAusZeile, zutatZeile } from '../kern/import/text.mj
 import { diktat, diktatAus, diktatMoeglich } from '../kern/oberflaeche/diktat.mjs';
 import { kiBild, gratisBild, KOSTEN_TEXT } from '../kern/ki/bild.mjs';
 import { hinweiseEinrichten } from '../kern/oberflaeche/hinweis.mjs';
+import { wartenEinrichten, modellFortschritt, bytesMitAnteil } from '../kern/oberflaeche/warten.mjs';
 import { tresor } from '../kern/speicher/tresor.mjs';
 import { ladeBausteine, korpus as semKorpus, sucheBedeutung } from '../kern/suche/bedeutung.mjs';
 import { woche, planen, entplanen, ausAltemMenu, tagIso } from '../kern/modell/plan.mjs';
 
-const FASSUNG = '0.9.4';
+const FASSUNG = '0.9.5';
 const breit = () => matchMedia('(min-width:1000px)').matches;
 const $ = (id) => document.getElementById(id);
 const esc = (t) => String(t ?? '').replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
@@ -137,11 +138,17 @@ const beispielText = () => { const p = katalog?.pakete?.find((x) => x.id === aus
 /* ---------- Sinn-Suche: Modul 03 und 04 der bisherigen App, erst beim Einschalten geladen ---------- */
 const sem = { ids: [], fuer: '', status: '', uhr: null, laeuft: false, korpus: null, sig: '' };
 const semStatus = (t) => { sem.status = t; const el = $('sinn-status'); if (el) el.textContent = t; };
-async function semBereit() {
-  await ladeBausteine('../sbkim/'); await window.SbkimEmbedding.init();
-  const rs = Z.rezepte.filter(istInhalt), namen = new Map(alleKategorien(Z.rezepte, Z.kategorien).map((c) => [c.id, katName(c)])), sig = rs.map((r) => r.uid).join(',');
-  if (!sem.korpus || sem.sig !== sig) { sem.korpus = await semKorpus(rs, (r) => namen.get(katVonRezept(r)) || '', { einbetten: (t) => window.SbkimEmbedding.embedPassage(t), fortschritt: (i, n) => semStatus(`Sinn-Suche wird vorbereitet: ${i} von ${n} Rezepten`) }); sem.sig = sig; }
-  return sem.korpus;
+/* Ladebalken (Klaus 23.11.): das Sprachmodell (beim ersten Mal rund 120 MB) und das Einlesen der Rezepte zeigen ihren Stand. */
+const W = wartenEinrichten(document);
+function semBereit() {
+  return W.mit('Sinn-Suche: Sprachmodell wird geladen …', async (w) => {
+    const ab = modellFortschritt((a, g, t) => { w.anteil(a); if (t) w.text(`Sprachmodell wird geladen: ${g} von ${t} MB`); });
+    try { await ladeBausteine('../sbkim/'); await window.SbkimEmbedding.init(); } finally { ab(); }
+    w.anteil(null); w.text('Sinn-Suche wird vorbereitet …');
+    const rs = Z.rezepte.filter(istInhalt), namen = new Map(alleKategorien(Z.rezepte, Z.kategorien).map((c) => [c.id, katName(c)])), sig = rs.map((r) => r.uid).join(',');
+    if (!sem.korpus || sem.sig !== sig) { sem.korpus = await semKorpus(rs, (r) => namen.get(katVonRezept(r)) || '', { einbetten: (t) => window.SbkimEmbedding.embedPassage(t), fortschritt: (i, n) => { const t = `Sinn-Suche wird vorbereitet: ${i} von ${n} Rezepten`; semStatus(t); w.text(t); w.anteil(n ? i / n : null); } }); sem.sig = sig; }
+    return sem.korpus;
+  });
 }
 function semPlanen() { clearTimeout(sem.uhr); if (!E.sinn) return; const f = s.frage.trim().toLowerCase(); if (!f) { sem.ids = []; sem.fuer = ''; return; } sem.uhr = setTimeout(() => semLauf(f), 350); }
 async function semLauf(f) {
@@ -387,10 +394,9 @@ function bildBlatt(uid) {
    <div class="reihe" style="margin-top:10px"><button class="knopf" data-a="fenster-zu">Schließen</button>${frag('Ein Bild löschst du in der Werkstatt unter „Bilder“.')}</div>`);
 }
 async function bildErzeugen(uid, gratis) {
-  const r = rezept(uid); if (!r) return; fensterZu(); melde(gratis ? 'Gratis-Foto wird erzeugt …' : 'KI-Bild wird erzeugt, das dauert etwa 20 Sekunden …');
+  const r = rezept(uid); if (!r) return; fensterZu();
   try {
-    const roh = gratis ? await gratisBild(r) : await kiBild(openaiSchluessel(), r);
-    const img = await bildAusDatei(await (await fetch(roh)).blob()), vorher = Z.rezepte;
+    const img = await W.mit(gratis ? 'Gratis-Foto wird erzeugt …' : 'KI-Bild wird erzeugt (etwa 20 s) …', async (w) => { const roh = gratis ? await gratisBild(r) : await kiBild(openaiSchluessel(), r); w.text('Bild wird gespeichert …'); return bildAusDatei(await (await fetch(roh)).blob()); }), vorher = Z.rezepte;
     Z.rezepte = Z.rezepte.map((x) => (x.uid === uid ? { ...x, img, imgCrop: { x: 50, y: 50, scale: 1 } } : x)); sichern(); zeichne();
     melde(r.img ? 'Bild ersetzt' : 'Bild eingefügt', 'Rückgängig', () => { Z.rezepte = vorher; sichern(); zeichne(); });
   } catch (f) { melde(f.message || 'Es kam kein Bild zurück.'); }
@@ -416,10 +422,8 @@ function einfuegen(eingang, beispiel = false) {
 }
 async function beispielLaden() {
   const p = katalog?.pakete?.find((x) => x.id === ausgabe.beispiele[0]); if (!p) { melde('Das Beispielbuch ist gerade nicht erreichbar.'); return; }
-  melde('Beispielbuch wird geladen …');
   try {
-    const ant = await fetch('../beispiele/' + p.datei); if (!ant.ok) throw new Error(String(ant.status));
-    const roh = await ant.arrayBuffer();
+    const roh = await W.mit('Beispielbuch wird geladen …', async (w) => { const ant = await fetch('../beispiele/' + p.datei); if (!ant.ok) throw new Error(String(ant.status)); return bytesMitAnteil(ant, (a) => w.anteil(a)); });
     const sum = [...new Uint8Array(await crypto.subtle.digest('SHA-256', roh))].map((b) => b.toString(16).padStart(2, '0')).join('');
     if (sum !== p.sha256) { melde('Das Beispielbuch ist beschädigt angekommen und wurde nicht eingelesen.'); return; }
     einfuegen(lies(new TextDecoder().decode(roh)), true);
@@ -623,9 +627,9 @@ document.addEventListener('touchstart', (ev) => { wischX = ev.target.closest?.('
 document.addEventListener('touchend', (ev) => { if (wischX == null) return; const d = ev.changedTouches[0].clientX - wischX; wischX = null; if (Math.abs(d) > 60) A['k-schritt']({ dataset: { d: d < 0 ? 1 : -1 } }); }, { passive: true });
 matchMedia('(min-width:1000px)').addEventListener('change', () => zeichne());
 document.addEventListener('keydown', (ev) => { if (ev.key === 'Escape' && s.ansicht !== 'kochen') { if (document.querySelector('.vollbild')) A['voll-zu'](); else if ($('fensterort').innerHTML) fensterZu(); else if (s.leisteAuf) { s.leisteAuf = false; leisteZeichnen(); } } });
-$('datei-sicherung').addEventListener('change', async (ev) => { const d = ev.target.files[0]; ev.target.value = ''; if (!d) return; try { einfuegen(lies(await d.text())); } catch (f) { melde(f.message || 'Die Datei konnte nicht gelesen werden.'); } });
-$('datei-bild').addEventListener('change', async (ev) => { const d = ev.target.files[0]; ev.target.value = ''; if (!d) return; if (s.bildZiel) { const uid = s.bildZiel; s.bildZiel = null; try { const img = await bildAusDatei(d); Z.rezepte = Z.rezepte.map((r) => (r.uid === uid ? { ...r, img, imgCrop: { x: 50, y: 50, scale: 1 } } : r)); sichern(); zeichne(); melde('Bild eingefügt'); } catch { melde('Das Bild konnte nicht gelesen werden.'); } return; }
-  if (!s.form) return; try { s.form.img = await bildAusDatei(d); zeichne(); } catch { melde('Das Bild konnte nicht gelesen werden.'); } });
+$('datei-sicherung').addEventListener('change', async (ev) => { const d = ev.target.files[0]; ev.target.value = ''; if (!d) return; try { einfuegen(lies(await W.mit('Datei wird eingelesen …', () => d.text()))); } catch (f) { melde(f.message || 'Die Datei konnte nicht gelesen werden.'); } });
+$('datei-bild').addEventListener('change', async (ev) => { const d = ev.target.files[0]; ev.target.value = ''; if (!d) return; if (s.bildZiel) { const uid = s.bildZiel; s.bildZiel = null; try { const img = await W.mit('Foto wird aufbereitet …', () => bildAusDatei(d)); Z.rezepte = Z.rezepte.map((r) => (r.uid === uid ? { ...r, img, imgCrop: { x: 50, y: 50, scale: 1 } } : r)); sichern(); zeichne(); melde('Bild eingefügt'); } catch { melde('Das Bild konnte nicht gelesen werden.'); } return; }
+  if (!s.form) return; try { s.form.img = await W.mit('Foto wird aufbereitet …', () => bildAusDatei(d)); zeichne(); } catch { melde('Das Bild konnte nicht gelesen werden.'); } });
 let altY = 0; addEventListener('scroll', () => { if (breit()) return; const y = scrollY; $('kopf').classList.toggle('weg', y > altY + 4 && y > 80 ? true : y < altY - 4 || y < 40 ? false : $('kopf').classList.contains('weg')); altY = y; }, { passive: true });
 
 let installFrage = null;

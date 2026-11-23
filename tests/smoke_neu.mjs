@@ -217,10 +217,13 @@ try {
   ok(!(await p.locator('.fenster').innerText()).match(/Bild löschen/), 'im Bild-Blatt steht kein „Bild löschen“');
   await p.click('.fenster [data-a=ki-bild]'); ok(await p.locator('#schl-openai').count() === 1, 'ohne Schlüssel fragt die App zuerst nach dem Schlüssel');
   ok(await p.locator('.fenster h2 .frag').count() === 1 && !(await p.locator('.fenster').innerText()).includes('Den Schlüssel legst du'), 'Schlüssel-Fenster (Klaus 23.11.): die Erklärung steht hinter einem „?“, kein Absatz');
-  const rufe = []; await p.route('https://api.openai.com/**', (r) => { rufe.push({ kopf: r.request().headers().authorization, leib: JSON.parse(r.request().postData()) }); r.fulfill({ contentType: 'application/json', body: JSON.stringify({ data: [{ b64_json: 'iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8z8BQDwAEhQGAhKmMIQAAAABJRU5ErkJggg==' }] }) }); });
+  const rufe = []; await p.route('https://api.openai.com/**', (r) => { rufe.push({ kopf: r.request().headers().authorization, leib: JSON.parse(r.request().postData()) }); setTimeout(() => r.fulfill({ contentType: 'application/json', body: JSON.stringify({ data: [{ b64_json: 'iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8z8BQDwAEhQGAhKmMIQAAAABJRU5ErkJggg==' }] }) }), 1500); });
   await p.fill('#schl-openai', 'sk-probe'); await p.click('[data-form=schluessel] button[type=submit]');
   ok((await p.locator('.fenster').innerText()).includes('gehen an OpenAI') && rufe.length === 0, 'vor dem Senden steht, was hinausgeht und was es kostet; gesendet ist noch nichts');
-  await p.click('[data-a=ja]'); await p.waitForSelector('.rezept-held > img');
+  await p.click('[data-a=ja]'); await p.waitForTimeout(700);
+  ok(await p.locator('#warten-zeile.an').isVisible().catch(() => false) && /KI-Bild wird erzeugt/.test(await p.locator('#warten-zeile').innerText().catch(() => '')) && await p.locator('#warten-balken.an').count() === 1, 'Ladebalken (Klaus 23.11.): während das KI-Bild entsteht, stehen Balken und Zeile da');
+  await p.waitForSelector('.rezept-held > img');
+  ok(await p.locator('#warten-zeile.an, #warten-balken.an').count() === 0, 'Ladebalken: danach ist er wieder weg');
   ok(rufe.length === 1 && rufe[0].kopf === 'Bearer sk-probe' && rufe[0].leib.prompt.includes('Ratatouille') && !('response_format' in rufe[0].leib), 'ein Aufruf an OpenAI, mit dem Schlüssel und dem Rezeptnamen');
   ok((await p.locator('.rezept-held > img').getAttribute('src')).startsWith('data:image/jpeg'), 'das Bild liegt als data:-Adresse im Rezept');
   ok(await p.evaluate(() => localStorage.getItem('openaiImgKey9m') === 'sk-probe' && !localStorage.getItem('openaiImgKey9')), 'der Schlüssel liegt unter dem Namen der bisherigen App, Muttis bleibt leer');
@@ -264,11 +267,13 @@ try {
   await p.route(/^https?:\/\/(?!localhost)/, (r) => { fehler.push('Netz nach draußen: ' + r.request().url()); r.abort(); }); await p.goto(URL0); await p.waitForSelector('.gruss');
   const geladen = []; p.on('request', (q) => { if (q.url().includes('/sbkim/')) geladen.push(q.url().split('/sbkim/')[1].split('?')[0]); });
   // Nachgestelltes Modell: „eintopf“ liegt bei „Gulasch“; alles andere ist ein Buchstaben-Vektor. Modul 04 rechnet echt.
-  await p.route('**/sbkim/03_embedding.js', (r) => r.fulfill({ contentType: 'text/javascript', body: `(function(){const v=(t)=>{const a=new Float32Array(384);const s=/eintopf/i.test(t)||/gulasch/i.test(t)?'gulasch':String(t).toLowerCase();for(const c of s)a[c.charCodeAt(0)%384]+=1;let n=0;for(const x of a)n+=x*x;n=Math.sqrt(n)||1;return a.map((x)=>x/n)};window.SbkimEmbedding={init:async()=>{},isReady:()=>true,embedQuery:async(t)=>v(t),embedPassage:async(t)=>v(t),embedQueryBatch:async(a)=>a.map(v),embedPassageBatch:async(a)=>a.map(v)};})();` }));
+  await p.route('**/sbkim/03_embedding.js', (r) => r.fulfill({ contentType: 'text/javascript', body: `(function(){const v=(t)=>{const a=new Float32Array(384);const s=/eintopf/i.test(t)||/gulasch/i.test(t)?'gulasch':String(t).toLowerCase();for(const c of s)a[c.charCodeAt(0)%384]+=1;let n=0;for(const x of a)n+=x*x;n=Math.sqrt(n)||1;return a.map((x)=>x/n)};window.SbkimEmbedding={init:async()=>{if(window.__geladen)return;window.__geladen=1;for(const x of [10,55,100]){dispatchEvent(new CustomEvent('sbkim:embedding-progress',{detail:{file:'m.onnx',status:x===100?'done':'progress',loaded:x*1048576*1.2,total:120*1048576}}));await new Promise((f)=>setTimeout(f,600));}},isReady:()=>true,embedQuery:async(t)=>v(t),embedPassage:async(t)=>v(t),embedQueryBatch:async(a)=>a.map(v),embedPassageBatch:async(a)=>a.map(v)};})();` }));
   await p.click('[data-a=beispiel]'); await p.waitForSelector('.karte', { timeout: 20000 });
   ok(geladen.length === 0 && await p.evaluate(() => !window.SbkimMatch && !window.SbkimEmbedding), 'ohne Sinn-Suche wird kein SBKIM-Baustein ausgeführt');
   await p.fill('#suchfeld', 'eintopf'); const ohne = await p.locator('.karte').count();
   await p.click('[data-a=sinn]'); ok((await p.locator('.fenster').innerText()).includes('120 MB'), 'vor dem Einschalten steht, was geladen wird'); await p.click('[data-a=ja]');
+  await p.waitForFunction(() => /von 120 MB/.test(document.querySelector('#warten-zeile')?.textContent || ''), null, { timeout: 5000 }).catch(() => {});
+  ok(/Sprachmodell wird geladen: \d+ von 120 MB/.test(await p.locator('#warten-zeile').innerText().catch(() => '')) && await p.evaluate(() => { const i = document.querySelector('#warten-balken i'); return !!i && parseFloat(i.style.width) > 0; }), 'Ladebalken: beim Laden des Sprachmodells steht der Stand in MB, der Balken füllt sich');
   await p.waitForSelector('#sinn-treffer .karte', { timeout: 15000 });
   const sinnNamen = await p.locator('#sinn-treffer .karte').allInnerTexts();
   ok(ohne === 0 && sinnNamen.some((t) => /Gulasch/.test(t)), 'die Wortsuche findet „eintopf“ nicht, die Sinn-Suche findet das Gulasch', `${ohne} · ${sinnNamen.map((t) => t.split('\n')[0]).join(' | ')}`);
