@@ -59,6 +59,13 @@ const VORRAT = [
  "../assets/pruefer-mail.js",
  "../assets/pruefer-anhang.js",
  "./zusatz.mjs",
+ "./handbuch.mjs",
+ "../kern/sprachen/es.mjs",
+ "../kern/sprachen/fr.mjs",
+ "../kern/sprachen/it.mjs",
+ "../kern/sprachen/pt.mjs",
+ "../kern/sprachen/ru.mjs",
+ "../kern/sprachen/zh.mjs",
  "./app.mjs"
 ];
 self.addEventListener('install', (e) => { e.waitUntil(caches.open(FASSUNG).then((c) => c.addAll(VORRAT)).then(() => self.skipWaiting())); });

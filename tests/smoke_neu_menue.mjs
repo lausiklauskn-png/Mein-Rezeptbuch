@@ -12,7 +12,7 @@ let gruen = 0, rot = 0; const ok = (b, t, mehr = '') => { if (b) { gruen++; cons
 const browser = await chromium.launch(); const fehler = [], rufe = []; let antwort = () => ({});
 const REZEPT = { uid: 'r-probe-1', id: 1, name: 'Kartofelsuppe', cat: 'suppe', servings: 4, prepTime: 40, ings: [{ amt: '500', unit: 'g', name: 'Kartofeln', note: '' }, { amt: '1', unit: 'l', name: 'Brühe', note: '' }, { amt: '2', unit: 'EL', name: 'Butter', note: '' }], steps: [{ txt: 'Kartofeln schälen und bei 180 °C rösten.' }, { txt: 'Mit Brühe aufgiessen.' }] };
 async function seite(start = URL0) {
-  const k = await browser.newContext({ viewport: { width: 390, height: 800 }, serviceWorkers: 'block', permissions: ['clipboard-read', 'clipboard-write'] }), p = mitThemen(await k.newPage());
+  const k = await browser.newContext({ locale: 'de-DE', viewport: { width: 390, height: 800 }, serviceWorkers: 'block', permissions: ['clipboard-read', 'clipboard-write'] }), p = mitThemen(await k.newPage());
   p.on('pageerror', (e) => fehler.push(e.message)); p.on('console', (m) => m.type() === 'error' && !/Failed to load resource/.test(m.text()) && fehler.push(m.text()));
   await p.route(/^https?:\/\/(?!localhost)/, (r) => { fehler.push('Netz nach draußen: ' + r.request().url()); r.abort(); });
   await p.route('https://api.anthropic.com/**', (r) => { rufe.push(JSON.parse(r.request().postData())); r.fulfill({ contentType: 'application/json', body: JSON.stringify({ content: [{ type: 'text', text: JSON.stringify(antwort()) }], stop_reason: 'end_turn' }) }); });
@@ -29,7 +29,7 @@ try {
   ok(await p.locator('.rwerk [data-a=rmenue]').count() === 1 && (await hinweis(p, '.rwerk [data-a=rmenue]')).includes('Drucken'), 'hinter dem Winkel steht „Mehr“ als kleines Symbol mit Hinweis');
   await p.click('.rwerk [data-a=rmenue]'); await p.waitForSelector('#rmenue');
   const zeilen = await p.locator('#rmenue .zeile').evaluateAll((l) => l.map((b) => b.dataset.a));
-  ok(zeilen.join(' ') === 'drucken qr einheiten naehrwerte rechtschreibung' && (await p.locator('.fenster h2').innerText()).trim() === 'Kartofelsuppe' && await p.locator('.fenster p').count() === 0, 'fünf Zeilen unter dem Namen des Rezepts, kein Erklärtext', zeilen.join(' '));
+  ok(zeilen.join(' ') === 'drucken qr einheiten naehrwerte rechtschreibung uebersetzen' && (await p.locator('.fenster h2').innerText()).trim() === 'Kartofelsuppe' && await p.locator('.fenster p').count() === 0, 'sechs Zeilen unter dem Namen des Rezepts, kein Erklärtext', zeilen.join(' '));
   const kiz = await p.locator('#rmenue [data-a=naehrwerte]').evaluate((b) => ({ klein: b.querySelector('small').innerText, marke: b.querySelector('.ki-marke')?.innerText, titel: b.title }));
   ok(/^Anthropic · Name, Portionen und Zutaten$/.test(kiz.klein) && kiz.marke === 'KI' && kiz.titel.includes('an Anthropic') && rufe.length === 0, 'eine KI-Zeile sagt in der Zeile, was an wen hinausgeht; gesendet ist nichts', JSON.stringify(kiz));
 

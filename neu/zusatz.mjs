@@ -1,5 +1,5 @@
 // Mein Rezeptbuch · Zusätze: was aus der alten App noch fehlte und für sich steht.
-// KI-Richter der Suche · KI-Bilder für alle ohne Bild · Prüfung des Bildauftrags · Tresor-Stände der alten App · Wochenplan-Vorschlag · Buch.
+// KI-Richter der Suche · KI-Bilder für alle ohne Bild · Prüfung des Bildauftrags · Tresor-Stände der alten App · Wochenplan-Vorschlag · Buch · Handbuch.
 // Die Hauptdatei (app.mjs) reicht ihre Werkzeuge herein und ruft die Stücke an wenigen, benannten Stellen; so bleibt sie lesbar.
 import { richte, kandidat, richterHinaus, RICHTER_MAX } from '../kern/suche/richter.mjs';
 import { pruefeBildAuftrag, sammelBilder, sammelKosten, ohneBild } from '../kern/ki/bild.mjs';
@@ -10,6 +10,7 @@ import { fuelle, gebiet } from '../kern/oberflaeche/sprache.mjs';
 import { tagIso } from '../kern/modell/plan.mjs';
 import { buchInhalt, buchPdf, buchBlaettern, buchGroesse, buchGroesseText } from '../kern/ausgabe/buch.mjs';
 import { drucke } from '../kern/ausgabe/druck.mjs';
+import { handbuch } from './handbuch.mjs';
 
 /** app: { L, spr, esc, ic, A, s, SK, W, Z(), setzeZ(z), E(), fenster, fensterZu, beiZu(f), melde, sichern, zeichne, zeichneStart, rezept(uid),
  *         istInhalt, katNamen() → Map, katVon(r), schluesselFenster(a, danach), bildAusDatei(blob), tresorAuto(), tr(), ausgabe() } */
@@ -92,7 +93,7 @@ export function zusatz(app) {
     const teile = [e.fertig === 1 ? L('+1 Bild', '+1 picture') : fuelle(L('+{0} Bilder', '+{0} pictures'), e.fertig)];
     if (e.uebersprungen.length) teile.push(fuelle(L('{0} mit Befehl übersprungen', '{0} with instruction skipped'), e.uebersprungen.length));
     if (e.fehler.length) teile.push(fuelle(L('{0} Fehler', '{0} failed'), e.fehler.length));
-    if (e.offen) teile.push(fuelle(L('{0} offen', '{0} left'), e.offen));
+    if (e.offen) teile.push(fuelle(L('{0} offen', '{0} open'), e.offen));
     melde(e.grund === 'schluessel' || e.grund === 'limit' ? e.fehler[e.fehler.length - 1].text : teile.join(' · '));
     return { ...e, vorher: n };
   };
@@ -122,7 +123,7 @@ export function zusatz(app) {
       vorschlag = { v, ab };
       const tagName = (i) => tage[i].toLocaleDateString(gebiet(spr()), { weekday: 'short' });
       fenster(`<h2>${L('Vorschlag für die Woche', 'Suggestion for the week')}</h2><div class="liste plan-vorschlag" id="plan-vorschlag">${tage.map((_, i) => { const namen = v.filter((x) => x.tag === i).map((x) => app.rezept(x.uid)).filter(Boolean).map((r) => esc(r.name)); return namen.length ? `<div class="zeile"><b>${esc(tagName(i))}</b><span>${namen.join('<br>')}</span></div>` : ''; }).join('')}</div>
-        <div class="reihe"><button class="knopf akz" data-a="plan-ki-ja">${ic('haken')}${L('Übernehmen', 'Use it')}</button><button class="knopf" data-a="fenster-zu">${L('Abbrechen', 'Cancel')}</button></div>`);
+        <div class="reihe"><button class="knopf akz" data-a="plan-ki-ja">${ic('haken')}${L('Übernehmen', 'Apply')}</button><button class="knopf" data-a="fenster-zu">${L('Abbrechen', 'Cancel')}</button></div>`);
     } catch (f) { melde(f.message); }
   };
   A['plan-ki-ja'] = () => {
@@ -135,7 +136,7 @@ export function zusatz(app) {
   /** Das Thema „Buch“ für die Einstellungen: [id, symbol, farbe, titel, hilfe, zeilen]. zeile: der Zeilen-Baustein der App. */
   function buchThema(zeile, farbe) {
     const n = mitInhalt().length;
-    return ['buch', 'buch', farbe, L('Buch', 'Book'), '', zeile('buch', 'drucken', L('Als PDF drucken', 'Print as a PDF'), String(n), 'data-art="pdf"') + zeile('buch', 'buch', L('Zum Blättern', 'To leaf through'), L('Datei', 'file'), 'data-art="blaettern"')];
+    return ['buch', 'buch', farbe, L('Buch', 'Book'), '', zeile('buch', 'drucken', L('Als PDF drucken', 'Print as a PDF'), String(n), 'data-art="pdf"') + zeile('buch', 'buch', L('Zum Blättern', 'To leaf through'), L('als Datei', 'as a file'), 'data-art="blaettern"')];
   }
   const buchOpt = () => {
     const z = app.Z(), w = document.getElementById('buch-wahl').value, titel = document.getElementById('buch-titel').value.trim() || app.ausgabe().titel;
@@ -164,5 +165,10 @@ export function zusatz(app) {
     } catch (f) { melde(f.message); }
   };
 
-  return { sinnBlock, sammelKnopf, bildFreigabe, altTresor, planKnopf, buchThema, wahl, stellenHtml };
+  /* ── Handbuch: kurze Themen zum Aufklappen (neu/handbuch.mjs). Auf den Blättern steht kein Erklärtext; nachlesen kann man hier. ── */
+  const hilfeThema = (zeile, farbe) => ['hilfe', 'hilfe', farbe, L('Hilfe', 'Help'), '', zeile('handbuch', 'buch', L('Handbuch', 'Manual'))];
+  A.handbuch = () => fenster(`<h2>${L('Handbuch', 'Manual')}</h2><div class="handbuch" id="handbuch">${handbuch(L).map(([i, titel, abs]) => `<details><summary>${ic(i)}<span>${esc(titel)}</span></summary>${abs.map((a) => `<p>${esc(a)}</p>`).join('')}</details>`).join('')}</div>
+    <div class="reihe"><button class="knopf" data-a="fenster-zu">${L('Schließen', 'Close')}</button></div>`);
+
+  return { sinnBlock, sammelKnopf, bildFreigabe, altTresor, planKnopf, buchThema, hilfeThema, wahl, stellenHtml };
 }
