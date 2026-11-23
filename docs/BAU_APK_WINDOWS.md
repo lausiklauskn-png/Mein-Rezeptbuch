@@ -213,6 +213,7 @@ Paket, kein Alkohol-Paket außerhalb von `mixarium-voll`. Dazu elf Gegenproben, 
 | die Arbeitskopien, wie sie in dem Augenblick waren (nur gelesen), erster Lauf | Rezeptbuch `07485eb` mit 11 ungespeicherten Änderungen einer anderen Sitzung, Mixarium `7ec4e2d` | 248 grün · 0 ROT |
 | dieselben Arbeitskopien, eine halbe Stunde später | Rezeptbuch `07485eb` mit 15 ungespeicherten Änderungen | **136 grün · 4 ROT** – viermal dieselbe Zeile für `rezeptbuch` und `muttis`: „kern/ passt nicht zu KERN.json (Fassung 0.20.0): kern/import/scan.mjs, kern/ki/reinigung.mjs, kern/pruefung/datei.mjs“. Dort wurde gerade am Kern gearbeitet, `KERN.json` war noch nicht nachgezogen; das Werkzeug packt einen solchen Stand mit Absicht nicht |
 | `paket/` wie später im Repo, ohne Angaben aufgerufen, ohne Electron | Kopien derselben Stände | 199 grün · 0 ROT |
+| in der Nacht 23./24.11., an den Ständen auf `main`, ohne Electron | Rezeptbuch `43d204c` (Kern 0.22.1, PWA 0.14.1), Mixarium `101a6ec` (PWA 10.0.0-vor23) | zuerst **121 grün · 8 ROT**: der Browser-Lauf der Probe tippte noch auf Stellen der alten Oberfläche (das Beispielbuch steht jetzt hinter dem Plus; die Apps beginnen mit Startrezepten). Probe nachgezogen, danach **203 grün · 0 ROT** |
 
 Der erste volle Lauf endete mit **218 grün · 4 ROT**. Alle vier lagen in der Probe, nicht im Paket: sie fragte in Electron nach
 angemeldeten Service Workern, und unter der eigenen Adresse der Hülle sind die gar nicht erlaubt (die Frage wirft). Die Probe

@@ -92,13 +92,18 @@ async function inDerSeite(p, lage, b, vor) {
     ok(true, vor + 'die App startet von der Startseite des Pakets aus');
     const gruss = (await p.locator('.gruss').innerText()).split('\n')[0].trim(), dbs = await p.evaluate(async () => (await indexedDB.databases()).map((d) => d.name));
     ok(gruss === ausgabe.begruessung.de && dbs.includes('KuechenKern-' + ausgabe.name) && dbs.filter((d) => d.startsWith('KuechenKern-')).length === 1, vor + `die Ausgabe „${ausgabe.name}“ ist am Werk (Begrüßung und Speicher)`, gruss + ' · ' + dbs.join(','));
-    await p.click('[data-a=beispiel]'); await p.waitForSelector('.karte', { timeout: 60000 });
-    const n = await p.locator('.karte').count();
-    ok(n === erstes.anzahl, vor + `das Beispielbuch lädt aus dem Paket: ${erstes.anzahl} Rezepte`, String(n));
+    /* Die App beginnt mit Startrezepten (Klaus 23.11.: nicht leer anfangen); das Beispielbuch steht hinter dem Plus unter „Beispiele“. */
+    await p.waitForSelector('.karte', { timeout: 30000 });
+    ok(await p.locator('.karte').count() > 0, vor + 'die Startrezepte liegen im Paket: die App beginnt nicht leer');
+    const imSpeicher = () => p.evaluate((name) => new Promise((ja, nein) => { const a = indexedDB.open('KuechenKern-' + name); a.onerror = () => nein(a.error); a.onsuccess = () => { try { const q = a.result.transaction('zustand').objectStore('zustand').get('alles'); q.onsuccess = () => { a.result.close(); ja(((q.result && q.result.zustand.rezepte) || []).filter((r) => r && r.name).length); }; q.onerror = () => nein(q.error); } catch (f) { nein(f); } }; }), ausgabe.name);
+    await p.locator('[data-a=neu]:visible').first().click(); await p.click('[data-a=neu-tab][data-t=pakete]'); await p.click('[data-a=beispiel]');
+    let n = await imSpeicher(); for (let i = 0; i < 300 && n < erstes.anzahl; i++) { await p.waitForTimeout(200); n = await imSpeicher(); }
+    ok(n === erstes.anzahl, vor + `das Beispielbuch lädt aus dem Paket: ${erstes.anzahl} Rezepte im Speicher (die Startrezepte gehören dazu)`, String(n));
   } else {
     await p.waitForSelector('.mx', { timeout: 30000 });
     ok(true, vor + 'die App startet von der Startseite des Pakets aus');
-    await p.click('[data-a=beispiele]'); await p.waitForSelector('[data-paket], .leer', { timeout: 30000 });
+    /* „Beispiele“ steht hinter dem Plus (Blatt „Neues Getränk“). */
+    await p.locator('[data-a=neu]:visible').first().click(); await p.click('[data-a=beispiele]'); await p.waitForSelector('[data-paket], .leer', { timeout: 30000 });
     const angeboten = await p.locator('[data-paket]').evaluateAll((l) => l.map((x) => x.dataset.paket));
     ok(JSON.stringify(angeboten) === JSON.stringify(ausgabe.beispiele), vor + `die Ausgabe „${ausgabe.name}“ ist am Werk: angeboten wird genau [${ausgabe.beispiele.join(', ')}]`, angeboten.join(', '));
     if (!ausgabe.alkoholErlaubt) ok(!angeboten.some((id) => /alkohol-fuer|mit-alkohol/.test(id)) && !(await p.locator('#app').innerText()).includes('mit Alkohol'), vor + 'kein Paket mit Alkohol wird angeboten');
