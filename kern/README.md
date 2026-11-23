@@ -1,7 +1,7 @@
 # Küchen-Kern
 
 Gemeinsamer Code für Mein Rezeptbuch, Muttis Rezeptbuch (Ausgabe) und Mein Mixarium (übernimmt den Kern byte-gleich mit Pin).
-Stand 2026-11-23: erst der **Ausgaben-Schalter** ist angelegt. Alles Weitere folgt nach der Vorschau (`docs/vorschau/rezeptbuch-neu.html`).
+Stand 2026-11-23: **Ausgaben-Schalter** und die **Logik ohne Oberfläche** (Rezeptmodell, Kategorien, Suche, Sicherung, Übernahme). Die Oberfläche der PWA folgt; APK und Windows erst nach Klaus' Go.
 
 ## Ausgaben-Schalter (`kern/ausgabe/ausgabe.mjs`)
 
@@ -33,6 +33,19 @@ node --test test/ausgabe.test.js                                  # Probe mit Ge
 `ausgaben/mixarium-store/ausgabe.json`: `"store": true, "alkoholErlaubt": false, "beispiele": ["<alkoholfreie Pakete>"]`
 `ausgaben/mixarium-voll/ausgabe.json`: `"store": false, "alkoholErlaubt": true, "beispiele": [..., "getraenke-mit-alkohol-fuer-mixarium"]`
 Das Alkohol-Paket aus `beispiele/` ist im Katalog nur für `mixarium-voll` freigegeben.
+
+## Logik (ohne Oberfläche, läuft im Browser und in Node)
+
+| Datei | Aufgabe |
+|---|---|
+| `modell/rezept.mjs` | `normalisiere()` bringt jedes Rezept einmal in Form: `blank` nur ohne Namen, Kategorie getrimmt, `fld_…` zieht in `folder`, feste `uid`. `istInhalt()` ist die eine Frage, die Suche, „Alle“, Kategorien und Zähler stellen. |
+| `modell/kategorien.mjs` | `alleKategorien()`: feste, eigene, unbekannte und „Ohne Kategorie“, jede Kennung einmal. Anlegen, umbenennen, löschen mit Ziel, umsortieren. |
+| `modell/kategorien-fest.mjs` | die 18 festen Kategorien in 8 Sprachen, aus der alten App übernommen |
+| `modell/suche.mjs` | Wortsuche, auch über den Kategorienamen |
+| `sicherung/sicherung.mjs` | liest Fassung 9/10 der alten Apps, schreibt Fassung 11 mit Block `kategorien`; Zusammenführen an `uid` |
+| `speicher/uebernahme.mjs` | liest den alten localStorage nur mit der Endung der eigenen Ausgabe, löscht nichts |
+
+Probe: `node --test test/kern.test.js` (13 Fälle). Wächter für den Sushi-Fehler: **alles, was die Suche findet, steht in genau einer Gruppe von „Alle“**.
 
 ## Pin (`KERN.json`)
 
