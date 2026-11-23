@@ -1,0 +1,20 @@
+{
+ "hinweis": "Einstellungen des Paket-Werkzeugs für Mein Rezeptbuch. Was in ein Paket kommt, entscheidet ausgaben/<name>/ausgabe.json (Küchen-Kern); hier steht nur, was die Hüllen dazu brauchen. App-Kennung und App-Name sind Vorschläge, bis Klaus sie bestätigt.",
+ "inhalt": [
+  { "ordner": "neu", "ohne": ["README.md"] },
+  { "ordner": "kern", "nur": [".mjs"] },
+  { "ordner": "assets", "nur": [".js"] },
+  { "datei": "sbkim/03_embedding.js" },
+  { "datei": "sbkim/04_match.js" },
+  { "datei": "LICENSE" },
+  { "datei": "THIRD_PARTY.md" }
+ ],
+ "dienstarbeiter": "neu/sw.js",
+ "weiche": { "datei": "neu/app.mjs", "muster": "fetch('../ausgaben/{ausgabe}/ausgabe.json')", "fest": "rezeptbuch" },
+ "verweiseOhneZiel": {},
+ "ausgaben": {
+  "rezeptbuch": { "appId": "de.family_projekt.rezeptbuch", "appName": "Mein Rezeptbuch", "grund": "#2a1a10" },
+  "muttis": { "appId": "de.family_projekt.muttis", "appName": "Muttis Rezeptbuch", "grund": "#2e1a3a" }
+ },
+ "probe": { "art": "rezeptbuch" }
+}

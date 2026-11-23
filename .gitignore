@@ -1,2 +1,5 @@
 # Nur zum Pruefen geholt (playwright-core fuer tests/smoke_ki_bild.mjs).
 node_modules/
+
+# Arbeitsordner des Paket-Werkzeugs (paket/zusammenstellen.mjs). Nie einchecken.
+paket/aus/

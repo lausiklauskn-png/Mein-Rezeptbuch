@@ -1,0 +1,46 @@
+{
+  "appId": "{appId}",
+  "productName": "{appName}",
+  "asar": false,
+  "npmRebuild": false,
+  "publish": null,
+  "directories": {
+    "output": "ausgabe",
+    "buildResources": "zeichen"
+  },
+  "files": [
+    "haupt.cjs",
+    "pfad.cjs",
+    "paket-windows.json",
+    "zeichen/icon.png",
+    "www/**/*"
+  ],
+  "extraMetadata": {
+    "name": "{name}",
+    "version": "{version}",
+    "description": "{appName}"
+  },
+  "win": {
+    "target": [
+      {
+        "target": "nsis",
+        "arch": [
+          "x64"
+        ]
+      }
+    ],
+    "icon": "zeichen/icon.png",
+    "executableName": "{name}"
+  },
+  "nsis": {
+    "oneClick": false,
+    "perMachine": false,
+    "allowToChangeInstallationDirectory": true,
+    "createDesktopShortcut": true,
+    "createStartMenuShortcut": true,
+    "shortcutName": "{appName}",
+    "deleteAppDataOnUninstall": false,
+    "differentialPackage": false,
+    "artifactName": "{name}-{version}-windows-setup.${ext}"
+  }
+}
