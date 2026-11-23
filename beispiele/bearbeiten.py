@@ -160,6 +160,13 @@ SCHRITTE = {
 TIPPFEHLER = [('glattstreichne', 'glatt streichen'), ('Grad Ober- und Unterhitze', '°C Ober-/Unterhitze'), ('180°C', '180 °C')]
 
 BILD_ERSETZEN = {51}            # TikTok-Grafik mit Logo
+ROH = '/tmp/claude-0/bilder/roh/'
+BILD_DATEI = {5: 'file_00000000004c71f4bfa0fd30e2868951.png', 6: 'file_00000000cc807243985fcb69f415ef81.png', 7: 'file_0000000013bc7246aaa7794d0193061a.png',
+ 8: 'file_000000004080724685f3fb7b1f008182.png', 10: 'file_000000008e587243a2afb04033f0b80d.png', 12: 'ChatGPT.Image.25.Apr.2026.10_41_00.png',
+ 16: 'file_00000000b650720a93f242e4b3bcd2bd.png', 18: 'file_00000000b9447243a03d9d74bfd42467.png', 32: 'file_000000003cb471f4b2af905d5bf4fa2a.png'}
+BILD_RAUS = {35: 'ersetzt werden (Datei „Eierragout-mit-Kartoffeln.jpg“, vermutlich von gaumenfreundin.de)',
+ 36: 'ersetzt werden (Datei „Karottenkuchen-von-Gaumenfreundin.jpg“)', 38: 'ersetzt werden (nur 800 × 360 Pixel, zu klein)',
+ 28: 'ersetzt werden (nur 650 × 974 Pixel, zu klein)'}
 ALKOHOL = {0, 4, 40, 41, 45, 47, 48, 50}
 OFFEN = {
  24: 'Stollen: Zutatenliste stimmt nicht (u. a. „750 g Würste“, „2 x Backpulver“, zweimal Rosinen), Schritte in falscher Reihenfolge, Portionen 1. Bitte Originalrezept nachreichen.',
@@ -174,6 +181,11 @@ OFFEN = {
 def bild(r, n):
     s = r.get('img') or ''
     if n in BILD_ERSETZEN: return '', 'ersetzt werden (Fremdgrafik mit Logo)'
+    if n in BILD_RAUS: return '', BILD_RAUS[n]
+    if n in BILD_DATEI:
+        im = Image.open(ROH + BILD_DATEI[n]).convert('RGB'); im.thumbnail((1600, 1600), Image.LANCZOS)
+        b = io.BytesIO(); im.save(b, 'JPEG', quality=84, optimize=True, progressive=True)
+        return 'data:image/jpeg;base64,' + base64.b64encode(b.getvalue()).decode(), f'schärferes Bild aus deinen Bildern ({im.width} × {im.height})'
     if not s.startswith('data:'): return '', ('ersetzt werden (nur Link zu ' + re.sub(r'^https?://([^/]+).*', r'\1', s) + ')') if s else 'fehlt'
     im = Image.open(io.BytesIO(base64.b64decode(s.split(',', 1)[1])))
     vorher = len(s)
