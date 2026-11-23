@@ -13,8 +13,10 @@ import { FARBEN, farbeSetzen } from '../kern/oberflaeche/farben.mjs';
 import { bildAusDatei } from '../kern/oberflaeche/bild.mjs';
 import { zutatenFuerSchritt, zeitImSchritt } from '../kern/modell/kochen.mjs';
 import { GERAETE, erkenne, geraetSvg } from '../kern/oberflaeche/geraete.mjs';
+import { einkaufsliste, gruppenFolge, gruppeVerschieben, WARENGRUPPEN } from '../kern/modell/einkauf.mjs';
+import { woche, planen, entplanen, ausAltemMenu, tagIso } from '../kern/modell/plan.mjs';
 
-const FASSUNG = '0.2.0';
+const FASSUNG = '0.3.0';
 const breit = () => matchMedia('(min-width:1000px)').matches;
 const $ = (id) => document.getElementById(id);
 const esc = (t) => String(t ?? '').replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
@@ -22,7 +24,9 @@ const esc = (t) => String(t ?? '').replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '
 let ausgabe = null, lager = null;
 let Z = leererZustand();                     // Rezepte, Wochenplan, Ordner, Kategorien
 let E = { farbe: 'braun', leiste: { seite: 'r', pos: 64 }, zuletzt: null, kochSchrift: 'mittel', railZu: false };   // Einstellungen dieses Geräts
-const s = { ansicht: 'start', uid: null, frage: '', kat: 'alle', portion: {}, werkzeug: false, leisteAuf: false, form: null, nurDies: false };
+const s = { ansicht: 'start', uid: null, frage: '', kat: 'alle', portion: {}, werkzeug: false, leisteAuf: false, form: null, nurDies: false, planTag: new Date() };
+const LEER_EINKAUF = () => ({ posten: [], haken: {}, eigene: [], laeden: { Supermarkt: [] }, laden: 'Supermarkt' });
+function ergaenze() { Z.einkauf = { ...LEER_EINKAUF(), ...(Z.einkauf || {}) }; if (!Z.einkauf.laeden[Z.einkauf.laden]) Z.einkauf.laden = Object.keys(Z.einkauf.laeden)[0] || 'Supermarkt'; if (!Z.einkauf.laeden[Z.einkauf.laden]) Z.einkauf.laeden[Z.einkauf.laden] = []; if (!Z.plan) Z.plan = ausAltemMenu(Z.menu, Z.rezepte); }
 
 /* ---------- Speichern ---------- */
 let schreibUhr = null;
@@ -56,7 +60,7 @@ function kopfZeichnen() {
   if (breit()) {
     const n = (zu, i, t) => `<button class="rail-n" data-a="geh" data-zu="${zu}" ${(zu === 'start' ? ['start', 'rezept', 'kochen'].includes(s.ansicht) : s.ansicht === zu) ? 'aria-current="page"' : ''} title="${t}">${ic(i)}<span class="t">${t}</span></button>`;
     k.innerHTML = `<div class="rail-oben"><img class="logo" src="../icons/icon-book-192.png?v=1" alt="" width="30" height="30"><span class="name t">${esc(ausgabe.titel)}</span><button class="rail-klapp" data-a="rail" aria-label="${E.railZu ? 'Leiste ausklappen' : 'Leiste einklappen'}">${ic(E.railZu ? 'rechts' : 'links')}</button></div>
-     <button class="knopf akz rail-neu" data-a="neu" aria-label="Neues Rezept">${ic('plus')}<span class="t">Neues Rezept</span></button>${n('start', 'buch', 'Rezepte')}${n('werkstatt', 'funken', 'Werkstatt')}
+     <button class="knopf akz rail-neu" data-a="neu" aria-label="Neues Rezept">${ic('plus')}<span class="t">Neues Rezept</span></button>${n('start', 'buch', 'Rezepte')}${n('plan', 'plan', 'Planer')}${n('einkauf', 'einkauf', 'Einkauf').replace('</button>', (ekOffen() ? `<span class="zahl">${ekOffen()}</span>` : '') + '</button>')}${n('werkstatt', 'funken', 'Werkstatt')}
      <button class="rail-n" data-a="farbe" title="Farbe"><span class="farbknopf"></span><span class="t">Farbe</span></button>`;
     return;
   }
@@ -121,7 +125,7 @@ function rezeptHtml() {
     <div class="oben"><button class="rund" data-a="zurueck" aria-label="Zurück">${ic('zurueck')}</button><span><button class="rund nurbreit" data-a="nurdies" aria-label="${s.nurDies ? 'Liste und Leiste wieder zeigen' : 'Nur dieses Rezept zeigen'}" title="${s.nurDies ? 'Alles zeigen' : 'Nur dieses Rezept'}">${ic('voll')}</button><button class="rund" data-a="bearbeiten" aria-label="Bearbeiten">${ic('stift')}</button><button class="rund" data-a="loeschen" aria-label="Rezept löschen">${ic('muell')}</button></span></div>
     <div class="verlauf"><h1>${esc(r.name)}</h1><div class="meta">${r.prepTime ? `<span>${ic('uhr')}${esc(r.prepTime)} Min</span>` : ''}<span>${ic('karte')}${esc(c ? katName(c) : '')}</span>${r.rating?.stars ? `<span>${ic('stern')}${r.rating.stars}</span>` : ''}</div></div></div>
    <div class="bogen"><div class="zweispalt"><div>
-    ${r.steps.length ? `<div class="reihe"><button class="knopf akz" data-a="kochen" style="flex:1">${ic('koch')}Kochen</button></div>` : ''}
+    ${r.steps.length ? `<div class="reihe"><button class="knopf akz" data-a="kochen" style="flex:1.3">${ic('koch')}Kochen</button><button class="knopf" data-a="auf-liste" style="flex:1">${ic('einkauf')}Einkaufen</button><button class="knopf" data-a="planen" aria-label="In den Wochenplan">${ic('plan')}</button></div>` : `<div class="reihe"><button class="knopf" data-a="auf-liste">${ic('einkauf')}Einkaufen</button><button class="knopf" data-a="planen">${ic('plan')}Planen</button></div>`}
     <div class="portion"><span>Portionen</span><span class="st"><button data-a="portion" data-d="-1" aria-label="Weniger">${ic('minus')}</button><b id="portionen">${n}</b><button data-a="portion" data-d="1" aria-label="Mehr">${ic('plus')}</button></span></div>
     <h2 class="h">Zutaten</h2><ul class="zut">${r.ings.map((z) => `<li><b>${esc([skaliere(z.amt, f), z.unit].filter(Boolean).join(' '))}</b><span>${esc(z.name)}${z.note ? `<small>${esc(z.note)}</small>` : ''}</span></li>`).join('')}</ul>${geraeteVon(r).length ? `<h2 class="h">Geräte</h2><div class="gr-liste">${geraeteVon(r).map((g) => `<span class="gr-chip">${geraetSvg(g)}${esc(GERAETE[g].de)}</span>`).join('')}</div>` : ''}</div>
     <div><h2 class="h">Zubereitung</h2><ol class="schritte">${r.steps.map((x) => `<li><span>${esc(x.txt)}${x.note ? `<small>${esc(x.note)}</small>` : ''}</span></li>`).join('')}</ol>
@@ -156,6 +160,46 @@ function weckerAus() { clearInterval(K.uhr); K.uhr = null; K.rest = 0; }
 function kochZeichnen() { $('kochort').innerHTML = s.ansicht === 'kochen' ? kochHtml() : ''; }
 document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'visible' && s.ansicht === 'kochen' && !K.wach) wachAn(); });
 function piep() { try { const c = new (window.AudioContext || window.webkitAudioContext)(), o = c.createOscillator(), g = c.createGain(); o.connect(g); g.connect(c.destination); o.frequency.value = 880; g.gain.value = 0.15; o.start(); o.stop(c.currentTime + 0.6); } catch { /* ohne Ton */ } navigator.vibrate?.([300, 150, 300]); }
+
+
+/* ---------- Einkaufsliste ---------- */
+const ekPosten = () => Z.einkauf.posten.map((p) => ({ rezept: rezept(p.uid), portionen: p.portionen })).filter((p) => p.rezept);
+const ekOffen = () => { const l = einkaufsliste(ekPosten()); return l.filter((x) => !Z.einkauf.haken[x.schluessel]).length + Z.einkauf.eigene.filter((x) => !Z.einkauf.haken['eig:' + x.id]).length; };
+function einkaufHtml() {
+  const E_ = Z.einkauf, posten = ekPosten(), liste = einkaufsliste(posten), folge = gruppenFolge(E_.laeden[E_.laden]);
+  let h = `<div class="ueber"><h2 style="font-size:19px">Einkaufsliste</h2><small>${ekOffen()} offen</small></div>`;
+  if (!posten.length && !E_.eigene.length) return h + `<div class="leer"><p>Die Liste ist leer. Öffne ein Rezept und tippe auf „Einkaufen“, oder nimm im Wochenplan die ganze Woche.</p><div class="reihe"><button class="knopf" data-a="geh" data-zu="start">${ic('buch')}Zu den Rezepten</button><button class="knopf" data-a="geh" data-zu="plan">${ic('plan')}Zum Wochenplan</button></div></div>` + ekEigenForm();
+  h += `<div class="quellen">${posten.map((p) => `<span class="quelle-chip">${p.rezept.img ? `<img src="${esc(p.rezept.img)}" alt="">` : ''}${esc(p.rezept.name)} · ${p.portionen}<button data-a="ek-rezept-weg" data-uid="${esc(p.rezept.uid)}" aria-label="${esc(p.rezept.name)} von der Liste nehmen">${ic('x')}</button></span>`).join('')}</div>
+   <div class="laeden">${Object.keys(E_.laeden).map((l) => `<button class="chip" data-a="ek-laden" data-l="${esc(l)}" aria-pressed="${l === E_.laden}">${ic('markt')}${esc(l)}</button>`).join('')}<button class="chip" data-a="ek-laden-neu">${ic('plus')}Laden</button>${frag('Jeder Laden merkt sich seine eigene Reihenfolge der Gruppen. Eine Gruppe an der Überschrift lange drücken oder mit der Maus festhalten und an ihre Stelle ziehen.')}</div><div id="ek-liste">`;
+  for (const gid of folge) {
+    const g = WARENGRUPPEN.find((x) => x.id === gid), zeilen = liste.filter((x) => x.gruppe === gid);
+    const eig = gid === 'sonstiges' ? E_.eigene : [];
+    if (!zeilen.length && !eig.length) continue;
+    h += `<div class="ek-gruppe" data-g="${gid}"><h3>${ic('griff')}${esc(g.de)}</h3>`
+      + zeilen.map((x) => `<button class="ek-zeile ${E_.haken[x.schluessel] ? 'ok' : ''}" data-a="ek-haken" data-k="${esc(x.schluessel)}" aria-pressed="${!!E_.haken[x.schluessel]}"><span class="ek-box">${E_.haken[x.schluessel] ? ic('haken') : ''}</span><span class="was">${esc(x.name)}<small>${esc(x.aus.join(', '))}</small></span><b>${esc(x.menge)}</b></button>`).join('')
+      + eig.map((x) => `<button class="ek-zeile ${E_.haken['eig:' + x.id] ? 'ok' : ''}" data-a="ek-haken" data-k="eig:${esc(x.id)}" aria-pressed="${!!E_.haken['eig:' + x.id]}"><span class="ek-box">${E_.haken['eig:' + x.id] ? ic('haken') : ''}</span><span class="was">${esc(x.text)}<small>selbst notiert</small></span></button>`).join('') + `</div>`;
+  }
+  return h + `</div>` + ekEigenForm() + `<div class="reihe" style="margin-top:12px"><button class="knopf" data-a="ek-abgehakt-weg">Abgehaktes entfernen</button><button class="knopf rot" data-a="ek-leeren">Liste leeren</button></div>`;
+}
+const ekEigenForm = () => `<form class="suche" data-form="ek-eigen" style="margin-top:12px;max-width:720px">${ic('plus')}<input name="t" placeholder="Noch etwas, z. B. Küchenrolle" aria-label="Eigenen Posten notieren" autocomplete="off" enterkeyhint="done"></form>`;
+
+/* ---------- Wochenplan ---------- */
+const WT = ['Mo', 'Di', 'Mi', 'Do', 'Fr', 'Sa', 'So'];
+function planHtml() {
+  const w = woche(s.planTag), heute = tagIso(new Date());
+  const von = w.tage[0].toLocaleDateString('de-DE', { day: 'numeric', month: w.tage[0].getMonth() === w.tage[6].getMonth() ? undefined : 'long' }), bis = w.tage[6].toLocaleDateString('de-DE', { day: 'numeric', month: 'long' });
+  const anzahlW = w.tage.reduce((n, t) => n + (Z.plan[tagIso(t)] || []).filter(rezept).length, 0);
+  return `<div class="w-kopf"><button class="rund" data-a="plan-woche" data-d="-7" aria-label="Vorige Woche">${ic('links')}</button><strong>Woche ${w.kw}<small>${von}${von.includes('.') ? '' : '.'} bis ${bis}</small></strong><button class="rund" data-a="plan-woche" data-d="7" aria-label="Nächste Woche">${ic('rechts')}</button></div>
+   <div class="w-tage">${w.tage.map((t, i) => { const tag = tagIso(t), rz = (Z.plan[tag] || []).map(rezept).filter(Boolean);
+     return `<div class="w-tag ${tag === heute ? 'heute' : ''}"><div class="d"><small>${WT[i]}</small><b>${t.getDate()}</b></div><div class="w-slots">${rz.map((r) => `<div class="w-slot"><button class="w-auf" data-a="rezept" data-uid="${esc(r.uid)}">${r.img ? `<img src="${esc(r.img)}" alt="" loading="lazy">` : `<span class="w-ohne">${ic('karte')}</span>`}<span>${esc(r.name)}${r.prepTime ? `<small>${esc(r.prepTime)} Min</small>` : ''}</span></button><button class="w-weg" data-a="plan-weg" data-tag="${tag}" data-uid="${esc(r.uid)}" aria-label="${esc(r.name)} aus dem Plan nehmen">${ic('x')}</button></div>`).join('')}<button class="w-leer ${rz.length ? 'mehr' : ''}" data-a="plan-waehlen" data-tag="${tag}">${ic('plus')}${rz.length ? 'noch eins' : 'Gericht planen'}</button></div></div>`; }).join('')}</div>
+   <div class="reihe" style="margin-top:14px"><button class="knopf ${anzahlW ? 'akz' : ''}" data-a="plan-einkauf" ${anzahlW ? '' : 'disabled'}>${ic('einkauf')}Einkaufsliste für die Woche</button><button class="knopf" data-a="plan-heute">Heute</button></div>`;
+}
+function planWahlFenster(tag, uidFest) {
+  if (uidFest) { const w = woche(new Date()), w2 = woche(new Date(Date.now() + 7 * 864e5));
+    fenster(`<h2>Wann kochen?</h2><div class="tagwahl">${[...w.tage, ...w2.tage].filter((t) => tagIso(t) >= tagIso(new Date())).map((t) => `<button class="chip" data-a="plan-setzen" data-tag="${tagIso(t)}" data-uid="${esc(uidFest)}">${t.toLocaleDateString('de-DE', { weekday: 'short', day: 'numeric', month: 'numeric' })}</button>`).join('')}</div>`); return; }
+  const alle = Z.rezepte.filter(istInhalt);
+  fenster(`<h2>Gericht planen</h2><div class="wahl-liste">${alle.map((r) => `<button class="zeile" data-a="plan-setzen" data-tag="${tag}" data-uid="${esc(r.uid)}">${r.img ? `<img src="${esc(r.img)}" alt="" loading="lazy">` : ic('karte')}<span>${esc(r.name)}</span></button>`).join('') || '<p>Noch keine Rezepte im Buch.</p>'}</div>`);
+}
 
 /* ---------- Anlegen und Bearbeiten ---------- */
 const zutatZeile = (z) => [z.amt, z.unit, z.name].filter(Boolean).join(' ') + (z.note ? ` (${z.note})` : '');
@@ -212,7 +256,7 @@ function werkstattHtml() {
    ${zeile('beispiel', 'paket', 'Beispielbuch laden', beispielText())}${b ? zeile('beispiele-weg', 'muell', 'Beispiele entfernen', `${b} Beispiel-Rezepte, eigene bleiben`) : ''}</div></div>
   <div class="gruppe"><h3>Darstellung</h3><div class="liste">${zeile('farbe', 'einst', 'Farbe', FARBEN[E.farbe]?.de || '')}${zeile('kochschrift', 'koch', 'Schrift in der Kochansicht', E.kochSchrift)}</div></div>
   <div class="gruppe"><h3>Aufräumen</h3><div class="liste">${zeile('alles-weg', 'muell', 'Alle Rezepte löschen', 'mit Rückfrage')}</div></div>
-  <p class="quelle">Mein Rezeptbuch, neue Fassung ${FASSUNG}. Einkaufsliste, Wochenplan, Import per Foto und Web, Bücher und Übersetzung folgen. <a href="../" style="color:inherit">Zur bisherigen App</a></p>`;
+  <p class="quelle">Mein Rezeptbuch, neue Fassung ${FASSUNG}. Import per Foto und Web, Bücher und Übersetzung folgen. <a href="../" style="color:inherit">Zur bisherigen App</a></p>`;
 }
 
 /* ---------- Fenster ---------- */
@@ -229,7 +273,7 @@ function herunterladen(name, text) { const a = document.createElement('a'); a.hr
 function einfuegen(eingang, beispiel = false) {
   if (beispiel) eingang = { ...eingang, rezepte: eingang.rezepte.map((r) => ({ ...r, beispiel: true })) };
   const h = hinweise(eingang), m = fuehreZusammen(Z, eingang);
-  const vorher = Z; Z = m.zustand; sichern(); s.kat = 'alle'; s.frage = '';
+  const vorher = Z; Z = m.zustand; ergaenze(); sichern(); s.kat = 'alle'; s.frage = '';
   melde(`${m.neu} Rezepte dazu${m.doppelt ? `, ${m.doppelt} waren schon da` : ''}${h.ohneKategorie ? `, ${h.ohneKategorie} ohne Kategorie` : ''}`, m.neu ? 'Rückgängig' : '', () => { Z = vorher; sichern(); zeichne(true); });
   geh('start', {}, s.ansicht === 'start');
 }
@@ -250,10 +294,11 @@ function leisteZeichnen() {
   const o = $('leiste'), L = E.leiste, u = L.seite === 'u';
   o.className = 'fl ' + L.seite; document.body.dataset.fl = L.seite;
   o.style.top = u ? '' : (s.leisteAuf ? Math.min(70, Math.max(30, L.pos)) : L.pos) + '%'; o.style.left = u ? (s.leisteAuf ? 50 : L.pos) + '%' : '';
-  if (!s.leisteAuf) { o.innerHTML = `<button class="fl-griff" data-a="leiste-auf" aria-label="Leiste öffnen: Rezepte, Werkstatt. Lange drücken oder ziehen verschiebt sie."><span></span></button>`; return; }
+  if (!s.leisteAuf) { o.innerHTML = `<button class="fl-griff" data-a="leiste-auf" aria-label="Leiste öffnen: Rezepte, Planer, Einkauf, Werkstatt. Lange drücken oder ziehen verschiebt sie."><span></span></button>`; return; }
   const k = (a, i, t, x = '') => `<button role="menuitem" data-a="${a}" ${x}>${i}${t}</button>`;
   o.innerHTML = `<div class="fl-knoepfe" role="menu"><button class="fl-zu" data-a="leiste-zu" aria-label="Schließen">${ic('x')}</button>`
-    + k('geh', ic('buch'), 'Rezepte', `data-zu="start" ${s.ansicht === 'start' ? 'aria-current="page"' : ''}`) + k('geh', ic('funken'), 'Werkstatt', `data-zu="werkstatt" ${s.ansicht === 'werkstatt' ? 'aria-current="page"' : ''}`)
+    + k('geh', ic('buch'), 'Rezepte', `data-zu="start" ${s.ansicht === 'start' ? 'aria-current="page"' : ''}`) + k('geh', ic('plan'), 'Planer', `data-zu="plan" ${s.ansicht === 'plan' ? 'aria-current="page"' : ''}`)
+    + k('geh', ic('einkauf'), 'Einkauf' + (ekOffen() ? ` <span class="zahl">${ekOffen()}</span>` : ''), `data-zu="einkauf" ${s.ansicht === 'einkauf' ? 'aria-current="page"' : ''}`) + k('geh', ic('funken'), 'Werkstatt', `data-zu="werkstatt" ${s.ansicht === 'werkstatt' ? 'aria-current="page"' : ''}`)
     + '<hr>' + k('nach-oben', ic('hoch'), 'Nach oben') + k('zurueck', ic('zurueck'), 'Zurück') + k('farbe', '<span class="farbknopf"></span>', 'Farbe') + '</div>';
 }
 let zug = null, gezogen = 0;
@@ -278,7 +323,7 @@ function zeichne(einzug = false) {
     const alt = m.querySelector('.md-liste')?.scrollTop || 0;
     m.innerHTML = `<div class="md ${s.nurDies ? 'nur' : ''}"><div class="md-liste">${startHtml()}</div><div class="md-detail">${rezept(s.uid) ? rezeptHtml() : ''}</div></div>`;
     const l = m.querySelector('.md-liste'); if (l) l.scrollTop = alt;
-  } else m.innerHTML = s.ansicht === 'rezept' || s.ansicht === 'kochen' ? rezeptHtml() : s.ansicht === 'form' ? formHtml() : s.ansicht === 'werkstatt' ? werkstattHtml() : startHtml();
+  } else m.innerHTML = s.ansicht === 'rezept' || s.ansicht === 'kochen' ? rezeptHtml() : s.ansicht === 'form' ? formHtml() : s.ansicht === 'werkstatt' ? werkstattHtml() : s.ansicht === 'einkauf' ? einkaufHtml() : s.ansicht === 'plan' ? planHtml() : startHtml();
   m.classList.toggle('einzug', einzug); document.body.dataset.ansicht = s.ansicht; document.body.classList.toggle('nur', breit() && lesen && s.nurDies);
   if (s.ansicht !== 'kochen') { wachAus(); weckerAus(); }
   kochZeichnen();
@@ -302,6 +347,25 @@ const A = {
   'k-kopf': () => { K.kopf = !K.kopf; kochZeichnen(); },
   wecker: (e) => { if (K.uhr) { weckerAus(); kochZeichnen(); return; } K.rest = +e.dataset.min * 60;
     K.uhr = setInterval(() => { K.rest--; document.querySelectorAll('#k-zeit').forEach((z) => { z.textContent = zeitText(Math.max(0, K.rest)); }); if (K.rest <= 0) { weckerAus(); piep(); melde('Die Zeit ist um.'); kochZeichnen(); } }, 1000); kochZeichnen(); },
+  'auf-liste': () => { const r = rezept(s.uid); if (!r) return; const n = s.portion[r.uid] || r.servings, da = Z.einkauf.posten.find((p) => p.uid === r.uid);
+    Z.einkauf = { ...Z.einkauf, posten: da ? Z.einkauf.posten.map((p) => (p.uid === r.uid ? { ...p, portionen: n } : p)) : [...Z.einkauf.posten, { uid: r.uid, portionen: n }] }; sichern(); kopfZeichnen(); leisteZeichnen();
+    melde(da ? 'Steht schon auf der Liste, Portionen angepasst' : `„${r.name}“ steht auf der Einkaufsliste`, 'Zur Liste', () => geh('einkauf')); },
+  'ek-haken': (e) => { const k = e.dataset.k, h = { ...Z.einkauf.haken }; if (h[k]) delete h[k]; else h[k] = true; Z.einkauf = { ...Z.einkauf, haken: h }; sichern(); zeichne(); },
+  'ek-rezept-weg': (e) => { Z.einkauf = { ...Z.einkauf, posten: Z.einkauf.posten.filter((p) => p.uid !== e.dataset.uid) }; sichern(); zeichne(); },
+  'ek-laden': (e) => { Z.einkauf = { ...Z.einkauf, laden: e.dataset.l }; sichern(); zeichne(); },
+  'ek-laden-neu': () => fenster(`<h2>Neuer Laden</h2><form class="felder" data-form="laden"><label>Name<input class="feld" name="n" placeholder="z. B. Wochenmarkt" required autocomplete="off"></label><div class="reihe"><button class="knopf akz" type="submit">Anlegen</button><button class="knopf" type="button" data-a="fenster-zu">Abbrechen</button></div></form>`),
+  'ek-abgehakt-weg': () => { const vorher = Z.einkauf, l = einkaufsliste(ekPosten()); const offenJe = (uid) => l.some((x) => !Z.einkauf.haken[x.schluessel] && x.aus.includes(rezept(uid)?.name));
+    Z.einkauf = { ...Z.einkauf, posten: Z.einkauf.posten.filter((p) => offenJe(p.uid)), eigene: Z.einkauf.eigene.filter((x) => !Z.einkauf.haken['eig:' + x.id]) }; sichern(); zeichne(); melde('Erledigte Rezepte und Posten entfernt', 'Rückgängig', () => { Z.einkauf = vorher; sichern(); zeichne(); }); },
+  'ek-leeren': () => { const vorher = Z.einkauf; Z.einkauf = { ...Z.einkauf, posten: [], haken: {}, eigene: [] }; sichern(); zeichne(); melde('Liste geleert', 'Rückgängig', () => { Z.einkauf = vorher; sichern(); zeichne(); }); },
+  planen: () => planWahlFenster(null, s.uid),
+  'plan-waehlen': (e) => planWahlFenster(e.dataset.tag),
+  'plan-setzen': (e) => { Z.plan = planen(Z.plan, e.dataset.tag, e.dataset.uid); sichern(); fensterZu(); if (s.ansicht === 'plan') zeichne(); else melde('Im Wochenplan eingetragen', 'Zum Plan', () => { s.planTag = new Date(e.dataset.tag + 'T12:00'); geh('plan'); }); },
+  'plan-weg': (e) => { Z.plan = entplanen(Z.plan, e.dataset.tag, e.dataset.uid); sichern(); zeichne(); },
+  'plan-woche': (e) => { const d = new Date(s.planTag); d.setDate(d.getDate() + +e.dataset.d); s.planTag = d; zeichne(); },
+  'plan-heute': () => { s.planTag = new Date(); zeichne(); },
+  'plan-einkauf': () => { const w = woche(s.planTag); let posten = Z.einkauf.posten, n = 0;
+    for (const t of w.tage) for (const uid of Z.plan[tagIso(t)] || []) { const r = rezept(uid); if (r && !posten.some((p) => p.uid === uid)) { posten = [...posten, { uid, portionen: r.servings }]; n++; } }
+    Z.einkauf = { ...Z.einkauf, posten }; sichern(); kopfZeichnen(); leisteZeichnen(); melde(n ? `${n} Rezepte auf die Einkaufsliste gesetzt` : 'Alle Gerichte der Woche stehen schon auf der Liste', 'Zur Liste', () => geh('einkauf')); },
   nurdies: () => { s.nurDies = !s.nurDies; zeichne(); },
   rail: () => { E.railZu = !E.railZu; sichern(); kopfZeichnen(); },
   kochschrift: () => { E.kochSchrift = { klein: 'mittel', mittel: 'groß', 'groß': 'klein' }[E.kochSchrift] || 'mittel'; sichern(); zeichne(); },
@@ -312,7 +376,7 @@ const A = {
   einlesen: () => $('datei-sicherung').click(),
   beispiel: () => beispielLaden(),
   'beispiele-weg': () => { const n = Z.rezepte.filter((r) => r.beispiel).length; frage('Beispiele entfernen?', `${n} Beispiel-Rezepte werden entfernt. Deine eigenen Rezepte bleiben.`, 'Entfernen', () => { const vorher = Z.rezepte; Z.rezepte = Z.rezepte.filter((r) => !r.beispiel); sichern(); zeichne(); melde(`${n} Beispiele entfernt`, 'Rückgängig', () => { Z.rezepte = vorher; sichern(); zeichne(); }); }); },
-  'alles-weg': () => { const n = Z.rezepte.filter(istInhalt).length; frage('Alle Rezepte löschen?', `${n} Rezepte werden gelöscht. Lege vorher eine Sicherung als Datei an, wenn du sie behalten willst.`, 'Alle löschen', () => { const vorher = Z; Z = { ...leererZustand(), kategorien: leereKategorien() }; E.zuletzt = null; sichern(); geh('start', {}, true); melde('Alle Rezepte gelöscht', 'Rückgängig', () => { Z = vorher; sichern(); zeichne(true); }); }); },
+  'alles-weg': () => { const n = Z.rezepte.filter(istInhalt).length; frage('Alle Rezepte löschen?', `${n} Rezepte werden gelöscht. Lege vorher eine Sicherung als Datei an, wenn du sie behalten willst.`, 'Alle löschen', () => { const vorher = Z; Z = { ...leererZustand(), kategorien: leereKategorien() }; ergaenze(); E.zuletzt = null; sichern(); geh('start', {}, true); melde('Alle Rezepte gelöscht', 'Rückgängig', () => { Z = vorher; sichern(); zeichne(true); }); }); },
   farbe: () => farbFenster(),
   'farbe-wahl': (e) => { E.farbe = e.dataset.farbe; farbeSetzen(document.documentElement, E.farbe); sichern(); fensterZu(); zeichne(); },
   ja: () => { const t = jaTun; jaTun = null; fensterZu(); t?.(); },
@@ -327,7 +391,24 @@ document.addEventListener('click', (ev) => {
   if (s.leisteAuf && !ev.target.closest('#leiste')) { s.leisteAuf = false; leisteZeichnen(); }
   if (e && A[e.dataset.a]) A[e.dataset.a](e, ev);
 });
-document.addEventListener('submit', (ev) => { ev.preventDefault(); const f = ev.target.dataset.form; if (f === 'rezept') formSpeichern(ev.target); });
+document.addEventListener('submit', (ev) => { ev.preventDefault(); const f = ev.target.dataset.form;
+  if (f === 'rezept') formSpeichern(ev.target);
+  else if (f === 'ek-eigen') { const t = String(new FormData(ev.target).get('t') || '').trim(); if (!t) return; Z.einkauf = { ...Z.einkauf, eigene: [...Z.einkauf.eigene, { id: Date.now().toString(36), text: t }] }; sichern(); zeichne(); document.querySelector('[data-form="ek-eigen"] input')?.focus(); }
+  else if (f === 'laden') { const n = String(new FormData(ev.target).get('n') || '').trim(); if (!n) return; Z.einkauf = { ...Z.einkauf, laeden: { ...Z.einkauf.laeden, [n]: Z.einkauf.laeden[n] || [...(Z.einkauf.laeden[Z.einkauf.laden] || [])] }, laden: n }; sichern(); fensterZu(); zeichne(); }
+});
+/* Warengruppe verschieben: lange drücken (350 ms) oder mit der Maus ziehen; die Reihenfolge gilt für den gewählten Laden */
+let gz = null;
+const gzAn = () => { if (!gz || gz.weit) return; gz.weit = true; gz.gr.classList.add('zieht'); };
+document.addEventListener('pointerdown', (ev) => { const h = ev.target.closest?.('.ek-gruppe h3'); if (!h) return; gz = { gr: h.parentNode, y: ev.clientY, weit: false, ziel: null, uhr: setTimeout(gzAn, 350) }; try { h.setPointerCapture(ev.pointerId); } catch { /* ohne */ } });
+document.addEventListener('pointermove', (ev) => { if (!gz) return; if (!gz.weit && Math.abs(ev.clientY - gz.y) < 8) return; gzAn(); gz.gr.style.transform = `translateY(${ev.clientY - gz.y}px)`;
+  const andere = [...document.querySelectorAll('.ek-gruppe')].filter((g) => g !== gz.gr); andere.forEach((g) => g.classList.remove('ziel-vor', 'ziel-nach')); let ziel = null, vor = true;
+  for (const g of andere) { const r = g.getBoundingClientRect(); ziel = g; if (ev.clientY < r.top + r.height / 2) { vor = true; break; } vor = false; }
+  if (ziel) { ziel.classList.add(vor ? 'ziel-vor' : 'ziel-nach'); gz.ziel = { id: ziel.dataset.g, vor }; } });
+const gzLos = () => { if (!gz) return; const g = gz; gz = null; clearTimeout(g.uhr); if (!g.weit) return;
+  if (g.ziel) { const alle = gruppenFolge(Z.einkauf.laeden[Z.einkauf.laden]), i = alle.indexOf(g.ziel.id), vorId = g.ziel.vor ? g.ziel.id : alle.filter((x) => x !== g.gr.dataset.g)[alle.filter((x) => x !== g.gr.dataset.g).indexOf(g.ziel.id) + 1] ?? null;
+    Z.einkauf = { ...Z.einkauf, laeden: { ...Z.einkauf.laeden, [Z.einkauf.laden]: gruppeVerschieben(Z.einkauf.laeden[Z.einkauf.laden], g.gr.dataset.g, vorId) } }; sichern(); void i; }
+  zeichne(); };
+document.addEventListener('pointerup', gzLos); document.addEventListener('pointercancel', gzLos);
 document.addEventListener('input', (ev) => {
   if (ev.target.id !== 'suchfeld') return;
   s.frage = ev.target.value; $('start-rest').innerHTML = startRest(); $('suche-x').hidden = !s.frage;   // das Feld selbst bleibt stehen (Tastatur, Diktat)
@@ -356,6 +437,7 @@ async function start() {
     let alt = null; try { alt = ausAltemSpeicher(localStorage, ausgabe.speicher.endung); } catch { /* kein Zugriff */ }
     if (alt && alt.rezepte.length) { Z = { rezepte: alt.rezepte, menu: alt.menu, ordner: alt.ordner, kategorien: alt.kategorien }; await lager.schreibe({ fassung: 1, zustand: Z, einstellungen: E }); setTimeout(() => melde(`${alt.rezepte.length} Rezepte aus der bisherigen App übernommen. Dort bleibt alles, wie es ist.`), 300); }
   }
+  ergaenze();
   farbeSetzen(document.documentElement, E.farbe);
   history.replaceState({ ansicht: 'start' }, '');
   zeichne(true);

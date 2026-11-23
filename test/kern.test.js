@@ -139,3 +139,25 @@ test('Kochansicht: Zutaten je Schritt, Zeit im Schritt, Geräte aus dem Text', (
   assert.equal(zeitImSchritt(r.steps[1].txt), 10); assert.equal(zeitImSchritt(r.steps[2].txt), 120); assert.equal(zeitImSchritt('Gut umrühren.'), 0); assert.equal(zeitImSchritt('5 Min. andünsten'), 5);
   assert.deepEqual(erkenne(r.steps[1].txt), ['messer', 'brett', 'pfanne']); assert.deepEqual(erkenne('Servieren.'), []);
 });
+
+import { einkaufsliste, zahlAus, warengruppe, gruppenFolge, gruppeVerschieben } from '../kern/modell/einkauf.mjs';
+import { woche, planen, entplanen, ausAltemMenu, tagIso } from '../kern/modell/plan.mjs';
+test('Einkaufsliste: zusammenzählen, Einheiten, Portionen, Warengruppen, Reihenfolge je Laden', () => {
+  const a = normalisiere({ id: 1, name: 'A', servings: 2, ings: [{ amt: '200', unit: 'g', name: 'Reis' }, { amt: '1', unit: 'EL', name: 'Sesam' }, { amt: '', unit: '', name: 'Salz' }, { amt: '1', unit: 'Stück', name: 'Gurke' }] });
+  const b = normalisiere({ id: 2, name: 'B', servings: 4, ings: [{ amt: '1', unit: 'kg', name: 'reis' }, { amt: '2', unit: 'TL', name: 'Sesam' }, { amt: '½', unit: 'Stück', name: 'Gurke' }] });
+  const l = einkaufsliste([{ rezept: a, portionen: 4 }, { rezept: b, portionen: 4 }]), von = (n) => l.find((x) => x.name.toLowerCase() === n);
+  assert.equal(von('reis').menge, '1,4 kg'); assert.deepEqual(von('reis').aus, ['A', 'B']);
+  assert.equal(von('sesam').menge, '2,7 EL'); assert.equal(von('gurke').menge, '2,5 Stück'); assert.equal(von('salz').menge, '');
+  const m = einkaufsliste([{ rezept: normalisiere({ id: 3, name: 'C', ings: [{ amt: '1', name: 'Knoblauchzehe' }, { amt: '1', name: 'Zwiebel' }] }) }, { rezept: normalisiere({ id: 4, name: 'D', ings: [{ amt: '2', name: 'Knoblauchzehen' }, { amt: '2', name: 'Zwiebeln' }] }) }]);
+  assert.deepEqual(m.map((x) => [x.name, x.menge]), [['Knoblauchzehen', '3'], ['Zwiebeln', '3']], 'Einzahl und Mehrzahl werden zusammengezählt');
+  assert.equal(warengruppe('frischer Lachs'), 'fleisch'); assert.equal(warengruppe('Gurke'), 'gemuese'); assert.equal(warengruppe('Einhornstaub'), 'sonstiges');
+  assert.equal(zahlAus('1 ½'), 1.5); assert.equal(zahlAus('400-500'), 500); assert.equal(zahlAus('etwas'), null);
+  const f = gruppeVerschieben([], 'obst', 'gemuese'); assert.equal(f[0], 'obst'); assert.equal(f.length, gruppenFolge([]).length); assert.equal(new Set(f).size, f.length);
+});
+test('Wochenplan: Woche Mo–So mit Kalenderwoche, planen, entplanen, altes Menü', () => {
+  const w = woche(new Date(2026, 10, 25)); assert.equal(tagIso(w.tage[0]), '2026-11-23'); assert.equal(tagIso(w.tage[6]), '2026-11-29'); assert.equal(w.kw, 48);
+  assert.equal(woche(new Date(2027, 0, 1)).kw, 53); assert.equal(woche(new Date(2026, 0, 1)).kw, 1);
+  let p = planen({}, '2026-11-23', 'a'); p = planen(p, '2026-11-23', 'a'); p = planen(p, '2026-11-23', 'b'); assert.deepEqual(p['2026-11-23'], ['a', 'b']);
+  p = entplanen(entplanen(p, '2026-11-23', 'a'), '2026-11-23', 'b'); assert.deepEqual(p, {});
+  assert.deepEqual(ausAltemMenu([{ rid: 7, date: '2026-04-20' }, { rid: 0, date: '2026-04-21' }], [{ id: 7, uid: 'x' }]), { '2026-04-20': ['x'] });
+});
