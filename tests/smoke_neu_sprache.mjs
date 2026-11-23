@@ -187,8 +187,11 @@ try {
   ok((await p.locator('#leiste [role=menuitem]').allInnerTexts()).map(glatt).includes('Settings'), 'kommt die Tabelle spät, hält sie den Start nicht auf: die App steht da, vorerst englisch');
   const spaet = await p.waitForFunction(() => document.documentElement.lang === 'fr' && [...document.querySelectorAll('#leiste [role=menuitem]')].some((b) => b.innerText.includes('Réglages')), null, { timeout: 15000 }).then(() => true, () => false);
   ok(spaet, 'ist die späte Tabelle da, steht ihr Text ohne weiteres Zutun da'); await k.close();
+  /* Fehlt die Tabelle einer Sprache (hier: beide spanischen Tabellen sind nicht zu holen), steht Englisch da – nie ein Schlüssel, kein Fehler. */
+  ({ p, k } = await seite({ ort: 'es-ES', vorher: (q) => q.route('**/sprachen/es.mjs', (r) => r.fulfill({ status: 404, contentType: 'text/plain', body: '' })) })); await zuEinst(p);
+  ok(await p.evaluate(() => document.documentElement.lang) === 'es' && (await p.locator('.ueber h2').innerText()) === 'Settings' && reste(await texte(p)).length === 0, 'eine Sprache, deren Tabelle fehlt (Spanisch): alles englisch, kein Schlüssel, kein Fehler'); await k.close();
   ({ p, k } = await seite({ ort: 'es-ES' })); await zuEinst(p);
-  ok(await p.evaluate(() => document.documentElement.lang) === 'es' && (await p.locator('.ueber h2').innerText()) === 'Settings' && reste(await texte(p)).length === 0, 'eine Sprache ohne Tabelle (Spanisch): alles englisch, kein Schlüssel, kein Fehler'); await k.close();
+  ok(await p.evaluate(() => document.documentElement.lang) === 'es' && (await p.locator('.ueber h2').innerText()) === 'Ajustes' && (await p.locator('.gkopf').allInnerTexts()).map(glatt).every((x) => !['Backup', 'AI keys', 'Appearance', 'Examples', 'Clean up', 'Sichern', 'Darstellung'].includes(x)), 'mit Tabelle (Spanisch) steht die Oberfläche spanisch da: weder Deutsch noch Englisch in den Themen', (await p.locator('.ueber h2').innerText()) + ' · ' + (await p.locator('.gkopf').allInnerTexts()).map(glatt).join(' | ')); await k.close();
 
   console.log('5 · Ein Rezept übersetzen; die Ansicht zeigt die Fassung in der Sprache der Oberfläche');
   antwort = uebAntwort; rufe.length = 0;
