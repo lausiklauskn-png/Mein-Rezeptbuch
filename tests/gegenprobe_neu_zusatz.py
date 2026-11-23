@@ -23,7 +23,19 @@ F=[('alter-stand-doppelt', "    if (schon.has(s.alt)) continue;", "", 'kern/spei
    ('buch-immer-mit-bildern', "mitBildern: document.getElementById('buch-bilder').checked,", "mitBildern: true,", 'neu/zusatz.mjs', 'ohne Bilder ist kein Bild in der Datei'),
    ('buch-leer-nicht-gesagt', "    if (!n) { melde(L('In dieser Auswahl ist kein Rezept', 'No recipe in this selection')); return; }", "", 'neu/zusatz.mjs', 'eine leere Auswahl wird gesagt'),
    ('buch-titel-fest', "titel = document.getElementById('buch-titel').value.trim() || app.ausgabe().titel;", "titel = app.ausgabe().titel;", 'neu/zusatz.mjs', 'lädt eine eigenständige Datei mit dem Titel und allen Rezepten herunter'),
+   ('teller-braucht-mistral', "  if (E.scan.anbieter === 'mistral' && !SK.mistral && !sc.teller) { schluesselFenster('mistral', 'scan'); return; }", "  if (E.scan.anbieter === 'mistral' && !SK.mistral) { schluesselFenster('mistral', 'scan'); return; }", 'neu/app.mjs', 'ein Aufruf an Claude mit dem Foto'),
+   ('teller-wird-gelesen', "vomTeller: !!sc.teller, fortschritt", "vomTeller: false, fortschritt", 'neu/app.mjs', 'ein Aufruf an Claude mit dem Foto'),
+   # Zwei Riegel decken einander (zurückgesetzt nach der Wahl UND beim Tipp auf „Kamera“): die Sabotage nimmt beide.
+   ('teller-bleibt-haengen', "istBild(dateien[0]) }; s.tellerWahl = false;", "istBild(dateien[0]) };", 'neu/app.mjs', 'ein gewöhnliches Kamerafoto danach heißt wieder', "  'scan-kamera': () => { s.tellerWahl = false; $('datei-kamera').click(); },", "  'scan-kamera': () => { $('datei-kamera').click(); },", 'neu/app.mjs'),
+   ('kontrast-setzt-nichts', "  if (kontrast) Object.assign(v, d", "  if (false) Object.assign(v, d", 'kern/oberflaeche/farben.mjs', 'Nebentext hat mindestens 7:1'),
+   ('kontrast-vergisst', "farbeSetzen(document.documentElement, E.farbe, E.ton, { kontrast: !!E.kontrast }); E.schrift = schriftSetzen", "farbeSetzen(document.documentElement, E.farbe, E.ton); E.schrift = schriftSetzen", 'neu/app.mjs', 'nach dem Neuladen ist er noch an'),
+   ('meldung-knopf-raus', ".toast button{flex:none}", "", 'neu/app.css', 'liegt „Rückgängig“ ganz in der Meldung', ".toast span{min-width:0;overflow:hidden;text-overflow:ellipsis}", "", 'neu/app.css'),
+   ('muttis-nimmt-rezeptbuch', "(/^[a-z-]+$/.test(andere) ? fetch(", "(false ? fetch(", 'neu/app.mjs', 'neu/muttis.html öffnet „Muttis Rezeptbuch“'),
+   ('handbuch-offen', "`<details><summary>${ic(i)}<span>${esc(titel)}</span></summary>", "`<details open><summary>${ic(i)}<span>${esc(titel)}</span></summary>", 'neu/zusatz.mjs', 'alle eingeklappt'),
    ('plan-falsche-woche', "const tage = app.planTage(), ab = tagIso(tage[0]),", "const tage = app.planTage(), ab = tagIso(tage[1]),", 'neu/zusatz.mjs', 'trägt den Vorschlag in die gezeigte Woche ein')]
+# Jeder Fall fährt nur seinen Abschnitt der Probe (NUR_TEIL); die Probe als Ganzes läuft vorher einmal ohne Sabotage.
+TEILE={'alter':'1','alte':'1','richter':'2','bild':'3','sammel':'4','plan':'5','buch':'6','teller':'7','kontrast':'8','meldung':'8','handbuch':'8','muttis':'9'}
+def teil(name): return TEILE[name.split('-')[0]]
 nur=os.environ.get('NUR_FALL'); nur=nur.split(',') if nur else None; gefangen=0; durch=0; tot=0
 def anker(fall):
     name,a,b,f,erwartet=fall[:5]; paare=[(a,b,f)]+([(fall[5],fall[6],fall[7])] if len(fall)>5 else []); return name,f,erwartet,paare
@@ -42,7 +54,7 @@ for fall in F:
     os.makedirs(W+'/beispiele'); shutil.copy('beispiele/KATALOG.json', W+'/beispiele/KATALOG.json')
     if any(open(W+'/'+pf,encoding='utf-8').read().count(a)!=1 for a,_,pf in paare): print('==',name,'TOTER ANKER'); tot+=1; shutil.rmtree(W); continue
     for a,b,pf in paare: s=open(W+'/'+pf,encoding='utf-8').read(); open(W+'/'+pf,'w',encoding='utf-8').write(s.replace(a,b))
-    try: r=subprocess.run(['node','tests/smoke_neu_zusatz.mjs'],env={**os.environ,'WURZEL':W},capture_output=True,text=True,timeout=420); aus=r.stdout
+    try: r=subprocess.run(['node','tests/smoke_neu_zusatz.mjs'],env={**os.environ,'WURZEL':W,'NUR_TEIL':teil(name)},capture_output=True,text=True,timeout=420); aus=r.stdout
     except subprocess.TimeoutExpired as e: aus=(e.stdout or b'').decode() if isinstance(e.stdout,bytes) else (e.stdout or ''); aus+='\n  ✗ ROT: GESTOLPERT (Zeit)'
     rote=[l.strip() for l in aus.splitlines() if 'ROT:' in l]
     treffer=any(erwartet in l for l in rote)

@@ -41,12 +41,16 @@ const bestandWenn = async (p, pruef) => { let b = await bestand(p); for (let i =
 const alteDb = (p, eintraege) => p.evaluate((eintraege) => new Promise((ja) => { const a = indexedDB.open('MeinRzBackup1', 1); a.onupgradeneeded = () => a.result.createObjectStore('kv', { keyPath: 'k' }); a.onsuccess = () => { const t = a.result.transaction('kv', 'readwrite'); for (const [k, v] of Object.entries(eintraege)) t.objectStore('kv').put({ k, v }); t.oncomplete = () => { a.result.close(); ja(); }; }; }), eintraege);
 const ALT = (rezepte) => JSON.stringify(rezepte.map(({ img, ...r }) => r));
 
+/* Abschnitte einzeln: NUR_TEIL=3,4 fährt nur diese (für die Gegenprobe). */
+const will = (n) => !process.env.NUR_TEIL || process.env.NUR_TEIL.split(',').includes(String(n));
+let p, k, netz;
 try {
+  if (will(1)) {
   console.log('1 · Tresor-Stände der alten App kommen einmal in den neuen Tresor');
   const altSuppe = { id: 5, name: 'Omas Linsensuppe', cat: 'suppe', ings: [{ amt: '250', unit: 'g', name: 'Linsen' }], steps: [{ txt: 'Kochen.' }] }, altBrot = { id: 6, name: 'Bauernbrot', cat: 'brot', ings: [{ amt: '1', unit: 'kg', name: 'Mehl' }], steps: [{ txt: 'Backen.' }] };
   const altInhalt = { mrz9m_bvault: JSON.stringify([{ id: 'man-2026-05-01T10:00:00.000Z', name: 'Vor dem Aufräumen', type: 'manual', ts: '2026-05-01T10:00:00.000Z', recCnt: 2, r: ALT([altSuppe, altBrot]), ms: '[]', fd: '[]' }, { id: 'auto-2026-06-02T08:30:00.000Z', name: 'Auto 02.06.26 10:30', type: 'auto', ts: '2026-06-02T08:30:00.000Z', recCnt: 1, r: ALT([altSuppe]), ms: '[]', fd: '[]' }]),
     'mrz9m_bvi_man-2026-05-01T10:00:00.000Z': JSON.stringify({ 5: 'data:image/png;base64,' + PNG }) };
-  let { p, k } = await seite({ rezepte: [R(1, 'Rindergulasch')], vorher: (q) => alteDb(q, altInhalt) });
+  ({ p, k } = await seite({ rezepte: [R(1, 'Rindergulasch')], vorher: (q) => alteDb(q, altInhalt) }));
   await p.waitForFunction(() => /Tresor: \+2/.test(document.querySelector('#toast')?.textContent || ''), null, { timeout: 8000 }).catch(() => {});
   ok(/Tresor: \+2 Stände/.test(await toast(p)), 'eine kurze Meldung sagt, dass zwei Stände übernommen sind', await toast(p));
   await geh(p, 'werkstatt'); await p.click('[data-a=tresor]'); await p.waitForSelector('.tr-liste .zeile');
@@ -64,9 +68,11 @@ try {
   ok(!(await p.evaluate(async () => (await indexedDB.databases()).map((d) => d.name))).includes('MeinRzBackup1') && !/Tresor/.test(await toast(p)), 'gab es die alte App nicht, wird ihre Datenbank nicht angelegt und nichts gemeldet');
   await k.close();
 
+  }
+  if (will(2)) {
   console.log('2 · KI-Richter der Suche: Passendes rückt vor, der Rest klappt ein; eine Falle geht nicht hinaus');
   const KOCH = [R(1, 'Rindergulasch'), R(2, 'Gulaschsuppe', { cat: 'suppe' }), R(3, 'Kürbis-Gulasch'), R(4, 'Gulasch nach Art des Hauses', { ings: [{ amt: '1', unit: '', name: BEFEHL, note: '' }] }), R(5, 'Apfelkuchen', { cat: 'kuchen', ings: [{ amt: '3', unit: '', name: 'Äpfel', note: '' }] })];
-  let netz; ({ p, k, netz } = await seite({ rezepte: KOCH, einstellungen: { sinn: true } }));
+  ({ p, k, netz } = await seite({ rezepte: KOCH, einstellungen: { sinn: true } }));
   await p.fill('#suchfeld', 'eintopf'); await p.waitForSelector('#sinn-treffer .karte', { timeout: 15000 });
   const vor = (await p.locator('#sinn-treffer .karte').allInnerTexts()).map((t) => t.split('\n')[0]);
   ok(vor.length === 4 && await p.locator('[data-a=richter]').count() === 1, 'unter „Nach Bedeutung“ steht ein kleiner Knopf „KI prüft“', vor.join(' | '));
@@ -91,6 +97,8 @@ try {
   ok(netz.claude.length === n0 && /Befehl in der Suchfrage – nichts gesendet/.test(await toast(p)), 'steht in der Suchfrage ein Befehl an eine KI, geht nichts hinaus', await toast(p));
   await k.close();
 
+  }
+  if (will(3)) {
   console.log('3 · Prüfung des Bildauftrags: die Stelle wird gezeigt, dann raus oder rein');
   const FALLE = R(7, 'Sonntagsbraten', { ings: [{ amt: '1', unit: 'kg', name: 'Rind', note: '' }, { amt: '1', unit: '', name: BEFEHL, note: '' }, { amt: '2', unit: '', name: 'Möhren', note: '' }] });
   ({ p, k, netz } = await seite({ rezepte: [FALLE, R(8, 'Hefezopf', { cat: 'brot' })], schluessel: { openai: 'sk-probe-33333333333333333333' } }));
@@ -112,6 +120,8 @@ try {
   ok(netz.bild.length === 3 && await p.locator('[data-ki-halt]').count() === 0, 'ein Rezept ohne Befehl geht ohne Halt hinaus');
   await k.close();
 
+  }
+  if (will(4)) {
   console.log('4 · KI-Bilder für alle ohne Bild: Anzahl und Kosten vorab, abbrechbar');
   const OHNE = [R(1, 'Rindergulasch'), R(2, 'Fallenkuchen', { cat: 'kuchen', ings: [{ amt: '1', unit: '', name: BEFEHL, note: '' }] }), R(3, 'Hefezopf', { cat: 'brot' }), R(4, 'Mit Bild', { img: 'data:image/png;base64,' + PNG })];
   ({ p, k, netz } = await seite({ rezepte: OHNE }));
@@ -142,6 +152,8 @@ try {
   ok(/Schlüssel wurde abgelehnt/.test(await toast(p)) && netz.bild.length === 2, 'ein abgelehnter Schlüssel beendet den Lauf nach dem ersten Nein, mit Klartext; für das zweite Rezept wird nicht mehr gefragt', await toast(p) + ' · ' + netz.bild.length);
   await k.close();
 
+  }
+  if (will(5)) {
   console.log('5 · Wochenplan-Vorschlag: erst ansehen, dann übernehmen');
   ({ p, k, netz } = await seite({ rezepte: [R(1, 'Rindergulasch'), R(2, 'Linsensuppe', { cat: 'suppe' }), R(3, 'Apfelkuchen', { cat: 'kuchen' })], schluessel: { anthropic: 'sk-ant-probe-666666666666666666' } }));
   await geh(p, 'plan'); await p.waitForSelector('.w-tage');
@@ -163,8 +175,10 @@ try {
   ok(Object.keys((await bestand(p)).zustand.plan || {}).length === 0 && await p.locator('.w-slot').count() === 0, '„Rückgängig“ nimmt den Vorschlag wieder heraus');
   await k.close();
 
+  }
+  if (will(6)) {
   console.log('6 · Buch: als PDF drucken oder als Datei zum Blättern, ganz oder eine Auswahl');
-  const BUCH = [R(1, 'Rindergulasch', { img: 'data:image/png;base64,' + PNG }), R(2, 'Linsensuppe <b>fett</b>', { cat: 'suppe' }), R(3, 'Apfelkuchen', { cat: 'kuchen' }), R(4, 'Marmorkuchen', { cat: 'kuchen' })];
+  const BUCH = [R(1, 'Rindergulasch', { img: 'data:image/png;base64,' + PNG }), R(2, 'Linsensuppe <b>fett</b>', { cat: 'suppe' }), R(3, 'Apfelkuchen', { cat: 'kuchen', img: 'data:image/png;base64,' + PNG }), R(4, 'Marmorkuchen', { cat: 'kuchen' })];   /* ein Kuchen trägt ein Bild: sonst wäre „ohne Bilder“ in der Kuchen-Auswahl von selbst wahr */
   ({ p, k } = await seite({ rezepte: BUCH, ordner: [{ id: 'o-leer', name: 'Leerer Ordner' }] }));
   await geh(p, 'werkstatt');
   const bz = await p.locator('.gruppe[data-g=buch] .zeile').allInnerTexts();
@@ -189,6 +203,65 @@ try {
   ok(druck && await p.evaluate(() => window.__gedruckt) === 1 && druck.html.includes('Mein Rezeptbuch') && ['Rindergulasch', 'Apfelkuchen', 'Marmorkuchen'].every((n) => druck.html.includes(n)) && !/allow-scripts/.test(druck.sandbox) && k.pages().length === seitenVor, '„Drucken“ druckt das ganze Buch aus einem unsichtbaren Rahmen ohne Skripte; kein neues Fenster');
   await k.close();
 
+  }
+  if (will(7)) {
+  console.log('7 · Vom Teller: ein Foto eines Gerichts, Claude schlägt ein Rezept vor');
+  ({ p, k, netz } = await seite({ rezepte: [R(1, 'Rindergulasch')], einstellungen: { scan: { anbieter: 'mistral', stufe: 'schnell' } }, schluessel: { anthropic: 'sk-ant-probe-777777777777777777' } }));
+  const tellerFoto = Buffer.from(await p.evaluate(async () => { const c = document.createElement('canvas'); c.width = 640; c.height = 480; const x = c.getContext('2d'), g = x.createLinearGradient(0, 0, 640, 480); g.addColorStop(0, '#c33'); g.addColorStop(1, '#3a6'); x.fillStyle = g; x.fillRect(0, 0, 640, 480); const u = new Uint8Array(await (await new Promise((r) => c.toBlob(r, 'image/jpeg', 0.9))).arrayBuffer()); let s = ''; for (const b of u) s += String.fromCharCode(b); return btoa(s); }), 'base64');
+  await p.locator('[data-a=neu]:visible').first().click(); await p.click('[data-a=neu-tab][data-t=scan]');
+  ok((await p.locator('.zwei-gross .knopf').allInnerTexts()).map((x) => x.trim()).join('|') === 'Kamera|Datei|Vom Teller' && (await hinweis(p, '[data-a=scan-teller]')).includes('fertiges Gericht'), 'im Foto-Weg stehen drei Kacheln: Kamera, Datei, Vom Teller (der Hinweis sagt, was es tut)');
+  await p.click('[data-a=scan-teller]'); await p.setInputFiles('#datei-kamera', { name: 'teller.jpg', mimeType: 'image/jpeg', buffer: tellerFoto }); await p.waitForSelector('.scan-vor img', { timeout: 30000 });
+  const tk = (await p.locator('[data-a=scan-senden]').innerText()).replace(/\s+/g, ' '), th = await hinweis(p, '[data-a=scan-senden]');
+  ok(/Rezept vorschlagen/.test(tk) && /^Rezept vorschlagen Anthropic · \d+ KB$/.test(tk.trim()) && th.includes('an Anthropic (Claude)') && !th.includes('Mistral'), 'der Knopf heißt „Rezept vorschlagen“ und nennt Anthropic und die Größe – auch wenn sonst Mistral gewählt ist', tk + ' | ' + th);
+  netz.claudeAntwort = () => ({ name: 'Ratatouille', servings: 4, prepTime: 45, category: 'gemuese', flavor: 'mediterran', ingredients: [{ amt: '2', unit: '', name: 'Zucchini' }, { amt: '1', unit: '', name: 'Aubergine' }], steps: ['Gemüse würfeln.', 'Alles schmoren.'] });
+  await p.click('[data-a=scan-senden]'); await p.waitForSelector('[data-form=rezept]', { timeout: 15000 }).catch(() => {});
+  const tc = netz.claude[0] ? netz.claude[0].messages[0].content : [];
+  ok(netz.claude.length === 1 && tc[0] && tc[0].type === 'image' && /finished dish/.test(tc[1].text) && /German/.test(tc[1].text) && !fehler.some((x) => /mistral/i.test(x)), 'ein Aufruf an Claude mit dem Foto und dem Auftrag „fertiges Gericht“, auf Deutsch; an Mistral geht nichts');
+  ok(await p.locator('[data-form=rezept]').count() === 1 && await p.inputValue('[name=name]') === 'Ratatouille' && (await p.inputValue('[name=ings]')).includes('Zucchini') && /Ein Vorschlag\. Bitte prüfen\./.test(await toast(p)), 'der Vorschlag steht im Formular zum Prüfen; die Meldung nennt ihn einen Vorschlag', await toast(p));
+  await geh(p, 'start'); await p.locator('[data-a=neu]:visible').first().click(); await p.click('[data-a=neu-tab][data-t=scan]'); await p.click('[data-a=scan-kamera]'); await p.setInputFiles('#datei-kamera', { name: 'zettel.jpg', mimeType: 'image/jpeg', buffer: tellerFoto }); await p.waitForSelector('.scan-vor img', { timeout: 30000 });
+  ok(/Rezept lesen/.test(await p.locator('[data-a=scan-senden]').innerText()) && /Mistral/.test(await p.locator('[data-a=scan-senden]').innerText()), 'ein gewöhnliches Kamerafoto danach heißt wieder „Rezept lesen“ und geht den gewählten Weg');
+  await k.close();
+
+  }
+  if (will(8)) {
+  console.log('8 · Hoher Kontrast, Handbuch, Meldung mit Knopf');
+  ({ p, k } = await seite({ rezepte: [R(1, 'Rindergulasch', { folder: 'o1' }), R(2, 'Linsensuppe', { cat: 'suppe' })], ordner: [{ id: 'o1', name: 'Ein sehr langer Ordnername für Feste, Feiern und Familientreffen' }] }));
+  /* Kontrast zweier Farb-Variablen, über eine Leinwand gerechnet (color-mix lässt sich nicht aus dem Text lesen). */
+  const kontrast = (a, b) => p.evaluate(([a, b]) => { const c = document.createElement('canvas'); c.width = c.height = 1; const x = c.getContext('2d', { willReadFrequently: true }); const hell = (v) => { const e = document.createElement('i'); e.style.color = `var(${v})`; document.body.appendChild(e); const f = getComputedStyle(e).color; e.remove(); x.clearRect(0, 0, 1, 1); x.fillStyle = '#fff'; x.fillRect(0, 0, 1, 1); x.fillStyle = f; x.fillRect(0, 0, 1, 1); const [r, g, bl] = [...x.getImageData(0, 0, 1, 1).data].map((n) => { n /= 255; return n <= 0.03928 ? n / 12.92 : ((n + 0.055) / 1.055) ** 2.4; }); return 0.2126 * r + 0.7152 * g + 0.0722 * bl; }; const l1 = hell(a), l2 = hell(b); return (Math.max(l1, l2) + 0.05) / (Math.min(l1, l2) + 0.05); }, [a, b]);
+  await geh(p, 'werkstatt'); const kVor = await kontrast('--mut', '--fl');
+  ok(/^Hoher Kontrast\s*aus$/.test((await p.locator('.gruppe[data-g=aussehen] [data-a=kontrast]').innerText()).trim()), 'unter Darstellung steht „Hoher Kontrast · aus“', await p.locator('[data-a=kontrast]').innerText().catch(() => 'fehlt'));
+  await p.click('[data-a=kontrast]'); const kAn = await kontrast('--mut', '--fl'), kInk = await kontrast('--ink', '--bg');
+  ok(await p.evaluate(() => document.documentElement.dataset.kontrast === '1') && kAn >= 7 && kAn > kVor && kInk >= 15 && /an$/.test((await p.locator('[data-a=kontrast]').innerText()).trim()), 'ein Tipp schaltet ihn an: Nebentext hat mindestens 7:1 zum Grund (vorher weniger), Schrift mindestens 15:1', `${kVor.toFixed(1)} → ${kAn.toFixed(1)} · Schrift ${kInk.toFixed(1)}`);
+  await p.keyboard.press('Escape'); if (await p.locator('#leiste .fl-griff').count()) await p.click('#leiste .fl-griff'); await p.click('#leiste [data-ton=dunkel]'); const kDunkel = await kontrast('--mut', '--fl');
+  ok(kDunkel >= 7 && await p.evaluate(() => document.documentElement.dataset.kontrast === '1' && document.documentElement.dataset.hell === 'dunkel'), 'er gilt auch im dunklen Ton (mindestens 7:1) und bleibt beim Wechsel an', kDunkel.toFixed(1));
+  await p.waitForTimeout(400); await p.reload(); await p.waitForSelector('.gruss');
+  ok(await p.evaluate(() => document.documentElement.dataset.kontrast === '1'), 'nach dem Neuladen ist er noch an');
+  await geh(p, 'werkstatt'); await p.click('[data-a=kontrast]'); ok(await p.evaluate(() => !('kontrast' in document.documentElement.dataset)), 'ein zweiter Tipp schaltet ihn aus');
+  await p.locator('.gruppe[data-g=hilfe] [data-a=handbuch]').click(); await p.waitForSelector('#handbuch');
+  const themen = await p.locator('#handbuch details').count(), offen = await p.locator('#handbuch details[open]').count();
+  ok(themen >= 10 && offen === 0 && (await p.locator('.fenster h2').innerText()) === 'Handbuch', 'unter Hilfe öffnet „Handbuch“ ein Fenster mit Themen, alle eingeklappt', `${themen} Themen, ${offen} offen`);
+  await p.locator('#handbuch summary').first().click();
+  ok(await p.locator('#handbuch details[open] p').count() >= 2 && (await p.locator('#handbuch details[open] p').first().innerText()).length > 40, 'ein Tipp klappt ein Thema auf und zeigt seine Absätze');
+  await p.keyboard.press('Escape'); await p.evaluate(() => document.querySelector('[data-a=fenster-zu]')?.click());
+  await p.locator('.zeile[data-zu=ordner]').click(); await p.waitForSelector('.ord-zeile'); await p.locator('.ord-zeile [data-a=ordner-weg]').first().click(); await p.waitForSelector('#toast button');
+  const lage = await p.evaluate(() => { const b = document.querySelector('#toast button').getBoundingClientRect(), t = document.querySelector('#toast').getBoundingClientRect(), oben = document.elementFromPoint(b.left + b.width / 2, b.top + b.height / 2); return { rechts: b.right, links: b.left, breit: innerWidth, toastRechts: t.right, trifft: !!oben && !!oben.closest('#toast button'), text: document.querySelector('#toast span').scrollWidth > document.querySelector('#toast span').clientWidth }; });
+  ok(lage.rechts <= lage.breit && lage.links >= 0 && lage.rechts <= lage.toastRechts + 0.5 && lage.trifft, 'bei 390 px liegt „Rückgängig“ ganz in der Meldung und ist antippbar, auch bei langem Text (der Text kürzt sich)', JSON.stringify(lage));
+  await p.mouse.click(lage.links + 8, (await p.locator('#toast button').boundingBox()).y + 6); await p.waitForTimeout(300);
+  ok(await p.locator('.ord-zeile').count() === 1, 'der Tipp an dieser Stelle macht das Löschen rückgängig');
+  await k.close();
+
+  }
+  if (will(9)) {
+  console.log('9 · Muttis-Ausgabe: eigene Einstiegsseite, eigener Speicher');
+  ({ p, k } = await seite({ rezepte: [R(1, 'Rindergulasch')] }));
+  await p.goto(ORT + 'muttis.html?leer'); await p.waitForSelector('.gruss');
+  ok(await p.title() === 'Muttis Rezeptbuch' && (await p.locator('#kopf .name').innerText()).trim() === 'Muttis Rezeptbuch' && await p.locator('.karte').count() === 0 && await p.evaluate(() => location.pathname.endsWith('/neu/muttis.html') && location.search === ''), 'neu/muttis.html öffnet „Muttis Rezeptbuch“, leer und unter eigener Adresse', await p.title());
+  const dbs = await p.evaluate(async () => (await indexedDB.databases()).map((d) => d.name).sort());
+  ok(dbs.includes('KuechenKern-muttis') && dbs.includes('KuechenKern-rezeptbuch') && (await bestand(p)).zustand.rezepte.length === 1, 'sie hat ihren eigenen Speicher; das Rezeptbuch daneben ist unberührt', dbs.join(', '));
+  await geh(p, 'werkstatt'); ok(/^Muttis Rezeptbuch \d/.test((await p.locator('#fassung').innerText()).trim()), 'auch die Fassungszeile nennt die Ausgabe');
+  await k.close();
+
+  }
   ok(fehler.length === 0, 'keine Fehler in der Konsole, kein Aufruf nach draußen außer den gestellten', fehler.slice(0, 3).join(' · '));
 } catch (e) { rot++; console.log('  ✗ ROT: Probe abgebrochen — ' + String(e.message).split('\n')[0]); }
 await browser.close(); srv.close();
