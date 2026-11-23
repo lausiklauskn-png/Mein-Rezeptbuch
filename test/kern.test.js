@@ -276,3 +276,17 @@ test('Kategorien je Ausgabe: eine mitgebrachte Kennung trägt ihren Familien-Nam
   assert.ok(!l.some((c) => c.id === 'suppe'), 'die Familie macht keine Reiter auf, sie benennt nur');
   assert.equal(K.loeschen(rz, leereKategorien(), 'vorsp', '').kat.ausgeblendet.length, 0, 'eine fremde Kategorie wird nicht ausgeblendet, sie verschwindet mit ihren Rezepten');
 });
+test('Sticker-Bild je Kategorie: gewähltes Rezeptbild, sonst das erste mit Bild; ein weggefallenes fällt still zurück', async () => {
+  const { katBild, bildWaehlen } = await import('../kern/modell/kategorien.mjs');
+  const rz = [{ uid: 'a', name: 'A', cat: 'mock' }, { uid: 'b', name: 'B', cat: 'mock', img: 'data:b' }, { uid: 'c', name: 'C', cat: 'mock', img: 'data:c' }, { uid: 'd', name: 'D', cat: 'limo', img: 'data:d' }, { uid: 'e', name: '', cat: 'mock', img: 'data:e', blank: true }];
+  let k = leereKategorien();
+  assert.equal(katBild(rz, k, 'mock')?.uid, 'b', 'Vorgabe: das erste Rezept der Kategorie mit Bild');
+  assert.equal(katBild(rz, k, 'sirup'), null, 'ohne Bild: nichts (dann gilt das Zeichen)');
+  k = bildWaehlen(k, 'mock', 'c'); assert.equal(katBild(rz, k, 'mock')?.uid, 'c', 'gewählt');
+  assert.deepEqual(k.namen.mock, { bild: 'c' }, 'gespeichert wird nur die Kennung des Rezepts, nicht das Bild');
+  assert.equal(katBild(rz, bildWaehlen(k, 'mock', 'd'), 'mock')?.uid, 'b', 'ein Rezept aus einer ANDEREN Kategorie gilt nicht');
+  assert.equal(katBild(rz.filter((r) => r.uid !== 'c'), k, 'mock')?.uid, 'b', 'gelöschtes Rezept → zurück zur Vorgabe');
+  assert.equal(katBild(rz, k, 'alle')?.uid, 'b', '„alle“ nimmt das erste Rezept mit Bild überhaupt');
+  k = bildWaehlen(k, 'mock', null); assert.equal(k.namen.mock, undefined, 'zurück auf Vorgabe räumt auf');
+  assert.equal(katBild(rz, umbenennen(bildWaehlen(k, 'mock', 'c'), 'mock', 'Neu'), 'mock')?.uid, 'c', 'Umbenennen lässt das Bild stehen');
+});

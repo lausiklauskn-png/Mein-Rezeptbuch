@@ -472,3 +472,13 @@ main{zoom:var(--z,1)}.koch .k-mitte,.koch .k-text{zoom:var(--z,1)}
  .md-detail .rwerk .chip.nurbreit{display:inline-flex!important}
  .md-detail .bogen{margin-top:0}
 }
+
+/* Sticker: kleines Foto je Kategorie (Klaus 23.11.) */
+.kat-zeichen{overflow:hidden}
+.kat-zeichen .sticker,.wahl-liste .kat-zeichen .sticker{width:100%;height:100%;object-fit:cover;display:block}
+.wahl-liste .kat-zeichen{width:34px;height:34px;border-radius:50%;display:grid;place-items:center;overflow:hidden;background:var(--fl2);flex:none}
+.sticker-raster{display:grid;grid-template-columns:repeat(auto-fill,minmax(64px,1fr));gap:8px}
+.sticker-raster button{aspect-ratio:1;border-radius:50%;overflow:hidden;padding:0;border:3px solid var(--bg);box-shadow:0 0 0 2px var(--line)}
+.sticker-raster button[aria-pressed="true"]{box-shadow:0 0 0 3px var(--akz)}
+.sticker-raster img{width:100%;height:100%;object-fit:cover;display:block}
+.kat-zeichen:has(.sticker){border-radius:50%}
