@@ -204,8 +204,10 @@ def einheit_trennen(z):
     if re.fullmatch(r'\d+\.\d+', a): a = a.replace('.', ',')
     return a, u
 
+RAUS = {37}  # Eierschecke: Klaus 23.11. „komplett rausnehmen“
 protokoll = []; buch = []; mix = []
 for n, r0 in enumerate(ALLE):
+    if n in RAUS: protokoll.append((n, r0['name'], r0['cat'], False, r0.get('source',''), ['entfernt (Klaus 23.11.)'])); continue
     r = copy.deepcopy(r0); log = []
     if n in NAME: log.append(f'Name: „{r["name"]}“ → „{NAME[n]}“'); r['name'] = NAME[n]
     if n in KAT: log.append(f'Kategorie: {r["cat"]} → {KAT[n]}'); r['cat'] = KAT[n]

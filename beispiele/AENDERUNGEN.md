@@ -6,7 +6,7 @@
 
 | Datei | Inhalt |
 |---|---|
-| `beispielbuch-mein-rezeptbuch.json` | 44 Rezepte für das öffentliche Beispielbuch (Essen und alkoholfreie Getränke) |
+| `beispielbuch-mein-rezeptbuch.json` | 43 Rezepte für das öffentliche Beispielbuch (Essen und alkoholfreie Getränke) |
 | `foodzine-beispiele.json` | 8 vollständige Food-Zine-Sätze mit je drei Seiten |
 | `getraenke-mit-alkohol-fuer-mixarium.json` | 8 Getränke mit Alkohol, für Mein Mixarium |
 
@@ -40,7 +40,6 @@
 - **Stollen**: Stollen: Zutatenliste stimmt nicht (u. a. „750 g Würste“, „2 x Backpulver“, zweimal Rosinen), Schritte in falscher Reihenfolge, Portionen 1. Bitte Originalrezept nachreichen.
 - **Gnocchi-Brokkoli-Auflauf**: Gnocchi-Brokkoli-Auflauf: enthält Schinken, stand unter „Vegetarisch“ – jetzt „Fleisch“.
 - **Pizza-Toast**: Pizza-Toast: enthält Salami, stand unter „Vegetarisch“ – jetzt „Fingerfood“.
-- **Eierschecke**: Eierschecke: Schritte unvollständig (Boden, Quarkmasse, Backzeit fehlen), „Falscher Hefeteig“ ohne Zutaten. Bitte ergänzen.
 - **Gemüsesuppe mit Fleisch**: Gemüsesuppe: Portionen 1 bei 1 l Flüssigkeit, vermutlich 2–4.
 
 ## Neue Bilder nötig (12) – Aufträge für ChatGPT
@@ -164,7 +163,7 @@ Ein hohes Glas mit drei sichtbaren Schichten: unten zerdrückte rote Erdbeeren, 
 | 34 | Klassischer Kartoffelgratin | vegi |  | Mengen und Einheiten getrennt; Tippfehler im Text korrigiert; Bild: 4449 KB → 552 KB |
 | 35 | Eierragout mit Senfsoße nach Omas Rezept | vegi |  | Mengen und Einheiten getrennt; Bild: ersetzt werden (Datei „Eierragout-mit-Kartoffeln.jpg“, vermutlich von gaumenfreundin.de) |
 | 36 | Saftiger Karottenkuchen | kuchen |  | Name: „Karottenkuchen super saftig“ → „Saftiger Karottenkuchen“; Tippfehler im Text korrigiert; Bild: ersetzt werden (Datei „Karottenkuchen-von-Gaumenfreundin.jpg“) |
-| 37 | Eierschecke | kuchen |  | Mengen und Einheiten getrennt; Bild: 4041 KB → 356 KB; ⚠ OFFEN: Eierschecke: Schritte unvollständig (Boden, Quarkmasse, Backzeit fehlen), „Falscher Hefeteig“ ohne Zutaten. Bitte ergänzen. |
+| 37 | Eierschecke | kuchen |  | entfernt (Klaus 23.11.) |
 | 38 | Gemüsesuppe mit Fleisch | suppe |  | Mengen und Einheiten getrennt; Bild: ersetzt werden (nur 800 × 360 Pixel, zu klein); ⚠ OFFEN: Gemüsesuppe: Portionen 1 bei 1 l Flüssigkeit, vermutlich 2–4. |
 | 39 | Melya | tee |  | Kategorie: mock → tee; Zutaten sauber gegliedert (Mengen unverändert, Einheiten getrennt oder umgerechnet); Schritte übersetzt/geordnet; Bild: 288 KB → 284 KB |
 | 40 | Amaretto fizz → Mixarium | ckt |  | Mengen und Einheiten getrennt; Bild: 252 KB → 250 KB |
