@@ -39,7 +39,7 @@ Das Alkohol-Paket aus `beispiele/` ist im Katalog nur für `mixarium-voll` freig
 | Datei | Aufgabe |
 |---|---|
 | `modell/rezept.mjs` | `normalisiere()` bringt jedes Rezept einmal in Form: `blank` nur ohne Namen, Kategorie getrimmt, `fld_…` zieht in `folder`, feste `uid`. `istInhalt()` ist die eine Frage, die Suche, „Alle“, Kategorien und Zähler stellen. |
-| `modell/kategorien.mjs` | `alleKategorien()`: feste, eigene, unbekannte und „Ohne Kategorie“, jede Kennung einmal. Anlegen, umbenennen, löschen mit Ziel, umsortieren. Eine andere Ausgabe bringt ihre festen Kategorien mit: `kategorienMit(FEST)` (Vorgabe: die Liste des Rezeptbuchs). |
+| `modell/kategorien.mjs` | `alleKategorien()`: feste, eigene, unbekannte und „Ohne Kategorie“, jede Kennung einmal. Anlegen, umbenennen, löschen mit Ziel, umsortieren. Eine andere Ausgabe bringt ihre festen Kategorien mit: `kategorienMit(FEST, { familie })` (Vorgabe: die Liste des Rezeptbuchs); mitgebrachte Kennungen tragen den Namen aus `familie`, nie die rohe Kennung. |
 | `modell/kategorien-fest.mjs` | die 18 festen Kategorien in 8 Sprachen, aus der alten App übernommen |
 | `modell/suche.mjs` | Wortsuche, auch über den Kategorienamen |
 | `sicherung/sicherung.mjs` | liest Fassung 9/10 der alten Apps, schreibt Fassung 11 mit Block `kategorien`; Zusammenführen an `uid` |
@@ -55,7 +55,7 @@ Das Alkohol-Paket aus `beispiele/` ist im Katalog nur für `mixarium-voll` freig
 | `oberflaeche/` | Symbole (Phosphor Duotone, nur die genutzten), Farbpaletten mit `farbName`/`tonName` (de/en), Schrift-Regler (`schriftRegler(wert, sprache)`), Bild aus Datei verkleinern |
 | `speicher/uebernahme.mjs` | liest den alten localStorage nur mit der Endung der eigenen Ausgabe, löscht nichts |
 
-Probe: `node --test test/kern.test.js` (26 Fälle). Wächter für den Sushi-Fehler: **alles, was die Suche findet, steht in genau einer Gruppe von „Alle“**.
+Probe: `node --test test/kern.test.js` (27 Fälle). Wächter für den Sushi-Fehler: **alles, was die Suche findet, steht in genau einer Gruppe von „Alle“**.
 
 ## Pin (`KERN.json`)
 
