@@ -19,16 +19,17 @@ import { rezeptAusText, zutatAusZeile, zutatZeile } from '../kern/import/text.mj
 import { diktat, diktatAus, diktatMoeglich } from '../kern/oberflaeche/diktat.mjs';
 import { kiBild, gratisBild, KOSTEN_TEXT } from '../kern/ki/bild.mjs';
 import { tresor } from '../kern/speicher/tresor.mjs';
+import { ladeBausteine, korpus as semKorpus, sucheBedeutung } from '../kern/suche/bedeutung.mjs';
 import { woche, planen, entplanen, ausAltemMenu, tagIso } from '../kern/modell/plan.mjs';
 
-const FASSUNG = '0.7.0';
+const FASSUNG = '0.8.0';
 const breit = () => matchMedia('(min-width:1000px)').matches;
 const $ = (id) => document.getElementById(id);
 const esc = (t) => String(t ?? '').replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
 
 let ausgabe = null, lager = null;
 let Z = leererZustand();                     // Rezepte, Wochenplan, Ordner, Kategorien
-let E = { farbe: 'braun', leiste: { seite: 'r', pos: 64 }, zuletzt: null, ton: 'geraet', schrift: 100, railZu: false };   // Einstellungen dieses Geräts
+let E = { farbe: 'braun', leiste: { seite: 'r', pos: 64 }, zuletzt: null, ton: 'geraet', schrift: 100, railZu: false, sinn: false };   // Einstellungen dieses Geräts
 const s = { ansicht: 'start', uid: null, frage: '', kat: 'alle', portion: {}, werkzeug: false, leisteAuf: false, form: null, nurDies: false, planTag: new Date(), bilder: { gross: false, filter: 'alle', wahl: new Set() }, bildZiel: null, rleiste: false };
 const LEER_EINKAUF = () => ({ posten: [], haken: {}, eigene: [], laeden: { Supermarkt: [] }, laden: 'Supermarkt' });
 function ergaenze() { Z.einkauf = { ...LEER_EINKAUF(), ...(Z.einkauf || {}) }; if (!Z.einkauf.laeden[Z.einkauf.laden]) Z.einkauf.laden = Object.keys(Z.einkauf.laeden)[0] || 'Supermarkt'; if (!Z.einkauf.laeden[Z.einkauf.laden]) Z.einkauf.laeden[Z.einkauf.laden] = []; if (!Z.plan) Z.plan = ausAltemMenu(Z.menu, Z.rezepte); }
@@ -88,7 +89,7 @@ const karte = (r, c) => `<button class="karte" data-a="rezept" data-uid="${esc(r
 function startHtml() {
   const heute = new Date().toLocaleDateString('de-DE', { weekday: 'long', day: 'numeric', month: 'long' });
   let h = `<p class="gruss">${esc(ausgabe.begruessung?.de || 'Was kochen wir heute?')}<small class="datum">${esc(heute)}</small></p>
-   <form class="suche" data-form="suche" role="search">${ic('suche')}<input id="suchfeld" name="q" value="${esc(s.frage)}" placeholder="Rezept, Zutat oder Kategorie …" aria-label="Suchen" autocomplete="off" enterkeyhint="search">${mik('#suchfeld')}<button type="button" id="suche-x" data-a="suche-leer" aria-label="Eingabe löschen" ${s.frage ? '' : 'hidden'}>${ic('x')}</button></form>`;
+   <form class="suche" data-form="suche" role="search">${ic('suche')}<input id="suchfeld" name="q" value="${esc(s.frage)}" placeholder="Rezept, Zutat oder Kategorie …" aria-label="Suchen" autocomplete="off" enterkeyhint="search">${mik('#suchfeld')}<button type="button" class="sinn" data-a="sinn" aria-pressed="${!!E.sinn}" aria-label="Sinn-Suche: auch nach Bedeutung suchen" title="Sinn-Suche">${ic('funken')}</button><button type="button" id="suche-x" data-a="suche-leer" aria-label="Eingabe löschen" ${s.frage ? '' : 'hidden'}>${ic('x')}</button></form>`;
   return h + `<div id="start-rest">${startRest()}</div>`;
 }
 function startRest() {
@@ -98,7 +99,9 @@ function startRest() {
   if (!alle.length) return leerHtml();
   if (s.frage.trim()) {
     const tr = suche(Z.rezepte, s.frage, Z.kategorien);
-    return `<div class="ueber"><h2>Treffer</h2><small>${tr.length} von ${alle.length}</small></div>` + (tr.length ? `<div class="gitter">${tr.map((r) => karte(r, katVon.get(katVonRezept(r)))).join('')}</div>` : `<div class="leer"><p>Nichts gefunden für „${esc(s.frage)}“.</p></div>`);
+    const da = new Set(tr.map((r) => r.uid)), sinn = E.sinn && sem.fuer === s.frage.trim().toLowerCase() ? sem.ids.map(rezept).filter((r) => r && istInhalt(r) && !da.has(r.uid)) : [];
+    return `<div class="ueber"><h2>Treffer</h2><small>${tr.length} von ${alle.length}</small></div>` + (tr.length ? `<div class="gitter">${tr.map((r) => karte(r, katVon.get(katVonRezept(r)))).join('')}</div>` : sinn.length ? '' : `<div class="leer"><p>Nichts gefunden für „${esc(s.frage)}“.</p></div>`)
+      + (E.sinn ? `<p class="sinn-status" id="sinn-status" role="status">${esc(sem.status)}</p>` : '') + (sinn.length ? `<div class="ueber"><h2>Nach Bedeutung</h2><small>${sinn.length}</small></div><div class="gitter" id="sinn-treffer">${sinn.map((r) => karte(r, katVon.get(katVonRezept(r)))).join('')}</div>` : '');
   }
   const erstesBild = (id) => alle.find((r) => (id === 'alle' || katVonRezept(r) === id) && r.img);
   h += `<div class="fotokat" role="group" aria-label="Kategorien">` + [{ id: 'alle', de: 'Alle' }, ...kats].map((c) => {
@@ -125,6 +128,28 @@ function leerHtml() {
 }
 let katalog = null;
 const beispielText = () => { const p = katalog?.pakete?.find((x) => x.id === ausgabe.beispiele[0]); return p ? `${p.anzahl} Rezepte, ${(p.bytes / 1e6).toFixed(0)} MB` : 'aus dem Netz'; };
+
+/* ---------- Sinn-Suche: Modul 03 und 04 der bisherigen App, erst beim Einschalten geladen ---------- */
+const sem = { ids: [], fuer: '', status: '', uhr: null, laeuft: false, korpus: null, sig: '' };
+const semStatus = (t) => { sem.status = t; const el = $('sinn-status'); if (el) el.textContent = t; };
+async function semBereit() {
+  await ladeBausteine('../sbkim/'); await window.SbkimEmbedding.init();
+  const rs = Z.rezepte.filter(istInhalt), namen = new Map(alleKategorien(Z.rezepte, Z.kategorien).map((c) => [c.id, katName(c)])), sig = rs.map((r) => r.uid).join(',');
+  if (!sem.korpus || sem.sig !== sig) { sem.korpus = await semKorpus(rs, (r) => namen.get(katVonRezept(r)) || '', { einbetten: (t) => window.SbkimEmbedding.embedPassage(t), fortschritt: (i, n) => semStatus(`Sinn-Suche wird vorbereitet: ${i} von ${n} Rezepten`) }); sem.sig = sig; }
+  return sem.korpus;
+}
+function semPlanen() { clearTimeout(sem.uhr); if (!E.sinn) return; const f = s.frage.trim().toLowerCase(); if (!f) { sem.ids = []; sem.fuer = ''; return; } sem.uhr = setTimeout(() => semLauf(f), 350); }
+async function semLauf(f) {
+  if (!E.sinn) return; if (sem.laeuft) { sem.uhr = setTimeout(() => semLauf(f), 300); return; }
+  sem.laeuft = true; semStatus(sem.korpus ? 'sucht nach Bedeutung …' : 'Sinn-Suche wird vorbereitet (beim ersten Mal lädt das Sprachmodell) …');
+  try {
+    const c = await semBereit(); if (s.frage.trim().toLowerCase() !== f) return;   // es wurde schon weitergetippt
+    sem.ids = await sucheBedeutung(window.SbkimMatch, f, c); sem.fuer = f; if (s.frage.trim().toLowerCase() !== f) return;
+    const wort = new Set(suche(Z.rezepte, s.frage, Z.kategorien).map((r) => r.uid)), dazu = sem.ids.filter((u) => !wort.has(u) && rezept(u)).length;
+    sem.status = dazu ? `${dazu} zusätzlich nach Bedeutung gefunden` : 'Sinn-Suche an, keine weiteren Treffer';
+    if (s.ansicht === 'start' && $('start-rest')) $('start-rest').innerHTML = startRest();
+  } catch (f) { console.warn('Sinn-Suche:', f?.message || f); semStatus('Die Sinn-Suche ist gerade nicht verfügbar. Die Wortsuche läuft weiter.'); } finally { sem.laeuft = false; }
+}
 
 /* ---------- Rezept ---------- */
 function rezeptHtml() {
@@ -446,6 +471,8 @@ const A = {
   kat: (e) => { s.kat = e.dataset.kat; zeichne(); },
   werkzeug: () => { s.werkzeug = !s.werkzeug; kopfZeichnen(); },
   'zur-suche': () => { if (s.ansicht !== 'start') geh('start'); $('suchfeld')?.focus(); },
+  sinn: () => { if (E.sinn) { E.sinn = false; sem.ids = []; sem.fuer = ''; sichern(); zeichne(); melde('Sinn-Suche aus'); return; }
+    frage('Sinn-Suche einschalten?', 'Sie findet Rezepte auch nach Bedeutung, zum Beispiel „etwas Süßes“ oder „Eintopf“. Dafür lädt die App einmalig ein Sprachmodell aus dem Netz (etwa 120 MB). Danach rechnet sie im Gerät; deine Rezepte gehen nirgendwohin.', 'Einschalten', () => { E.sinn = true; sem.status = ''; sichern(); zeichne(); if (s.frage.trim()) semPlanen(); else semBereit().then(() => melde('Sinn-Suche bereit')).catch(() => melde('Die Sinn-Suche ließ sich nicht laden.')); }, false); },
   'suche-leer': () => { s.frage = ''; zeichne(); $('suchfeld')?.focus(); },
   neu: () => neuFenster(),
   'neu-tab': (e) => { diktatAus(); neuFenster(e.dataset.t); },
@@ -571,7 +598,7 @@ document.addEventListener('change', (ev) => { const f = ev.target.closest?.('.ka
 document.addEventListener('input', (ev) => { if (ev.target.id === 'schriftregler') { E.schrift = schriftSetzen(document.documentElement, ev.target.value); $('schriftzahl').textContent = E.schrift + ' %'; sichern(); return; } if (ev.target.id === 'zs-zoom' && zs) { zs.z = +ev.target.value / 100; zsZeigen(); } });
 document.addEventListener('input', (ev) => {
   if (ev.target.id !== 'suchfeld') return;
-  s.frage = ev.target.value; $('start-rest').innerHTML = startRest(); $('suche-x').hidden = !s.frage;   // das Feld selbst bleibt stehen (Tastatur, Diktat)
+  s.frage = ev.target.value; $('start-rest').innerHTML = startRest(); $('suche-x').hidden = !s.frage; semPlanen();   // das Feld selbst bleibt stehen (Tastatur, Diktat)
 });
 document.addEventListener('keydown', (ev) => {
   if (s.ansicht !== 'kochen' || $('fensterort').innerHTML) return;
