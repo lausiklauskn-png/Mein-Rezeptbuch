@@ -17,6 +17,7 @@
 import { text, fuelle, kennt, gebiet } from '../oberflaeche/sprache.mjs';
 import { normalisiere, sicht, istInhalt, katVonRezept, KAT_OHNE } from '../modell/rezept.mjs';
 import { imOrdner } from '../modell/ordner.mjs';
+import { ohneName } from '../modell/kategorien.mjs';
 import { esc, druckBild, druckFarbe, druckDatum, rezeptTeile, rezeptStil, ausschnittStil, DRUCK_RICHTLINIE } from './druck.mjs';
 
 /** Die Gliederung des Buchs.
@@ -40,7 +41,7 @@ export function buchInhalt(rezepte, { kategorien = [], auswahl = null, sprache =
   const folge = new Map();   /* jede Kennung genau einmal, die erste gewinnt */
   for (const c of Array.isArray(kategorien) ? kategorien : []) { const id = String((c && c.id) ?? '').trim(); if (id && !folge.has(id)) folge.set(id, { id, name: String((c && c.name) ?? '').trim(), rezepte: [] }); }
   if (!folge.has(KAT_OHNE)) folge.set(KAT_OHNE, { id: KAT_OHNE, name: '', rezepte: [] });
-  for (const g of folge.values()) if (!g.name) g.name = g.id === KAT_OHNE ? text(sprache, 'Ohne Kategorie', 'No category') : g.id;
+  for (const g of folge.values()) if (!g.name) g.name = g.id === KAT_OHNE ? ohneName(sprache) : g.id;
   for (const r of liste) { const k = katVonRezept(r); folge.get(folge.has(k) ? k : KAT_OHNE).rezepte.push({ nr: 0, uid: r.uid, name: sicht(r, sprache).name, rezept: r }); }
   const gruppen = [...folge.values()].filter((g) => g.rezepte.length); let nr = 0;
   for (const g of gruppen) { g.rezepte.sort((a, b) => a.name.localeCompare(b.name, ort, { sensitivity: 'base', numeric: true }) || (a.uid < b.uid ? -1 : a.uid > b.uid ? 1 : 0)); for (const e of g.rezepte) e.nr = ++nr; }

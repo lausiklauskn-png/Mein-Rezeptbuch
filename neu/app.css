@@ -675,3 +675,5 @@ a.knopf{text-decoration:none}
 .plan-vorschlag .zeile{align-items:flex-start;cursor:default}
 .plan-vorschlag .zeile b{flex:none;width:3.2em;color:var(--akz)}
 .knopf:not(.gross) small{font-weight:500;opacity:.75;margin-left:6px;font-size:.82em}
+.haken-zeile{display:flex;align-items:center;gap:8px;margin:10px 0 12px;font-size:14px}
+.haken-zeile input{width:18px;height:18px;accent-color:var(--akz)}

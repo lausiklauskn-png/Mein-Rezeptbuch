@@ -1,5 +1,5 @@
 // Mein Rezeptbuch · Zusätze: was aus der alten App noch fehlte und für sich steht.
-// KI-Richter der Suche · KI-Bilder für alle ohne Bild · Prüfung des Bildauftrags · Tresor-Stände der alten App · Wochenplan-Vorschlag.
+// KI-Richter der Suche · KI-Bilder für alle ohne Bild · Prüfung des Bildauftrags · Tresor-Stände der alten App · Wochenplan-Vorschlag · Buch.
 // Die Hauptdatei (app.mjs) reicht ihre Werkzeuge herein und ruft die Stücke an wenigen, benannten Stellen; so bleibt sie lesbar.
 import { richte, kandidat, richterHinaus, RICHTER_MAX } from '../kern/suche/richter.mjs';
 import { pruefeBildAuftrag, sammelBilder, sammelKosten, ohneBild } from '../kern/ki/bild.mjs';
@@ -8,6 +8,8 @@ import { leseAltenTresor, alteStaendeInTresor } from '../kern/speicher/alt-treso
 import { wochenplanVorschlag, vorschlagInPlan, wasGehtHinaus } from '../kern/ki/helfer.mjs';
 import { fuelle, gebiet } from '../kern/oberflaeche/sprache.mjs';
 import { tagIso } from '../kern/modell/plan.mjs';
+import { buchInhalt, buchPdf, buchBlaettern, buchGroesse, buchGroesseText } from '../kern/ausgabe/buch.mjs';
+import { drucke } from '../kern/ausgabe/druck.mjs';
 
 /** app: { L, spr, esc, ic, A, s, SK, W, Z(), setzeZ(z), E(), fenster, fensterZu, beiZu(f), melde, sichern, zeichne, zeichneStart, rezept(uid),
  *         istInhalt, katNamen() → Map, katVon(r), schluesselFenster(a, danach), bildAusDatei(blob), tresorAuto(), tr(), ausgabe() } */
@@ -129,5 +131,38 @@ export function zusatz(app) {
     melde(fuelle(L('+{0} im Plan', '+{0} in the plan'), n), L('Rückgängig', 'Undo'), () => { app.setzeZ({ ...app.Z(), plan: vorher }); sichern(); zeichne(); });
   };
 
-  return { sinnBlock, sammelKnopf, bildFreigabe, altTresor, planKnopf, wahl, stellenHtml };
+  /* ── Buch: alle Rezepte, eine Kategorie oder ein Ordner als PDF zum Drucken oder als Datei zum Blättern (kern/ausgabe/buch.mjs). ── */
+  /** Das Thema „Buch“ für die Einstellungen: [id, symbol, farbe, titel, hilfe, zeilen]. zeile: der Zeilen-Baustein der App. */
+  function buchThema(zeile, farbe) {
+    const n = mitInhalt().length;
+    return ['buch', 'buch', farbe, L('Buch', 'Book'), '', zeile('buch', 'drucken', L('Als PDF drucken', 'Print as a PDF'), String(n), 'data-art="pdf"') + zeile('buch', 'buch', L('Zum Blättern', 'To leaf through'), L('Datei', 'file'), 'data-art="blaettern"')];
+  }
+  const buchOpt = () => {
+    const z = app.Z(), w = document.getElementById('buch-wahl').value, titel = document.getElementById('buch-titel').value.trim() || app.ausgabe().titel;
+    return { titel, kategorien: [...app.katNamen()].map(([id, name]) => ({ id, name })), ordner: z.ordner, sprache: spr(), mitBildern: document.getElementById('buch-bilder').checked,
+      auswahl: !w ? null : w.startsWith('k:') ? { kat: w.slice(2) } : { ordner: w.slice(2) } };
+  };
+  A.buch = (e) => {
+    const z = app.Z(), art = e.dataset.art === 'pdf' ? 'pdf' : 'blaettern', rs = mitInhalt(), namen = app.katNamen(), zahl = new Map();
+    for (const x of rs) { const k = app.katVon(x); zahl.set(k, (zahl.get(k) || 0) + 1); }
+    fenster(`<h2>${art === 'pdf' ? L('Buch als PDF', 'Book as a PDF') : L('Buch zum Blättern', 'Book to leaf through')}</h2>
+      <input class="feld" id="buch-titel" value="${esc(app.ausgabe().titel)}" aria-label="${esc(L('Titel', 'Title'))}" style="width:100%">
+      <select class="feld" id="buch-wahl" aria-label="${esc(L('Auswahl', 'Selection'))}" style="width:100%;margin-top:8px"><option value="">${esc(L('Alle Rezepte', 'All recipes'))} · ${rs.length}</option>
+        ${[...namen].filter(([id]) => zahl.get(id)).map(([id, name]) => `<option value="k:${esc(id)}">${esc(name)} · ${zahl.get(id)}</option>`).join('')}${z.ordner.map((o) => `<option value="o:${esc(o.id)}">${esc(o.name)}</option>`).join('')}</select>
+      <label class="haken-zeile"><input type="checkbox" id="buch-bilder" checked> ${L('mit Bildern', 'with pictures')}</label>
+      <div class="reihe"><button class="knopf akz" data-a="buch-los" data-art="${art}">${ic(art === 'pdf' ? 'drucken' : 'laden')}${art === 'pdf' ? L('Drucken', 'Print') : L('Speichern', 'Save')}</button><button class="knopf" data-a="fenster-zu">${L('Abbrechen', 'Cancel')}</button></div>`);
+  };
+  A['buch-los'] = async (e) => {
+    const opt = buchOpt(), z = app.Z(), n = buchInhalt(z.rezepte, opt).anzahl;
+    if (!n) { melde(L('In dieser Auswahl ist kein Rezept', 'No recipe in this selection')); return; }
+    fensterZu();
+    try {
+      if (e.dataset.art === 'pdf') await W.mit(L('Buch wird gesetzt …', 'Setting the book …'), () => drucke(buchPdf(z.rezepte, opt), { sprache: spr() }));
+      else { const html = await W.mit(L('Buch wird gesetzt …', 'Setting the book …'), async () => buchBlaettern(z.rezepte, opt));
+        const a = document.createElement('a'); a.href = URL.createObjectURL(new Blob([html], { type: 'text/html' })); a.download = opt.titel.replace(/[^\p{L}\p{N} _-]+/gu, '').trim().replace(/\s+/g, '-') + '.html'; document.body.appendChild(a); a.click(); a.remove(); setTimeout(() => URL.revokeObjectURL(a.href), 5000);
+        melde(fuelle(L('Buch gespeichert · {0}', 'Book saved · {0}'), buchGroesseText(buchGroesse(html), spr()))); }
+    } catch (f) { melde(f.message); }
+  };
+
+  return { sinnBlock, sammelKnopf, bildFreigabe, altTresor, planKnopf, buchThema, wahl, stellenHtml };
 }

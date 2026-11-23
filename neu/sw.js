@@ -20,6 +20,7 @@ const VORRAT = [
  "../kern/modell/einheiten.mjs",
  "../kern/ki/helfer.mjs",
  "../kern/ausgabe/druck.mjs",
+ "../kern/ausgabe/buch.mjs",
  "../kern/teilen/qr.mjs",
  "../kern/modell/mengen.mjs",
  "../kern/modell/plan.mjs",

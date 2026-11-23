@@ -19,6 +19,10 @@ F=[('alter-stand-doppelt', "    if (schon.has(s.alt)) continue;", "", 'kern/spei
    ('sammel-bricht-nicht-ab', "abbruch: () => stopp,", "abbruch: () => false,", 'neu/zusatz.mjs', '„Abbrechen“ hört nach dem laufenden Bild auf'),
    ('sammel-laeuft-nach-nein', "aus.grund = f.status === 401 ? 'schluessel' : 'limit'; aus.offen = liste.length - i - 1; break; }", "aus.grund = f.status === 401 ? 'schluessel' : 'limit'; aus.offen = liste.length - i - 1; }", 'kern/ki/bild.mjs', 'ein abgelehnter Schlüssel beendet den Lauf'),
    ('plan-ohne-ansehen', "      vorschlag = { v, ab };", "      vorschlag = { v, ab }; A['plan-ki-ja']();", 'neu/zusatz.mjs', 'vor „Übernehmen“ ist der Plan unverändert'),
+   ('buch-auswahl-ignoriert', "      auswahl: !w ? null : w.startsWith('k:') ? { kat: w.slice(2) } : { ordner: w.slice(2) } };", "      auswahl: null };", 'neu/zusatz.mjs', 'eine Kategorie als Auswahl: nur ihre Rezepte stehen im Buch'),
+   ('buch-immer-mit-bildern', "mitBildern: document.getElementById('buch-bilder').checked,", "mitBildern: true,", 'neu/zusatz.mjs', 'ohne Bilder ist kein Bild in der Datei'),
+   ('buch-leer-nicht-gesagt', "    if (!n) { melde(L('In dieser Auswahl ist kein Rezept', 'No recipe in this selection')); return; }", "", 'neu/zusatz.mjs', 'eine leere Auswahl wird gesagt'),
+   ('buch-titel-fest', "titel = document.getElementById('buch-titel').value.trim() || app.ausgabe().titel;", "titel = app.ausgabe().titel;", 'neu/zusatz.mjs', 'lädt eine eigenständige Datei mit dem Titel und allen Rezepten herunter'),
    ('plan-falsche-woche', "const tage = app.planTage(), ab = tagIso(tage[0]),", "const tage = app.planTage(), ab = tagIso(tage[1]),", 'neu/zusatz.mjs', 'trägt den Vorschlag in die gezeigte Woche ein')]
 nur=os.environ.get('NUR_FALL'); nur=nur.split(',') if nur else None; gefangen=0; durch=0; tot=0
 def anker(fall):

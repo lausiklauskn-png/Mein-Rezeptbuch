@@ -549,6 +549,7 @@ function werkstattHtml() {
       zeile('farbe', 'auge', L('Farbe, hell und dunkel', 'Colour, light and dark'), (FARBEN[E.farbe]?.de || '') + ' · ' + TOENE[E.ton]) + zeile('schrift', 'stift', L('Schriftgröße', 'Text size'), schriftWert(E.schrift) + ' %') + zeile('einheiten', 'waage', L('Einheiten', 'Units'), einhName()) + zeile('hinweise', 'frage', L('Hinweis-Blasen', 'Tooltips'), E.hinweiseAus ? L('aus', 'off') : L('an', 'on'), `aria-pressed="${!E.hinweiseAus}"`) + (installFrage ? zeile('installieren', 'laden', L('Als App installieren', 'Install as an app')) : '')],
     ['beispiele', 'paket', WF.petrol, L('Beispiele', 'Examples'), '',
       zeile('beispiel', 'paket', L('Beispielbuch laden', 'Load example book'), beispielText()) + (b ? zeile('beispiele-weg', 'muell', L('Beispiele entfernen', 'Remove examples'), String(b)) : '')],
+    ZU.buchThema(zeile, '#b07a4a'),
     ['aufraeumen', 'muell', WF.koralle, L('Aufräumen', 'Clean up'), '', zeile('alles-weg', 'muell', L('Alle Rezepte löschen', 'Delete all recipes'), L('mit Rückfrage', 'asks first'))],
   ];
   return `<div class="ueber"><h2 style="font-size:19px">${L('Einstellungen', 'Settings')}</h2><small>${n} ${L('Rezepte', 'recipes')}</small></div>

@@ -8,6 +8,8 @@ import { KAT_OHNE, katVonRezept, istInhalt } from './rezept.mjs';
 export { KATEGORIEN_FEST, KAT_OHNE };
 export const SPRACHEN = ['de', 'en', 'ru', 'zh', 'es', 'fr', 'it', 'pt'];
 const OHNE_NAME = { de: 'Ohne Kategorie', en: 'No category', ru: 'Без категории', zh: '未分类', es: 'Sin categoría', fr: 'Sans catégorie', it: 'Senza categoria', pt: 'Sem categoria' };
+/** Der Name der Gruppe „Ohne Kategorie“ in der Sprache (für Stellen ohne Kategorien-Zustand, etwa das Buch). */
+export const ohneName = (sprache = 'de') => OHNE_NAME[sprache] || OHNE_NAME.en;
 
 /** Leerer Kategorie-Zustand. eigene: [{id, de, …, symbol}], namen: {id: {name, symbol}}, ausgeblendet: [id], folge: [id] */
 export const leereKategorien = () => ({ eigene: [], namen: {}, ausgeblendet: [], folge: [] });
