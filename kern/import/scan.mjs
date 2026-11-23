@@ -12,6 +12,7 @@ const EINLEITUNG = {
   bild: 'You are a recipe extraction expert. Look at this recipe image carefully and extract ALL information.',
   seiten: 'You are a recipe extraction expert. These images are the pages of one recipe document, in order. Read them carefully and extract ALL information.',
   text: 'You are a recipe extraction expert. Here is recipe text extracted via OCR. Read it carefully and extract ALL information.',
+  web: 'You are a recipe extraction expert. Here is the visible text of a web page that contains a recipe, with other page text around it. Find the recipe and extract ALL information.',
 };
 /** Der Auftrag an Claude. kategorien: [{ id, name }] der Ausgabe; die Kennung kommt zurück. */
 export function auftrag(art, kategorien = []) {

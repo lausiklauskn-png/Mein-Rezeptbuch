@@ -508,3 +508,7 @@ ol.ki-liste{list-style:decimal}
 .fenster .schl-stand{min-height:18px;margin:8px 0 10px;font-size:12.5px}
 .schl-stand[data-ok="true"]{color:#2e8b57}
 .schl-stand[data-ok="false"]{color:#c0392b}
+.web-zeile{width:100%;margin:0}
+.fenster .web-hin{font-size:13px;margin:0;color:var(--ink)}
+.imp-p .mitmik{width:100%}
+a.knopf{text-decoration:none}

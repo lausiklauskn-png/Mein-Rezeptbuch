@@ -1,12 +1,13 @@
 {
- "fassung": "0.18.0",
- "inhalt": "Ausgaben-Schalter, Rezeptmodell, Kategorien, Suche, Sicherung, Übernahme, Speicher, Mengen, Symbole, Farben, Bild, Kochansicht (Zutaten je Schritt, Zeit, Geräte), Einkaufsliste, Wochenplan, Text-Import, Spracheingabe, Bildauftrag je Ausgabe, englische Namen für Farben, Töne, Geräte und Schrift-Regler, Kategorien und Einkauf je Ausgabe (kategorienMit mit Familien-Namen, einkaufMit), Sticker-Bild je Kategorie (katBild), Text-Import mit Bar- und US-Einheiten, Hinweis-Blasen (Tooltips), Ladebalken für alle Wartezeiten, Sprache der Oberfläche (acht Sprachen, Tabellen), KI-Schlüssel (Anthropic, OpenAI, Mistral), Claude-Aufruf, Mistral OCR, Reinigung vor der KI, Foto-Scan, Datei prüfen",
+ "fassung": "0.19.0",
+ "inhalt": "Ausgaben-Schalter, Rezeptmodell, Kategorien, Suche, Sicherung, Übernahme, Speicher, Mengen, Symbole, Farben, Bild, Kochansicht (Zutaten je Schritt, Zeit, Geräte), Einkaufsliste, Wochenplan, Text-Import, Spracheingabe, Bildauftrag je Ausgabe, englische Namen für Farben, Töne, Geräte und Schrift-Regler, Kategorien und Einkauf je Ausgabe (kategorienMit mit Familien-Namen, einkaufMit), Sticker-Bild je Kategorie (katBild), Text-Import mit Bar- und US-Einheiten, Hinweis-Blasen (Tooltips), Ladebalken für alle Wartezeiten, Sprache der Oberfläche (acht Sprachen, Tabellen), KI-Schlüssel (Anthropic, OpenAI, Mistral), Claude-Aufruf, Mistral OCR, Reinigung vor der KI, Foto-Scan, Datei prüfen, Web-Import ohne Weiterleiter",
  "dateien": {
-  "kern/README.md": "d5785848951d6940165817ed0b048cb5f4e993990be3b90345ebe432b090acdf",
+  "kern/README.md": "30a013f6a5f1f2bd0df5aa8bd34a58084e137c80e3665090c1f9d7d6022a94cf",
   "kern/ausgabe/ausgabe.mjs": "56d01a3a8b5855af233956c5ecf83d66df138ddc0896cede65a74192fd626ecf",
-  "kern/import/scan.mjs": "c4111e9a9605df1b5c9b7c2027b9778eabae4985f927376caede03b83a3600ff",
+  "kern/import/scan.mjs": "c037a5414d5bbc7c0845e12b0fa5f75e965277c8c81b578a724cb594bb0733b3",
   "kern/import/text.mjs": "261a6fb5f36b8d8e27816c2396a6453df13b47e6b0f1a88c870bc989bfb141e0",
-  "kern/kern-stand.mjs": "ac3ae4e7e1e83a3670519536524a1ecdcd65d4cc39b0f4d905ea1984f759f292",
+  "kern/import/web.mjs": "44ba458cb87934b492d8b2a3dd3208a44327042a42466c36353c7781760ce87d",
+  "kern/kern-stand.mjs": "ce667b6857853884eb5e1132ba2d9e8a0aaf5b66949cb67c0d09eda6979b0e9f",
   "kern/ki/bild.mjs": "db6a1e7ec3ded4666dcf29cbaef2661681f54cb643357a5efb1d92865ed53739",
   "kern/ki/claude.mjs": "15aa25bf1ef63985982de2ef607eb4a6be36ab822e1ddee0b6c86545cc1a427c",
   "kern/ki/ocr.mjs": "8e2952ad4fead2742ef56ae58dab661016dc1a1d8c8ef3bac86a2d28b125258b",
