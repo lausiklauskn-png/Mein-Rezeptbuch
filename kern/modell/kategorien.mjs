@@ -15,11 +15,11 @@ export const leereKategorien = () => ({ eigene: [], namen: {}, ausgeblendet: [],
 export function anzahl(rezepte, id) { return rezepte.filter((r) => istInhalt(r) && katVonRezept(r) === id).length; }
 
 /** Alle Kategorien in Anzeige-Reihenfolge. Jede Kennung genau einmal. Ausgeblendet wird nur, was leer ist. */
-export function alleKategorien(rezepte, kat = leereKategorien()) {
+export function alleKategorien(rezepte, kat = leereKategorien(), fest = KATEGORIEN_FEST) {
   const aus = new Set((kat.ausgeblendet || []).map(String).filter((id) => anzahl(rezepte, id) === 0));
   const liste = [], gesehen = new Set();
   const nimm = (c) => { const id = String(c.id); if (!id || gesehen.has(id) || aus.has(id)) return; gesehen.add(id); liste.push({ ...c, id }); };
-  KATEGORIEN_FEST.forEach((c) => nimm({ ...c, art: 'fest' }));
+  fest.forEach((c) => nimm({ ...c, art: 'fest' }));
   (kat.eigene || []).forEach((c) => nimm({ ...c, art: 'eigen' }));
   let ohne = 0;
   for (const r of rezepte) {
@@ -45,8 +45,8 @@ export function beschriftung(c, sprache = 'de', kat = leereKategorien()) {
 export function symbol(c, kat = leereKategorien()) { return kat.namen?.[c.id]?.symbol || c.symbol || 'karte'; }
 
 /** Gruppen für „Alle“: jede Kategorie mit ihren Rezepten, leere fallen weg. Jedes Rezept mit Namen steht in genau einer Gruppe. */
-export function gruppiere(rezepte, kat = leereKategorien()) {
-  return alleKategorien(rezepte, kat).map((c) => ({ kategorie: c, rezepte: rezepte.filter((r) => istInhalt(r) && katVonRezept(r) === c.id) })).filter((g) => g.rezepte.length);
+export function gruppiere(rezepte, kat = leereKategorien(), fest = KATEGORIEN_FEST) {
+  return alleKategorien(rezepte, kat, fest).map((c) => ({ kategorie: c, rezepte: rezepte.filter((r) => istInhalt(r) && katVonRezept(r) === c.id) })).filter((g) => g.rezepte.length);
 }
 
 export function anlegen(kat, name, symbolName = 'karte') {
@@ -61,19 +61,32 @@ export function umbenennen(kat, id, name, symbolName) {
   return { ...kat, namen };
 }
 /** Löschen heißt umhängen. ziel: Kennung, '' (ausdrücklich ohne Kategorie) oder null (nichts zu verschieben). */
-export function loeschen(rezepte, kat, id, ziel) {
+export function loeschen(rezepte, kat, id, ziel, festListe = KATEGORIEN_FEST) {
   const betroffen = rezepte.filter((r) => katVonRezept(r) === id && istInhalt(r));
   if (betroffen.length && ziel == null) throw new Error('Kategorie hat Rezepte: Ziel nötig');
   const neu = rezepte.map((r) => (katVonRezept(r) === id ? { ...r, cat: ziel || '' } : r));
   const eigene = (kat.eigene || []).filter((c) => String(c.id) !== String(id));
-  const fest = KATEGORIEN_FEST.some((c) => c.id === id);
+  const fest = festListe.some((c) => c.id === id);
   const namen = { ...(kat.namen || {}) }; delete namen[id];
   return { rezepte: neu, kat: { ...kat, eigene, namen, ausgeblendet: fest ? [...new Set([...(kat.ausgeblendet || []), id])] : (kat.ausgeblendet || []), folge: (kat.folge || []).filter((x) => String(x) !== String(id)) }, verschoben: betroffen.length };
 }
 /** Reihenfolge: die ganze Liste wird neu geschrieben, nie nur ergänzt. */
-export function umsortieren(rezepte, kat, id, vorId) {
-  const ids = alleKategorien(rezepte, kat).map((c) => c.id).filter((x) => x !== id);
+export function umsortieren(rezepte, kat, id, vorId, fest = KATEGORIEN_FEST) {
+  const ids = alleKategorien(rezepte, kat, fest).map((c) => c.id).filter((x) => x !== id);
   const i = vorId == null ? ids.length : ids.indexOf(vorId);
   ids.splice(i < 0 ? ids.length : i, 0, id);
   return { ...kat, folge: ids };
+}
+
+/** Dieselben Werkzeuge mit den festen Kategorien einer anderen Ausgabe (Mixarium: Getränke statt Essen).
+ *  Ohne diesen Weg gilt überall die Liste des Rezeptbuchs. Zustand, Namen, Reihenfolge und Löschen arbeiten gleich. */
+export function kategorienMit(fest) {
+  return {
+    FEST: fest,
+    alleKategorien: (rezepte, kat) => alleKategorien(rezepte, kat, fest),
+    gruppiere: (rezepte, kat) => gruppiere(rezepte, kat, fest),
+    loeschen: (rezepte, kat, id, ziel) => loeschen(rezepte, kat, id, ziel, fest),
+    umsortieren: (rezepte, kat, id, vorId) => umsortieren(rezepte, kat, id, vorId, fest),
+    beschriftung, symbol, anlegen, umbenennen, anzahl,
+  };
 }
