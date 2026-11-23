@@ -632,3 +632,7 @@ a.knopf{text-decoration:none}
 .themen .gruppe{background:linear-gradient(100deg,var(--fl) 45%,color-mix(in srgb,var(--kc) 9%,var(--fl)))}
 .gkopf>span.kfeld{flex:none}
 .karte strong{hyphens:auto;-webkit-hyphens:auto;overflow-wrap:anywhere}
+/* Klaus 23.11. (Vorschau am Tablet): die Namen unter den Kategorie-Fotos liefen ineinander („VorspeisenSuppen“), die Zahl rutschte in eine zweite Zeile.
+   Ein Eintrag ist so breit wie sein Name; Name und Zahl bleiben auf einer Zeile. */
+.fotokat button{max-width:none;min-width:60px}
+.fotokat button>span:last-child{white-space:nowrap}
