@@ -1,0 +1,13 @@
+{
+  "name": "kuechen-paket",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Paket-Werkzeug für Mein Rezeptbuch, Muttis Rezeptbuch und Mein Mixarium: stellt je Ausgabe und Ziel (Android, Windows) den Web-Ordner und die Einstellungen der Hülle zusammen. Selbst ohne Abhängigkeiten; die festen Fassungen der Hüllen stehen in android/package.json und windows/package.json.",
+  "engines": {
+    "node": ">=22.12.0"
+  },
+  "scripts": {
+    "zusammenstellen": "node zusammenstellen.mjs",
+    "probe": "node probe.mjs"
+  }
+}

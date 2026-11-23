@@ -1,0 +1,62 @@
+{
+ "hinweis": "Prüfsummen von pdf.js und der Texterkennung (Tesseract) aus Workflow PDF, Ordner vendor/. Neu schreiben: node paket/zusammenstellen.mjs --vendor-pin --vendor <ordner> > paket/vendor-pin.json",
+ "sprachen": [
+  "deu",
+  "eng",
+  "rus"
+ ],
+ "dateien": {
+  "pdfjs/pdf.min.js": {
+   "bytes": 377116,
+   "sha256": "978fd1b2d134a98e98966186a97777bebf87d8e770dadab1ece3687e21a5aa6c"
+  },
+  "pdfjs/pdf.worker.min.js": {
+   "bytes": 1133660,
+   "sha256": "38cde5311957b86bc3669f93e7d2566de333a90055ed6635bef60d9bf00e96f2"
+  },
+  "tesseract/tesseract.min.js": {
+   "bytes": 62961,
+   "sha256": "000c27d9cd0def655f77b36c72a389c0ab13793aa31cb4d7aab56d09c0afbc7e"
+  },
+  "tesseract/worker.min.js": {
+   "bytes": 111307,
+   "sha256": "576b7df7e3393e137e51849357c9adb53fe7ac1bb69bfa06cf3d61520f182c6d"
+  },
+  "tesseract/tesseract-core-lstm.wasm.js": {
+   "bytes": 3896484,
+   "sha256": "eef5f8b2f8e20e150680b20adaec4a60babafee3adbe8a94583c81fee46e8680"
+  },
+  "tesseract/tesseract-core-simd-lstm.wasm.js": {
+   "bytes": 3899472,
+   "sha256": "c58b46a4c796c0b8afccf77591d5b875b6896b45d402bbce8caa6f5362447b38"
+  },
+  "tesseract/tesseract-core-relaxedsimd-lstm.wasm.js": {
+   "bytes": 3905767,
+   "sha256": "861a536cf9ef8e63cb644d57bab39c388f37f7d6b6f60024b741c5f6b39a59b3"
+  },
+  "tesseract/LICENSE-Apache-2.0.txt": {
+   "bytes": 11358,
+   "sha256": "c6596eb7be8581c18be736c846fb9173b69eccf6ef94c5135893ec56bd92ba08"
+  },
+  "tesseract/tesseract.min.js.LICENSE.txt": {
+   "bytes": 149,
+   "sha256": "cdf963ced7d25a0f98901a547647b4d6e2dbe0197fd78c87a059a87b0e542fe2"
+  },
+  "tesseract/worker.min.js.LICENSE.txt": {
+   "bytes": 466,
+   "sha256": "45f54171aeaa1d10c0c1a66f374b7bba1f02472b1487fbe892eec04f840002ac"
+  },
+  "tesseract/lang/deu.traineddata": {
+   "bytes": 1525436,
+   "sha256": "19d219bbb6672c869d20a9636c6816a81eb9a71796cb93ebe0cb1530e2cdb22d"
+  },
+  "tesseract/lang/eng.traineddata": {
+   "bytes": 4113088,
+   "sha256": "7d4322bd2a7749724879683fc3912cb542f19906c83bcc1a52132556427170b2"
+  },
+  "tesseract/lang/rus.traineddata": {
+   "bytes": 3861738,
+   "sha256": "e16e5e036cce1d9ec2b00063cf8b54472625b9e14d893a169e2b0dedeb4df225"
+  }
+ }
+}
