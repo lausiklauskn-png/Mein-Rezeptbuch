@@ -90,6 +90,7 @@ try {
     ok(await q.locator('#leiste').isHidden() && await q.locator('.rail-n').count() === 5, 'Leiste steht links, kein Griff am Rand');
     await q.locator('.md-liste').evaluate((e) => { e.scrollTop = 600; }); await q.locator('.md-liste .karte', { has: q.getByText('Ebi Tempura', { exact: true }) }).click();
     ok((await q.locator('.md-detail h1').innerText()) === 'Ebi Tempura' && await q.locator('.md-liste').evaluate((e) => e.scrollTop) > 300, 'Tipp links wechselt das Rezept rechts, die Liste bleibt an ihrer Stelle', (await q.locator('.md-detail h1').innerText()) + ' / ' + await q.locator('.md-liste').evaluate((e) => e.scrollTop));
+    ok(await q.locator('.rezept-held [data-a]').count() === 0, 'auf dem Bild liegt kein Knopf'); await q.click('[data-a=rleiste]');
     await q.click('[data-a=nurdies]'); ok(await q.locator('.md-liste').isHidden() && await q.locator('.kopf').isHidden(), '„Nur dieses Rezept“ blendet Liste und Leiste aus'); await q.click('[data-a=nurdies]'); ok(await q.locator('.md-liste').isVisible(), 'derselbe Knopf holt sie zurück');
     await q.click('[data-a=rail]'); await q.waitForTimeout(350); ok(await q.locator('.kopf.zu').count() === 1 && (await q.locator('.kopf').boundingBox()).width < 70, 'Leiste klappt auf Symbole zusammen');
     ok(await q.evaluate(() => document.documentElement.scrollWidth <= innerWidth), 'kein seitliches Verrutschen bei 1280 px'); await kk.close(); }
@@ -143,7 +144,7 @@ try {
   await p.click('[data-a=kat-neu]'); await p.keyboard.type('Sonntagsessen'); await p.keyboard.press('Tab');
   await p.waitForTimeout(350); await p.reload(); await p.waitForSelector('.gruss'); lt = await p.locator('.fotokat button').allInnerTexts();
   ok(lt[1].includes(nachK[0] === 'fleisch' ? 'Fleisch' : '') && lt.some((t) => /Fisch & Meer/.test(t)) && !lt.some((t) => /Suppen/.test(t)), 'nach Neuladen: Reihenfolge, Name und Löschung sind da', lt.join(' | '));
-  await p.fill('#suchfeld', 'Ratatouille'); await p.locator('.karte').first().click(); await p.click('[data-a=kat-zuordnen]'); await p.fill('[data-form=kat-neu-zu] input', 'Sommerküche'); await p.keyboard.press('Enter');
+  await p.fill('#suchfeld', 'Ratatouille'); await p.locator('.karte').first().click(); await p.click('[data-a=rleiste]'); await p.click('[data-a=kat-zuordnen]'); await p.fill('[data-form=kat-neu-zu] input', 'Sommerküche'); await p.keyboard.press('Enter');
   ok((await p.locator('.rezept-held .meta').innerText()).includes('Sommerküche'), 'aus dem Rezept: neue Kategorie anlegen und zuordnen in einem Griff');
 
   await zuWerk('bilder'); await p.waitForSelector('.bildkachel'); const nB = await p.locator('.bildkachel').count(); ok(nB === 30, 'Bilder-Ordner zeigt alle 30 Bilder', String(nB));
@@ -156,10 +157,37 @@ try {
   ok(true, 'Bild einfügen bei einem Rezept ohne Bild');
   await p.click('[data-a=bilder-alle-weg]'); await p.click('[data-a=ja]'); ok(await p.locator('.bildkachel').count() === 0, '„Alle Bilder löschen“ mit Rückfrage'); await p.click('[data-a=toast-tun]');
   await p.click('#leiste .fl-griff'); await p.click('#leiste [data-zu=start]'); await p.fill('#suchfeld', ''); await p.locator('.fotokat button').first().click(); ok(await p.locator('.karte').count() === 42, 'alle 42 Rezepte sind noch da');
-  await p.fill('#suchfeld', 'Dragon'); await p.locator('.karte').first().click(); await p.click('[data-a=zuschnitt]'); await p.locator('[data-a=zs-lage]', { hasText: 'Oben' }).click();
+  await p.fill('#suchfeld', 'Dragon'); await p.locator('.karte').first().click(); await p.click('.rezept-held'); await p.click('[data-a=zuschnitt]'); await p.locator('[data-a=zs-lage]', { hasText: 'Oben' }).click();
   await p.locator('#zs-zoom').evaluate((e) => { e.value = 200; e.dispatchEvent(new Event('input', { bubbles: true })); }); await p.click('[data-a=zs-ok]');
   const stil = await p.locator('.rezept-held > img').getAttribute('style'); ok(/object-position:50% 0%/.test(stil) && /scale\(2\)/.test(stil), 'Bildausschnitt: Lage oben und Zoom 2 sind am Kopfbild', stil);
   await p.waitForTimeout(350); await p.reload(); await p.waitForSelector('.gruss'); await p.fill('#suchfeld', 'Dragon'); ok(/scale\(2\)/.test(await p.locator('.karte img').first().getAttribute('style') || ''), 'der Ausschnitt gilt auch auf der Karte und nach dem Neuladen');
+  await k.close();
+
+  console.log('11b · Bild-Blatt, KI-Bild mit nachgestellter Antwort, Tresor');
+  ({ p, k } = await seite());
+  await p.click('[data-a=beispiel]'); await p.waitForSelector('.karte', { timeout: 20000 });
+  await p.fill('#suchfeld', 'Ratatouille'); await p.locator('.karte').first().click(); await p.waitForSelector('.rezept-held h1');
+  ok(await p.locator('.rezept-held button').count() === 0 && await p.locator('.rwerk').count() === 0, 'Rezept: kein Knopf auf dem Bild, die Werkzeugleiste ist eingeklappt');
+  await p.click('[data-a=rleiste]'); ok(await p.locator('.rwerk .chip:visible').count() >= 4, 'Leiste aufgeklappt: Bearbeiten, Kategorie, Bild, Rezept löschen'); await p.click('[data-a=rleiste]');
+  await p.click('.rezept-held'); ok(await p.locator('.fenster [data-a=ki-bild]').count() === 1 && await p.locator('.fenster [data-a=gratis-bild]').count() === 1 && await p.locator('.fenster [data-a=bild-dazu]').count() === 1, 'Tipp aufs Bild öffnet das Bild-Blatt: einfügen, KI-Bild, Gratis-Foto');
+  ok(!(await p.locator('.fenster').innerText()).match(/Bild löschen/), 'im Bild-Blatt steht kein „Bild löschen“');
+  await p.click('.fenster [data-a=ki-bild]'); ok(await p.locator('#schl-openai').count() === 1, 'ohne Schlüssel fragt die App zuerst nach dem Schlüssel');
+  const rufe = []; await p.route('https://api.openai.com/**', (r) => { rufe.push({ kopf: r.request().headers().authorization, leib: JSON.parse(r.request().postData()) }); r.fulfill({ contentType: 'application/json', body: JSON.stringify({ data: [{ b64_json: 'iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8z8BQDwAEhQGAhKmMIQAAAABJRU5ErkJggg==' }] }) }); });
+  await p.fill('#schl-openai', 'sk-probe'); await p.click('[data-form=schluessel] button[type=submit]');
+  ok((await p.locator('.fenster').innerText()).includes('gehen an OpenAI') && rufe.length === 0, 'vor dem Senden steht, was hinausgeht und was es kostet; gesendet ist noch nichts');
+  await p.click('[data-a=ja]'); await p.waitForSelector('.rezept-held > img');
+  ok(rufe.length === 1 && rufe[0].kopf === 'Bearer sk-probe' && rufe[0].leib.prompt.includes('Ratatouille') && !('response_format' in rufe[0].leib), 'ein Aufruf an OpenAI, mit dem Schlüssel und dem Rezeptnamen');
+  ok((await p.locator('.rezept-held > img').getAttribute('src')).startsWith('data:image/jpeg'), 'das Bild liegt als data:-Adresse im Rezept');
+  ok(await p.evaluate(() => localStorage.getItem('openaiImgKey9m') === 'sk-probe' && !localStorage.getItem('openaiImgKey9')), 'der Schlüssel liegt unter dem Namen der bisherigen App, Muttis bleibt leer');
+  await p.click('#leiste .fl-griff'); await p.click('#leiste [data-zu=werkstatt]'); const [lad] = await Promise.all([p.waitForEvent('download'), p.click('[data-a=sichern]')]);
+  ok(!(await readFile(await lad.path(), 'utf8')).includes('sk-probe'), 'der Schlüssel steht nicht in der Sicherung');
+  await p.click('[data-a=tresor]'); await p.fill('[data-form=tresor] input', 'Vor dem Aufräumen'); await p.click('[data-form=tresor] button[type=submit]'); await p.waitForSelector('.tr-liste .zeile');
+  ok((await p.locator('.tr-liste .zeile').first().innerText()).includes('Vor dem Aufräumen') && (await p.locator('.tr-liste .zeile').first().innerText()).includes('42 Rezepte'), 'Tresor: benannter Stand mit 42 Rezepten'); await p.click('.fenster [data-a=fenster-zu]');
+  await p.click('[data-a=alles-weg]'); await p.click('[data-a=ja]'); await p.waitForSelector('.leer'); await p.click('#leiste .fl-griff'); await p.click('#leiste [data-zu=werkstatt]'); await p.click('[data-a=tresor]'); await p.waitForSelector('.tr-liste .zeile');
+  ok(await p.locator('.tr-liste .zeile').count() === 2, 'vor „Alle löschen“ kam der Stand automatisch in den Tresor', String(await p.locator('.tr-liste .zeile').count()));
+  await p.locator('.tr-liste .zeile', { hasText: 'Vor dem Aufräumen' }).locator('[data-a=tresor-holen]').click(); await p.click('[data-a=ja]'); await p.waitForSelector('.karte');
+  ok(await p.locator('.karte').count() === 42 && (await p.locator('.fotokat button').allInnerTexts()).some((t) => /^Sushi\s+7$/.test(t.trim())), 'zurückgeholt: 42 Rezepte, Sushi zählt 7');
+  await p.waitForTimeout(350); await p.reload(); await p.waitForSelector('.karte'); ok(await p.locator('.karte').count() === 42, 'auch nach dem Neuladen');
   await k.close();
 
   console.log('12 · Text-Import ohne KI, ohne Netz');

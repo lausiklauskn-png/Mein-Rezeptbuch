@@ -16,9 +16,11 @@ import { GERAETE, erkenne, geraetSvg } from '../kern/oberflaeche/geraete.mjs';
 import { einkaufsliste, gruppenFolge, gruppeVerschieben, WARENGRUPPEN } from '../kern/modell/einkauf.mjs';
 import { rezeptAusText, zutatAusZeile, zutatZeile } from '../kern/import/text.mjs';
 import { diktat, diktatAus, diktatMoeglich } from '../kern/oberflaeche/diktat.mjs';
+import { kiBild, gratisBild, KOSTEN_TEXT } from '../kern/ki/bild.mjs';
+import { tresor } from '../kern/speicher/tresor.mjs';
 import { woche, planen, entplanen, ausAltemMenu, tagIso } from '../kern/modell/plan.mjs';
 
-const FASSUNG = '0.5.0';
+const FASSUNG = '0.6.0';
 const breit = () => matchMedia('(min-width:1000px)').matches;
 const $ = (id) => document.getElementById(id);
 const esc = (t) => String(t ?? '').replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
@@ -26,7 +28,7 @@ const esc = (t) => String(t ?? '').replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '
 let ausgabe = null, lager = null;
 let Z = leererZustand();                     // Rezepte, Wochenplan, Ordner, Kategorien
 let E = { farbe: 'braun', leiste: { seite: 'r', pos: 64 }, zuletzt: null, kochSchrift: 'mittel', railZu: false };   // Einstellungen dieses Geräts
-const s = { ansicht: 'start', uid: null, frage: '', kat: 'alle', portion: {}, werkzeug: false, leisteAuf: false, form: null, nurDies: false, planTag: new Date(), bilder: { gross: false, filter: 'alle', wahl: new Set() }, bildZiel: null };
+const s = { ansicht: 'start', uid: null, frage: '', kat: 'alle', portion: {}, werkzeug: false, leisteAuf: false, form: null, nurDies: false, planTag: new Date(), bilder: { gross: false, filter: 'alle', wahl: new Set() }, bildZiel: null, rleiste: false };
 const LEER_EINKAUF = () => ({ posten: [], haken: {}, eigene: [], laeden: { Supermarkt: [] }, laden: 'Supermarkt' });
 function ergaenze() { Z.einkauf = { ...LEER_EINKAUF(), ...(Z.einkauf || {}) }; if (!Z.einkauf.laeden[Z.einkauf.laden]) Z.einkauf.laden = Object.keys(Z.einkauf.laeden)[0] || 'Supermarkt'; if (!Z.einkauf.laeden[Z.einkauf.laden]) Z.einkauf.laeden[Z.einkauf.laden] = []; if (!Z.plan) Z.plan = ausAltemMenu(Z.menu, Z.rezepte); }
 
@@ -128,8 +130,10 @@ function rezeptHtml() {
   const r = rezept(s.uid); if (!r) return `<div class="leer"><p>Dieses Rezept gibt es nicht mehr.</p><button class="knopf" data-a="geh" data-zu="start">Zur Startseite</button></div>`;
   const c = alleKategorien(Z.rezepte, Z.kategorien).find((x) => x.id === katVonRezept(r));
   const n = s.portion[r.uid] || r.servings, f = n / r.servings;
-  return `<div class="rezept-held">${r.img ? `<img src="${esc(r.img)}" alt="${esc(r.name)}" ${ausschnitt(r)}>` : ic('karte')}
-    <div class="oben"><button class="rund" data-a="zurueck" aria-label="Zurück">${ic('zurueck')}</button><span><button class="rund nurbreit" data-a="nurdies" aria-label="${s.nurDies ? 'Liste und Leiste wieder zeigen' : 'Nur dieses Rezept zeigen'}" title="${s.nurDies ? 'Alles zeigen' : 'Nur dieses Rezept'}">${ic('voll')}</button>${r.img ? `<button class="rund" data-a="zuschnitt" aria-label="Bild anpassen">${ic('zuschnitt')}</button>` : ''}<button class="rund" data-a="kat-zuordnen" aria-label="Kategorie zuordnen">${ic('ordner')}</button><button class="rund" data-a="bearbeiten" aria-label="Bearbeiten">${ic('stift')}</button><button class="rund" data-a="loeschen" aria-label="Rezept löschen">${ic('muell')}</button></span></div>
+  const wk = (akt, i, t, kl = '') => `<button class="chip ${kl}" data-a="${akt}">${ic(i)}${t}</button>`;
+  return `<div class="rleiste"><button class="rund" data-a="zurueck" aria-label="Zurück">${ic('zurueck')}</button><button class="rund" data-a="rleiste" aria-expanded="${s.rleiste}" aria-label="Werkzeuge für dieses Rezept">${ic(s.rleiste ? 'hoch' : 'menu')}</button></div>
+   ${s.rleiste ? `<div class="rwerk">${wk('bearbeiten', 'stift', 'Bearbeiten')}${wk('kat-zuordnen', 'ordner', 'Kategorie')}${wk('bild-blatt', 'bild', 'Bild')}${wk('nurdies', 'voll', s.nurDies ? 'Alles zeigen' : 'Nur dieses Rezept', 'nurbreit')}${wk('loeschen', 'muell', 'Rezept löschen', 'rot')}</div>` : ''}
+   <div class="rezept-held" data-a="bild-blatt" role="button" tabindex="0" aria-label="${r.img ? 'Bild ansehen, anpassen oder ersetzen' : 'Bild einfügen'}">${r.img ? `<img src="${esc(r.img)}" alt="${esc(r.name)}" ${ausschnitt(r)}>` : ic('karte')}
     <div class="verlauf"><h1>${esc(r.name)}</h1><div class="meta">${r.prepTime ? `<span>${ic('uhr')}${esc(r.prepTime)} Min</span>` : ''}<span>${ic('karte')}${esc(c ? katName(c) : '')}</span>${r.rating?.stars ? `<span>${ic('stern')}${r.rating.stars}</span>` : ''}</div></div></div>
    <div class="bogen"><div class="zweispalt"><div>
     ${r.steps.length ? `<div class="reihe"><button class="knopf akz" data-a="kochen" style="flex:1.3">${ic('koch')}Kochen</button><button class="knopf" data-a="auf-liste" style="flex:1">${ic('einkauf')}Einkaufen</button><button class="knopf" data-a="planen" aria-label="In den Wochenplan">${ic('plan')}</button></div>` : `<div class="reihe"><button class="knopf" data-a="auf-liste">${ic('einkauf')}Einkaufen</button><button class="knopf" data-a="planen">${ic('plan')}Planen</button></div>`}
@@ -313,13 +317,15 @@ function werkstattHtml() {
   return `<div class="ueber"><h2 style="font-size:19px">Werkstatt</h2><small>${n} Rezepte</small></div>
   <div class="gruppe"><h3>Sichern ${frag('Die Rezepte liegen nur in diesem Gerät. Eine Sicherung als Datei schützt sie, wenn der Browser geleert wird, und bringt sie auf ein anderes Gerät. KI-Schlüssel kommen nie in die Datei.')}</h3><div class="liste">
    ${zeile('sichern', 'laden', 'Sicherung als Datei', 'alle Rezepte mit Bildern und Kategorien')}${zeile('einlesen', 'ordner', 'Sicherung einlesen', 'auch aus der alten App, aus Muttis Rezeptbuch und dem Mixarium')}</div></div>
+  <div class="gruppe"><h3>Tresor ${frag('Der Tresor hält mehrere Stände des ganzen Buchs in diesem Gerät: bis zu fünf automatische (vor dem Einlesen und vor dem Löschen) und bis zu zehn benannte. Er hilft, wenn etwas falsch gelöscht oder eingelesen wurde. Wird der Browser geleert, ist auch der Tresor weg. Dagegen hilft nur die Sicherung als Datei.')}</h3><div class="liste">${zeile('tresor', 'tresor', 'Tresor öffnen', 'Stände ansehen, zurückholen, als Datei speichern')}</div></div>
+  <div class="gruppe"><h3>KI ${frag('KI läuft nur mit deinem eigenen Schlüssel und nur, wenn du es auslöst. Der Schlüssel bleibt in diesem Gerät und kommt in keine Sicherung. Die Kosten rechnet der Anbieter direkt mit dir ab.')}</h3><div class="liste">${zeile('schluessel', 'funken', 'OpenAI-Schlüssel für KI-Bilder', openaiSchluessel() ? 'gespeichert' : 'noch keiner hinterlegt')}</div></div>
   <div class="gruppe"><h3>Beispiele</h3><div class="liste">
    ${zeile('beispiel', 'paket', 'Beispielbuch laden', beispielText())}${b ? zeile('beispiele-weg', 'muell', 'Beispiele entfernen', `${b} Beispiel-Rezepte, eigene bleiben`) : ''}</div></div>
   ${installFrage ? `<div class="gruppe"><h3>App</h3><div class="liste">${zeile('installieren', 'laden', 'Als App installieren', 'eigenes Symbol, läuft auch ohne Netz')}</div></div>` : ''}
   <div class="gruppe"><h3>Ordnung</h3><div class="liste">${zeile('geh', 'ordner', 'Kategorien', 'umbenennen, Zeichen, ordnen, löschen, neu', 'data-zu="kategorien"')}${zeile('geh', 'bild', 'Bilder', `${Z.rezepte.filter((r) => istInhalt(r) && r.img).length} Bilder ansehen, löschen, einfügen`, 'data-zu="bilder"')}</div></div>
   <div class="gruppe"><h3>Darstellung</h3><div class="liste">${zeile('farbe', 'einst', 'Farbe', FARBEN[E.farbe]?.de || '')}${zeile('kochschrift', 'koch', 'Schrift in der Kochansicht', E.kochSchrift)}</div></div>
   <div class="gruppe"><h3>Aufräumen</h3><div class="liste">${zeile('alles-weg', 'muell', 'Alle Rezepte löschen', 'mit Rückfrage')}</div></div>
-  <p class="quelle">Mein Rezeptbuch, neue Fassung ${FASSUNG}. Ordner, Import per Foto und Web, Bücher und Übersetzung folgen. <a href="../" style="color:inherit">Zur bisherigen App</a></p>`;
+  <p class="quelle">Mein Rezeptbuch, neue Fassung ${FASSUNG}. Ordner, Foto-Scan, Web-Import, Bücher und Übersetzung folgen. <a href="../" style="color:inherit">Zur bisherigen App</a></p>`;
 }
 
 /* ---------- Fenster ---------- */
@@ -332,10 +338,48 @@ function farbFenster() {
 }
 
 /* ---------- Sicherung, Beispiele ---------- */
+/* ---------- KI-Schlüssel: dieselben Speicher-Namen wie die bisherige App, damit ein dort hinterlegter Schlüssel gilt ---------- */
+const schlNamen = () => ['openaiImgKey' + ausgabe.speicher.endung, 'openaiKey' + ausgabe.speicher.endung];
+function openaiSchluessel() { try { return schlNamen().map((n) => localStorage.getItem(n)).find(Boolean) || ''; } catch { return ''; } }
+function schluesselFenster(danach = '') {
+  fenster(`<h2>OpenAI-Schlüssel</h2><p>Für KI-Bilder. Den Schlüssel legst du bei OpenAI an: platform.openai.com/api-keys, „Create new secret key“. Er bleibt in diesem Gerät.</p>
+   <form data-form="schluessel" data-danach="${esc(danach)}"><input type="password" id="schl-openai" autocomplete="off" placeholder="sk-…" value="${esc(openaiSchluessel())}" style="width:100%">
+   <div class="reihe" style="margin-top:12px"><button class="knopf akz" type="submit">${ic('haken')}Speichern</button>${openaiSchluessel() ? `<button class="knopf" type="button" data-a="schluessel-weg">Schlüssel löschen</button>` : ''}<button class="knopf" type="button" data-a="fenster-zu">Abbrechen</button></div></form>`);
+}
+/* ---------- Bild-Blatt: Tipp aufs Bild. Ansehen, anpassen, ersetzen, von der KI erzeugen lassen. Gelöscht wird im Bilder-Ordner. ---------- */
+function bildBlatt(uid) {
+  const r = rezept(uid); if (!r) return;
+  fenster(`<h2>${esc(r.name)}</h2>${r.img ? `<img class="bb-bild" src="${esc(r.img)}" alt="${esc(r.name)}">` : '<p>Dieses Rezept hat noch kein Bild.</p>'}
+   <div class="liste" style="margin-top:10px">${r.img ? zeile('zuschnitt', 'zuschnitt', 'Ausschnitt anpassen', 'verschieben und vergrößern') : ''}
+   ${zeile('bild-dazu', 'kamera', r.img ? 'Bild ersetzen' : 'Bild einfügen', 'Foto aufnehmen oder Datei wählen', `data-uid="${esc(uid)}"`)}
+   ${zeile('ki-bild', 'funken', 'Bild von der KI erzeugen', 'OpenAI, ' + KOSTEN_TEXT, `data-uid="${esc(uid)}"`)}
+   ${zeile('gratis-bild', 'bild', 'Gratis-Foto erzeugen', 'ohne Schlüssel, über den Dienst Pollinations', `data-uid="${esc(uid)}"`)}</div>
+   <p style="margin-top:10px">Ein Bild löschst du in der Werkstatt unter „Bilder“.</p><div class="reihe"><button class="knopf" data-a="fenster-zu">Schließen</button></div>`);
+}
+async function bildErzeugen(uid, gratis) {
+  const r = rezept(uid); if (!r) return; fensterZu(); melde(gratis ? 'Gratis-Foto wird erzeugt …' : 'KI-Bild wird erzeugt, das dauert etwa 20 Sekunden …');
+  try {
+    const roh = gratis ? await gratisBild(r) : await kiBild(openaiSchluessel(), r);
+    const img = await bildAusDatei(await (await fetch(roh)).blob()), vorher = Z.rezepte;
+    Z.rezepte = Z.rezepte.map((x) => (x.uid === uid ? { ...x, img, imgCrop: { x: 50, y: 50, scale: 1 } } : x)); sichern(); zeichne();
+    melde(r.img ? 'Bild ersetzt' : 'Bild eingefügt', 'Rückgängig', () => { Z.rezepte = vorher; sichern(); zeichne(); });
+  } catch (f) { melde(f.message || 'Es kam kein Bild zurück.'); }
+}
+/* ---------- Tresor ---------- */
+let tr = null;
+const datum = (ts) => new Date(ts).toLocaleString('de-DE', { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' });
+/* Der Stand wird sofort festgehalten (schreibe ist synchron), abgelegt wird nebenher. Der Tresor ist eine Zugabe, er hält nichts auf. */
+function tresorAuto() { if (!tr || !Z.rezepte.some(istInhalt)) return Promise.resolve(); const sich = schreibe(Z); return tr.ablegen(sich, 'auto').catch(() => {}); }
+async function tresorFenster() {
+  const l = await tr.liste().catch(() => []);
+  fenster(`<h2>Tresor</h2><form data-form="tresor" class="reihe"><input name="name" placeholder="Name, zum Beispiel: vor dem Aufräumen" style="flex:1;min-width:0"><button class="knopf akz" type="submit">${ic('tresor')}Jetzt sichern</button></form>
+   ${l.length ? `<div class="liste tr-liste" style="margin-top:12px">${l.map((x) => `<div class="zeile">${ic(x.art === 'auto' ? 'uhr' : 'tresor')}<span>${esc(x.name)}<small>${datum(x.ts)} · ${x.anzahl} Rezepte</small></span><button class="chip" data-a="tresor-holen" data-id="${esc(x.id)}">Zurückholen</button><button class="chip" data-a="tresor-datei" data-id="${esc(x.id)}" aria-label="Als Datei speichern">${ic('laden')}</button><button class="chip" data-a="tresor-weg" data-id="${esc(x.id)}" aria-label="Diesen Stand löschen">${ic('muell')}</button></div>`).join('')}</div>` : '<p style="margin-top:12px">Noch kein Stand im Tresor.</p>'}
+   <div class="reihe" style="margin-top:12px"><button class="knopf" data-a="fenster-zu">Schließen</button></div>`);
+}
 function herunterladen(name, text) { const a = document.createElement('a'); a.href = URL.createObjectURL(new Blob([text], { type: 'application/json' })); a.download = name; document.body.appendChild(a); a.click(); a.remove(); setTimeout(() => URL.revokeObjectURL(a.href), 5000); }
 function einfuegen(eingang, beispiel = false) {
   if (beispiel) eingang = { ...eingang, rezepte: eingang.rezepte.map((r) => ({ ...r, beispiel: true })) };
-  const h = hinweise(eingang), m = fuehreZusammen(Z, eingang);
+  tresorAuto(); const h = hinweise(eingang), m = fuehreZusammen(Z, eingang);
   const vorher = Z; Z = m.zustand; ergaenze(); sichern(); s.kat = 'alle'; s.frage = '';
   melde(`${m.neu} Rezepte dazu${m.doppelt ? `, ${m.doppelt} waren schon da` : ''}${h.ohneKategorie ? `, ${h.ohneKategorie} ohne Kategorie` : ''}`, m.neu ? 'Rückgängig' : '', () => { Z = vorher; sichern(); zeichne(true); });
   geh('start', {}, s.ansicht === 'start');
@@ -454,8 +498,19 @@ const A = {
   'bilder-alle-wahl': () => { const w = s.bilder.wahl, alle = [...document.querySelectorAll('.bildkachel')].map((b) => b.dataset.uid); if (w.size === alle.length) w.clear(); else alle.forEach((u) => w.add(u)); zeichne(); },
   'bilder-weg': () => { const w = new Set(s.bilder.wahl), vorher = Z.rezepte; Z.rezepte = Z.rezepte.map((r) => (w.has(r.uid) ? { ...r, img: '' } : r)); s.bilder.wahl.clear(); sichern(); zeichne(); melde(`${w.size} Bilder gelöscht, die Rezepte bleiben`, 'Rückgängig', () => { Z.rezepte = vorher; sichern(); zeichne(); }); },
   'bilder-alle-weg': () => { const n = Z.rezepte.filter((r) => r.img).length; frage('Alle Bilder löschen?', `${n} Bilder werden entfernt. Die Rezepte mit ihrem Text bleiben.`, 'Alle Bilder löschen', () => { const vorher = Z.rezepte; Z.rezepte = Z.rezepte.map((r) => (r.img ? { ...r, img: '' } : r)); s.bilder.wahl.clear(); sichern(); zeichne(); melde(`${n} Bilder gelöscht`, 'Rückgängig', () => { Z.rezepte = vorher; sichern(); zeichne(); }); }); },
-  'bild-dazu': (e) => { s.bildZiel = e.dataset.uid; $('datei-bild').click(); },
+  'bild-dazu': (e) => { s.bildZiel = e.dataset.uid; fensterZu(); $('datei-bild').click(); },
   zuschnitt: () => zuschnittFenster(s.uid),
+  rleiste: () => { s.rleiste = !s.rleiste; zeichne(); },
+  'bild-blatt': () => bildBlatt(s.uid),
+  schluessel: () => schluesselFenster(),
+  'schluessel-weg': () => { try { schlNamen().forEach((n) => localStorage.removeItem(n)); } catch { /* ohne */ } fensterZu(); zeichne(); melde('Schlüssel gelöscht'); },
+  'ki-bild': (e) => { const uid = e.dataset.uid, r = rezept(uid); if (!openaiSchluessel()) { schluesselFenster(uid); return; }
+    frage('Bild von der KI erzeugen?', `Der Name, die ersten Zutaten und Schritte von „${r.name}“ gehen an OpenAI. Kosten: ${KOSTEN_TEXT}.${r.img ? ' Das vorhandene Bild wird ersetzt.' : ''}`, 'Erzeugen', () => bildErzeugen(uid, false), false); },
+  'gratis-bild': (e) => { const uid = e.dataset.uid, r = rezept(uid); frage('Gratis-Foto erzeugen?', `Der Name „${r.name}“ geht an den Dienst Pollinations. Kein Schlüssel, keine Kosten.${r.img ? ' Das vorhandene Bild wird ersetzt.' : ''}`, 'Erzeugen', () => bildErzeugen(uid, true), false); },
+  tresor: () => tresorFenster(),
+  'tresor-holen': (e) => frage('Diesen Stand zurückholen?', 'Das Buch wird durch diesen Stand ersetzt. Der jetzige Stand kommt vorher automatisch in den Tresor.', 'Zurückholen', async () => { const sich = await tr.hol(e.dataset.id); if (!sich) { melde('Dieser Stand ist nicht mehr da.'); return; } await tresorAuto(); Z = fuehreZusammen({ ...leererZustand(), kategorien: leereKategorien() }, lies(JSON.stringify(sich))).zustand; ergaenze(); s.frage = ''; s.kat = 'alle'; sichern(); geh('start', { uid: null }, true); melde(`Stand mit ${Z.rezepte.filter(istInhalt).length} Rezepten zurückgeholt`); }, false),
+  'tresor-datei': async (e) => { const sich = await tr.hol(e.dataset.id); if (sich) { herunterladen(`${ausgabe.name}-tresor-${e.dataset.id.slice(2, 12)}.json`, JSON.stringify(sich)); melde('Als Datei gespeichert'); } },
+  'tresor-weg': async (e) => { await tr.loeschen(e.dataset.id); tresorFenster(); },
   'zs-lage': (e) => { const [x, y] = e.dataset.l.split(','); zs.x = +x; zs.y = +y; zsZeigen(); },
   'zs-null': () => { zs.x = 50; zs.y = 50; zs.z = 1; $('zs-zoom').value = 100; zsZeigen(); },
   'zs-ok': () => { const z = zs; zs = null; Z.rezepte = Z.rezepte.map((r) => (r.uid === z.uid ? { ...r, imgCrop: { ...(r.imgCrop || {}), x: Math.round(z.x), y: Math.round(z.y), scale: Math.round(z.z * 100) / 100 } } : r)); sichern(); fensterZu(); zeichne(); },
@@ -468,8 +523,8 @@ const A = {
   sichern: () => { const d = new Date(); herunterladen(`${ausgabe.name}-${d.toISOString().slice(0, 10)}.json`, JSON.stringify(schreibe(Z))); melde('Sicherung gespeichert'); },
   einlesen: () => $('datei-sicherung').click(),
   beispiel: () => beispielLaden(),
-  'beispiele-weg': () => { const n = Z.rezepte.filter((r) => r.beispiel).length; frage('Beispiele entfernen?', `${n} Beispiel-Rezepte werden entfernt. Deine eigenen Rezepte bleiben.`, 'Entfernen', () => { const vorher = Z.rezepte; Z.rezepte = Z.rezepte.filter((r) => !r.beispiel); sichern(); zeichne(); melde(`${n} Beispiele entfernt`, 'Rückgängig', () => { Z.rezepte = vorher; sichern(); zeichne(); }); }); },
-  'alles-weg': () => { const n = Z.rezepte.filter(istInhalt).length; frage('Alle Rezepte löschen?', `${n} Rezepte werden gelöscht. Lege vorher eine Sicherung als Datei an, wenn du sie behalten willst.`, 'Alle löschen', () => { const vorher = Z; Z = { ...leererZustand(), kategorien: leereKategorien() }; ergaenze(); E.zuletzt = null; sichern(); geh('start', {}, true); melde('Alle Rezepte gelöscht', 'Rückgängig', () => { Z = vorher; sichern(); zeichne(true); }); }); },
+  'beispiele-weg': () => { const n = Z.rezepte.filter((r) => r.beispiel).length; frage('Beispiele entfernen?', `${n} Beispiel-Rezepte werden entfernt. Deine eigenen Rezepte bleiben.`, 'Entfernen', () => { tresorAuto(); const vorher = Z.rezepte; Z.rezepte = Z.rezepte.filter((r) => !r.beispiel); sichern(); zeichne(); melde(`${n} Beispiele entfernt`, 'Rückgängig', () => { Z.rezepte = vorher; sichern(); zeichne(); }); }); },
+  'alles-weg': () => { const n = Z.rezepte.filter(istInhalt).length; frage('Alle Rezepte löschen?', `${n} Rezepte werden gelöscht. Der jetzige Stand kommt vorher in den Tresor.`, 'Alle löschen', () => { tresorAuto(); const vorher = Z; Z = { ...leererZustand(), kategorien: leereKategorien() }; ergaenze(); E.zuletzt = null; sichern(); geh('start', {}, true); melde('Alle Rezepte gelöscht', 'Rückgängig', () => { Z = vorher; sichern(); zeichne(true); }); }); },
   farbe: () => farbFenster(),
   'farbe-wahl': (e) => { E.farbe = e.dataset.farbe; farbeSetzen(document.documentElement, E.farbe); sichern(); fensterZu(); zeichne(); },
   ja: () => { const t = jaTun; jaTun = null; fensterZu(); t?.(); },
@@ -486,6 +541,8 @@ document.addEventListener('click', (ev) => {
 });
 document.addEventListener('submit', (ev) => { ev.preventDefault(); const f = ev.target.dataset.form;
   if (f === 'rezept') formSpeichern(ev.target);
+  else if (f === 'schluessel') { const k = $('schl-openai').value.trim(), danach = ev.target.dataset.danach; try { schlNamen().forEach((n) => (k ? localStorage.setItem(n, k) : localStorage.removeItem(n))); } catch { melde('Der Schlüssel ließ sich nicht speichern.'); return; } fensterZu(); zeichne(); melde(k ? 'Schlüssel gespeichert' : 'Schlüssel gelöscht'); if (k && danach) A['ki-bild']({ dataset: { uid: danach } }); }
+  else if (f === 'tresor') { const n = String(new FormData(ev.target).get('name') || '').trim(); tr.ablegen(schreibe(Z), 'benannt', n).then(() => { tresorFenster(); melde('Stand im Tresor gesichert'); }).catch(() => melde('Der Tresor ließ sich nicht beschreiben.')); }
   else if (f === 'ek-eigen') { const t = String(new FormData(ev.target).get('t') || '').trim(); if (!t) return; Z.einkauf = { ...Z.einkauf, eigene: [...Z.einkauf.eigene, { id: Date.now().toString(36), text: t }] }; sichern(); zeichne(); document.querySelector('[data-form="ek-eigen"] input')?.focus(); }
   else if (f === 'kat-neu-zu') { const n = String(new FormData(ev.target).get('n') || '').trim(), uid = document.querySelector('[data-a="kat-setzen"]')?.dataset.uid; if (!n || !uid) return; const a = katAnlegen(Z.kategorien, n); Z.kategorien = a.kat; A['kat-setzen']({ dataset: { uid, ziel: a.id } }); }
   else if (f === 'laden') { const n = String(new FormData(ev.target).get('n') || '').trim(); if (!n) return; Z.einkauf = { ...Z.einkauf, laeden: { ...Z.einkauf.laeden, [n]: Z.einkauf.laeden[n] || [...(Z.einkauf.laeden[Z.einkauf.laden] || [])] }, laden: n }; sichern(); fensterZu(); zeichne(); }
@@ -534,7 +591,7 @@ addEventListener('appinstalled', () => { installFrage = null; if (s.ansicht === 
 /* ---------- Start ---------- */
 async function start() {
   ausgabe = await (await fetch('../ausgaben/rezeptbuch/ausgabe.json')).json();
-  lager = speicher('KuechenKern-' + ausgabe.name);
+  lager = speicher('KuechenKern-' + ausgabe.name); tr = tresor(lager);
   const da = await lager.lies().catch(() => null);
   if (da?.zustand) { Z = { ...leererZustand(), ...da.zustand, rezepte: (da.zustand.rezepte || []).map(normalisiere) }; E = { ...E, ...(da.einstellungen || {}) }; }
   else {
