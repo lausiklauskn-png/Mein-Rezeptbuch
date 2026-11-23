@@ -216,6 +216,7 @@ try {
   await p.click('.rezept-held'); ok(await p.locator('.fenster [data-a=ki-bild]').count() === 1 && await p.locator('.fenster [data-a=gratis-bild]').count() === 1 && await p.locator('.fenster [data-a=bild-dazu]').count() === 1, 'Tipp aufs Bild öffnet das Bild-Blatt: einfügen, KI-Bild, Gratis-Foto');
   ok(!(await p.locator('.fenster').innerText()).match(/Bild löschen/), 'im Bild-Blatt steht kein „Bild löschen“');
   await p.click('.fenster [data-a=ki-bild]'); ok(await p.locator('#schl-openai').count() === 1, 'ohne Schlüssel fragt die App zuerst nach dem Schlüssel');
+  ok(await p.locator('.fenster h2 .frag').count() === 1 && !(await p.locator('.fenster').innerText()).includes('Den Schlüssel legst du'), 'Schlüssel-Fenster (Klaus 23.11.): die Erklärung steht hinter einem „?“, kein Absatz');
   const rufe = []; await p.route('https://api.openai.com/**', (r) => { rufe.push({ kopf: r.request().headers().authorization, leib: JSON.parse(r.request().postData()) }); r.fulfill({ contentType: 'application/json', body: JSON.stringify({ data: [{ b64_json: 'iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8z8BQDwAEhQGAhKmMIQAAAABJRU5ErkJggg==' }] }) }); });
   await p.fill('#schl-openai', 'sk-probe'); await p.click('[data-form=schluessel] button[type=submit]');
   ok((await p.locator('.fenster').innerText()).includes('gehen an OpenAI') && rufe.length === 0, 'vor dem Senden steht, was hinausgeht und was es kostet; gesendet ist noch nichts');
