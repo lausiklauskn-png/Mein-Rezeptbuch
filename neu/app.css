@@ -646,3 +646,18 @@ a.knopf{text-decoration:none}
 .laeden .chip .ic{width:16px;height:16px}
 .fl-werk button.breit{grid-column:1/-1}
 .fl.u .fl-werk{grid-template-columns:repeat(5,1fr)}.fl.u .fl-werk button.breit{grid-column:auto}
+/* Menü am Rezept, Nährwerte, QR, Rechtschreibung */
+.ki-marke{font-style:normal;font-size:10px;font-weight:700;letter-spacing:.04em;color:var(--akz);border:1px solid color-mix(in srgb,var(--akz) 45%,transparent);border-radius:6px;padding:1px 5px;flex:none}
+.fenster .liste.menue{box-shadow:none;border:1px solid var(--line)}
+.naehr{margin-top:10px;border:1px solid var(--line);border-radius:12px;background:var(--fl);font-size:13.5px}
+.naehr summary{list-style:none;display:flex;align-items:center;gap:8px;padding:8px 12px;cursor:pointer;font-weight:600}
+.naehr summary::-webkit-details-marker{display:none}
+.naehr summary .ic{width:17px;height:17px;color:var(--akz)}
+.naehr ul{list-style:none;margin:0;padding:0 12px 8px}
+.naehr li{display:flex;justify-content:space-between;padding:4px 0;border-top:1px solid var(--line);color:var(--mut)}
+.naehr li b{color:var(--ink);font-variant-numeric:tabular-nums}
+.qr-bild{display:grid;place-items:center;background:#fff;border-radius:14px;padding:10px;border:1px solid var(--line)}
+.qr-bild svg{width:min(100%,300px);height:auto;display:block}
+.recht-liste{list-style:none;margin:0 0 12px;padding:0;display:grid;gap:6px;max-height:50svh;overflow:auto}
+.recht-liste label{display:flex;gap:10px;align-items:flex-start;font-size:14px}
+.recht-liste s{color:var(--mut)}.recht-liste b{color:var(--ink)}
