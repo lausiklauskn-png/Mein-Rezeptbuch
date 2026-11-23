@@ -1,7 +1,7 @@
 // Mein Rezeptbuch (neu) · Service Worker: die App läuft nach dem ersten Öffnen ohne Netz.
 // Vorrat = Hülle und alle Module. Beispielbuch und Katalog gehören NICHT dazu (Beispiele liegen nach dem Laden im Gerät).
 // Bei jeder neuen Fassung FASSUNG hochzählen; `node --test` prüft, dass die Liste zu den Modulen passt.
-const FASSUNG = 'rezeptbuch-neu-0.9.2';
+const FASSUNG = 'rezeptbuch-neu-0.9.3';
 const VORRAT = [
  "./",
  "./index.html",
@@ -22,6 +22,7 @@ const VORRAT = [
  "../kern/modell/zustand.mjs",
  "../kern/oberflaeche/bild.mjs",
  "../kern/oberflaeche/diktat.mjs",
+ "../kern/oberflaeche/hinweis.mjs",
  "../kern/oberflaeche/farben.mjs",
  "../kern/oberflaeche/geraete.mjs",
  "../kern/oberflaeche/schrift.mjs",

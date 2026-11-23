@@ -18,11 +18,12 @@ import { einkaufsliste, gruppenFolge, gruppeVerschieben, WARENGRUPPEN } from '..
 import { rezeptAusText, zutatAusZeile, zutatZeile } from '../kern/import/text.mjs';
 import { diktat, diktatAus, diktatMoeglich } from '../kern/oberflaeche/diktat.mjs';
 import { kiBild, gratisBild, KOSTEN_TEXT } from '../kern/ki/bild.mjs';
+import { hinweiseEinrichten } from '../kern/oberflaeche/hinweis.mjs';
 import { tresor } from '../kern/speicher/tresor.mjs';
 import { ladeBausteine, korpus as semKorpus, sucheBedeutung } from '../kern/suche/bedeutung.mjs';
 import { woche, planen, entplanen, ausAltemMenu, tagIso } from '../kern/modell/plan.mjs';
 
-const FASSUNG = '0.9.2';
+const FASSUNG = '0.9.3';
 const breit = () => matchMedia('(min-width:1000px)').matches;
 const $ = (id) => document.getElementById(id);
 const esc = (t) => String(t ?? '').replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
@@ -215,7 +216,7 @@ function einkaufHtml() {
     const g = WARENGRUPPEN.find((x) => x.id === gid), zeilen = liste.filter((x) => x.gruppe === gid);
     const eig = gid === 'sonstiges' ? E_.eigene : [];
     if (!zeilen.length && !eig.length) continue;
-    h += `<div class="ek-gruppe" data-g="${gid}"><h3>${ic('griff')}${esc(g.de)}</h3>`
+    h += `<div class="ek-gruppe" data-g="${gid}"><h3 title="Zum Verschieben lange drücken oder ziehen">${ic('griff')}${esc(g.de)}</h3>`
       + zeilen.map((x) => `<button class="ek-zeile ${E_.haken[x.schluessel] ? 'ok' : ''}" data-a="ek-haken" data-k="${esc(x.schluessel)}" aria-pressed="${!!E_.haken[x.schluessel]}"><span class="ek-box">${E_.haken[x.schluessel] ? ic('haken') : ''}</span><span class="was">${esc(x.name)}<small>${esc(x.aus.join(', '))}</small></span><b>${esc(x.menge)}</b></button>`).join('')
       + eig.map((x) => `<button class="ek-zeile ${E_.haken['eig:' + x.id] ? 'ok' : ''}" data-a="ek-haken" data-k="eig:${esc(x.id)}" aria-pressed="${!!E_.haken['eig:' + x.id]}"><span class="ek-box">${E_.haken['eig:' + x.id] ? ic('haken') : ''}</span><span class="was">${esc(x.text)}<small>selbst notiert</small></span></button>`).join('') + `</div>`;
   }
@@ -247,7 +248,7 @@ function kategorienHtml() {
   const kats = alleKategorien(Z.rezepte, Z.kategorien), aus = (Z.kategorien.ausgeblendet || []).filter((id) => !kats.some((c) => c.id === id)).map((id) => KATEGORIEN_FEST.find((c) => c.id === id)).filter(Boolean);
   return `<div class="ueber"><h2 style="font-size:19px">Kategorien</h2>${frag('Namen und Zeichen kannst du frei ändern; ein leeres Namensfeld heißt Vorgabe. Zum Ordnen eine Zeile am Griff lange drücken oder mit der Maus ziehen. Eine Kategorie mit Rezepten fragt beim Löschen, wohin die Rezepte sollen. Ein eigener Name gilt in allen Sprachen.')}</div>
    <div class="liste" id="kat-liste">${kats.map((c) => { const n = anzahl(Z.rezepte, c.id), eig = Z.kategorien.namen?.[c.id]?.name || '';
-     return `<div class="kat-zeile" data-kid="${esc(c.id)}"><span class="griff" aria-hidden="true">${ic('griff')}</span><button class="kat-zeichen" data-a="kat-emoji" data-kid="${esc(c.id)}" aria-label="Bild oder Zeichen ändern">${katSticker(c)}</button>
+     return `<div class="kat-zeile" data-kid="${esc(c.id)}"><span class="griff" aria-hidden="true" title="Zum Verschieben lange drücken oder ziehen">${ic('griff')}</span><button class="kat-zeichen" data-a="kat-emoji" data-kid="${esc(c.id)}" aria-label="Bild oder Zeichen ändern">${katSticker(c)}</button>
       ${c.art === 'ohne' ? `<span class="kat-fest">${esc(katName(c))}</span>` : `<input class="feld kat-name" data-kid="${esc(c.id)}" value="${esc(c.art === 'eigen' && !eig ? c.de : eig)}" placeholder="${esc(c.de || c.id)}" aria-label="Name der Kategorie ${esc(katName(c))}" autocomplete="off">`}
       <small>${n}</small>${c.art === 'ohne' ? '<span style="width:34px"></span>' : `<button class="rund" data-a="kat-weg" data-kid="${esc(c.id)}" aria-label="Kategorie ${esc(katName(c))} löschen">${ic('muell')}</button>`}</div>`; }).join('')}</div>
    <div class="reihe" style="margin-top:12px"><button class="knopf akz" data-a="kat-neu">${ic('plus')}Neue Kategorie</button></div>
@@ -352,7 +353,7 @@ function werkstattHtml() {
    ${zeile('beispiel', 'paket', 'Beispielbuch laden', beispielText())}${b ? zeile('beispiele-weg', 'muell', 'Beispiele entfernen', `${b} Beispiel-Rezepte, eigene bleiben`) : ''}</div></div>
   ${installFrage ? `<div class="gruppe"><h3>App</h3><div class="liste">${zeile('installieren', 'laden', 'Als App installieren', 'eigenes Symbol, läuft auch ohne Netz')}</div></div>` : ''}
   <div class="gruppe"><h3>Ordnung</h3><div class="liste">${zeile('geh', 'ordner', 'Kategorien', 'umbenennen, Zeichen, ordnen, löschen, neu', 'data-zu="kategorien"')}${zeile('geh', 'bild', 'Bilder', `${Z.rezepte.filter((r) => istInhalt(r) && r.img).length} Bilder ansehen, löschen, einfügen`, 'data-zu="bilder"')}</div></div>
-  <div class="gruppe"><h3>Darstellung</h3><div class="liste">${zeile('farbe', 'einst', 'Farbe und Hell/Dunkel', (FARBEN[E.farbe]?.de || '') + ' · ' + TOENE[E.ton])}${zeile('schrift', 'einst', 'Schriftgröße', schriftWert(E.schrift) + ' %, gilt überall, auch beim Kochen')}</div></div>
+  <div class="gruppe"><h3>Darstellung</h3><div class="liste">${zeile('farbe', 'einst', 'Farbe und Hell/Dunkel', (FARBEN[E.farbe]?.de || '') + ' · ' + TOENE[E.ton])}${zeile('schrift', 'einst', 'Schriftgröße', schriftWert(E.schrift) + ' %, gilt überall, auch beim Kochen')}${zeile('hinweise', 'einst', 'Hinweis-Blasen', E.hinweiseAus ? 'aus' : 'an: kurze Erklärung, wenn man auf ein Symbol zeigt oder es antippt', `aria-pressed="${!E.hinweiseAus}"`)}</div></div>
   <div class="gruppe"><h3>Aufräumen</h3><div class="liste">${zeile('alles-weg', 'muell', 'Alle Rezepte löschen', 'mit Rückfrage')}</div></div>
   <p class="quelle">Mein Rezeptbuch, neue Fassung ${FASSUNG}. Ordner, Foto-Scan, Web-Import, Bücher und Übersetzung folgen. <a href="../" style="color:inherit">Zur bisherigen App</a></p>`;
 }
@@ -568,6 +569,7 @@ const A = {
   'beispiele-weg': () => { const n = Z.rezepte.filter((r) => r.beispiel).length; frage('Beispiele entfernen?', `${n} Beispiel-Rezepte werden entfernt. Deine eigenen Rezepte bleiben.`, 'Entfernen', () => { tresorAuto(); const vorher = Z.rezepte; Z.rezepte = Z.rezepte.filter((r) => !r.beispiel); sichern(); zeichne(); melde(`${n} Beispiele entfernt`, 'Rückgängig', () => { Z.rezepte = vorher; sichern(); zeichne(); }); }); },
   'alles-weg': () => { const n = Z.rezepte.filter(istInhalt).length; frage('Alle Rezepte löschen?', `${n} Rezepte werden gelöscht. Der jetzige Stand kommt vorher in den Tresor.`, 'Alle löschen', () => { tresorAuto(); const vorher = Z; Z = { ...leererZustand(), kategorien: leereKategorien() }; ergaenze(); E.zuletzt = null; sichern(); geh('start', {}, true); melde('Alle Rezepte gelöscht', 'Rückgängig', () => { Z = vorher; sichern(); zeichne(true); }); }); },
   farbe: () => farbFenster(),
+  hinweise: () => { E.hinweiseAus = !E.hinweiseAus; sichern(); zeichne(); melde(E.hinweiseAus ? 'Hinweis-Blasen aus' : 'Hinweis-Blasen an'); },
   'farbe-wahl': (e) => { E.farbe = e.dataset.farbe; farbeSetzen(document.documentElement, E.farbe, E.ton); sichern(); fensterZu(); zeichne(); },
   ja: () => { const t = jaTun; jaTun = null; fensterZu(); t?.(); },
   'fenster-zu': (e, ev) => { if (ev.target.closest('.fenster') && !ev.target.closest('[data-a="fenster-zu"]:not(.schleier)')) return; fensterZu(); },
@@ -643,6 +645,7 @@ async function start() {
   }
   ergaenze();
   if (!TOENE[E.ton]) E.ton = 'geraet'; farbeSetzen(document.documentElement, E.farbe, E.ton); E.schrift = schriftSetzen(document.documentElement, E.schrift);
+  hinweiseEinrichten(document, { aus: () => !!E.hinweiseAus });   // Hinweis-Blasen wie in der alten App (Kern), ausschaltbar
   matchMedia('(prefers-color-scheme: dark)').addEventListener('change', () => { if (E.ton === 'geraet') farbeSetzen(document.documentElement, E.farbe, E.ton); });
   history.replaceState({ ansicht: 'start' }, '');
   zeichne(true);
