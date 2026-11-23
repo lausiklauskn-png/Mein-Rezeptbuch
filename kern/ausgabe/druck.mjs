@@ -55,6 +55,7 @@ td.m{width:95pt;padding-right:10pt;font-weight:700;color:var(--f)}
 td.m .e{font-weight:400;color:#666}
 td.m .neu{color:#a0401a;font-weight:800}
 td.m s{color:#999;font-size:7.5pt;font-weight:400;margin-left:2pt}
+.notizen{white-space:pre-line;margin:2pt 0 0}
 .notiz{margin-top:2pt;padding:2pt 6pt;background:#f0f7f6;border-left:2pt solid var(--f);font-size:8pt;color:#1e4a45}
 ol{list-style:none;margin:0;padding:0}
 ol li{display:flex;gap:10pt;margin-bottom:10pt;break-inside:avoid;page-break-inside:avoid}
@@ -133,6 +134,7 @@ export function rezeptTeile(rezept, { portionen, sprache = 'de', mitBild = true,
   }).join('\n');
   const schritte = r.steps.map((s, i) => `<li><span class="nr">${i + 1}</span><div class="st">${esc(s.txt)}${s.note ? `<div class="notiz">${esc(s.note)}</div>` : ''}</div></li>`).join('\n');
   const kommentar = r.rating && r.rating.comment ? String(r.rating.comment).trim() : '';
+  const notizen = typeof roh.notes === 'string' ? roh.notes.trim() : '';   /* Notizen zum ganzen Rezept (das Mixarium führt sie); die Notiz am Schritt steht beim Schritt */
   const teile = [
     `<${h}>${esc(name)}</${h}>`,
     r.name && roh.name && r.name !== roh.name ? `<p class="urname">${esc(roh.name)}</p>` : '',
@@ -140,6 +142,7 @@ export function rezeptTeile(rezept, { portionen, sprache = 'de', mitBild = true,
     bild ? `<div class="bild"><img src="${esc(bild)}" alt="${esc(name)}"></div>` : '',
     zutaten ? `<${h2}>${esc(text(sprache, 'Zutaten', 'Ingredients'))}</${h2}>\n<table>\n${zutaten}\n</table>` : '',
     schritte ? `<${h2}>${esc(text(sprache, 'Zubereitung', 'Preparation'))}</${h2}>\n<ol>\n${schritte}\n</ol>` : '',
+    notizen ? `<${h2}>${esc(text(sprache, 'Notizen', 'Notes'))}</${h2}>\n<p class="notizen">${esc(notizen)}</p>` : '',
     kommentar ? `<div class="wort">${esc('„' + kommentar + '“')}</div>` : '',
   ].filter(Boolean);
   return { name, teile, ausschnitt: bild ? ausschnittStil(r.imgCrop) : '' };

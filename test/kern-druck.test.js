@@ -163,3 +163,11 @@ test('Druck · drucke(): Nachlauf, liegengebliebener Rahmen, Fehler von print(),
   await assert.rejects(drucke('<p>x</p>', { dokument: null }), /nur im Browser/); await assert.rejects(drucke('<p>x</p>', { dokument: {} }), /nur im Browser/);
   await assert.rejects(drucke('<p>x</p>'), /nur im Browser/, 'in Node gibt es kein Dokument'); await assert.rejects(drucke('<p>x</p>', { sprache: 'en' }), /only works in the browser/);
 });
+
+test('Notizen zum ganzen Rezept stehen im Druck, entschärft und mit ihren Zeilenumbrüchen; ohne Notizen gibt es keinen Abschnitt', () => {
+  const mit = druckRezept({ uid: 'x', name: 'Mojito', ings: [{ amt: '4', unit: 'cl', name: 'Rum' }], steps: [{ txt: 'Rühren.' }], notes: 'Mit Eis servieren.\n<b>Nicht</b> schütteln.' });
+  assert.ok(mit.includes('>Notizen<') && mit.includes('Mit Eis servieren.') && mit.includes('&lt;b&gt;Nicht&lt;/b&gt; schütteln.') && !mit.includes('<b>Nicht</b>'));
+  assert.ok(druckRezept({ uid: 'x', name: 'Mojito', ings: [], steps: [{ txt: 'Rühren.' }], notes: 'x' }, { sprache: 'en' }).includes('>Notes<'));
+  assert.ok(!druckRezept({ uid: 'y', name: 'Ohne', ings: [], steps: [{ txt: 'Rühren.' }] }).includes('>Notizen<'));
+  assert.ok(!druckRezept({ uid: 'z', name: 'Leer', ings: [], steps: [{ txt: 'Rühren.' }], notes: '   ' }).includes('>Notizen<'));
+});

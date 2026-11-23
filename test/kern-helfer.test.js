@@ -211,3 +211,10 @@ test('die kurze Zeile nennt nur das Was, ohne Satzanfang und Empfänger – in j
   assert.ok(wasGehtHinaus('naehrwerte', SUPPE, 'de').includes(wasKurz('naehrwerte', SUPPE, 'de')) && wasGehtHinaus('naehrwerte', SUPPE, 'de').endsWith('an Anthropic (Claude).'));
   assert.ok(!/Anthropic|Hinaus|Sent/.test(wasKurz('wochenplan', [SUPPE, KUCHEN], 'de', { kategorien: KATS })));
 });
+
+test('bei mehreren sagt eine Ausgabe es mit ihrem Wort (vieleText), sonst heißt es „Rezepten“', () => {
+  assert.ok(wasGehtHinaus('uebersetzung', [SUPPE, KUCHEN], 'de').includes('von 2 Rezepten'));
+  const g = wasGehtHinaus('uebersetzung', [SUPPE, KUCHEN], 'de', { vieleText: (n) => `von ${n} Getränken` });
+  assert.ok(g.includes('von 2 Getränken') && !g.includes('Rezepten') && g.endsWith('an Anthropic (Claude).'));
+  assert.ok(!wasGehtHinaus('uebersetzung', [SUPPE], 'de', { vieleText: () => 'NIE' }).includes('NIE'), 'bei einem einzelnen steht keine Zahl');
+});
