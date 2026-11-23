@@ -1,0 +1,381 @@
+<!doctype html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Gestaltung beider Apps</title>
+<meta name="description" content="Verbindliche Gestaltungsvorlage für Mein Rezeptbuch und Mein Mixarium: Wasserfarben wie die Private Akte, Knöpfe, Kacheln, Symbole, Fragezeichen, Hintergrund, mit Bildbeispielen.">
+<style>
+/* ── Seite ── */
+:root{--seite:#f6f4ef;--text:#1f2430;--leise:#5b6170;--linie:rgba(31,36,48,.12);--karte:#fff;--gut:#1f7a4d;--schlecht:#a8322d;
+  font-family:system-ui,-apple-system,"Segoe UI",Roboto,sans-serif}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--seite:#12151c;--text:#e8ebf2;--leise:#a3aab8;--linie:rgba(232,235,242,.14);--karte:#1b1f29;--gut:#6fd3a0;--schlecht:#ff8f87}}
+:root[data-theme="dark"]{--seite:#12151c;--text:#e8ebf2;--leise:#a3aab8;--linie:rgba(232,235,242,.14);--karte:#1b1f29;--gut:#6fd3a0;--schlecht:#ff8f87}
+*{box-sizing:border-box}
+body{margin:0;background:var(--seite);color:var(--text);font-size:15px;line-height:1.5}
+.blatt{max-width:1080px;margin:0 auto;padding:28px 16px 80px}
+h1{font-size:28px;line-height:1.2;margin:0 0 6px;letter-spacing:-.01em}
+h2{font-size:21px;margin:44px 0 6px;padding-top:12px;border-top:1px solid var(--linie)}
+h3{font-size:15.5px;margin:22px 0 8px}
+p{margin:6px 0 10px}
+.unter{color:var(--leise);margin-top:0}
+code{font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:12.5px;background:color-mix(in srgb,var(--text) 7%,transparent);padding:1px 5px;border-radius:5px}
+table{border-collapse:collapse;width:100%;font-size:13.5px;margin:8px 0 14px;background:var(--karte);border-radius:12px;overflow:hidden}
+th,td{text-align:left;padding:7px 10px;border-bottom:1px solid var(--linie);vertical-align:top}
+th{font-weight:650;background:color-mix(in srgb,var(--text) 5%,transparent)}
+.tabwrap{overflow-x:auto}
+.zitat{border-left:3px solid #c9a25e;padding:6px 12px;margin:10px 0;background:var(--karte);border-radius:0 10px 10px 0;font-style:italic}
+.regeln{counter-reset:r;list-style:none;padding:0;display:grid;gap:8px;grid-template-columns:repeat(auto-fit,minmax(300px,1fr))}
+.regeln li{background:var(--karte);border:1px solid var(--linie);border-radius:12px;padding:10px 12px 10px 46px;position:relative}
+.regeln li::before{counter-increment:r;content:counter(r);position:absolute;left:12px;top:10px;width:24px;height:24px;border-radius:50%;background:#e9cfae;color:#3b2614;font-weight:700;font-size:13px;display:grid;place-items:center}
+.paar{display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:12px;margin:10px 0}
+.feld{background:var(--karte);border:1px solid var(--linie);border-radius:14px;padding:12px;min-width:0}
+.feld>.marke{display:inline-block;font-size:12px;font-weight:700;border-radius:999px;padding:2px 10px;margin-bottom:8px}
+.so .marke{background:color-mix(in srgb,var(--gut) 16%,transparent);color:var(--gut)}
+.nicht .marke{background:color-mix(in srgb,var(--schlecht) 14%,transparent);color:var(--schlecht)}
+.nicht{border-style:dashed}
+.notiz{font-size:12.5px;color:var(--leise);margin-top:8px}
+
+/* ── Die App: Palette als Variablen (Werte aus kern/oberflaeche/farben.mjs) ── */
+.app{--k1:#e9cfae;--k2:#f1dfc6;--k3:#f8eedf;--akz:#a9480c;--schrift:#3b2614;--fl2:#f6ece0;
+  --fl:#fff;--ink:#2b2117;--mut:color-mix(in srgb,var(--ink) 70%,#fff);--line:color-mix(in srgb,var(--ink) 13%,transparent);
+  --kn1:color-mix(in srgb,var(--k1) 85%,#fff);--kn2:color-mix(in srgb,var(--k3) 80%,#fff);--knt:var(--schrift);--knr:color-mix(in srgb,var(--akz) 28%,transparent);
+  --bg:color-mix(in srgb,var(--k3) 40%,#fbfbfa);
+  font-size:14px;color:var(--ink);position:relative}
+.app.blau{--k1:#a9cff2;--k2:#c9e2f7;--k3:#dcedf5;--akz:#2f6ea8;--schrift:#0b3154;--fl2:#e4eef7;--ink:#0f1d3a}
+.app.flieder{--k1:#cfc4f0;--k2:#e0d8f6;--k3:#eee9fa;--akz:#6a45a8;--schrift:#35215f;--fl2:#ece7f8;--ink:#241a3a}
+.app.dunkel{--fl:color-mix(in srgb,var(--akz) 27%,#0a0e17);--fl2:color-mix(in srgb,var(--akz) 38%,#0c111c);--bg:color-mix(in srgb,var(--akz) 15%,#05080e);
+  --ink:#eef1fa;--mut:#c3cadb;--line:color-mix(in srgb,var(--akz) 55%,rgba(255,255,255,.14));
+  --kn1:color-mix(in srgb,var(--akz) 52%,#0a0e17);--kn2:color-mix(in srgb,var(--akz) 22%,#0a0e17);--knt:#eef2ff;--knr:color-mix(in srgb,var(--akz) 45%,transparent);
+  --k1:color-mix(in srgb,var(--akz) 70%,#0a0e17);--k2:color-mix(in srgb,var(--akz) 52%,#0a0e17);--k3:color-mix(in srgb,var(--akz) 36%,#0a0e17);--schrift:#eef1fa}
+.app .ic{width:18px;height:18px;fill:currentColor;flex:none}
+.app .ic [opacity]{opacity:.25}
+
+/* Hintergrund: Wasserfarben-Wäsche wie in der Privaten Akte, auf jeder leeren Fläche */
+.app .grund{background:
+   radial-gradient(60% 45% at 6% -4%,color-mix(in srgb,var(--k1) 75%,transparent),transparent 64%),
+   radial-gradient(50% 40% at 104% 8%,color-mix(in srgb,var(--k2) 85%,transparent),transparent 62%),
+   radial-gradient(70% 50% at 50% 112%,color-mix(in srgb,var(--k3) 95%,transparent),transparent 64%),
+   radial-gradient(35% 30% at 78% 62%,color-mix(in srgb,var(--k1) 35%,transparent),transparent 70%),
+   var(--bg);position:relative}
+.app .grund::before{content:"";position:absolute;inset:0;pointer-events:none;opacity:.35;mix-blend-mode:multiply;border-radius:inherit;
+  background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='240' height='240'%3E%3Cfilter id='p'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='3' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 .55 0 0 0 0 .5 0 0 0 0 .45 0 0 0 .18 0'/%3E%3C/filter%3E%3Crect width='240' height='240' filter='url(%23p)'/%3E%3C/svg%3E")}
+.app.dunkel .grund::before{mix-blend-mode:screen;opacity:.12}
+.app .grund>*{position:relative}
+
+/* Knöpfe – Werte aus Mein-Mixarium/neu/app.css (von Klaus abgenommen) */
+.app .knopf{display:inline-flex;align-items:center;justify-content:center;gap:7px;min-height:36px;padding:6px 15px;border-radius:11px;font:650 14px/1.1 system-ui,sans-serif;letter-spacing:.01em;white-space:nowrap;
+  background:linear-gradient(120deg,var(--kn1),var(--kn2));color:var(--knt);border:1px solid var(--knr);box-shadow:inset 0 1px 0 rgba(255,255,255,.55),0 2px 8px color-mix(in srgb,var(--akz) 16%,transparent);cursor:pointer}
+.app.dunkel .knopf{box-shadow:inset 0 1px 0 rgba(255,255,255,.12),0 2px 8px rgba(0,0,0,.3)}
+.app .knopf.hell{background:var(--fl);color:var(--ink);border:1px solid var(--line);box-shadow:none}
+.app .knopf.rot{background:var(--fl);color:#a43030;border:1px solid color-mix(in srgb,#a43030 30%,transparent);box-shadow:none}
+.app.dunkel .knopf.rot{color:#ff9a92}
+.app .knopf.gross{min-height:46px;padding:8px 20px;font-size:15px;border-radius:13px}
+.app .chip{display:inline-flex;align-items:center;gap:5px;min-height:28px;padding:4px 10px;border-radius:9px;font-size:12.5px;border:1px solid var(--line);background:var(--fl);color:var(--ink);white-space:nowrap}
+.app .chip.an{background:linear-gradient(120deg,var(--kn1),var(--kn2));color:var(--knt);border-color:var(--knr);font-weight:600}
+.app .rund{width:34px;height:34px;border-radius:50%;display:grid;place-items:center;background:color-mix(in srgb,var(--fl) 82%,transparent);border:1px solid var(--line);color:var(--ink)}
+.app .reihe{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
+
+/* Kacheln in Wasserfarbe – dicht gepackt, jede Reihe voll */
+.app .kacheln{display:flex;flex-wrap:wrap;gap:7px}
+.app .kachel{--kc:#5a7ab0;flex:1 1 auto;min-width:96px;min-height:42px;display:flex;align-items:center;gap:8px;padding:5px 10px 5px 5px;border-radius:13px;font-size:13.5px;font-weight:600;line-height:1.2;color:var(--ink);
+  background:linear-gradient(100deg,var(--fl) 35%,color-mix(in srgb,var(--kc) 12%,var(--fl)));border:1px solid color-mix(in srgb,var(--kc) 18%,var(--line));box-shadow:0 1px 3px rgba(15,29,58,.06)}
+.app .kachel.an{background:linear-gradient(100deg,color-mix(in srgb,var(--kc) 8%,var(--fl)) 20%,color-mix(in srgb,var(--kc) 26%,var(--fl)));border-color:color-mix(in srgb,var(--kc) 70%,transparent);box-shadow:inset 0 0 0 1px color-mix(in srgb,var(--kc) 70%,transparent)}
+.app.dunkel .kachel{background:linear-gradient(100deg,var(--fl) 35%,color-mix(in srgb,var(--kc) 22%,var(--fl)))}
+.app .kfeld{width:28px;height:28px;border-radius:9px;flex:none;display:grid;place-items:center;background:color-mix(in srgb,var(--kc) 24%,#fff);border:1px solid color-mix(in srgb,var(--kc) 30%,transparent);color:color-mix(in srgb,var(--kc) 85%,#000)}
+.app.dunkel .kfeld{background:color-mix(in srgb,var(--kc) 30%,var(--fl));color:color-mix(in srgb,var(--kc) 55%,#fff)}
+.app .kfeld .ic{width:17px;height:17px}
+.app .kfeld.punkt{width:20px;height:20px;border-radius:50%;background:color-mix(in srgb,var(--kc) 45%,#fff)}
+.app .kfeld .emo{font-size:16px;opacity:.85;filter:saturate(.75)}
+.app .kacheln.drei .kachel{flex-basis:calc((100% - 14px)/3);min-width:0}
+
+/* Sticker der Kategorien: Mini-Foto aus der eigenen Kategorie, Name darunter lesbar */
+.app .sticker{display:flex;gap:10px;overflow-x:auto;padding:4px 2px 2px}
+.app .stk{flex:none;width:66px;display:grid;justify-items:center;gap:4px;font-size:11.5px;line-height:1.2;text-align:center;color:var(--mut)}
+.app .stk .foto{width:56px;height:56px;border-radius:16px;border:2px solid #fff;box-shadow:0 2px 8px rgba(15,29,58,.18);display:grid;place-items:center;font-size:26px;overflow:hidden}
+.app.dunkel .stk .foto{border-color:color-mix(in srgb,var(--akz) 40%,#0a0e17)}
+.app .stk.an{color:var(--ink);font-weight:650}
+.app .stk.an .foto{box-shadow:0 0 0 2px var(--akz),0 2px 8px rgba(15,29,58,.18)}
+.app .stk .foto.zeichen{background:radial-gradient(70% 70% at 30% 25%,color-mix(in srgb,var(--kc) 30%,#fff),color-mix(in srgb,var(--kc) 14%,#fff))}
+.app .stk .foto.zeichen span{opacity:.85;filter:saturate(.8)}
+
+/* „?“ – kleiner Kreis IN der Zeile, Blase schwebt darüber, keine neue Zeile */
+.app .frag{display:inline-block;position:relative;margin-left:6px;vertical-align:middle;font-weight:400}
+.app .frag summary{list-style:none;width:22px;height:22px;border-radius:50%;border:1px solid var(--line);display:grid;place-items:center;font-weight:700;font-size:12px;color:var(--akz);cursor:pointer;background:var(--fl)}
+.app .frag summary::-webkit-details-marker{display:none}
+.app .frag .blase{position:absolute;z-index:8;left:-120px;top:28px;width:250px;max-width:70vw;background:var(--fl);border:1px solid var(--line);border-radius:12px;padding:8px 10px;font-size:12.5px;line-height:1.45;color:var(--ink);box-shadow:0 8px 22px rgba(15,29,58,.18);margin:0;font-style:normal;display:block}
+.app .zeile{display:flex;align-items:center;gap:0;flex-wrap:wrap}
+
+/* Kopf, Karten, Leiste, Toast, Ladebalken */
+.app .kopf{display:flex;align-items:center;gap:8px;min-height:52px;padding:8px 12px;background:linear-gradient(90deg,var(--k1),var(--k2) 55%,var(--k3));color:var(--schrift);border-bottom:1px solid var(--line)}
+.app .kopf b{font-size:16px;flex:1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.app .kopf .rund{background:color-mix(in srgb,#fff 55%,transparent);color:var(--schrift);border-color:color-mix(in srgb,var(--schrift) 18%,transparent)}
+.app.dunkel .kopf .rund{background:color-mix(in srgb,#000 25%,transparent)}
+.app .such{flex:1;display:flex;align-items:center;gap:6px;min-width:0;padding:6px 12px;border-radius:999px;background:var(--fl);border:1px solid var(--line);color:var(--mut);font-size:13px}
+.app .karten{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.app .karte{background:var(--fl);border:1px solid var(--line);border-radius:16px;overflow:hidden;box-shadow:0 1px 2px rgba(15,29,58,.05),0 8px 20px rgba(15,29,58,.07)}
+.app .karte .bild{aspect-ratio:4/3;position:relative}
+.app .karte .bild::after{content:"";position:absolute;inset:0;background:linear-gradient(115deg,rgba(255,255,255,.28),transparent 38%),radial-gradient(120% 90% at 50% 120%,rgba(10,17,36,.22),transparent 60%)}
+.app .karte .txt{padding:8px 10px 10px}
+.app .karte strong{display:block;font-size:13.5px}
+.app .karte small{color:var(--mut);font-size:12px}
+.app .held{position:relative;aspect-ratio:4/3;border-radius:16px;overflow:hidden}
+.app .held .ueber{position:absolute;inset:auto 0 0 0;padding:40px 14px 12px;background:linear-gradient(to top,rgba(6,10,24,.82),rgba(6,10,24,.5) 55%,transparent);color:#fff;display:flex;align-items:flex-end;gap:8px}
+.app .held .ueber h4{margin:0;font-size:21px;flex:1}
+.app .held .winkel{width:26px;height:26px;display:grid;place-items:center;color:#fff}
+.app .leiste{position:absolute;right:0;top:46%;display:flex;align-items:center}
+.app .griff{width:12px;height:64px;border-radius:9px 0 0 9px;background:linear-gradient(180deg,var(--kn1),var(--kn2));border:1px solid var(--knr);border-right:0;display:grid;place-items:center}
+.app .griff i{width:3px;height:26px;border-radius:3px;background:var(--knt);opacity:.7}
+.app .fach{display:grid;gap:2px;padding:5px;max-width:178px;background:var(--fl);border:1px solid var(--line);border-right:0;border-radius:14px 0 0 14px;box-shadow:-6px 8px 26px rgba(11,49,84,.24)}
+.app .fach span{display:flex;align-items:center;gap:8px;min-height:34px;padding:3px 10px;border-radius:10px;font-weight:600;font-size:13px;white-space:nowrap}
+.app .fach span .ic{width:17px;height:17px;color:var(--akz)}
+.app .fach span.an{background:linear-gradient(120deg,var(--kn1),var(--kn2));color:var(--knt)}
+.app .fach span.an .ic{color:var(--knt)}
+.app .toast{display:inline-flex;align-items:center;gap:8px;padding:8px 14px;border-radius:999px;background:rgba(20,24,34,.9);color:#fff;font:600 13px/1.3 system-ui,sans-serif;white-space:nowrap}
+.app .toast b{width:14px;height:14px;border-radius:50%;border:2px solid rgba(255,255,255,.35);border-top-color:#fff;animation:dreh .8s linear infinite}
+.app .toast small{opacity:.75;font-weight:500}
+@keyframes dreh{to{transform:rotate(360deg)}}
+.app .balken{height:3px;border-radius:3px;background:color-mix(in srgb,var(--akz) 18%,transparent);overflow:hidden;position:relative}
+.app .balken i{position:absolute;inset:0 auto 0 0;width:40%;background:var(--akz)}
+@media (prefers-reduced-motion:reduce){.app .toast b{animation:none}}
+
+/* Handy-Rahmen */
+.handy{width:300px;max-width:100%;border-radius:30px;padding:9px;background:#1b1f29;box-shadow:0 14px 40px rgba(0,0,0,.25)}
+.handy .schirm{border-radius:22px;overflow:hidden;height:560px;display:flex;flex-direction:column;position:relative}
+.handy .inhalt{flex:1;padding:10px 12px;overflow:hidden;display:grid;gap:10px;align-content:start}
+.handys{display:flex;flex-wrap:wrap;gap:18px;justify-content:center;margin:12px 0}
+.unterschrift{text-align:center;font-size:12.5px;color:var(--leise);margin-top:6px}
+.leer{border-radius:16px;padding:26px 16px;text-align:center;display:grid;gap:10px;justify-items:center}
+.leer .gross{font-size:34px;opacity:.7;filter:saturate(.7)}
+.flach{background:#eceef1;border-radius:16px;padding:26px 16px;text-align:center;color:#555;font-size:13px}
+.voll-schlecht{display:inline-flex;align-items:center;justify-content:center;min-height:46px;padding:10px 22px;border-radius:999px;background:#1f4fa0;color:#fff;font-weight:700;font-size:15px;border:0}
+.swatch{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:10px}
+.swatch .farbe{border-radius:14px;overflow:hidden;border:1px solid var(--linie);background:var(--karte)}
+.swatch .farbe .w{height:64px}
+.swatch .farbe .t{padding:6px 10px;font-size:12.5px}
+.swatch .farbe .t b{display:block;font-size:13.5px}
+</style>
+</head>
+<body>
+<div class="blatt">
+
+<h1>Gestaltung: Mein Rezeptbuch und Mein Mixarium</h1>
+<p class="unter">Verbindliche Vorlage für jede Sitzung, die an <code>neu/</code> baut. Stand 23.11.2026. Beide Apps nutzen <b>dieselbe Technik und dieselbe Art</b> wie die Private Akte – nur die Palette und die Kategorien sind je App eigen. Alle Werte stammen aus dem Code, den Klaus abgenommen hat (<code>Mein-Mixarium/neu/app.css</code>, <code>kern/oberflaeche/farben.mjs</code>).</p>
+
+<div class="zitat">„Dieselbe moderne Art der Darstellung wie die Privatakte. Mit Hintergrundbild bei leeren Flächen. Wasserfarbene Buttons in der Farbe des Themas, nicht volltonfarben, mit transparenten Emojis. Erklärtexte hinter einem Fragezeichen, das keine neue Zeile erzeugt.“ – Klaus, 23.11.2026, sinngemäß zusammengefasst aus allen Runden</div>
+
+<h2>Die zwölf Regeln</h2>
+<ol class="regeln">
+<li><b>Wasserfarbe statt Vollton.</b> Jeder Knopf, jede aktive Pille, jede Kachel ist ein weicher Verlauf aus der Palette (k1 → k3 aufgehellt), nie eine gesättigte Vollfläche.</li>
+<li><b>Hintergrund ist nie leer.</b> Seite und leere Flächen tragen die Wasserfarben-Wäsche der Palette mit leichter Papier-Struktur – wie in der Privaten Akte.</li>
+<li><b>Knöpfe klein und flach:</b> 36 px hoch, Rundung 11 px. Pillen 28, runde Kopfknöpfe 34, Leistenknöpfe 34. Nur Kochen/Mixen: 46.</li>
+<li><b>Ein bis zwei Wörter</b> im Knopf, Symbol links, nie zwei Zeilen, nie ein Satz.</li>
+<li><b>Symbole:</b> Phosphor Duotone, Füllebene 25 % Deckkraft, in einem kleinen Feld (28 px) in der Farbe des Themas. Emojis nur entsättigt und leicht durchsichtig.</li>
+<li><b>Kategorien</b> haben je eine eigene Themenfarbe; ihre Kacheln sind Wasserfarben in dieser Farbe, dicht gepackt, jede Reihe voll.</li>
+<li><b>Sticker:</b> eine Kategorie zeigt ein Mini-Foto aus ihr selbst, den Namen lesbar darunter; ohne Foto ein Wasserfarbenfeld mit Emoji.</li>
+<li><b>Erklärung = „?“</b> in derselben Zeile wie das, was es erklärt. Die Blase schwebt. Kein Absatz, keine neue Zeile.</li>
+<li><b>Kopf: eine Zeile.</b> Name, +, Pfeil. Ausgeklappt erscheinen Suche und Werkzeuge in <i>derselben</i> Zeile.</li>
+<li><b>Keine Knöpfe auf dem Bild.</b> Nur der weiße Winkel rechts in der Namenszeile. Tipp aufs Bild → Vollbild.</li>
+<li><b>Fliegende Leiste</b> wie in der Privaten Akte, keine untere Menüleiste am Handy.</li>
+<li><b>Meldungen einzeilig</b>; was dauert, zeigt den Ladebalken mit Sekunden.</li>
+</ol>
+
+<h2>1 · Grund und leere Flächen</h2>
+<p>Jede Fläche ohne Inhalt – Seitengrund, leere Liste, leere Suche, leerer Plan – trägt die Wäsche der Palette: drei bis vier weiche Farbflecken aus <code>k1</code>, <code>k2</code>, <code>k3</code> und eine sehr feine Papier-Struktur (<code>feTurbulence</code>, 35 % Deckkraft, im Dunkeln 12 %). Darauf: ein entsättigtes Zeichen, ein Satz, ein Knopf.</p>
+<div class="paar">
+ <div class="feld so"><span class="marke">So</span>
+  <div class="app"><div class="grund leer"><div class="gross">🍲</div><b>Noch keine Rezepte</b><span class="knopf"><svg class="ic" viewBox="0 0 256 256" aria-hidden="true"><path d="M216,56V200a16,16,0,0,1-16,16H56a16,16,0,0,1-16-16V56A16,16,0,0,1,56,40H200A16,16,0,0,1,216,56Z" opacity="0.2"/><path d="M224,128a8,8,0,0,1-8,8H136v80a8,8,0,0,1-16,0V136H40a8,8,0,0,1,0-16h80V40a8,8,0,0,1,16,0v80h80A8,8,0,0,1,224,128Z"/></svg>Rezept anlegen</span></div></div>
+  <div class="app blau" style="margin-top:10px"><div class="grund leer"><div class="gross">🍹</div><b>Hier ist noch nichts</b><span class="knopf"><svg class="ic" viewBox="0 0 256 256" aria-hidden="true"><path d="M128,129.09V232a8,8,0,0,1-3.84-1l-88-48.18a8,8,0,0,1-4.16-7V80.18a8,8,0,0,1,.7-3.25Z" opacity="0.2"/><path d="M223.68,66.15,135.68,18a15.88,15.88,0,0,0-15.36,0l-88,48.17a16,16,0,0,0-8.32,14v95.64a16,16,0,0,0,8.32,14l88,48.17a15.88,15.88,0,0,0,15.36,0l88-48.17a16,16,0,0,0,8.32-14V80.18A16,16,0,0,0,223.68,66.15ZM128,32l80.34,44-29.77,16.3-80.35-44ZM128,120,47.66,76l33.9-18.56,80.34,44ZM40,90l80,43.78v85.79L40,175.82Zm176,85.78h0l-80,43.79V133.82l32-17.51V152a8,8,0,0,0,16,0V107.55L216,90v85.77Z"/></svg>Beispiele laden</span></div></div>
+ </div>
+ <div class="feld nicht"><span class="marke">Nicht so</span>
+  <div class="flach">Keine Einträge vorhanden. Bitte legen Sie ein neues Rezept an, indem Sie oben auf das Plus tippen oder im Menü „Neu“ wählen.</div>
+  <p class="notiz">Graue Fläche, langer Satz, kein Knopf: wirkt leer und kaputt.</p>
+ </div>
+</div>
+<div class="tabwrap"><table><tr><th>Teil</th><th>Wert</th></tr>
+<tr><td>Seitengrund hell</td><td><code>color-mix(k3 40 %, #fbfbfa)</code> + Flecken: <code>k1 75 %</code> oben links, <code>k2 85 %</code> oben rechts, <code>k3 95 %</code> unten, <code>k1 35 %</code> rechts Mitte</td></tr>
+<tr><td>Papier-Struktur</td><td>SVG-Rauschen, Mischmodus <code>multiply</code>, 35 %; dunkel <code>screen</code>, 12 %</td></tr>
+<tr><td>Flächen (Karten, Fenster)</td><td>Weiß bzw. im Dunkeln <code>color-mix(akz 27 %, #0a0e17)</code>, Rand 1 px <code>ink 13 %</code>, Rundung 16 px</td></tr>
+</table></div>
+
+<h2>2 · Farben</h2>
+<p>Neun Paletten aus <code>kern/oberflaeche/farben.mjs</code>, für beide Apps gleich. Jede gibt es hell und dunkel (Dunkel mischt Grund, Flächen und Knöpfe aus der Palettenfarbe – nicht nur der Kopf). Vorgabe: <b>Mein Rezeptbuch Hellbraun</b>, <b>Muttis Rezeptbuch Flieder</b>, <b>Mein Mixarium Wasserblau</b>.</p>
+<div class="swatch" id="farben"></div>
+
+<h2>3 · Knöpfe</h2>
+<div class="paar">
+ <div class="feld so"><span class="marke">So – hell</span>
+  <div class="app"><div class="grund" style="padding:14px;border-radius:12px;display:grid;gap:12px">
+   <div class="reihe"><span class="knopf"><svg class="ic" viewBox="0 0 256 256" aria-hidden="true"><path d="M232,56V200a16,16,0,0,1-16,16H40a16,16,0,0,1-16-16V56A16,16,0,0,1,40,40H216A16,16,0,0,1,232,56Z" opacity="0.2"/><path d="M205.66,85.66l-96,96a8,8,0,0,1-11.32,0l-40-40a8,8,0,0,1,11.32-11.32L104,164.69l90.34-90.35a8,8,0,0,1,11.32,11.32Z"/></svg>Speichern</span><span class="knopf hell">Abbrechen</span><span class="knopf rot"><svg class="ic" viewBox="0 0 256 256" aria-hidden="true"><path d="M200,56V208a8,8,0,0,1-8,8H64a8,8,0,0,1-8-8V56Z" opacity="0.2"/><path d="M216,48H176V40a24,24,0,0,0-24-24H104A24,24,0,0,0,80,40v8H40a8,8,0,0,0,0,16h8V208a16,16,0,0,0,16,16H192a16,16,0,0,0,16-16V64h8a8,8,0,0,0,0-16ZM96,40a8,8,0,0,1,8-8h48a8,8,0,0,1,8,8v8H96Zm96,168H64V64H192ZM112,104v64a8,8,0,0,1-16,0V104a8,8,0,0,1,16,0Zm48,0v64a8,8,0,0,1-16,0V104a8,8,0,0,1,16,0Z"/></svg>Löschen</span></div>
+   <div class="reihe"><span class="chip an"><svg class="ic" viewBox="0 0 256 256" aria-hidden="true"><path d="M232,56V200H160a32,32,0,0,0-32,32,32,32,0,0,0-32-32H24V56H96a32,32,0,0,1,32,32,32,32,0,0,1,32-32Z" opacity="0.2"/><path d="M232,48H160a40,40,0,0,0-32,16A40,40,0,0,0,96,48H24a8,8,0,0,0-8,8V200a8,8,0,0,0,8,8H96a24,24,0,0,1,24,24,8,8,0,0,0,16,0,24,24,0,0,1,24-24h72a8,8,0,0,0,8-8V56A8,8,0,0,0,232,48ZM96,192H32V64H96a24,24,0,0,1,24,24V200A39.81,39.81,0,0,0,96,192Zm128,0H160a39.81,39.81,0,0,0-24,8V88a24,24,0,0,1,24-24h64Z"/></svg>Alle</span><span class="chip"><svg class="ic" viewBox="0 0 256 256" aria-hidden="true"><path d="M216,80V184a24,24,0,0,1-24,24H64a24,24,0,0,1-24-24V80Z" opacity="0.2"/><path d="M88,48V16a8,8,0,0,1,16,0V48a8,8,0,0,1-16,0Zm40,8a8,8,0,0,0,8-8V16a8,8,0,0,0-16,0V48A8,8,0,0,0,128,56Zm32,0a8,8,0,0,0,8-8V16a8,8,0,0,0-16,0V48A8,8,0,0,0,160,56Zm92.8,46.4L224,124v60a32,32,0,0,1-32,32H64a32,32,0,0,1-32-32V124L3.2,102.4a8,8,0,0,1,9.6-12.8L32,104V80a8,8,0,0,1,8-8H216a8,8,0,0,1,8,8v24l19.2-14.4a8,8,0,0,1,9.6,12.8ZM208,88H48v96a16,16,0,0,0,16,16H192a16,16,0,0,0,16-16Z"/></svg>Suppen</span><span class="chip"><svg class="ic" viewBox="0 0 256 256" aria-hidden="true"><path d="M208,144a80,80,0,0,1-160,0c0-30.57,14.42-58.26,31-80l33,32,26.27-72C159.86,41.92,208,88.15,208,144Z" opacity="0.2"/><path d="M183.89,153.34a57.6,57.6,0,0,1-46.56,46.55A8.75,8.75,0,0,1,136,200a8,8,0,0,1-1.32-15.89c16.57-2.79,30.63-16.85,33.44-33.45a8,8,0,0,1,15.78,2.68ZM216,144a88,88,0,0,1-176,0c0-27.92,11-56.47,32.66-84.85a8,8,0,0,1,11.93-.89l24.12,23.41,22-60.41a8,8,0,0,1,12.63-3.41C165.21,36,216,84.55,216,144Zm-16,0c0-46.09-35.79-85.92-58.21-106.33L119.52,98.74a8,8,0,0,1-13.09,3L80.06,76.16C64.09,99.21,56,122,56,144a72,72,0,0,0,144,0Z"/></svg>Schnell</span><span class="rund"><svg class="ic" viewBox="0 0 256 256" aria-hidden="true"><path d="M192,112a80,80,0,1,1-80-80A80,80,0,0,1,192,112Z" opacity="0.2"/><path d="M229.66,218.34,179.6,168.28a88.21,88.21,0,1,0-11.32,11.31l50.06,50.07a8,8,0,0,0,11.32-11.32ZM40,112a72,72,0,1,1,72,72A72.08,72.08,0,0,1,40,112Z"/></svg></span><span class="rund"><svg class="ic" viewBox="0 0 256 256" aria-hidden="true"><path d="M216,56V200a16,16,0,0,1-16,16H56a16,16,0,0,1-16-16V56A16,16,0,0,1,56,40H200A16,16,0,0,1,216,56Z" opacity="0.2"/><path d="M224,128a8,8,0,0,1-8,8H136v80a8,8,0,0,1-16,0V136H40a8,8,0,0,1,0-16h80V40a8,8,0,0,1,16,0v80h80A8,8,0,0,1,224,128Z"/></svg></span></div>
+   <div class="reihe"><span class="knopf gross"><svg class="ic" viewBox="0 0 256 256" aria-hidden="true"><path d="M160,48V208L80,128Z" opacity="0.2"/><path d="M163.06,40.61a8,8,0,0,0-8.72,1.73l-80,80a8,8,0,0,0,0,11.32l80,80A8,8,0,0,0,168,208V48A8,8,0,0,0,163.06,40.61ZM152,188.69,91.31,128,152,67.31Z"/></svg>Zurück</span><span class="knopf gross">Weiter<svg class="ic" viewBox="0 0 256 256" aria-hidden="true"><path d="M176,128,96,208V48Z" opacity="0.2"/><path d="M181.66,122.34l-80-80A8,8,0,0,0,88,48V208a8,8,0,0,0,13.66,5.66l80-80A8,8,0,0,0,181.66,122.34ZM104,188.69V67.31L164.69,128Z"/></svg></span></div>
+  </div></div>
+  <div class="app blau" style="margin-top:10px"><div class="grund" style="padding:14px;border-radius:12px;display:grid;gap:12px">
+   <div class="reihe"><span class="knopf"><svg class="ic" viewBox="0 0 256 256" aria-hidden="true"><path d="M232,56V200a16,16,0,0,1-16,16H40a16,16,0,0,1-16-16V56A16,16,0,0,1,40,40H216A16,16,0,0,1,232,56Z" opacity="0.2"/><path d="M205.66,85.66l-96,96a8,8,0,0,1-11.32,0l-40-40a8,8,0,0,1,11.32-11.32L104,164.69l90.34-90.35a8,8,0,0,1,11.32,11.32Z"/></svg>Speichern</span><span class="knopf hell">Abbrechen</span><span class="chip an"><svg class="ic" viewBox="0 0 256 256" aria-hidden="true"><path d="M229.06,108.79l-48.7,42,14.88,62.79a8.4,8.4,0,0,1-12.52,9.17L128,189.09,73.28,222.74a8.4,8.4,0,0,1-12.52-9.17l14.88-62.79-48.7-42A8.46,8.46,0,0,1,31.73,94L95.64,88.8l24.62-59.6a8.36,8.36,0,0,1,15.48,0l24.62,59.6L224.27,94A8.46,8.46,0,0,1,229.06,108.79Z" opacity="0.2"/><path d="M239.18,97.26A16.38,16.38,0,0,0,224.92,86l-59-4.76L143.14,26.15a16.36,16.36,0,0,0-30.27,0L90.11,81.23,31.08,86a16.46,16.46,0,0,0-9.37,28.86l45,38.83L53,211.75a16.38,16.38,0,0,0,24.5,17.82L128,198.49l50.53,31.08A16.4,16.4,0,0,0,203,211.75l-13.76-58.07,45-38.83A16.43,16.43,0,0,0,239.18,97.26Zm-15.34,5.47-48.7,42a8,8,0,0,0-2.56,7.91l14.88,62.8a.37.37,0,0,1-.17.48c-.18.14-.23.11-.38,0l-54.72-33.65a8,8,0,0,0-8.38,0L69.09,215.94c-.15.09-.19.12-.38,0a.37.37,0,0,1-.17-.48l14.88-62.8a8,8,0,0,0-2.56-7.91l-48.7-42c-.12-.1-.23-.19-.13-.5s.18-.27.33-.29l63.92-5.16A8,8,0,0,0,103,91.86l24.62-59.61c.08-.17.11-.25.35-.25s.27.08.35.25L153,91.86a8,8,0,0,0,6.75,4.92l63.92,5.16c.15,0,.24,0,.33.29S224,102.63,223.84,102.73Z"/></svg>Favoriten</span><span class="chip">Ohne Alkohol</span></div>
+  </div></div>
+ </div>
+ <div class="feld so"><span class="marke">So – dunkel</span>
+  <div class="app dunkel"><div class="grund" style="padding:14px;border-radius:12px;display:grid;gap:12px">
+   <div class="reihe"><span class="knopf"><svg class="ic" viewBox="0 0 256 256" aria-hidden="true"><path d="M232,56V200a16,16,0,0,1-16,16H40a16,16,0,0,1-16-16V56A16,16,0,0,1,40,40H216A16,16,0,0,1,232,56Z" opacity="0.2"/><path d="M205.66,85.66l-96,96a8,8,0,0,1-11.32,0l-40-40a8,8,0,0,1,11.32-11.32L104,164.69l90.34-90.35a8,8,0,0,1,11.32,11.32Z"/></svg>Speichern</span><span class="knopf hell">Abbrechen</span><span class="knopf rot"><svg class="ic" viewBox="0 0 256 256" aria-hidden="true"><path d="M200,56V208a8,8,0,0,1-8,8H64a8,8,0,0,1-8-8V56Z" opacity="0.2"/><path d="M216,48H176V40a24,24,0,0,0-24-24H104A24,24,0,0,0,80,40v8H40a8,8,0,0,0,0,16h8V208a16,16,0,0,0,16,16H192a16,16,0,0,0,16-16V64h8a8,8,0,0,0,0-16ZM96,40a8,8,0,0,1,8-8h48a8,8,0,0,1,8,8v8H96Zm96,168H64V64H192ZM112,104v64a8,8,0,0,1-16,0V104a8,8,0,0,1,16,0Zm48,0v64a8,8,0,0,1-16,0V104a8,8,0,0,1,16,0Z"/></svg>Löschen</span></div>
+   <div class="reihe"><span class="chip an"><svg class="ic" viewBox="0 0 256 256" aria-hidden="true"><path d="M232,56V200H160a32,32,0,0,0-32,32,32,32,0,0,0-32-32H24V56H96a32,32,0,0,1,32,32,32,32,0,0,1,32-32Z" opacity="0.2"/><path d="M232,48H160a40,40,0,0,0-32,16A40,40,0,0,0,96,48H24a8,8,0,0,0-8,8V200a8,8,0,0,0,8,8H96a24,24,0,0,1,24,24,8,8,0,0,0,16,0,24,24,0,0,1,24-24h72a8,8,0,0,0,8-8V56A8,8,0,0,0,232,48ZM96,192H32V64H96a24,24,0,0,1,24,24V200A39.81,39.81,0,0,0,96,192Zm128,0H160a39.81,39.81,0,0,0-24,8V88a24,24,0,0,1,24-24h64Z"/></svg>Alle</span><span class="chip"><svg class="ic" viewBox="0 0 256 256" aria-hidden="true"><path d="M216,80V184a24,24,0,0,1-24,24H64a24,24,0,0,1-24-24V80Z" opacity="0.2"/><path d="M88,48V16a8,8,0,0,1,16,0V48a8,8,0,0,1-16,0Zm40,8a8,8,0,0,0,8-8V16a8,8,0,0,0-16,0V48A8,8,0,0,0,128,56Zm32,0a8,8,0,0,0,8-8V16a8,8,0,0,0-16,0V48A8,8,0,0,0,160,56Zm92.8,46.4L224,124v60a32,32,0,0,1-32,32H64a32,32,0,0,1-32-32V124L3.2,102.4a8,8,0,0,1,9.6-12.8L32,104V80a8,8,0,0,1,8-8H216a8,8,0,0,1,8,8v24l19.2-14.4a8,8,0,0,1,9.6,12.8ZM208,88H48v96a16,16,0,0,0,16,16H192a16,16,0,0,0,16-16Z"/></svg>Suppen</span><span class="rund"><svg class="ic" viewBox="0 0 256 256" aria-hidden="true"><path d="M192,112a80,80,0,1,1-80-80A80,80,0,0,1,192,112Z" opacity="0.2"/><path d="M229.66,218.34,179.6,168.28a88.21,88.21,0,1,0-11.32,11.31l50.06,50.07a8,8,0,0,0,11.32-11.32ZM40,112a72,72,0,1,1,72,72A72.08,72.08,0,0,1,40,112Z"/></svg></span></div>
+  </div></div>
+  <div class="app blau dunkel" style="margin-top:10px"><div class="grund" style="padding:14px;border-radius:12px;display:grid;gap:12px">
+   <div class="reihe"><span class="knopf"><svg class="ic" viewBox="0 0 256 256" aria-hidden="true"><path d="M232,56V200a16,16,0,0,1-16,16H40a16,16,0,0,1-16-16V56A16,16,0,0,1,40,40H216A16,16,0,0,1,232,56Z" opacity="0.2"/><path d="M205.66,85.66l-96,96a8,8,0,0,1-11.32,0l-40-40a8,8,0,0,1,11.32-11.32L104,164.69l90.34-90.35a8,8,0,0,1,11.32,11.32Z"/></svg>Speichern</span><span class="chip an"><svg class="ic" viewBox="0 0 256 256" aria-hidden="true"><path d="M229.06,108.79l-48.7,42,14.88,62.79a8.4,8.4,0,0,1-12.52,9.17L128,189.09,73.28,222.74a8.4,8.4,0,0,1-12.52-9.17l14.88-62.79-48.7-42A8.46,8.46,0,0,1,31.73,94L95.64,88.8l24.62-59.6a8.36,8.36,0,0,1,15.48,0l24.62,59.6L224.27,94A8.46,8.46,0,0,1,229.06,108.79Z" opacity="0.2"/><path d="M239.18,97.26A16.38,16.38,0,0,0,224.92,86l-59-4.76L143.14,26.15a16.36,16.36,0,0,0-30.27,0L90.11,81.23,31.08,86a16.46,16.46,0,0,0-9.37,28.86l45,38.83L53,211.75a16.38,16.38,0,0,0,24.5,17.82L128,198.49l50.53,31.08A16.4,16.4,0,0,0,203,211.75l-13.76-58.07,45-38.83A16.43,16.43,0,0,0,239.18,97.26Zm-15.34,5.47-48.7,42a8,8,0,0,0-2.56,7.91l14.88,62.8a.37.37,0,0,1-.17.48c-.18.14-.23.11-.38,0l-54.72-33.65a8,8,0,0,0-8.38,0L69.09,215.94c-.15.09-.19.12-.38,0a.37.37,0,0,1-.17-.48l14.88-62.8a8,8,0,0,0-2.56-7.91l-48.7-42c-.12-.1-.23-.19-.13-.5s.18-.27.33-.29l63.92-5.16A8,8,0,0,0,103,91.86l24.62-59.61c.08-.17.11-.25.35-.25s.27.08.35.25L153,91.86a8,8,0,0,0,6.75,4.92l63.92,5.16c.15,0,.24,0,.33.29S224,102.63,223.84,102.73Z"/></svg>Favoriten</span><span class="chip">Ohne Alkohol</span></div>
+  </div></div>
+ </div>
+</div>
+<div class="feld nicht"><span class="marke">Nicht so</span>
+ <div class="reihe" style="display:flex;gap:10px;flex-wrap:wrap"><span class="voll-schlecht">SPEICHERN</span><span class="voll-schlecht" style="background:#c0392b">Rezept endgültig löschen und entfernen</span><span class="voll-schlecht" style="max-width:150px;white-space:normal;line-height:1.1">Bild von der KI erzeugen lassen</span></div>
+ <p class="notiz">Vollton, Großbuchstaben, 46-px-Pillen überall, Sätze, zwei Zeilen im Knopf.</p>
+</div>
+<div class="tabwrap"><table>
+<tr><th>Art</th><th>Höhe</th><th>Rundung</th><th>Schrift</th><th>Grund</th><th>Rand / Schatten</th></tr>
+<tr><td>Hauptknopf <code>.knopf</code></td><td>36 px (Innenabstand 6 × 15)</td><td>11 px</td><td>14 px, 650</td><td><code>linear-gradient(120deg, k1 85 % + weiß, k3 80 % + weiß)</code>, Schrift = Palettenschrift</td><td>1 px <code>akz 28 %</code>; innen oben weiß 55 %; außen <code>0 2 8 akz 16 %</code></td></tr>
+<tr><td>Heller Knopf <code>.knopf.hell</code></td><td>36</td><td>11</td><td>14, 650</td><td>Fläche (weiß)</td><td>1 px Linie, kein Schatten</td></tr>
+<tr><td>Gefahr (Löschen)</td><td>36</td><td>11</td><td>14, 650, rot <code>#a43030</code></td><td>Fläche</td><td>1 px rot 30 %; nie roter Vollton</td></tr>
+<tr><td>Pille <code>.chip</code></td><td>28</td><td>9</td><td>12,5</td><td>Fläche; aktiv: derselbe Verlauf wie der Hauptknopf</td><td>1 px Linie</td></tr>
+<tr><td>Rund (Kopf) <code>.rund</code></td><td>34 × 34</td><td>50 %</td><td>Symbol 18</td><td>Fläche, im Kopf halb durchsichtig</td><td>1 px Linie</td></tr>
+<tr><td>Leiste</td><td>34</td><td>10</td><td>13, 600</td><td>aktiv: Verlauf</td><td>Fach ≤ 178 px breit</td></tr>
+<tr><td>Kochen/Mixen Weiter/Zurück</td><td>46</td><td>13</td><td>15</td><td>Verlauf</td><td>wie Hauptknopf</td></tr>
+</table></div>
+
+<h3>Texte in Knöpfen</h3>
+<div class="tabwrap"><table>
+<tr><th>So</th><th>Nicht so</th></tr>
+<tr><td>Speichern · Abbrechen · Löschen · Zurück · Weiter · Fertig</td><td>„Änderungen speichern“, „OK“, „Ja, wirklich löschen“</td></tr>
+<tr><td>Einkaufen · Planen · Kochen (bzw. Mixen) · Teilen · Drucken · Bild</td><td>„Zur Einkaufsliste hinzufügen“, „Rezept im Wochenplan eintragen“</td></tr>
+<tr><td>Beispiele laden · Datei wählen · Jetzt ablegen · Zurückholen</td><td>„Beispielrezepte herunterladen und einfügen“</td></tr>
+<tr><td>KI-Bild · Gratis-Foto · Übersetzen · Erfinden</td><td>„Bild von der KI erzeugen lassen (kostet Geld)“ – die Kosten stehen im Bestätigungsfenster, nicht im Knopf</td></tr>
+</table></div>
+<p class="notiz">Regel: Verb oder Ding, 1–2 Wörter, Symbol links, Groß-/Kleinschreibung normal, nie umbrechen (<code>white-space:nowrap</code>). Englisch genauso kurz: Save · Cancel · Delete · Back · Next.</p>
+
+<h2>4 · Kategorien und Kacheln in Wasserfarbe</h2>
+<p>Jede Kategorie hat eine Themenfarbe <code>--kc</code>. Die Kachel ist ein waagrechter Verlauf von der Fläche zu <code>kc 12 %</code>; das Symbol sitzt in einem eigenen Feld (28 px, Rundung 9) mit <code>kc 24 %</code> Grund und Symbol in <code>kc 85 %</code>. Gewählt: Verlauf bis <code>kc 26 %</code> und Rand <code>kc 70 %</code>. Die Kacheln werden <b>dicht gepackt</b> (größte zuerst, <code>kachelnPacken</code>), damit jede Reihe voll ist.</p>
+<div class="paar">
+ <div class="feld so"><span class="marke">So – Mixarium</span>
+  <div class="app blau"><div class="grund" style="padding:12px;border-radius:12px"><div class="kacheln" id="mxkacheln"></div>
+   <div class="zeile" style="margin:12px 0 6px;font-weight:650;font-size:13px">Geschmack<details class="frag"><summary aria-label="Erklärung">?</summary><span class="blase">Bis zu drei Geschmäcker wählen. Die KI richtet das neue Getränk danach aus.</span></details></div>
+   <div class="kacheln drei" id="geschmack"></div></div></div>
+ </div>
+ <div class="feld so"><span class="marke">So – Rezeptbuch (Vorschlag Themenfarben)</span>
+  <div class="app"><div class="grund" style="padding:12px;border-radius:12px"><div class="kacheln" id="rbkacheln"></div></div></div>
+  <div class="app dunkel" style="margin-top:10px"><div class="grund" style="padding:12px;border-radius:12px"><div class="kacheln" id="rbkacheln2"></div></div></div>
+ </div>
+</div>
+<div class="tabwrap"><table id="katfarben"><tr><th>App</th><th>Kategorie</th><th>Themenfarbe <code>--kc</code></th></tr></table></div>
+<p class="notiz">Die Mixarium-Farben stehen in <code>getraenke/kategorien.mjs</code> (<code>col</code>). Für das Rezeptbuch fehlen sie im Kern noch (<code>KATEGORIEN_FEST</code> hat kein <code>col</code>) – die Werte oben sind der Vorschlag; eigene Kategorien bekommen der Reihe nach eine Farbe aus der Palette.</p>
+
+<h2>5 · Sticker der Kategorien</h2>
+<div class="paar">
+ <div class="feld so"><span class="marke">So</span>
+  <div class="app"><div class="grund" style="padding:10px;border-radius:12px"><div class="sticker" id="rbsticker"></div></div></div>
+  <div class="app blau" style="margin-top:10px"><div class="grund" style="padding:10px;border-radius:12px"><div class="sticker" id="mxsticker"></div></div></div>
+  <p class="notiz">Mini-Foto 56 × 56, Rundung 16, weißer Rand, leichter Schatten; gewählt: Ring in <code>akz</code>. Das Foto kommt aus der eigenen Kategorie (das erste Rezept mit Bild oder das gewählte). Ohne Foto: Wasserfarbenfeld in der Themenfarbe mit Emoji, entsättigt, 85 %.</p>
+ </div>
+ <div class="feld nicht"><span class="marke">Nicht so</span>
+  <div class="reihe" style="display:flex;gap:10px"><span style="width:56px;height:56px;border-radius:8px;background:#e74c3c;display:grid;place-items:center;font-size:30px">🍣</span><span style="width:56px;height:56px;border-radius:8px;background:#2980b9;display:grid;place-items:center;font-size:30px">🐟</span></div>
+  <p class="notiz">Volltonfläche mit grellem Emoji; Sushi mit Fisch-Foto (fremde Kategorie); Name abgeschnitten oder fehlend.</p>
+ </div>
+</div>
+
+<h2>6 · Symbole</h2>
+<p><b>Phosphor Duotone</b> (im Kern fest eingebettet, kein Netz). Füllebene 25 %, Strich in <code>currentColor</code> – im Dunkeln hell. Ein Zeichen, eine Bedeutung.</p>
+<div class="app"><div class="grund" style="padding:12px;border-radius:12px"><div class="kacheln" id="symbole"></div></div></div>
+<div class="feld nicht" style="margin-top:10px"><span class="marke">Nicht so</span><p class="notiz" style="margin:0">Schwarzes Symbol ohne <code>fill:currentColor</code> (im Dunkeln unsichtbar) · dasselbe Zeichen für zwei Dinge · bunte Vollton-Emojis als Knopfsymbol.</p></div>
+
+<h2>7 · Erklärungen hinter „?“</h2>
+<p>Ein kleiner Kreis (22 px) direkt hinter dem Wort, das er erklärt – in einer Überschrift, einer Beschriftung oder neben einem Knopf. Die Blase legt sich darüber (absolut), das Layout bewegt sich nicht. Kein Erklär-Absatz in Fenstern; wo sonst nichts stünde, eine kurze Zeile + „?“.</p>
+<div class="paar">
+ <div class="feld so"><span class="marke">So – zum Antippen</span>
+  <div class="app"><div class="grund" style="padding:14px;border-radius:12px;display:grid;gap:12px">
+   <b style="font-size:16px">Anthropic-Schlüssel</b>
+   <div style="display:grid;gap:5px;font-size:13px"><span class="zeile">Schlüssel (beginnt mit sk-ant-)<details class="frag"><summary aria-label="Erklärung">?</summary><span class="blase">Für das Labor brauchst du einen eigenen Schlüssel von Anthropic. Er bleibt nur auf diesem Gerät, steht in keiner Sicherung und geht nur beim Erfinden hinaus.</span></details></span>
+    <span class="such" style="flex:none">sk-ant-…</span></div>
+   <div class="reihe"><span class="knopf hell"><svg class="ic" viewBox="0 0 256 256" aria-hidden="true"><path d="M208,88H152V32Z" opacity="0.2"/><path d="M213.66,82.34l-56-56A8,8,0,0,0,152,24H56A16,16,0,0,0,40,40V216a16,16,0,0,0,16,16H200a16,16,0,0,0,16-16V88A8,8,0,0,0,213.66,82.34ZM160,51.31,188.69,80H160ZM200,216H56V40h88V88a8,8,0,0,0,8,8h48V216Zm-32-80a8,8,0,0,1-8,8H96a8,8,0,0,1,0-16h64A8,8,0,0,1,168,136Zm0,32a8,8,0,0,1-8,8H96a8,8,0,0,1,0-16h64A8,8,0,0,1,168,168Z"/></svg>Datei wählen</span><details class="frag"><summary aria-label="Erklärung">?</summary><span class="blase">Auch neben einem Knopf: der Kreis steht in derselben Reihe.</span></details></div>
+   <div class="reihe"><span class="knopf"><svg class="ic" viewBox="0 0 256 256" aria-hidden="true"><path d="M232,56V200a16,16,0,0,1-16,16H40a16,16,0,0,1-16-16V56A16,16,0,0,1,40,40H216A16,16,0,0,1,232,56Z" opacity="0.2"/><path d="M205.66,85.66l-96,96a8,8,0,0,1-11.32,0l-40-40a8,8,0,0,1,11.32-11.32L104,164.69l90.34-90.35a8,8,0,0,1,11.32,11.32Z"/></svg>Speichern</span><span class="knopf hell">Abbrechen</span></div>
+  </div></div>
+ </div>
+ <div class="feld nicht"><span class="marke">Nicht so</span>
+  <div class="app"><div style="padding:14px;background:#fff;border-radius:12px;display:grid;gap:10px">
+   <b style="font-size:16px">Anthropic-Schlüssel</b>
+   <p style="margin:0;font-size:13px">Für das Labor brauchst du einen eigenen Schlüssel von Anthropic (Claude). Er bleibt nur auf diesem Gerät, steht in keiner Sicherung und geht nur an Anthropic, wenn du im Labor etwas erfinden oder überarbeiten lässt. Du bekommst ihn unter console.anthropic.com …</p>
+   <span style="font-size:13px">Schlüssel</span>
+   <span style="font-size:13px">ⓘ Hinweis: Kosten fallen beim Anbieter an.</span>
+  </div></div>
+  <p class="notiz">Absatz über dem Feld und eine eigene Zeile für den Hinweis: Klaus: „nicht ein Buch“.</p>
+ </div>
+</div>
+<div class="feld" style="border-color:#c0392b"><b>⚠ Warum das „?“ in den Apps zurzeit doch in eine neue Zeile rutscht – im Code gefunden am 23.11., 20 Uhr</b><br><span class="notiz">Im Browser nachgestellt ist es nur hier in dieser Vorlage (der Fehler tritt auf, sobald das „?“ in einem &lt;p&gt; steht); in den PWAs selbst nicht nachgemessen – die Nacht-Sitzung soll es mit der unten genannten Probe prüfen.</span>
+<p>Zwei technische Ursachen, beide im Code beider PWAs:</p>
+<ol>
+<li><b><code>frag()</code> in einem <code>&lt;p&gt;</code>.</b> Der Browser beendet einen Absatz automatisch, sobald darin ein <code>&lt;details&gt;</code> beginnt (HTML-Regel). Das „?“ steht dann <i>hinter</i> dem Absatz, also in einer neuen Zeile. Betroffen im Mixarium: Pakete (<code>&lt;p class="ftext klein"&gt;</code>), Kategorien-Fenster, „Getränk aus Text“, „Datei prüfen“ (<code>&lt;p class="scan-name"&gt;</code>).</li>
+<li><b><code>frag()</code> als eigenes Kind eines Grid-Containers.</b> <code>.imp-p</code> (Blatt hinter „+“) ist <code>display:grid</code>; jedes Kind bekommt dort eine eigene Zeile. Betroffen in beiden Apps: die „?“ hinter „Datei wählen“, „Beispiele laden“/„Beispielbuch laden“, „Aufteilen“, „Rezept holen“/„Getränk holen“, „Mit Claude lesen“, „Datei prüfen“, „Andere Dateien“, den Anbieter-Knöpfen des Foto-Scans.</li>
+</ol>
+<p><b>Regel:</b> das „?“ steht <b>nie</b> in einem <code>&lt;p&gt;</code> und <b>nie</b> allein in einem Grid. Es kommt zusammen mit seinem Wort oder Knopf in eine Zeile mit <code>display:flex;align-items:center;flex-wrap:wrap</code> (z. B. <code>.reihe</code>) oder in eine Überschrift (<code>h2</code>/<code>h3</code>). Die Blase ist ein <code>&lt;span class="blase"&gt;</code>, kein <code>&lt;p&gt;</code>. Probe: für jedes sichtbare <code>.frag</code> liegt seine Mitte innerhalb der Höhe des Elements davor.</p>
+</div>
+<p class="notiz">Code: <code>&lt;details class="frag"&gt;&lt;summary aria-label="Erklärung"&gt;?&lt;/summary&gt;&lt;span class="blase"&gt;…&lt;/span&gt;&lt;/details&gt;</code>, <code>display:inline-block</code>, Blase <code>position:absolute</code>, 250 px breit, höchstens 70 % der Schirmbreite.</p>
+
+<h2>8 · Kopf, Leiste und ein Bildschirm im Ganzen</h2>
+<div class="handys">
+ <div><div class="handy"><div class="schirm app"><div class="kopf"><b>Mein Rezeptbuch</b><span class="rund"><svg class="ic" viewBox="0 0 256 256" aria-hidden="true"><path d="M216,56V200a16,16,0,0,1-16,16H56a16,16,0,0,1-16-16V56A16,16,0,0,1,56,40H200A16,16,0,0,1,216,56Z" opacity="0.2"/><path d="M224,128a8,8,0,0,1-8,8H136v80a8,8,0,0,1-16,0V136H40a8,8,0,0,1,0-16h80V40a8,8,0,0,1,16,0v80h80A8,8,0,0,1,224,128Z"/></svg></span><span class="rund"><svg class="ic" viewBox="0 0 256 256" aria-hidden="true"><path d="M160,48V208L80,128Z" opacity="0.2"/><path d="M163.06,40.61a8,8,0,0,0-8.72,1.73l-80,80a8,8,0,0,0,0,11.32l80,80A8,8,0,0,0,168,208V48A8,8,0,0,0,163.06,40.61ZM152,188.69,91.31,128,152,67.31Z"/></svg></span></div>
+  <div class="inhalt grund"><div class="sticker" id="h1sticker"></div>
+   <div class="karten" id="h1karten"></div></div>
+  <div class="leiste"><div class="griff"><i></i></div></div></div></div><div class="unterschrift">Handy, Rezeptbuch, Hellbraun – Kopf eingeklappt</div></div>
+ <div><div class="handy"><div class="schirm app blau"><div class="kopf"><span class="such"><svg class="ic" viewBox="0 0 256 256" aria-hidden="true"><path d="M192,112a80,80,0,1,1-80-80A80,80,0,0,1,192,112Z" opacity="0.2"/><path d="M229.66,218.34,179.6,168.28a88.21,88.21,0,1,0-11.32,11.31l50.06,50.07a8,8,0,0,0,11.32-11.32ZM40,112a72,72,0,1,1,72,72A72.08,72.08,0,0,1,40,112Z"/></svg>Suchen …</span><span class="rund"><svg class="ic" viewBox="0 0 256 256" aria-hidden="true"><path d="M224,184H144l40-80ZM96,127.56h0A95.78,95.78,0,0,0,128,56H64A95.78,95.78,0,0,0,96,127.56Z" opacity="0.2"/><path d="M247.15,212.42l-56-112a8,8,0,0,0-14.31,0l-21.71,43.43A88,88,0,0,1,108,126.93,103.65,103.65,0,0,0,135.69,64H160a8,8,0,0,0,0-16H104V32a8,8,0,0,0-16,0V48H32a8,8,0,0,0,0,16h87.63A87.7,87.7,0,0,1,96,116.35a87.74,87.74,0,0,1-19-31,8,8,0,1,0-15.08,5.34A103.63,103.63,0,0,0,84,127a87.55,87.55,0,0,1-52,17,8,8,0,0,0,0,16,103.46,103.46,0,0,0,64-22.08,104.18,104.18,0,0,0,51.44,21.31l-26.6,53.19a8,8,0,0,0,14.31,7.16L148.94,192h70.11l13.79,27.58A8,8,0,0,0,240,224a8,8,0,0,0,7.15-11.58ZM156.94,176,184,121.89,211.05,176Z"/></svg></span><span class="rund"><svg class="ic" viewBox="0 0 256 256" aria-hidden="true"><path d="M230.1,108.76,198.25,90.62c-.64-1.16-1.31-2.29-2-3.41l-.12-36A104.61,104.61,0,0,0,162,32L130,49.89c-1.34,0-2.69,0-4,0L94,32A104.58,104.58,0,0,0,59.89,51.25l-.16,36c-.7,1.12-1.37,2.26-2,3.41l-31.84,18.1a99.15,99.15,0,0,0,0,38.46l31.85,18.14c.64,1.16,1.31,2.29,2,3.41l.12,36A104.61,104.61,0,0,0,94,224l32-17.87c1.34,0,2.69,0,4,0L162,224a104.58,104.58,0,0,0,34.08-19.25l.16-36c.7-1.12,1.37-2.26,2-3.41l31.84-18.1A99.15,99.15,0,0,0,230.1,108.76ZM128,168a40,40,0,1,1,40-40A40,40,0,0,1,128,168Z" opacity="0.2"/><path d="M128,80a48,48,0,1,0,48,48A48.05,48.05,0,0,0,128,80Zm0,80a32,32,0,1,1,32-32A32,32,0,0,1,128,160Zm109.94-52.79a8,8,0,0,0-3.89-5.4l-29.83-17-.12-33.62a8,8,0,0,0-2.83-6.08,111.91,111.91,0,0,0-36.72-20.67,8,8,0,0,0-6.46.59L128,41.85,97.88,25a8,8,0,0,0-6.47-.6A111.92,111.92,0,0,0,54.73,45.15a8,8,0,0,0-2.83,6.07l-.15,33.65-29.83,17a8,8,0,0,0-3.89,5.4,106.47,106.47,0,0,0,0,41.56,8,8,0,0,0,3.89,5.4l29.83,17,.12,33.63a8,8,0,0,0,2.83,6.08,111.91,111.91,0,0,0,36.72,20.67,8,8,0,0,0,6.46-.59L128,214.15,158.12,231a7.91,7.91,0,0,0,3.9,1,8.09,8.09,0,0,0,2.57-.42,112.1,112.1,0,0,0,36.68-20.73,8,8,0,0,0,2.83-6.07l.15-33.65,29.83-17a8,8,0,0,0,3.89-5.4A106.47,106.47,0,0,0,237.94,107.21Zm-15,34.91-28.57,16.25a8,8,0,0,0-3,3c-.58,1-1.19,2.06-1.81,3.06a7.94,7.94,0,0,0-1.22,4.21l-.15,32.25a95.89,95.89,0,0,1-25.37,14.3L134,199.13a8,8,0,0,0-3.91-1h-.19c-1.21,0-2.43,0-3.64,0a8.1,8.1,0,0,0-4.1,1l-28.84,16.1A96,96,0,0,1,67.88,201l-.11-32.2a8,8,0,0,0-1.22-4.22c-.62-1-1.23-2-1.8-3.06a8.09,8.09,0,0,0-3-3.06l-28.6-16.29a90.49,90.49,0,0,1,0-28.26L61.67,97.63a8,8,0,0,0,3-3c.58-1,1.19-2.06,1.81-3.06a7.94,7.94,0,0,0,1.22-4.21l.15-32.25a95.89,95.89,0,0,1,25.37-14.3L122,56.87a8,8,0,0,0,4.1,1c1.21,0,2.43,0,3.64,0a8,8,0,0,0,4.1-1l28.84-16.1A96,96,0,0,1,188.12,55l.11,32.2a8,8,0,0,0,1.22,4.22c.62,1,1.23,2,1.8,3.06a8.09,8.09,0,0,0,3,3.06l28.6,16.29A90.49,90.49,0,0,1,222.9,142.12Z"/></svg></span><span class="rund"><svg class="ic" viewBox="0 0 256 256" aria-hidden="true"><path d="M176,128,96,208V48Z" opacity="0.2"/><path d="M181.66,122.34l-80-80A8,8,0,0,0,88,48V208a8,8,0,0,0,13.66,5.66l80-80A8,8,0,0,0,181.66,122.34ZM104,188.69V67.31L164.69,128Z"/></svg></span></div>
+  <div class="inhalt grund"><div class="sticker" id="h2sticker"></div>
+   <div class="karten" id="h2karten"></div></div>
+  <div class="leiste"><div class="griff"><i></i></div><div class="fach"><span class="an"><svg class="ic" viewBox="0 0 256 256" aria-hidden="true"><path d="M232,56V200H160a32,32,0,0,0-32,32,32,32,0,0,0-32-32H24V56H96a32,32,0,0,1,32,32,32,32,0,0,1,32-32Z" opacity="0.2"/><path d="M232,48H160a40,40,0,0,0-32,16A40,40,0,0,0,96,48H24a8,8,0,0,0-8,8V200a8,8,0,0,0,8,8H96a24,24,0,0,1,24,24,8,8,0,0,0,16,0,24,24,0,0,1,24-24h72a8,8,0,0,0,8-8V56A8,8,0,0,0,232,48ZM96,192H32V64H96a24,24,0,0,1,24,24V200A39.81,39.81,0,0,0,96,192Zm128,0H160a39.81,39.81,0,0,0-24,8V88a24,24,0,0,1,24-24h64Z"/></svg>Getränke</span><span><svg class="ic" viewBox="0 0 256 256" aria-hidden="true"><path d="M232,112a48,48,0,0,1-48,48H72A48,48,0,1,1,82.35,65.12h0a48,48,0,0,1,91.28,0h0A48,48,0,0,1,232,112Z" opacity="0.2"/><path d="M240,112a56.06,56.06,0,0,0-56-56c-1.77,0-3.54.1-5.29.26a56,56,0,0,0-101.42,0C75.54,56.1,73.77,56,72,56A56,56,0,0,0,48,162.59V208a16,16,0,0,0,16,16H192a16,16,0,0,0,16-16V162.59A56.09,56.09,0,0,0,240,112Zm-48,96H64V167.42a55.49,55.49,0,0,0,8,.58H184a55.49,55.49,0,0,0,8-.58Zm-8-56H170.25l5.51-22.06a8,8,0,0,0-15.52-3.88L153.75,152H136V128a8,8,0,0,0-16,0v24H102.25l-6.49-25.94a8,8,0,1,0-15.52,3.88L85.75,152H72a40,40,0,0,1,0-80l.58,0A55.21,55.21,0,0,0,72,80a8,8,0,0,0,16,0,40,40,0,0,1,80,0,8,8,0,0,0,16,0,55.21,55.21,0,0,0-.58-8l.58,0a40,40,0,0,1,0,80Z"/></svg>Mixen</span><span><svg class="ic" viewBox="0 0 256 256" aria-hidden="true"><path d="M232,88,216.93,201.06A8,8,0,0,1,209,208H47a8,8,0,0,1-7.93-6.94L24,88Z" opacity="0.2"/><path d="M136,120v56a8,8,0,0,1-16,0V120a8,8,0,0,1,16,0Zm36.84-.8-5.6,56A8,8,0,0,0,174.4,184a7.32,7.32,0,0,0,.81,0,8,8,0,0,0,7.95-7.2l5.6-56a8,8,0,0,0-15.92-1.6Zm-89.68,0a8,8,0,0,0-15.92,1.6l5.6,56a8,8,0,0,0,8,7.2,7.32,7.32,0,0,0,.81,0,8,8,0,0,0,7.16-8.76ZM239.93,89.06,224.86,202.12A16.06,16.06,0,0,1,209,216H47a16.06,16.06,0,0,1-15.86-13.88L16.07,89.06A8,8,0,0,1,24,80H68.37L122,18.73a8,8,0,0,1,12,0L187.63,80H232a8,8,0,0,1,7.93,9.06ZM89.63,80h76.74L128,36.15ZM222.86,96H33.14L47,200H209Z"/></svg>Einkauf</span><span><svg class="ic" viewBox="0 0 256 256" aria-hidden="true"><path d="M216,48V88H40V48a8,8,0,0,1,8-8H208A8,8,0,0,1,216,48Z" opacity="0.2"/><path d="M208,32H184V24a8,8,0,0,0-16,0v8H88V24a8,8,0,0,0-16,0v8H48A16,16,0,0,0,32,48V208a16,16,0,0,0,16,16H208a16,16,0,0,0,16-16V48A16,16,0,0,0,208,32ZM72,48v8a8,8,0,0,0,16,0V48h80v8a8,8,0,0,0,16,0V48h24V80H48V48ZM208,208H48V96H208V208Zm-68-76a12,12,0,1,1-12-12A12,12,0,0,1,140,132Zm44,0a12,12,0,1,1-12-12A12,12,0,0,1,184,132ZM96,172a12,12,0,1,1-12-12A12,12,0,0,1,96,172Zm44,0a12,12,0,1,1-12-12A12,12,0,0,1,140,172Zm44,0a12,12,0,1,1-12-12A12,12,0,0,1,184,172Z"/></svg>Plan</span><span><svg class="ic" viewBox="0 0 256 256" aria-hidden="true"><path d="M194.82,151.43l-55.09,20.3-20.3,55.09a7.92,7.92,0,0,1-14.86,0l-20.3-55.09-55.09-20.3a7.92,7.92,0,0,1,0-14.86l55.09-20.3,20.3-55.09a7.92,7.92,0,0,1,14.86,0l20.3,55.09,55.09,20.3A7.92,7.92,0,0,1,194.82,151.43Z" opacity="0.2"/><path d="M197.58,129.06,146,110l-19-51.62a15.92,15.92,0,0,0-29.88,0L78,110l-51.62,19a15.92,15.92,0,0,0,0,29.88L78,178l19,51.62a15.92,15.92,0,0,0,29.88,0L146,178l51.62-19a15.92,15.92,0,0,0,0-29.88ZM137,164.22a8,8,0,0,0-4.74,4.74L112,223.85,91.78,169A8,8,0,0,0,87,164.22L32.15,144,87,123.78A8,8,0,0,0,91.78,119L112,64.15,132.22,119a8,8,0,0,0,4.74,4.74L191.85,144ZM144,40a8,8,0,0,1,8-8h16V16a8,8,0,0,1,16,0V32h16a8,8,0,0,1,0,16H184V64a8,8,0,0,1-16,0V48H152A8,8,0,0,1,144,40ZM248,88a8,8,0,0,1-8,8h-8v8a8,8,0,0,1-16,0V96h-8a8,8,0,0,1,0-16h8V72a8,8,0,0,1,16,0v8h8A8,8,0,0,1,248,88Z"/></svg>Labor</span><span><svg class="ic" viewBox="0 0 256 256" aria-hidden="true"><path d="M230.1,108.76,198.25,90.62c-.64-1.16-1.31-2.29-2-3.41l-.12-36A104.61,104.61,0,0,0,162,32L130,49.89c-1.34,0-2.69,0-4,0L94,32A104.58,104.58,0,0,0,59.89,51.25l-.16,36c-.7,1.12-1.37,2.26-2,3.41l-31.84,18.1a99.15,99.15,0,0,0,0,38.46l31.85,18.14c.64,1.16,1.31,2.29,2,3.41l.12,36A104.61,104.61,0,0,0,94,224l32-17.87c1.34,0,2.69,0,4,0L162,224a104.58,104.58,0,0,0,34.08-19.25l.16-36c.7-1.12,1.37-2.26,2-3.41l31.84-18.1A99.15,99.15,0,0,0,230.1,108.76ZM128,168a40,40,0,1,1,40-40A40,40,0,0,1,128,168Z" opacity="0.2"/><path d="M128,80a48,48,0,1,0,48,48A48.05,48.05,0,0,0,128,80Zm0,80a32,32,0,1,1,32-32A32,32,0,0,1,128,160Zm109.94-52.79a8,8,0,0,0-3.89-5.4l-29.83-17-.12-33.62a8,8,0,0,0-2.83-6.08,111.91,111.91,0,0,0-36.72-20.67,8,8,0,0,0-6.46.59L128,41.85,97.88,25a8,8,0,0,0-6.47-.6A111.92,111.92,0,0,0,54.73,45.15a8,8,0,0,0-2.83,6.07l-.15,33.65-29.83,17a8,8,0,0,0-3.89,5.4,106.47,106.47,0,0,0,0,41.56,8,8,0,0,0,3.89,5.4l29.83,17,.12,33.63a8,8,0,0,0,2.83,6.08,111.91,111.91,0,0,0,36.72,20.67,8,8,0,0,0,6.46-.59L128,214.15,158.12,231a7.91,7.91,0,0,0,3.9,1,8.09,8.09,0,0,0,2.57-.42,112.1,112.1,0,0,0,36.68-20.73,8,8,0,0,0,2.83-6.07l.15-33.65,29.83-17a8,8,0,0,0,3.89-5.4A106.47,106.47,0,0,0,237.94,107.21Zm-15,34.91-28.57,16.25a8,8,0,0,0-3,3c-.58,1-1.19,2.06-1.81,3.06a7.94,7.94,0,0,0-1.22,4.21l-.15,32.25a95.89,95.89,0,0,1-25.37,14.3L134,199.13a8,8,0,0,0-3.91-1h-.19c-1.21,0-2.43,0-3.64,0a8.1,8.1,0,0,0-4.1,1l-28.84,16.1A96,96,0,0,1,67.88,201l-.11-32.2a8,8,0,0,0-1.22-4.22c-.62-1-1.23-2-1.8-3.06a8.09,8.09,0,0,0-3-3.06l-28.6-16.29a90.49,90.49,0,0,1,0-28.26L61.67,97.63a8,8,0,0,0,3-3c.58-1,1.19-2.06,1.81-3.06a7.94,7.94,0,0,0,1.22-4.21l.15-32.25a95.89,95.89,0,0,1,25.37-14.3L122,56.87a8,8,0,0,0,4.1,1c1.21,0,2.43,0,3.64,0a8,8,0,0,0,4.1-1l28.84-16.1A96,96,0,0,1,188.12,55l.11,32.2a8,8,0,0,0,1.22,4.22c.62,1,1.23,2,1.8,3.06a8.09,8.09,0,0,0,3,3.06l28.6,16.29A90.49,90.49,0,0,1,222.9,142.12Z"/></svg>Mehr</span></div></div></div></div><div class="unterschrift">Mixarium, Wasserblau – Kopf ausgeklappt (dieselbe Zeile), Leiste offen</div></div>
+ <div><div class="handy"><div class="schirm app dunkel"><div class="kopf"><b>Mein Rezeptbuch</b><span class="rund"><svg class="ic" viewBox="0 0 256 256" aria-hidden="true"><path d="M216,56V200a16,16,0,0,1-16,16H56a16,16,0,0,1-16-16V56A16,16,0,0,1,56,40H200A16,16,0,0,1,216,56Z" opacity="0.2"/><path d="M224,128a8,8,0,0,1-8,8H136v80a8,8,0,0,1-16,0V136H40a8,8,0,0,1,0-16h80V40a8,8,0,0,1,16,0v80h80A8,8,0,0,1,224,128Z"/></svg></span><span class="rund"><svg class="ic" viewBox="0 0 256 256" aria-hidden="true"><path d="M160,48V208L80,128Z" opacity="0.2"/><path d="M163.06,40.61a8,8,0,0,0-8.72,1.73l-80,80a8,8,0,0,0,0,11.32l80,80A8,8,0,0,0,168,208V48A8,8,0,0,0,163.06,40.61ZM152,188.69,91.31,128,152,67.31Z"/></svg></span></div>
+  <div class="inhalt grund"><div class="held" style="background:linear-gradient(135deg,#8a5a2b,#c98b4a 45%,#e7c08a)"><div class="ueber"><h4>Kartoffelsuppe</h4><span class="winkel"><svg class="ic" viewBox="0 0 256 256" aria-hidden="true"><path d="M160,48V208L80,128Z" opacity="0.2"/><path d="M163.06,40.61a8,8,0,0,0-8.72,1.73l-80,80a8,8,0,0,0,0,11.32l80,80A8,8,0,0,0,168,208V48A8,8,0,0,0,163.06,40.61ZM152,188.69,91.31,128,152,67.31Z"/></svg></span></div></div>
+   <div class="reihe"><span class="knopf"><svg class="ic" viewBox="0 0 256 256" aria-hidden="true"><path d="M232,112a48,48,0,0,1-48,48H72A48,48,0,1,1,82.35,65.12h0a48,48,0,0,1,91.28,0h0A48,48,0,0,1,232,112Z" opacity="0.2"/><path d="M240,112a56.06,56.06,0,0,0-56-56c-1.77,0-3.54.1-5.29.26a56,56,0,0,0-101.42,0C75.54,56.1,73.77,56,72,56A56,56,0,0,0,48,162.59V208a16,16,0,0,0,16,16H192a16,16,0,0,0,16-16V162.59A56.09,56.09,0,0,0,240,112Zm-48,96H64V167.42a55.49,55.49,0,0,0,8,.58H184a55.49,55.49,0,0,0,8-.58Zm-8-56H170.25l5.51-22.06a8,8,0,0,0-15.52-3.88L153.75,152H136V128a8,8,0,0,0-16,0v24H102.25l-6.49-25.94a8,8,0,1,0-15.52,3.88L85.75,152H72a40,40,0,0,1,0-80l.58,0A55.21,55.21,0,0,0,72,80a8,8,0,0,0,16,0,40,40,0,0,1,80,0,8,8,0,0,0,16,0,55.21,55.21,0,0,0-.58-8l.58,0a40,40,0,0,1,0,80Z"/></svg>Kochen</span><span class="knopf hell"><svg class="ic" viewBox="0 0 256 256" aria-hidden="true"><path d="M232,88,216.93,201.06A8,8,0,0,1,209,208H47a8,8,0,0,1-7.93-6.94L24,88Z" opacity="0.2"/><path d="M136,120v56a8,8,0,0,1-16,0V120a8,8,0,0,1,16,0Zm36.84-.8-5.6,56A8,8,0,0,0,174.4,184a7.32,7.32,0,0,0,.81,0,8,8,0,0,0,7.95-7.2l5.6-56a8,8,0,0,0-15.92-1.6Zm-89.68,0a8,8,0,0,0-15.92,1.6l5.6,56a8,8,0,0,0,8,7.2,7.32,7.32,0,0,0,.81,0,8,8,0,0,0,7.16-8.76ZM239.93,89.06,224.86,202.12A16.06,16.06,0,0,1,209,216H47a16.06,16.06,0,0,1-15.86-13.88L16.07,89.06A8,8,0,0,1,24,80H68.37L122,18.73a8,8,0,0,1,12,0L187.63,80H232a8,8,0,0,1,7.93,9.06ZM89.63,80h76.74L128,36.15ZM222.86,96H33.14L47,200H209Z"/></svg>Einkaufen</span><span class="knopf hell"><svg class="ic" viewBox="0 0 256 256" aria-hidden="true"><path d="M216,48V88H40V48a8,8,0,0,1,8-8H208A8,8,0,0,1,216,48Z" opacity="0.2"/><path d="M208,32H184V24a8,8,0,0,0-16,0v8H88V24a8,8,0,0,0-16,0v8H48A16,16,0,0,0,32,48V208a16,16,0,0,0,16,16H208a16,16,0,0,0,16-16V48A16,16,0,0,0,208,32ZM72,48v8a8,8,0,0,0,16,0V48h80v8a8,8,0,0,0,16,0V48h24V80H48V48ZM208,208H48V96H208V208Zm-68-76a12,12,0,1,1-12-12A12,12,0,0,1,140,132Zm44,0a12,12,0,1,1-12-12A12,12,0,0,1,184,132ZM96,172a12,12,0,1,1-12-12A12,12,0,0,1,96,172Zm44,0a12,12,0,1,1-12-12A12,12,0,0,1,140,172Zm44,0a12,12,0,1,1-12-12A12,12,0,0,1,184,172Z"/></svg>Planen</span></div>
+   <div class="app dunkel"><span class="toast"><b></b>KI-Bild wird erzeugt (etwa 20 s) … <small>7 s</small></span></div></div></div></div><div class="unterschrift">Rezept, dunkel – Winkel in der Namenszeile, keine Knöpfe auf dem Bild, Ladezeile einzeilig</div></div>
+</div>
+<div class="tabwrap"><table>
+<tr><th>Teil</th><th>Regel</th></tr>
+<tr><td>Kopf</td><td>Eine Zeile, 52 px, Verlauf <code>k1 → k2 → k3</code>. Eingeklappt: Name, +, Pfeil. Ausgeklappt: Suche, Farbe, Sprache, Notizen, Einstellungen – <b>keine zweite Zeile</b>. Sprache ohne Kürzel.</td></tr>
+<tr><td>Fliegende Leiste</td><td>Wie Private Akte: Griff 12 × 64 an der Kante, Fach ≤ 178 px, Knöpfe 34 px, aktiv im Verlauf; rastet links/rechts/oben/unten ein, Lage gemerkt; 24 px Rand auf der Griff-Seite, ragt nicht in Bilder. Keine untere Menüleiste am Handy. Am Monitor links fest.</td></tr>
+<tr><td>Bild</td><td>Name unten auf dem Bild über dunklem Verlauf, rechts der weiße Winkel (klappt die Werkzeuge auf). Sonst nichts auf dem Bild. Tipp aufs Bild → Vollbild, von dort „Bild bearbeiten“. Am Monitor steht der Winkel neben dem Bild.</td></tr>
+<tr><td>Meldungen</td><td>Eine Zeile, schwarz-durchsichtige Pille unten. Was länger dauert: Ladebalken oben + Zeile mit Sekundenzähler (Kern <code>oberflaeche/warten.mjs</code>).</td></tr>
+<tr><td>Schrift</td><td>Systemschrift, 15 px Grund, Regler 85–150 % (<code>--z</code>); Titel 650.</td></tr>
+</table></div>
+
+<h2>9 · Prüfliste vor jedem Merge</h2>
+<ol>
+<li>Jeder neue Knopf nutzt <code>.knopf</code>, <code>.knopf.hell</code>, <code>.chip</code> oder <code>.rund</code> – keine eigene Farbe, kein Vollton.</li>
+<li>Jede neue Liste ohne Inhalt zeigt die Wäsche, ein Zeichen, einen Satz, einen Knopf.</li>
+<li>Kein neuer Erklär-Absatz: jede Erklärung hinter <code>frag()</code> in derselben Zeile.</li>
+<li>Knopftexte 1–2 Wörter, eine Zeile, Symbol links.</li>
+<li>Kategorien und Geschmäcker als Wasserfarben-Kacheln mit Themenfarbe, dicht gepackt.</li>
+<li>Hell und dunkel ansehen, Handy (390 px) und Monitor; Bildschirmfoto in den PR.</li>
+<li>Beide Apps gleich: was im Rezeptbuch so aussieht, sieht im Mixarium genauso aus – nur Palette und Kategorien sind anders.</li>
+</ol>
+
+</div>
+<script>
+const SYM = {"frage":"<path d=\"M224,128a96,96,0,1,1-96-96A96,96,0,0,1,224,128Z\" opacity=\"0.2\"/><path d=\"M140,180a12,12,0,1,1-12-12A12,12,0,0,1,140,180ZM128,72c-22.06,0-40,16.15-40,36v4a8,8,0,0,0,16,0v-4c0-11,10.77-20,24-20s24,9,24,20-10.77,20-24,20a8,8,0,0,0-8,8v8a8,8,0,0,0,16,0v-.72c18.24-3.35,32-17.9,32-35.28C168,88.15,150.06,72,128,72Zm104,56A104,104,0,1,1,128,24,104.11,104.11,0,0,1,232,128Zm-16,0a88,88,0,1,0-88,88A88.1,88.1,0,0,0,216,128Z\"/>","buch":"<path d=\"M232,56V200H160a32,32,0,0,0-32,32,32,32,0,0,0-32-32H24V56H96a32,32,0,0,1,32,32,32,32,0,0,1,32-32Z\" opacity=\"0.2\"/><path d=\"M232,48H160a40,40,0,0,0-32,16A40,40,0,0,0,96,48H24a8,8,0,0,0-8,8V200a8,8,0,0,0,8,8H96a24,24,0,0,1,24,24,8,8,0,0,0,16,0,24,24,0,0,1,24-24h72a8,8,0,0,0,8-8V56A8,8,0,0,0,232,48ZM96,192H32V64H96a24,24,0,0,1,24,24V200A39.81,39.81,0,0,0,96,192Zm128,0H160a39.81,39.81,0,0,0-24,8V88a24,24,0,0,1,24-24h64Z\"/>","koch":"<path d=\"M232,112a48,48,0,0,1-48,48H72A48,48,0,1,1,82.35,65.12h0a48,48,0,0,1,91.28,0h0A48,48,0,0,1,232,112Z\" opacity=\"0.2\"/><path d=\"M240,112a56.06,56.06,0,0,0-56-56c-1.77,0-3.54.1-5.29.26a56,56,0,0,0-101.42,0C75.54,56.1,73.77,56,72,56A56,56,0,0,0,48,162.59V208a16,16,0,0,0,16,16H192a16,16,0,0,0,16-16V162.59A56.09,56.09,0,0,0,240,112Zm-48,96H64V167.42a55.49,55.49,0,0,0,8,.58H184a55.49,55.49,0,0,0,8-.58Zm-8-56H170.25l5.51-22.06a8,8,0,0,0-15.52-3.88L153.75,152H136V128a8,8,0,0,0-16,0v24H102.25l-6.49-25.94a8,8,0,1,0-15.52,3.88L85.75,152H72a40,40,0,0,1,0-80l.58,0A55.21,55.21,0,0,0,72,80a8,8,0,0,0,16,0,40,40,0,0,1,80,0,8,8,0,0,0,16,0,55.21,55.21,0,0,0-.58-8l.58,0a40,40,0,0,1,0,80Z\"/>","einkauf":"<path d=\"M232,88,216.93,201.06A8,8,0,0,1,209,208H47a8,8,0,0,1-7.93-6.94L24,88Z\" opacity=\"0.2\"/><path d=\"M136,120v56a8,8,0,0,1-16,0V120a8,8,0,0,1,16,0Zm36.84-.8-5.6,56A8,8,0,0,0,174.4,184a7.32,7.32,0,0,0,.81,0,8,8,0,0,0,7.95-7.2l5.6-56a8,8,0,0,0-15.92-1.6Zm-89.68,0a8,8,0,0,0-15.92,1.6l5.6,56a8,8,0,0,0,8,7.2,7.32,7.32,0,0,0,.81,0,8,8,0,0,0,7.16-8.76ZM239.93,89.06,224.86,202.12A16.06,16.06,0,0,1,209,216H47a16.06,16.06,0,0,1-15.86-13.88L16.07,89.06A8,8,0,0,1,24,80H68.37L122,18.73a8,8,0,0,1,12,0L187.63,80H232a8,8,0,0,1,7.93,9.06ZM89.63,80h76.74L128,36.15ZM222.86,96H33.14L47,200H209Z\"/>","plan":"<path d=\"M216,48V88H40V48a8,8,0,0,1,8-8H208A8,8,0,0,1,216,48Z\" opacity=\"0.2\"/><path d=\"M208,32H184V24a8,8,0,0,0-16,0v8H88V24a8,8,0,0,0-16,0v8H48A16,16,0,0,0,32,48V208a16,16,0,0,0,16,16H208a16,16,0,0,0,16-16V48A16,16,0,0,0,208,32ZM72,48v8a8,8,0,0,0,16,0V48h80v8a8,8,0,0,0,16,0V48h24V80H48V48ZM208,208H48V96H208V208Zm-68-76a12,12,0,1,1-12-12A12,12,0,0,1,140,132Zm44,0a12,12,0,1,1-12-12A12,12,0,0,1,184,132ZM96,172a12,12,0,1,1-12-12A12,12,0,0,1,96,172Zm44,0a12,12,0,1,1-12-12A12,12,0,0,1,140,172Zm44,0a12,12,0,1,1-12-12A12,12,0,0,1,184,172Z\"/>","bild":"<path d=\"M224,56V178.06l-39.72-39.72a8,8,0,0,0-11.31,0L147.31,164,97.66,114.34a8,8,0,0,0-11.32,0L32,168.69V56a8,8,0,0,1,8-8H216A8,8,0,0,1,224,56Z\" opacity=\"0.2\"/><path d=\"M216,40H40A16,16,0,0,0,24,56V200a16,16,0,0,0,16,16H216a16,16,0,0,0,16-16V56A16,16,0,0,0,216,40Zm0,16V158.75l-26.07-26.06a16,16,0,0,0-22.63,0l-20,20-44-44a16,16,0,0,0-22.62,0L40,149.37V56ZM40,172l52-52,80,80H40Zm176,28H194.63l-36-36,20-20L216,181.38V200ZM144,100a12,12,0,1,1,12,12A12,12,0,0,1,144,100Z\"/>","funken":"<path d=\"M194.82,151.43l-55.09,20.3-20.3,55.09a7.92,7.92,0,0,1-14.86,0l-20.3-55.09-55.09-20.3a7.92,7.92,0,0,1,0-14.86l55.09-20.3,20.3-55.09a7.92,7.92,0,0,1,14.86,0l20.3,55.09,55.09,20.3A7.92,7.92,0,0,1,194.82,151.43Z\" opacity=\"0.2\"/><path d=\"M197.58,129.06,146,110l-19-51.62a15.92,15.92,0,0,0-29.88,0L78,110l-51.62,19a15.92,15.92,0,0,0,0,29.88L78,178l19,51.62a15.92,15.92,0,0,0,29.88,0L146,178l51.62-19a15.92,15.92,0,0,0,0-29.88ZM137,164.22a8,8,0,0,0-4.74,4.74L112,223.85,91.78,169A8,8,0,0,0,87,164.22L32.15,144,87,123.78A8,8,0,0,0,91.78,119L112,64.15,132.22,119a8,8,0,0,0,4.74,4.74L191.85,144ZM144,40a8,8,0,0,1,8-8h16V16a8,8,0,0,1,16,0V32h16a8,8,0,0,1,0,16H184V64a8,8,0,0,1-16,0V48H152A8,8,0,0,1,144,40ZM248,88a8,8,0,0,1-8,8h-8v8a8,8,0,0,1-16,0V96h-8a8,8,0,0,1,0-16h8V72a8,8,0,0,1,16,0v8h8A8,8,0,0,1,248,88Z\"/>","tresor":"<path d=\"M216,56v56c0,96-88,120-88,120S40,208,40,112V56a8,8,0,0,1,8-8H208A8,8,0,0,1,216,56Z\" opacity=\"0.2\"/><path d=\"M208,40H48A16,16,0,0,0,32,56v56c0,52.72,25.52,84.67,46.93,102.19,23.06,18.86,46,25.26,47,25.53a8,8,0,0,0,4.2,0c1-.27,23.91-6.67,47-25.53C198.48,196.67,224,164.72,224,112V56A16,16,0,0,0,208,40Zm0,72c0,37.07-13.66,67.16-40.6,89.42A129.3,129.3,0,0,1,128,223.62a128.25,128.25,0,0,1-38.92-21.81C61.82,179.51,48,149.3,48,112l0-56,160,0ZM82.34,141.66a8,8,0,0,1,11.32-11.32L112,148.69l50.34-50.35a8,8,0,0,1,11.32,11.32l-56,56a8,8,0,0,1-11.32,0Z\"/>","einst":"<path d=\"M230.1,108.76,198.25,90.62c-.64-1.16-1.31-2.29-2-3.41l-.12-36A104.61,104.61,0,0,0,162,32L130,49.89c-1.34,0-2.69,0-4,0L94,32A104.58,104.58,0,0,0,59.89,51.25l-.16,36c-.7,1.12-1.37,2.26-2,3.41l-31.84,18.1a99.15,99.15,0,0,0,0,38.46l31.85,18.14c.64,1.16,1.31,2.29,2,3.41l.12,36A104.61,104.61,0,0,0,94,224l32-17.87c1.34,0,2.69,0,4,0L162,224a104.58,104.58,0,0,0,34.08-19.25l.16-36c.7-1.12,1.37-2.26,2-3.41l31.84-18.1A99.15,99.15,0,0,0,230.1,108.76ZM128,168a40,40,0,1,1,40-40A40,40,0,0,1,128,168Z\" opacity=\"0.2\"/><path d=\"M128,80a48,48,0,1,0,48,48A48.05,48.05,0,0,0,128,80Zm0,80a32,32,0,1,1,32-32A32,32,0,0,1,128,160Zm109.94-52.79a8,8,0,0,0-3.89-5.4l-29.83-17-.12-33.62a8,8,0,0,0-2.83-6.08,111.91,111.91,0,0,0-36.72-20.67,8,8,0,0,0-6.46.59L128,41.85,97.88,25a8,8,0,0,0-6.47-.6A111.92,111.92,0,0,0,54.73,45.15a8,8,0,0,0-2.83,6.07l-.15,33.65-29.83,17a8,8,0,0,0-3.89,5.4,106.47,106.47,0,0,0,0,41.56,8,8,0,0,0,3.89,5.4l29.83,17,.12,33.63a8,8,0,0,0,2.83,6.08,111.91,111.91,0,0,0,36.72,20.67,8,8,0,0,0,6.46-.59L128,214.15,158.12,231a7.91,7.91,0,0,0,3.9,1,8.09,8.09,0,0,0,2.57-.42,112.1,112.1,0,0,0,36.68-20.73,8,8,0,0,0,2.83-6.07l.15-33.65,29.83-17a8,8,0,0,0,3.89-5.4A106.47,106.47,0,0,0,237.94,107.21Zm-15,34.91-28.57,16.25a8,8,0,0,0-3,3c-.58,1-1.19,2.06-1.81,3.06a7.94,7.94,0,0,0-1.22,4.21l-.15,32.25a95.89,95.89,0,0,1-25.37,14.3L134,199.13a8,8,0,0,0-3.91-1h-.19c-1.21,0-2.43,0-3.64,0a8.1,8.1,0,0,0-4.1,1l-28.84,16.1A96,96,0,0,1,67.88,201l-.11-32.2a8,8,0,0,0-1.22-4.22c-.62-1-1.23-2-1.8-3.06a8.09,8.09,0,0,0-3-3.06l-28.6-16.29a90.49,90.49,0,0,1,0-28.26L61.67,97.63a8,8,0,0,0,3-3c.58-1,1.19-2.06,1.81-3.06a7.94,7.94,0,0,0,1.22-4.21l.15-32.25a95.89,95.89,0,0,1,25.37-14.3L122,56.87a8,8,0,0,0,4.1,1c1.21,0,2.43,0,3.64,0a8,8,0,0,0,4.1-1l28.84-16.1A96,96,0,0,1,188.12,55l.11,32.2a8,8,0,0,0,1.22,4.22c.62,1,1.23,2,1.8,3.06a8.09,8.09,0,0,0,3,3.06l28.6,16.29A90.49,90.49,0,0,1,222.9,142.12Z\"/>","sprache":"<path d=\"M224,184H144l40-80ZM96,127.56h0A95.78,95.78,0,0,0,128,56H64A95.78,95.78,0,0,0,96,127.56Z\" opacity=\"0.2\"/><path d=\"M247.15,212.42l-56-112a8,8,0,0,0-14.31,0l-21.71,43.43A88,88,0,0,1,108,126.93,103.65,103.65,0,0,0,135.69,64H160a8,8,0,0,0,0-16H104V32a8,8,0,0,0-16,0V48H32a8,8,0,0,0,0,16h87.63A87.7,87.7,0,0,1,96,116.35a87.74,87.74,0,0,1-19-31,8,8,0,1,0-15.08,5.34A103.63,103.63,0,0,0,84,127a87.55,87.55,0,0,1-52,17,8,8,0,0,0,0,16,103.46,103.46,0,0,0,64-22.08,104.18,104.18,0,0,0,51.44,21.31l-26.6,53.19a8,8,0,0,0,14.31,7.16L148.94,192h70.11l13.79,27.58A8,8,0,0,0,240,224a8,8,0,0,0,7.15-11.58ZM156.94,176,184,121.89,211.05,176Z\"/>","mikro":"<path d=\"M168,64v64a40,40,0,0,1-40,40h0a40,40,0,0,1-40-40V64a40,40,0,0,1,40-40h0A40,40,0,0,1,168,64Z\" opacity=\"0.2\"/><path d=\"M128,176a48.05,48.05,0,0,0,48-48V64a48,48,0,0,0-96,0v64A48.05,48.05,0,0,0,128,176ZM96,64a32,32,0,0,1,64,0v64a32,32,0,0,1-64,0Zm40,143.6V240a8,8,0,0,1-16,0V207.6A80.11,80.11,0,0,1,48,128a8,8,0,0,1,16,0,64,64,0,0,0,128,0,8,8,0,0,1,16,0A80.11,80.11,0,0,1,136,207.6Z\"/>","muell":"<path d=\"M200,56V208a8,8,0,0,1-8,8H64a8,8,0,0,1-8-8V56Z\" opacity=\"0.2\"/><path d=\"M216,48H176V40a24,24,0,0,0-24-24H104A24,24,0,0,0,80,40v8H40a8,8,0,0,0,0,16h8V208a16,16,0,0,0,16,16H192a16,16,0,0,0,16-16V64h8a8,8,0,0,0,0-16ZM96,40a8,8,0,0,1,8-8h48a8,8,0,0,1,8,8v8H96Zm96,168H64V64H192ZM112,104v64a8,8,0,0,1-16,0V104a8,8,0,0,1,16,0Zm48,0v64a8,8,0,0,1-16,0V104a8,8,0,0,1,16,0Z\"/>","teilen":"<path d=\"M208,200a32,32,0,1,1-32-32A32,32,0,0,1,208,200ZM176,88a32,32,0,1,0-32-32A32,32,0,0,0,176,88Z\" opacity=\"0.2\"/><path d=\"M176,160a39.89,39.89,0,0,0-28.62,12.09l-46.1-29.63a39.8,39.8,0,0,0,0-28.92l46.1-29.63a40,40,0,1,0-8.66-13.45l-46.1,29.63a40,40,0,1,0,0,55.82l46.1,29.63A40,40,0,1,0,176,160Zm0-128a24,24,0,1,1-24,24A24,24,0,0,1,176,32ZM64,152a24,24,0,1,1,24-24A24,24,0,0,1,64,152Zm112,72a24,24,0,1,1,24-24A24,24,0,0,1,176,224Z\"/>"};
+const ic = (n) => `<svg class="ic" viewBox="0 0 256 256" aria-hidden="true">${SYM[n] || SYM.frage}</svg>`;
+const FARBEN = {"braun":{"de":"Hellbraun","en":"Light brown","k":["#e9cfae","#f1dfc6","#f8eedf"],"schrift":"#3b2614","akz":"#a9480c","fl":"#f6ece0"},"dunkel":{"de":"Dunkelbraun","en":"Dark brown","dunkel":true,"k":["#4a3424","#3a2a1d","#2b2016"],"schrift":"#f4ece2","akz":"#f2a65e","fl":"#2b241d"},"blau":{"de":"Wasserblau","en":"Water blue","k":["#a9cff2","#c9e2f7","#dcedf5"],"schrift":"#0b3154","akz":"#2f6ea8","fl":"#e4eef7"},"gruen":{"de":"Wassergrün","en":"Water green","k":["#aee2cc","#cdeede","#e4f3d6"],"schrift":"#0f4a43","akz":"#087f7a","fl":"#e4f1eb"},"gelb":{"de":"Helles Gelb","en":"Light yellow","k":["#f7e3a0","#fbeec4","#fdf5dc"],"schrift":"#5a4310","akz":"#916612","fl":"#f5efdc"},"koralle":{"de":"Koralle","en":"Coral","k":["#f9c9ad","#fbdcc8","#fdebd9"],"schrift":"#6b2a12","akz":"#c2562b","fl":"#f6e9e1"},"see":{"de":"Seeblau","en":"Lake blue","k":["#a8dde0","#c8ebec","#e0f3f0"],"schrift":"#0b3154","akz":"#0b6f7a","fl":"#e2f1f1"},"flieder":{"de":"Flieder","en":"Lilac","k":["#cfc4f0","#e0d8f6","#eee9fa"],"schrift":"#35215f","akz":"#6a45a8","fl":"#ece7f8"},"kraeftig":{"de":"Kräftig","en":"Strong","k":["#0b3154","#164f7d","#087f7a"],"schrift":"#ffffff","akz":"#0b3154","fl":"#dfeaf3","ink":"#14273a"}};
+const MX = [["smooth","Smoothies & Shakes","#2d8a4e","🥤"],["mock","Mocktails","#c05a8a","🍹"],["afckt","Alkfr. Cocktails","#7a3a9a","🍸"],["limo","Limonaden","#c8a020","🍋"],["tee","Tees & Kaffees","#6b4a2a","☕"],["ckt","Cocktails","#c04030","🍸"],["bowle","Bowlen","#ff5a5f","🍶"],["sirup","Sirup & Basis","#5a8a3a","🫙"],["knab","Knabbereien","#b8852a","🥨"],["finger","Fingerfood","#a04a3a","🍢"]];
+const RB = [["vorsp","Vorspeisen","#2fa57a","🥗"],["suppe","Suppen","#c98a2b","🍲"],["fleisch","Fleisch","#b5483a","🥩"],["fisch","Fisch","#2f7fb0","🐟"],["vegi","Vegetarisch","#5a9a3a","🥦"],["kuchen","Kuchen","#c9876a","🍰"],["dessert","Desserts","#c05a8a","🍮"],["drk","Getränke","#6a45a8","🥤"],["sushi","Sushi (eigene)","#0b6f7a","🍣"]];
+const GESCHMACK = [["Frisch","#2fa57a"],["Süß","#d9628f"],["Herb","#7d7a3a"],["Fruchtig","#ec7f2e"],["Cremig","#c9a25e"],["Intensiv","#7c3aa8"]];
+const kachel = (name, kc, innen, an) => `<span class="kachel${an ? ' an' : ''}" style="--kc:${kc}"><span class="kfeld">${innen}</span><span>${name}</span></span>`;
+const $ = (id) => document.getElementById(id);
+$('farben').innerHTML = Object.values(FARBEN).map((f) => `<div class="farbe"><div class="w" style="background:linear-gradient(120deg,${f.k[0]},${f.k[1]} 55%,${f.k[2]})"></div><div class="w" style="height:22px;background:linear-gradient(120deg,color-mix(in srgb,${f.akz} 62%,#0a0e17),color-mix(in srgb,${f.akz} 30%,#0a0e17))"></div><div class="t"><b>${f.de}</b>k ${f.k.join(' · ')}<br>Akzent ${f.akz}</div></div>`).join('');
+$('mxkacheln').innerHTML = MX.map(([id, n, c, e], i) => kachel(n, c, `<span class="emo">${e}</span>`, i === 1)).join('');
+$('geschmack').innerHTML = GESCHMACK.map(([n, c], i) => `<span class="kachel${i === 0 || i === 2 ? ' an' : ''}" style="--kc:${c}"><span class="kfeld punkt"></span><span>${n}</span></span>`).join('');
+const rbk = RB.map(([id, n, c, e], i) => kachel(n, c, `<span class="emo">${e}</span>`, i === 3)).join('');
+$('rbkacheln').innerHTML = rbk; $('rbkacheln2').innerHTML = rbk;
+$('katfarben').innerHTML += MX.map(([id, n, c]) => `<tr><td>Mixarium</td><td>${n} <code>${id}</code></td><td><span style="display:inline-block;width:14px;height:14px;border-radius:4px;vertical-align:-2px;background:${c}"></span> <code>${c}</code></td></tr>`).join('') + RB.map(([id, n, c]) => `<tr><td>Rezeptbuch</td><td>${n} <code>${id}</code></td><td><span style="display:inline-block;width:14px;height:14px;border-radius:4px;vertical-align:-2px;background:${c}"></span> <code>${c}</code> (Vorschlag)</td></tr>`).join('');
+const foto = (a, b) => `<span class="foto" style="background:radial-gradient(60% 55% at 40% 40%,${a},${b})"></span>`;
+const stk = (name, kc, inhalt, an) => `<span class="stk${an ? ' an' : ''}" style="--kc:${kc}">${inhalt}<span>${name}</span></span>`;
+const zeichen = (e) => `<span class="foto zeichen"><span>${e}</span></span>`;
+$('rbsticker').innerHTML = stk('Alle', '#a9480c', foto('#e7c08a', '#8a5a2b'), true) + stk('Suppen', '#c98a2b', foto('#f0c26a', '#a8642a')) + stk('Fisch', '#2f7fb0', foto('#d8e6ef', '#5d8fb0')) + stk('Sushi', '#0b6f7a', zeichen('🍣')) + stk('Kuchen', '#c9876a', foto('#f3d9c2', '#a8643c')) + stk('Desserts', '#c05a8a', zeichen('🍮'));
+$('mxsticker').innerHTML = stk('Alle', '#2f6ea8', foto('#cfe6f7', '#3f7fb5'), true) + stk('Mocktails', '#c05a8a', foto('#f6c4d6', '#c05a8a')) + stk('Limonaden', '#c8a020', foto('#fbeaa6', '#c8a020')) + stk('Smoothies', '#2d8a4e', zeichen('🥤')) + stk('Tees', '#6b4a2a', foto('#e8d3bd', '#6b4a2a')) + stk('Bowlen', '#ff5a5f', zeichen('🍶'));
+$('h1sticker').innerHTML = $('rbsticker').innerHTML; $('h2sticker').innerHTML = $('mxsticker').innerHTML;
+const karte = (n, w, a, b) => `<div class="karte"><div class="bild" style="background:radial-gradient(70% 70% at 40% 35%,${a},${b})"></div><div class="txt"><strong>${n}</strong><small>${w}</small></div></div>`;
+$('h1karten').innerHTML = karte('Kartoffelsuppe', '30 min · Suppen', '#f0c26a', '#a8642a') + karte('Apfelkuchen', '60 min · Kuchen', '#f3d9c2', '#a8643c') + karte('Lachs', '25 min · Fisch', '#f6c7b4', '#c46a4a') + karte('Gulasch', '90 min · Fleisch', '#c97a5a', '#6b2a12');
+$('h2karten').innerHTML = karte('Gurken-Spritz', 'Highball · alkoholfrei', '#d6f0d2', '#5aa86a') + karte('Virgin Mojito', 'Longdrink · frisch', '#e3f6e8', '#3f9a6a') + karte('Pink Lemonade', 'Limonade', '#fbd3de', '#d9628f') + karte('Mango-Lassi', 'Smoothie', '#fde3a7', '#e39a2a');
+$('symbole').innerHTML = [['buch', 'Alle / Buch'], ['koch', 'Kochen / Mixen'], ['einkauf', 'Einkaufen'], ['plan', 'Planen'], ['bild', 'Bild'], ['funken', 'KI / Labor'], ['tresor', 'Tresor'], ['einst', 'Einstellungen'], ['sprache', 'Sprache'], ['mikro', 'Diktat'], ['muell', 'Löschen'], ['teilen', 'Teilen']].map(([s, n], i) => kachel(n, ['#2f6ea8', '#a9480c', '#2d8a4e', '#6a45a8', '#c8a020', '#c05a8a'][i % 6], ic(s), false)).join('');
+</script>
+</body>
+</html>

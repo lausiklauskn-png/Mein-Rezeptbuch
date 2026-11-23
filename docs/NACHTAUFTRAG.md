@@ -54,6 +54,10 @@ der Windows-App für beide Apps freigeben kann.
 1. Arbeite in beiden Repos immer gegen `origin/main` (der GitHub-Default-Branch von Mein-Rezeptbuch ist ein toter Decoy).
    Lies `CLAUDE.md` in beiden Repos.
 2. Lies, in dieser Reihenfolge:
+   - **`docs/GESTALTUNG.html`** (in beiden Repos gleich, im Browser öffnen): die verbindliche Gestaltung beider Apps mit
+     Bildbeispielen – Wasserfarben wie die Private Akte, Hintergrund auf leeren Flächen, Knöpfe (Form, Farbe, Größe, Texte),
+     Kategorie-Kacheln, Sticker, Symbole, „?“ ohne neue Zeile, Kopf, Leiste. Jede Ansicht muss so aussehen; die Prüfliste in
+     Abschnitt 9 gilt vor jedem Merge. Klaus 23.11., 20 Uhr: die Nacht-Sitzung wich grafisch davon ab.
    - `docs/UEBERGABE_GEMEINSAME_SITZUNG.md` in beiden Repos (Stand 23.11., 18:05; Versionen, was fertig ist, was fehlt,
      Entscheidungen, Fallen). Die Rezeptbuch-Datei ist die gemeinsame Seite (Arbeitsweise, Kern), die Mixarium-Datei die
      Getränke-Seite.
@@ -104,7 +108,8 @@ D. **Beide Apps angleichen:** gleiche Lage der Knöpfe, gleiche Einstellungen, g
    vorläufigen Teilen auf den Kern umhängen, wo es passt (Kategorien, Einkauf, Plan, Text-Import, Sinn-Suche, Tooltips und
    Ladebalken hängen schon am Kern; offen: Oberfläche und Posten-Modell der Einkaufsliste). Verbliebene Erklär-Absätze
    (`.ftext`) in Fenstern hinter „?“ prüfen.
-E. **Feinschliff:** jede Ansicht am Handy (390 px), am Tablet und am Monitor ansehen (Bildschirmfotos), hell und dunkel, ohne
+E. **Feinschliff gegen `docs/GESTALTUNG.html`:** zuerst die dort genannten „?“, die in eine neue Zeile rutschen (in einem `<p>` oder
+   allein im Grid `.imp-p`), dann jede Ansicht am Handy (390 px), am Tablet und am Monitor ansehen (Bildschirmfotos), hell und dunkel, ohne
    Netz. Was schief aussieht, richten.
 F. **Bau von APK und Windows-App vorbereiten, nicht starten:** Weg wählen (ein Werkzeug für beide Apps, Beispiele im Paket,
    App-Zeichen mit dunklem Grund und Goldring), Gerüst anlegen und aufschreiben, was Klaus tun muss, um den Bau zu starten.
