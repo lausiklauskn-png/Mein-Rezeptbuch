@@ -11,15 +11,18 @@ import { speicher } from '../kern/speicher/speicher.mjs';
 import { symbol as ic } from '../kern/oberflaeche/symbole.mjs';
 import { FARBEN, farbeSetzen } from '../kern/oberflaeche/farben.mjs';
 import { bildAusDatei } from '../kern/oberflaeche/bild.mjs';
+import { zutatenFuerSchritt, zeitImSchritt } from '../kern/modell/kochen.mjs';
+import { GERAETE, erkenne, geraetSvg } from '../kern/oberflaeche/geraete.mjs';
 
-const FASSUNG = '0.1.0';
+const FASSUNG = '0.2.0';
+const breit = () => matchMedia('(min-width:1000px)').matches;
 const $ = (id) => document.getElementById(id);
 const esc = (t) => String(t ?? '').replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
 
 let ausgabe = null, lager = null;
 let Z = leererZustand();                     // Rezepte, Wochenplan, Ordner, Kategorien
-let E = { farbe: 'braun', leiste: { seite: 'r', pos: 64 }, zuletzt: null };   // Einstellungen dieses Geräts
-const s = { ansicht: 'start', uid: null, frage: '', kat: 'alle', portion: {}, werkzeug: false, leisteAuf: false, form: null };
+let E = { farbe: 'braun', leiste: { seite: 'r', pos: 64 }, zuletzt: null, kochSchrift: 'mittel', railZu: false };   // Einstellungen dieses Geräts
+const s = { ansicht: 'start', uid: null, frage: '', kat: 'alle', portion: {}, werkzeug: false, leisteAuf: false, form: null, nurDies: false };
 
 /* ---------- Speichern ---------- */
 let schreibUhr = null;
@@ -39,15 +42,24 @@ let toastTun = null;
 /* ---------- Navigation (mit Zurück-Taste) ---------- */
 function geh(ansicht, extra = {}, ersetzen = false) {
   Object.assign(s, { ansicht, leisteAuf: false, ...extra });
+  if (ansicht === 'kochen') { $('toast').innerHTML = ''; toastTun = null; }   // nichts über den Knöpfen der Kochansicht
   const st = { ansicht, uid: s.uid };
   if (ersetzen) history.replaceState(st, ''); else history.pushState(st, '');
   zeichne(true); scrollTo(0, 0);
 }
-addEventListener('popstate', (e) => { const st = e.state || { ansicht: 'start' }; Object.assign(s, { ansicht: st.ansicht, uid: st.uid || null, leisteAuf: false, form: null }); fensterZu(); zeichne(true); });
+addEventListener('popstate', (e) => { const st = e.state || { ansicht: 'start' }; Object.assign(s, { ansicht: st.ansicht, uid: st.uid || null, leisteAuf: false, form: null }); fensterZu(); zeichne(st.ansicht !== 'rezept' || !breit()); });
 
 /* ---------- Kopf ---------- */
 function kopfZeichnen() {
-  const w = s.werkzeug;
+  const w = s.werkzeug, k = $('kopf');
+  k.classList.toggle('zu', !!E.railZu);
+  if (breit()) {
+    const n = (zu, i, t) => `<button class="rail-n" data-a="geh" data-zu="${zu}" ${(zu === 'start' ? ['start', 'rezept', 'kochen'].includes(s.ansicht) : s.ansicht === zu) ? 'aria-current="page"' : ''} title="${t}">${ic(i)}<span class="t">${t}</span></button>`;
+    k.innerHTML = `<div class="rail-oben"><img class="logo" src="../icons/icon-book-192.png?v=1" alt="" width="30" height="30"><span class="name t">${esc(ausgabe.titel)}</span><button class="rail-klapp" data-a="rail" aria-label="${E.railZu ? 'Leiste ausklappen' : 'Leiste einklappen'}">${ic(E.railZu ? 'rechts' : 'links')}</button></div>
+     <button class="knopf akz rail-neu" data-a="neu" aria-label="Neues Rezept">${ic('plus')}<span class="t">Neues Rezept</span></button>${n('start', 'buch', 'Rezepte')}${n('werkstatt', 'funken', 'Werkstatt')}
+     <button class="rail-n" data-a="farbe" title="Farbe"><span class="farbknopf"></span><span class="t">Farbe</span></button>`;
+    return;
+  }
   $('kopf').innerHTML = `<img class="logo" src="../icons/icon-book-192.png?v=1" alt="" width="30" height="30">`
     + (w ? `<div class="werkzeuge" aria-label="Werkzeuge"><button class="rund" data-a="zur-suche" aria-label="Suchen">${ic('suche')}</button><button class="farbknopf" data-a="farbe" aria-label="Farbpalette"></button><button class="rund" data-a="geh" data-zu="werkstatt" aria-label="Werkstatt und Einstellungen">${ic('einst')}</button></div>`
       : `<span class="name">${esc(ausgabe.titel)}</span>`)
@@ -82,7 +94,7 @@ function startRest() {
   if (s.kat === 'alle') {
     const trink = new Set(['drk', 'smooth', 'mock', 'afckt', 'limo', 'tee', 'ckt', 'bowle', 'sirup']);
     const z = rezept(E.zuletzt) || alle.find((r) => r.img && !trink.has(r.cat)) || alle.find((r) => r.img) || alle[0];
-    h += `<div class="ueber"><h2>${E.zuletzt && rezept(E.zuletzt) ? 'Weiterkochen' : 'Zum Anfangen'}</h2></div>
+    h += `<div class="ueber held-ueber"><h2>${E.zuletzt && rezept(E.zuletzt) ? 'Weiterkochen' : 'Zum Anfangen'}</h2></div>
      <button class="held" data-a="rezept" data-uid="${esc(z.uid)}">${bildOder(z)}<span class="verlauf"><strong>${esc(z.name)}</strong><span class="meta">${z.prepTime ? `<span>${ic('uhr')}${esc(z.prepTime)} Min</span>` : ''}<span>${ic('leute')}${z.servings} ${z.servings === 1 ? 'Portion' : 'Portionen'}</span></span></span></button>`;
     for (const c of kats) { const rz = alle.filter((r) => katVonRezept(r) === c.id);
       h += `<div class="ueber"><h2>${esc(katName(c))}</h2><small>${rz.length}</small></div><div class="gitter">${rz.map((r) => karte(r, c)).join('')}</div>`; }
@@ -106,14 +118,44 @@ function rezeptHtml() {
   const c = alleKategorien(Z.rezepte, Z.kategorien).find((x) => x.id === katVonRezept(r));
   const n = s.portion[r.uid] || r.servings, f = n / r.servings;
   return `<div class="rezept-held">${r.img ? `<img src="${esc(r.img)}" alt="${esc(r.name)}">` : ic('karte')}
-    <div class="oben"><button class="rund" data-a="zurueck" aria-label="Zurück">${ic('zurueck')}</button><span><button class="rund" data-a="bearbeiten" aria-label="Bearbeiten">${ic('stift')}</button><button class="rund" data-a="loeschen" aria-label="Rezept löschen">${ic('muell')}</button></span></div>
+    <div class="oben"><button class="rund" data-a="zurueck" aria-label="Zurück">${ic('zurueck')}</button><span><button class="rund nurbreit" data-a="nurdies" aria-label="${s.nurDies ? 'Liste und Leiste wieder zeigen' : 'Nur dieses Rezept zeigen'}" title="${s.nurDies ? 'Alles zeigen' : 'Nur dieses Rezept'}">${ic('voll')}</button><button class="rund" data-a="bearbeiten" aria-label="Bearbeiten">${ic('stift')}</button><button class="rund" data-a="loeschen" aria-label="Rezept löschen">${ic('muell')}</button></span></div>
     <div class="verlauf"><h1>${esc(r.name)}</h1><div class="meta">${r.prepTime ? `<span>${ic('uhr')}${esc(r.prepTime)} Min</span>` : ''}<span>${ic('karte')}${esc(c ? katName(c) : '')}</span>${r.rating?.stars ? `<span>${ic('stern')}${r.rating.stars}</span>` : ''}</div></div></div>
    <div class="bogen"><div class="zweispalt"><div>
+    ${r.steps.length ? `<div class="reihe"><button class="knopf akz" data-a="kochen" style="flex:1">${ic('koch')}Kochen</button></div>` : ''}
     <div class="portion"><span>Portionen</span><span class="st"><button data-a="portion" data-d="-1" aria-label="Weniger">${ic('minus')}</button><b id="portionen">${n}</b><button data-a="portion" data-d="1" aria-label="Mehr">${ic('plus')}</button></span></div>
-    <h2 class="h">Zutaten</h2><ul class="zut">${r.ings.map((z) => `<li><b>${esc([skaliere(z.amt, f), z.unit].filter(Boolean).join(' '))}</b><span>${esc(z.name)}${z.note ? `<small>${esc(z.note)}</small>` : ''}</span></li>`).join('')}</ul></div>
+    <h2 class="h">Zutaten</h2><ul class="zut">${r.ings.map((z) => `<li><b>${esc([skaliere(z.amt, f), z.unit].filter(Boolean).join(' '))}</b><span>${esc(z.name)}${z.note ? `<small>${esc(z.note)}</small>` : ''}</span></li>`).join('')}</ul>${geraeteVon(r).length ? `<h2 class="h">Geräte</h2><div class="gr-liste">${geraeteVon(r).map((g) => `<span class="gr-chip">${geraetSvg(g)}${esc(GERAETE[g].de)}</span>`).join('')}</div>` : ''}</div>
     <div><h2 class="h">Zubereitung</h2><ol class="schritte">${r.steps.map((x) => `<li><span>${esc(x.txt)}${x.note ? `<small>${esc(x.note)}</small>` : ''}</span></li>`).join('')}</ol>
     ${r.source ? `<p class="quelle">Quelle: ${esc(r.source)}</p>` : ''}</div></div></div>`;
 }
+
+const geraeteVon = (r) => [...new Set(r.steps.flatMap((x) => erkenne(x.txt)))];
+
+/* ---------- Kochansicht: ein Schritt groß, Wischen oder Pfeiltasten, Bildschirm bleibt an ---------- */
+const K = { i: 0, kopf: true, wach: null, uhr: null, rest: 0 };
+const zeitText = (sek) => `${Math.floor(sek / 60)}:${String(sek % 60).padStart(2, '0')}`;
+function kochHtml() {
+  const r = rezept(s.uid); if (!r || !r.steps.length) return '';
+  const i = Math.min(K.i, r.steps.length - 1), x = r.steps[i], f = (s.portion[r.uid] || r.servings) / r.servings;
+  const zs = zutatenFuerSchritt(r, i), gs = erkenne(x.txt), min = zeitImSchritt(x.txt);
+  const balken = `<div class="k-balken" aria-hidden="true">${r.steps.map((_, n) => `<i class="${n < i ? 'an' : n === i ? 'jetzt' : ''}"></i>`).join('')}</div>`;
+  const zut = zs.length ? `<div class="k-zut">${zs.map((z) => `<span><b>${esc([skaliere(z.amt, f), z.unit].filter(Boolean).join(' '))}</b> ${esc(z.name)}</span>`).join('')}</div>` : '';
+  const wecker = min ? `<button class="k-timer" data-a="wecker" data-min="${min}">${ic('uhr')}<span id="k-zeit">${K.uhr ? zeitText(K.rest) : `Wecker ${min} Min`}</span></button>` : '';
+  const ger = gs.length ? `<div class="k-geraete">${gs.map((g) => `<span class="gr-k">${geraetSvg(g)}${esc(GERAETE[g].de)}</span>`).join('')}</div>` : '';
+  return `<div class="koch" data-ks="${esc(E.kochSchrift)}" role="dialog" aria-modal="true" aria-label="Kochansicht">
+   ${K.kopf ? `<div class="k-kopf"><button class="rund" data-a="zurueck" aria-label="Kochansicht schließen">${ic('x')}</button><span class="k-name">${esc(r.name)}</span>${K.wach ? '<span class="k-wach"><i></i>bleibt an</span>' : ''}<button class="k-klapp" data-a="k-kopf" aria-label="Kopf einklappen">${ic('hoch')}</button></div>${balken}`
+     : `<div class="k-kopf-zu">${balken}<button class="k-klapp" data-a="k-kopf" aria-label="Kopf ausklappen">${ic('x')}</button></div>`}
+   <div class="k-rumpf"><div class="k-inhalt" id="k-inhalt">${r.img ? `<div class="k-bild"><img src="${esc(r.img)}" alt=""></div>` : ''}
+     <span class="k-nr">Schritt ${i + 1} von ${r.steps.length}</span><p class="k-text">${esc(x.txt)}</p>${x.note ? `<p class="k-notiz">${esc(x.note)}</p>` : ''}
+     <div class="k-nurschmal">${zut}${wecker}${ger}</div></div>
+    <aside class="k-seite"><h3>Für diesen Schritt</h3>${zut || '<p class="k-notiz">keine neuen Zutaten</p>'}${wecker}${ger ? `<h3>Geräte</h3>${ger}` : ''}</aside></div>
+   <div class="k-fuss"><button data-a="k-schritt" data-d="-1" ${i === 0 ? 'disabled' : ''}>${ic('links')}Zurück</button><button class="vor" data-a="${i === r.steps.length - 1 ? 'zurueck' : 'k-schritt'}" data-d="1">${i === r.steps.length - 1 ? 'Fertig' : 'Weiter'}${ic(i === r.steps.length - 1 ? 'haken' : 'rechts')}</button></div></div>`;
+}
+async function wachAn() { try { K.wach = await navigator.wakeLock?.request('screen') || null; } catch { K.wach = null; } if (s.ansicht === 'kochen') kochZeichnen(); }
+function wachAus() { try { K.wach?.release(); } catch { /* schon frei */ } K.wach = null; }
+function weckerAus() { clearInterval(K.uhr); K.uhr = null; K.rest = 0; }
+function kochZeichnen() { $('kochort').innerHTML = s.ansicht === 'kochen' ? kochHtml() : ''; }
+document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'visible' && s.ansicht === 'kochen' && !K.wach) wachAn(); });
+function piep() { try { const c = new (window.AudioContext || window.webkitAudioContext)(), o = c.createOscillator(), g = c.createGain(); o.connect(g); g.connect(c.destination); o.frequency.value = 880; g.gain.value = 0.15; o.start(); o.stop(c.currentTime + 0.6); } catch { /* ohne Ton */ } navigator.vibrate?.([300, 150, 300]); }
 
 /* ---------- Anlegen und Bearbeiten ---------- */
 const zutatZeile = (z) => [z.amt, z.unit, z.name].filter(Boolean).join(' ') + (z.note ? ` (${z.note})` : '');
@@ -168,9 +210,9 @@ function werkstattHtml() {
    ${zeile('sichern', 'laden', 'Sicherung als Datei', 'alle Rezepte mit Bildern und Kategorien')}${zeile('einlesen', 'ordner', 'Sicherung einlesen', 'auch aus der alten App, aus Muttis Rezeptbuch und dem Mixarium')}</div></div>
   <div class="gruppe"><h3>Beispiele</h3><div class="liste">
    ${zeile('beispiel', 'paket', 'Beispielbuch laden', beispielText())}${b ? zeile('beispiele-weg', 'muell', 'Beispiele entfernen', `${b} Beispiel-Rezepte, eigene bleiben`) : ''}</div></div>
-  <div class="gruppe"><h3>Darstellung</h3><div class="liste">${zeile('farbe', 'einst', 'Farbe', FARBEN[E.farbe]?.de || '')}</div></div>
+  <div class="gruppe"><h3>Darstellung</h3><div class="liste">${zeile('farbe', 'einst', 'Farbe', FARBEN[E.farbe]?.de || '')}${zeile('kochschrift', 'koch', 'Schrift in der Kochansicht', E.kochSchrift)}</div></div>
   <div class="gruppe"><h3>Aufräumen</h3><div class="liste">${zeile('alles-weg', 'muell', 'Alle Rezepte löschen', 'mit Rückfrage')}</div></div>
-  <p class="quelle">Mein Rezeptbuch, neue Fassung ${FASSUNG}. Kochansicht, Einkaufsliste, Wochenplan, Import per Foto und Web, Bücher und Übersetzung folgen. <a href="../" style="color:inherit">Zur bisherigen App</a></p>`;
+  <p class="quelle">Mein Rezeptbuch, neue Fassung ${FASSUNG}. Einkaufsliste, Wochenplan, Import per Foto und Web, Bücher und Übersetzung folgen. <a href="../" style="color:inherit">Zur bisherigen App</a></p>`;
 }
 
 /* ---------- Fenster ---------- */
@@ -230,16 +272,23 @@ document.addEventListener('contextmenu', (ev) => { if (ev.target.closest?.('.fl-
 /* ---------- Zeichnen ---------- */
 function zeichne(einzug = false) {
   kopfZeichnen(); leisteZeichnen();
-  const m = $('main');
-  m.innerHTML = s.ansicht === 'rezept' ? rezeptHtml() : s.ansicht === 'form' ? formHtml() : s.ansicht === 'werkstatt' ? werkstattHtml() : startHtml();
-  m.classList.toggle('einzug', einzug); document.body.dataset.ansicht = s.ansicht;
+  const m = $('main'), lesen = ['start', 'rezept', 'kochen'].includes(s.ansicht);
+  if (breit() && lesen) {
+    if (!rezept(s.uid)) s.uid = (rezept(E.zuletzt) || Z.rezepte.find(istInhalt))?.uid || null;
+    const alt = m.querySelector('.md-liste')?.scrollTop || 0;
+    m.innerHTML = `<div class="md ${s.nurDies ? 'nur' : ''}"><div class="md-liste">${startHtml()}</div><div class="md-detail">${rezept(s.uid) ? rezeptHtml() : ''}</div></div>`;
+    const l = m.querySelector('.md-liste'); if (l) l.scrollTop = alt;
+  } else m.innerHTML = s.ansicht === 'rezept' || s.ansicht === 'kochen' ? rezeptHtml() : s.ansicht === 'form' ? formHtml() : s.ansicht === 'werkstatt' ? werkstattHtml() : startHtml();
+  m.classList.toggle('einzug', einzug); document.body.dataset.ansicht = s.ansicht; document.body.classList.toggle('nur', breit() && lesen && s.nurDies);
+  if (s.ansicht !== 'kochen') { wachAus(); weckerAus(); }
+  kochZeichnen();
   document.title = s.ansicht === 'rezept' && rezept(s.uid) ? `${rezept(s.uid).name} · ${ausgabe.titel}` : ausgabe.titel;
 }
 
 /* ---------- Handlungen ---------- */
 const A = {
   geh: (e) => geh(e.dataset.zu, { uid: null, form: null }),
-  rezept: (e) => { E.zuletzt = e.dataset.uid; sichern(); geh('rezept', { uid: e.dataset.uid }); },
+  rezept: (e) => { E.zuletzt = e.dataset.uid; sichern(); if (breit()) { s.ansicht = 'rezept'; s.uid = e.dataset.uid; history.pushState({ ansicht: 'rezept', uid: s.uid }, ''); zeichne(); document.querySelector('.md-detail')?.scrollTo(0, 0); } else geh('rezept', { uid: e.dataset.uid }); },
   zurueck: () => { s.form = null; if (history.state && history.length > 1) history.back(); else geh('start', {}, true); },
   kat: (e) => { s.kat = e.dataset.kat; zeichne(); },
   werkzeug: () => { s.werkzeug = !s.werkzeug; kopfZeichnen(); },
@@ -248,6 +297,14 @@ const A = {
   neu: () => { s.form = formAus(null); geh('form'); },
   bearbeiten: () => { s.form = formAus(rezept(s.uid)); geh('form'); },
   loeschen: () => { const r = rezept(s.uid); if (!r) return; const vorher = Z.rezepte; Z.rezepte = Z.rezepte.filter((x) => x.uid !== r.uid); sichern(); geh('start', { uid: null }, true); melde(`„${r.name}“ gelöscht`, 'Rückgängig', () => { Z.rezepte = vorher; sichern(); zeichne(true); }); },
+  kochen: () => { K.i = 0; K.kopf = true; geh('kochen', { uid: s.uid }); wachAn(); },
+  'k-schritt': (e) => { const r = rezept(s.uid); K.i = Math.min(r.steps.length - 1, Math.max(0, K.i + +e.dataset.d)); weckerAus(); kochZeichnen(); $('k-inhalt')?.classList.add('k-neu'); },
+  'k-kopf': () => { K.kopf = !K.kopf; kochZeichnen(); },
+  wecker: (e) => { if (K.uhr) { weckerAus(); kochZeichnen(); return; } K.rest = +e.dataset.min * 60;
+    K.uhr = setInterval(() => { K.rest--; document.querySelectorAll('#k-zeit').forEach((z) => { z.textContent = zeitText(Math.max(0, K.rest)); }); if (K.rest <= 0) { weckerAus(); piep(); melde('Die Zeit ist um.'); kochZeichnen(); } }, 1000); kochZeichnen(); },
+  nurdies: () => { s.nurDies = !s.nurDies; zeichne(); },
+  rail: () => { E.railZu = !E.railZu; sichern(); kopfZeichnen(); },
+  kochschrift: () => { E.kochSchrift = { klein: 'mittel', mittel: 'groß', 'groß': 'klein' }[E.kochSchrift] || 'mittel'; sichern(); zeichne(); },
   portion: (e) => { const r = rezept(s.uid); const n = Math.min(99, Math.max(1, (s.portion[r.uid] || r.servings) + +e.dataset.d)); s.portion[r.uid] = n; zeichne(); },
   'bild-waehlen': () => { formLesen(document.querySelector('[data-form=rezept]')); $('datei-bild').click(); },
   'bild-weg': () => { formLesen(document.querySelector('[data-form=rezept]')); s.form.img = ''; zeichne(); },
@@ -275,10 +332,18 @@ document.addEventListener('input', (ev) => {
   if (ev.target.id !== 'suchfeld') return;
   s.frage = ev.target.value; $('start-rest').innerHTML = startRest(); $('suche-x').hidden = !s.frage;   // das Feld selbst bleibt stehen (Tastatur, Diktat)
 });
-document.addEventListener('keydown', (ev) => { if (ev.key === 'Escape') { if ($('fensterort').innerHTML) fensterZu(); else if (s.leisteAuf) { s.leisteAuf = false; leisteZeichnen(); } } });
+document.addEventListener('keydown', (ev) => {
+  if (s.ansicht !== 'kochen' || $('fensterort').innerHTML) return;
+  if (ev.key === 'ArrowRight') A['k-schritt']({ dataset: { d: 1 } }); else if (ev.key === 'ArrowLeft') A['k-schritt']({ dataset: { d: -1 } }); else if (ev.key === 'Escape') A.zurueck();
+});
+let wischX = null;
+document.addEventListener('touchstart', (ev) => { wischX = ev.target.closest?.('.koch') && !ev.target.closest('button') ? ev.touches[0].clientX : null; }, { passive: true });
+document.addEventListener('touchend', (ev) => { if (wischX == null) return; const d = ev.changedTouches[0].clientX - wischX; wischX = null; if (Math.abs(d) > 60) A['k-schritt']({ dataset: { d: d < 0 ? 1 : -1 } }); }, { passive: true });
+matchMedia('(min-width:1000px)').addEventListener('change', () => zeichne());
+document.addEventListener('keydown', (ev) => { if (ev.key === 'Escape' && s.ansicht !== 'kochen') { if ($('fensterort').innerHTML) fensterZu(); else if (s.leisteAuf) { s.leisteAuf = false; leisteZeichnen(); } } });
 $('datei-sicherung').addEventListener('change', async (ev) => { const d = ev.target.files[0]; ev.target.value = ''; if (!d) return; try { einfuegen(lies(await d.text())); } catch (f) { melde(f.message || 'Die Datei konnte nicht gelesen werden.'); } });
 $('datei-bild').addEventListener('change', async (ev) => { const d = ev.target.files[0]; ev.target.value = ''; if (!d || !s.form) return; try { s.form.img = await bildAusDatei(d); zeichne(); } catch { melde('Das Bild konnte nicht gelesen werden.'); } });
-let altY = 0; addEventListener('scroll', () => { const y = scrollY; $('kopf').classList.toggle('weg', y > altY + 4 && y > 80 ? true : y < altY - 4 || y < 40 ? false : $('kopf').classList.contains('weg')); altY = y; }, { passive: true });
+let altY = 0; addEventListener('scroll', () => { if (breit()) return; const y = scrollY; $('kopf').classList.toggle('weg', y > altY + 4 && y > 80 ? true : y < altY - 4 || y < 40 ? false : $('kopf').classList.contains('weg')); altY = y; }, { passive: true });
 
 /* ---------- Start ---------- */
 async function start() {
