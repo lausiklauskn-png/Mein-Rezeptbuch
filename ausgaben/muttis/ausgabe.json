@@ -1,0 +1,45 @@
+{
+ "name": "muttis",
+ "titel": "Muttis Rezeptbuch",
+ "kurz": "Muttis",
+ "store": false,
+ "speicher": {
+  "endung": "9",
+  "indexedDb": "MrzBackup1",
+  "schluesselAlt": [
+   "mrz9",
+   "mms9",
+   "mfd9",
+   "mrzcats9",
+   "mrzcatsneu9",
+   "mrzcatsaus9",
+   "mrzcatord9",
+   "mlang9"
+  ]
+ },
+ "farbe": "flieder",
+ "zeichen": {
+  "web": null,
+  "app": null
+ },
+ "begruessung": {
+  "de": "Schön, dass du da bist. Was kochen wir heute?",
+  "en": "Nice to see you. What are we cooking today?"
+ },
+ "ziele": [
+  "web",
+  "android",
+  "windows"
+ ],
+ "lieferung": {
+  "web": "auf-tippen",
+  "android": "im-paket",
+  "windows": "im-paket"
+ },
+ "netzmodule": "eingebaut-nicht-geladen",
+ "alkoholErlaubt": false,
+ "beispiele": [
+  "beispielbuch-mein-rezeptbuch",
+  "foodzine-beispiele"
+ ]
+}

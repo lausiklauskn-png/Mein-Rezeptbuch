@@ -1,0 +1,9 @@
+{
+ "fassung": "0.1.0",
+ "inhalt": "Ausgaben-Schalter",
+ "dateien": {
+  "kern/README.md": "3512b26934d09dcb875a96766665b6f788379e6cbff69621b1171f06af59d25e",
+  "kern/ausgabe/ausgabe.mjs": "56d01a3a8b5855af233956c5ecf83d66df138ddc0896cede65a74192fd626ecf",
+  "kern/kern-stand.mjs": "15d3512566a70968b6115a6df8c1592934d0bab0566a7795fbd6b0fb98873a91"
+ }
+}
