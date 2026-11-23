@@ -45,16 +45,17 @@ Das Alkohol-Paket aus `beispiele/` ist im Katalog nur für `mixarium-voll` freig
 | `sicherung/sicherung.mjs` | liest Fassung 9/10 der alten Apps, schreibt Fassung 11 mit Block `kategorien`; Zusammenführen an `uid` |
 | `modell/mengen.mjs` | Mengen für andere Portionen umrechnen (Brüche, Bereiche) |
 | `modell/kochen.mjs` | Kochansicht: Zutaten eines Schritts und Zeitangabe, aus dem Schritttext, ohne KI |
-| `oberflaeche/geraete.mjs` | gezeichnete Gerätschaften, erkannt aus dem Text, erweiterbar je Ausgabe (`erweitern()`) |
+| `oberflaeche/geraete.mjs` | gezeichnete Gerätschaften (de/en), erkannt aus dem Text, erweiterbar je Ausgabe (`erweitern()`, eigenes Raster mit `vb`). „Shaker“/„schütteln“ ist kein Küchenmixer; Bar-Geräte bringt die Ausgabe mit. |
+| `ki/bild.mjs` | KI-Bild (OpenAI) und Gratis-Foto; Auftrag je Ausgabe: `art: 'essen'` (Vorgabe) oder `'getraenk'`, oder ganz eigener `auftrag`. Kosten-Hinweis de/en (`KOSTEN`). |
 | `modell/einkauf.mjs`, `modell/warengruppen.mjs` | Einkaufsliste: zusammenzählen (Einzahl/Mehrzahl, Einheiten), Warengruppen aus der alten App, Reihenfolge je Laden |
 | `modell/plan.mjs` | Wochenplan: Woche Mo–So mit Kalenderwoche, planen, altes Menü übernehmen |
 | `import/text.mjs` | Rezept aus eingefügtem Text ohne KI (Überschriften, Mengen, Einheiten, Portionen, Zeit) |
 | `oberflaeche/diktat.mjs` | Spracheingabe für Textfelder (Web Speech im Browser) |
 | `speicher/speicher.mjs` | Zustand im Gerät (IndexedDB), eine Datenbank je Ausgabe |
-| `oberflaeche/` | Symbole (Phosphor Duotone, nur die genutzten), Farbpaletten, Bild aus Datei verkleinern |
+| `oberflaeche/` | Symbole (Phosphor Duotone, nur die genutzten), Farbpaletten mit `farbName`/`tonName` (de/en), Schrift-Regler (`schriftRegler(wert, sprache)`), Bild aus Datei verkleinern |
 | `speicher/uebernahme.mjs` | liest den alten localStorage nur mit der Endung der eigenen Ausgabe, löscht nichts |
 
-Probe: `node --test test/kern.test.js` (13 Fälle). Wächter für den Sushi-Fehler: **alles, was die Suche findet, steht in genau einer Gruppe von „Alle“**.
+Probe: `node --test test/kern.test.js` (23 Fälle). Wächter für den Sushi-Fehler: **alles, was die Suche findet, steht in genau einer Gruppe von „Alle“**.
 
 ## Pin (`KERN.json`)
 

@@ -4,14 +4,26 @@
 //  - Das Bild landet immer als data:-URL im Rezept. Eine fremde Adresse verfällt und wäre offline tot.
 //  - Gratis-Foto über Pollinations, ohne Schlüssel: der Rezeptname geht an diesen Dienst.
 export const BILD_MODELLE = [{ model: 'dall-e-3' }, { model: 'gpt-image-1' }];
-export const KOSTEN_TEXT = 'etwa 4 Cent je Bild, Abrechnung direkt bei OpenAI';
+export const KOSTEN = { de: 'etwa 4 Cent je Bild, Abrechnung direkt bei OpenAI', en: 'about 4 cents per picture, billed directly by OpenAI' };
+export const KOSTEN_TEXT = KOSTEN.de;
 
-export function bildAuftrag(rezept) {
-  const name = rezept.name || 'dish';
-  const zut = (rezept.ings || []).slice(0, 5).map((z) => z.name).filter(Boolean).join(', ');
-  const hin = (rezept.steps || []).slice(0, 2).map((s) => (s.txt || '').slice(0, 80)).filter(Boolean).join('; ');
-  return `Food photography: a beautifully plated "${name}"${zut ? ', featuring ' + zut : ''}${hin ? '. Preparation: ' + hin : ''}. Natural light, appetizing, rustic wooden or marble surface, no text, no labels.`;
-}
+// Je Ausgabe ein eigener Auftrag (Wunsch aus dem Mixarium, 23.11.2026): ein Getränk ist kein „angerichteter Teller“.
+// `art` wählt den Auftrag; eine Ausgabe kann ihn mit der Option `auftrag` (Funktion rezept → Text) auch ganz ersetzen.
+const teile = (rezept) => ({
+  zut: (rezept.ings || []).slice(0, 5).map((z) => z.name).filter(Boolean).join(', '),
+  hin: (rezept.steps || []).slice(0, 2).map((s) => (s.txt || '').slice(0, 80)).filter(Boolean).join('; '),
+});
+export const BILD_ARTEN = {
+  essen: {
+    auftrag(rezept) { const { zut, hin } = teile(rezept); return `Food photography: a beautifully plated "${rezept.name || 'dish'}"${zut ? ', featuring ' + zut : ''}${hin ? '. Preparation: ' + hin : ''}. Natural light, appetizing, rustic wooden or marble surface, no text, no labels.`; },
+    gratis: ', food photography, professional, appetizing, natural lighting, close-up, restaurant quality',
+  },
+  getraenk: {
+    auftrag(rezept) { const { zut, hin } = teile(rezept); return `Drink photography: a freshly served "${rezept.name || 'drink'}" in a fitting glass${zut ? ', made with ' + zut : ''}${hin ? '. Preparation: ' + hin : ''}. Garnish as appropriate, natural light, bar counter or light surface, no text, no labels, no people.`; },
+    gratis: ', drink photography, served in a fitting glass, garnish, professional, natural lighting, close-up, bar counter',
+  },
+};
+export function bildAuftrag(rezept, art = 'essen') { return (BILD_ARTEN[art] || BILD_ARTEN.essen).auftrag(rezept); }
 const alsDataUrl = (blob) => new Promise((ja, nein) => { const fr = new FileReader(); fr.onload = () => ja(fr.result); fr.onerror = () => nein(new Error('Bild konnte nicht gelesen werden')); fr.readAsDataURL(blob); });
 
 async function einVersuch(schluessel, auftrag, variante, groesse, hol) {
@@ -23,17 +35,17 @@ async function einVersuch(schluessel, auftrag, variante, groesse, hol) {
   throw new Error('Kein Bild erhalten');
 }
 /** Erzeugt ein Bild und gibt es als data:-URL zurück. Wirft einen Fehler mit Klartext (401 = Schlüssel, 429 = Guthaben/Limit). */
-export async function kiBild(schluessel, rezept, { groesse = '1024x1024', hol = fetch } = {}) {
+export async function kiBild(schluessel, rezept, { groesse = '1024x1024', hol = fetch, art = 'essen', auftrag = null } = {}) {
   if (!schluessel) throw new Error('Kein OpenAI-Schlüssel');
-  let letzter = null;
-  for (const v of BILD_MODELLE) { try { return await einVersuch(schluessel, bildAuftrag(rezept), v, groesse, hol); } catch (f) { letzter = f; if (!f.andresModell) break; } }
+  let letzter = null; const text = auftrag ? auftrag(rezept) : bildAuftrag(rezept, art);
+  for (const v of BILD_MODELLE) { try { return await einVersuch(schluessel, text, v, groesse, hol); } catch (f) { letzter = f; if (!f.andresModell) break; } }
   if (letzter?.status === 401) throw new Error('Der OpenAI-Schlüssel wurde abgelehnt. Bitte prüfen.');
   if (letzter?.status === 429) throw new Error('OpenAI meldet: Limit erreicht oder kein Guthaben.');
   throw letzter || new Error('Kein Bild erhalten');
 }
 /** Gratis-Foto ohne Schlüssel (Pollinations). */
-export async function gratisBild(rezept, { hol = fetch, saat = Date.now() } = {}) {
-  const auftrag = encodeURIComponent(rezept.name + ', food photography, professional, appetizing, natural lighting, close-up, restaurant quality');
+export async function gratisBild(rezept, { hol = fetch, saat = Date.now(), art = 'essen' } = {}) {
+  const auftrag = encodeURIComponent(rezept.name + (BILD_ARTEN[art] || BILD_ARTEN.essen).gratis);
   const ant = await hol('https://image.pollinations.ai/prompt/' + auftrag + '?width=768&height=576&model=flux&nologo=true&seed=' + saat);
   if (!ant.ok) throw new Error('Der Gratis-Dienst antwortet nicht (HTTP ' + ant.status + ').');
   return alsDataUrl(await ant.blob());

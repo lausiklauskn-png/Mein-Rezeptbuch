@@ -199,3 +199,38 @@ test('Tresor: höchstens fünf automatische, die älteste fällt heraus; benannt
   assert.deepEqual((await t.hol(b)).recipes, [1, 2]); assert.equal(l.find((x) => x.id === b).name, 'Vor dem Umbau');
   await t.loeschen(b); assert.equal(await t.hol(b), null); assert.equal((await t.liste()).length, MAX_AUTO);
 });
+
+// ---- Kern 0.11: Wünsche aus dem Mixarium (Übergabe 23.11.2026) ----
+import { BILD_ARTEN, KOSTEN, KOSTEN_TEXT } from '../kern/ki/bild.mjs';
+import { GERAETE as KG, erweitern as gErweitern, geraetSvg as gSvg } from '../kern/oberflaeche/geraete.mjs';
+import { FARBEN as KF, TOENE as KT, farbName, tonName } from '../kern/oberflaeche/farben.mjs';
+import { schriftRegler as sRegler } from '../kern/oberflaeche/schrift.mjs';
+test('KI-Bild je Ausgabe: Getränke bekommen einen Getränke-Auftrag, Essen bleibt wie es war', async () => {
+  const r = { name: 'Virgin Mojito', ings: [{ name: 'Minze' }, { name: 'Limette' }], steps: [{ txt: 'Minze andrücken.' }] };
+  assert.ok(bildAuftrag(r).startsWith('Food photography: a beautifully plated "Virgin Mojito"'), 'ohne Angabe bleibt der alte Auftrag');
+  const g = bildAuftrag(r, 'getraenk');
+  assert.ok(g.includes('"Virgin Mojito"') && g.includes('Minze') && /glass/i.test(g) && !/plated|food/i.test(g), g);
+  const rufe = []; const hol = async (url, opt) => { rufe.push(JSON.parse(opt.body).prompt); return { ok: true, status: 200, json: async () => ({ data: [{ b64_json: 'QUJD' }] }) }; };
+  await kiBild('sk-x', r, { hol, art: 'getraenk' }); assert.equal(rufe[0], g, 'kiBild schickt den Auftrag der gewählten Art');
+  await kiBild('sk-x', r, { hol, auftrag: () => 'eigener Auftrag' }); assert.equal(rufe[1], 'eigener Auftrag', 'eine Ausgabe kann den Auftrag ganz ersetzen');
+  const urls = []; const holG = async (u) => { urls.push(decodeURIComponent(u)); return { ok: true, blob: async () => new Blob(['x']) }; };
+  globalThis.FileReader ??= class { readAsDataURL() { this.result = 'data:x'; this.onload(); } };
+  await gratisBild(r, { hol: holG, art: 'getraenk' }); await gratisBild(r, { hol: holG });
+  assert.ok(/drink/i.test(urls[0]) && !/food/i.test(urls[0]), urls[0]); assert.ok(/food/i.test(urls[1]), urls[1]);
+  assert.ok(BILD_ARTEN.essen && BILD_ARTEN.getraenk); assert.ok(KOSTEN.de && KOSTEN.en && KOSTEN.de === KOSTEN_TEXT);
+});
+test('Geräte: „schütteln“ und „Shaker“ sind kein Küchenmixer; Ausgaben hängen eigene Geräte mit eigenem Raster an', () => {
+  assert.deepEqual(erkenne('Alles im Shaker kräftig schütteln.'), []);
+  assert.deepEqual(erkenne('Im Mixer pürieren.'), ['mixer']);
+  assert.ok(Object.values(KG).every((g) => g.de && g.en), 'jedes Kern-Gerät hat einen englischen Namen');
+  gErweitern({ shaker: { de: 'Shaker', en: 'Shaker', worte: ['shaker', 'schuttel'], vb: '0 0 64 64', svg: '<path d="M1 1"/>' } });
+  assert.deepEqual(erkenne('Alles im Shaker kräftig schütteln.'), ['shaker']);
+  assert.ok(gSvg('shaker').includes('viewBox="0 0 64 64"') && gSvg('topf').includes('viewBox="0 0 256 256"'));
+  delete KG.shaker;
+});
+test('Farben, Ton und Schrift-Regler tragen englische Namen', () => {
+  assert.ok(Object.values(KF).every((f) => f.de && f.en), 'jede Farbe hat de und en');
+  assert.equal(farbName('koralle', 'en'), 'Coral'); assert.equal(farbName('koralle'), 'Koralle'); assert.equal(farbName('gibtsnicht', 'en'), KF.braun.en);
+  assert.equal(tonName('geraet', 'en'), 'Same as device'); assert.equal(tonName('dunkel'), KT.dunkel);
+  assert.ok(sRegler(100, 'en').includes('aria-label="Text size in percent"') && sRegler(100).includes('aria-label="Schriftgröße in Prozent"'));
+});

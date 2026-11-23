@@ -1,16 +1,20 @@
 // Küchen-Kern · Farbpaletten: Wasserfarben der Privaten Akte plus Hellbraun und Dunkelbraun (Klaus 23.11.).
 export const FARBEN = {
-  braun: { de: 'Hellbraun', k: ['#e9cfae', '#f1dfc6', '#f8eedf'], schrift: '#3b2614', akz: '#a9480c', fl: '#f6ece0' },
-  dunkel: { de: 'Dunkelbraun', dunkel: true, k: ['#4a3424', '#3a2a1d', '#2b2016'], schrift: '#f4ece2', akz: '#f2a65e', fl: '#2b241d' },
-  blau: { de: 'Wasserblau', k: ['#a9cff2', '#c9e2f7', '#dcedf5'], schrift: '#0b3154', akz: '#2f6ea8', fl: '#e4eef7' },
-  gruen: { de: 'Wassergrün', k: ['#aee2cc', '#cdeede', '#e4f3d6'], schrift: '#0f4a43', akz: '#087f7a', fl: '#e4f1eb' },
-  gelb: { de: 'Helles Gelb', k: ['#f7e3a0', '#fbeec4', '#fdf5dc'], schrift: '#5a4310', akz: '#916612', fl: '#f5efdc' },
-  koralle: { de: 'Koralle', k: ['#f9c9ad', '#fbdcc8', '#fdebd9'], schrift: '#6b2a12', akz: '#c2562b', fl: '#f6e9e1' },
-  see: { de: 'Seeblau', k: ['#a8dde0', '#c8ebec', '#e0f3f0'], schrift: '#0b3154', akz: '#0b6f7a', fl: '#e2f1f1' },
-  flieder: { de: 'Flieder', k: ['#cfc4f0', '#e0d8f6', '#eee9fa'], schrift: '#35215f', akz: '#6a45a8', fl: '#ece7f8' },
-  kraeftig: { de: 'Kräftig', k: ['#0b3154', '#164f7d', '#087f7a'], schrift: '#ffffff', akz: '#0b3154', fl: '#dfeaf3', ink: '#14273a' },
+  braun: { de: 'Hellbraun', en: 'Light brown', k: ['#e9cfae', '#f1dfc6', '#f8eedf'], schrift: '#3b2614', akz: '#a9480c', fl: '#f6ece0' },
+  dunkel: { de: 'Dunkelbraun', en: 'Dark brown', dunkel: true, k: ['#4a3424', '#3a2a1d', '#2b2016'], schrift: '#f4ece2', akz: '#f2a65e', fl: '#2b241d' },
+  blau: { de: 'Wasserblau', en: 'Water blue', k: ['#a9cff2', '#c9e2f7', '#dcedf5'], schrift: '#0b3154', akz: '#2f6ea8', fl: '#e4eef7' },
+  gruen: { de: 'Wassergrün', en: 'Water green', k: ['#aee2cc', '#cdeede', '#e4f3d6'], schrift: '#0f4a43', akz: '#087f7a', fl: '#e4f1eb' },
+  gelb: { de: 'Helles Gelb', en: 'Light yellow', k: ['#f7e3a0', '#fbeec4', '#fdf5dc'], schrift: '#5a4310', akz: '#916612', fl: '#f5efdc' },
+  koralle: { de: 'Koralle', en: 'Coral', k: ['#f9c9ad', '#fbdcc8', '#fdebd9'], schrift: '#6b2a12', akz: '#c2562b', fl: '#f6e9e1' },
+  see: { de: 'Seeblau', en: 'Lake blue', k: ['#a8dde0', '#c8ebec', '#e0f3f0'], schrift: '#0b3154', akz: '#0b6f7a', fl: '#e2f1f1' },
+  flieder: { de: 'Flieder', en: 'Lilac', k: ['#cfc4f0', '#e0d8f6', '#eee9fa'], schrift: '#35215f', akz: '#6a45a8', fl: '#ece7f8' },
+  kraeftig: { de: 'Kräftig', en: 'Strong', k: ['#0b3154', '#164f7d', '#087f7a'], schrift: '#ffffff', akz: '#0b3154', fl: '#dfeaf3', ink: '#14273a' },
 };
 export const TOENE = { geraet: 'Wie das Gerät', hell: 'Hell', dunkel: 'Dunkel' };
+export const TOENE_EN = { geraet: 'Same as device', hell: 'Light', dunkel: 'Dark' };
+/** Name einer Farbe bzw. eines Tons in der Sprache der Oberfläche (de, sonst en). */
+export const farbName = (name, sprache = 'de') => { const f = FARBEN[name] || FARBEN.braun; return sprache === 'de' ? f.de : f.en; };
+export const tonName = (ton, sprache = 'de') => (sprache === 'de' ? TOENE : TOENE_EN)[ton] || (sprache === 'de' ? TOENE : TOENE_EN).geraet;
 /** true, wenn die Palette mit diesem Ton dunkel gezeigt wird. ton: 'geraet' | 'hell' | 'dunkel'. Dunkelbraun ist immer dunkel. */
 export function istDunkel(name, ton = 'geraet') {
   if ((FARBEN[name] || FARBEN.braun).dunkel) return true;
