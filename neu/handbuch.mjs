@@ -1,0 +1,64 @@
+// Mein Rezeptbuch · Handbuch: kurze Themen zum Aufklappen. Auf den Blättern der App steht kein Erklärtext; wer nachlesen will, findet es hier.
+// Jeder Absatz ist ein Paar L('Deutsch', 'English'); die übrigen Sprachen kommen aus den Tabellen (neu/sprachen/).
+/** L: der Text-Helfer der App. Zurück: [[symbol, titel, [absätze]], …] */
+export const handbuch = (L) => [
+  ['buch', L('Erste Schritte', 'First steps'), [
+    L('Die App beginnt mit ein paar Beispielrezepten. Du entfernst sie in den Einstellungen unter „Beispiele“.', 'The app starts with a few example recipes. You remove them in the settings under “Examples”.'),
+    L('Ein neues Rezept legst du über das Plus oben an. Alles, was du anlegst, liegt nur in diesem Gerät.', 'You add a new recipe with the plus at the top. Everything you add is stored on this device only.'),
+    L('Am Handy stehen Planer, Einkauf, Einstellungen, Hell und Dunkel, Farbe, Schrift und Sichern in der kleinen Leiste am Rand. Du kannst sie verschieben.', 'On a phone the planner, shopping, settings, light and dark, colour, text size and backup are in the small bar at the edge. You can move it.'),
+  ]],
+  ['plus', L('Neues Rezept', 'New recipe'), [
+    L('Schreiben: Name, Zutaten und Schritte selbst eintragen. Das Mikrofon in den Textfeldern schreibt mit, wenn dein Browser es kann.', 'Write: enter name, ingredients and steps yourself. The microphone in the text fields takes dictation if your browser supports it.'),
+    L('Foto: ein Rezept fotografieren oder eine Datei wählen (auch PDF, auch mehrere). Claude liest es und füllt das Formular; du prüfst und speicherst.', 'Photo: take a picture of a recipe or choose a file (PDF and several files work too). Claude reads it and fills in the form; you check and save.'),
+    L('Vom Teller: ein fertiges Gericht fotografieren. Claude schlägt ein Rezept dazu vor. Das ist ein Vorschlag, kein abgelesenes Rezept.', 'From the plate: take a picture of a finished dish. Claude suggests a recipe for it. This is a suggestion, not a recipe that was read.'),
+    L('Web: die Adresse einer Rezeptseite einfügen. Text: ein Rezept als Text einfügen, ganz ohne KI. Datei: eine Sicherung oder die Datei einer anderen App einlesen.', 'Web: paste the address of a recipe page. Text: paste a recipe as text, without any AI. File: read a backup or a file from another app.'),
+  ]],
+  ['funken', L('KI und Schlüssel', 'AI and keys'), [
+    L('KI läuft nur mit deinem eigenen Schlüssel und nur, wenn du es auslöst. Im Knopf steht vorher, was an wen geht.', 'AI runs only with your own key and only when you start it. The button says beforehand what is sent to whom.'),
+    L('Anthropic (Claude) liest Fotos und Webseiten, übersetzt, prüft die Rechtschreibung und schätzt Nährwerte. OpenAI malt Bilder. Mistral liest Text aus Fotos (EU).', 'Anthropic (Claude) reads photos and web pages, translates, checks spelling and estimates nutrition. OpenAI draws pictures. Mistral reads text from photos (EU).'),
+    L('Einen Schlüssel trägst du in den Einstellungen unter „KI-Schlüssel“ ein; dort führt „Schlüssel holen“ zur Seite des Anbieters. Der Schlüssel bleibt in diesem Gerät und kommt in keine Sicherung. Die Kosten rechnet der Anbieter mit dir ab.', 'You enter a key in the settings under “AI keys”; “Get a key” takes you to the provider’s page. The key stays on this device and is in no backup. The provider bills you directly.'),
+  ]],
+  ['scan', L('Vor dem Senden geprüft', 'Checked before sending'), [
+    L('Ein Foto geht verkleinert und ohne Aufnahmedaten und Ort hinaus. Ein PDF geht als Seitenbilder hinaus, höchstens zehn Seiten.', 'A photo is sent reduced in size and without capture data and location. A PDF is sent as page images, ten pages at most.'),
+    L('Steht in einem PDF Text, den man nicht sieht, zeigt die App die Stelle rot markiert. Du entscheidest: herausnehmen oder drin lassen.', 'If a PDF contains text you cannot see, the app shows the spot marked in red. You decide: take it out or leave it in.'),
+    L('Steht in einem gelesenen Text, in einem Bildauftrag oder in einer Suchfrage ein Befehl an eine KI, hält die App an und zeigt die Stelle.', 'If a text that was read, a picture request or a search query contains an instruction to an AI, the app stops and shows the spot.'),
+    L('Das Schild neben einer gewählten Datei prüft die Originaldatei im Gerät. Es markiert, es entfernt nichts, und es ist keine Virenprüfung.', 'The shield next to a chosen file checks the original file on the device. It marks, it removes nothing, and it is not a virus scan.'),
+  ]],
+  ['suche', L('Suchen', 'Search'), [
+    L('Die Suche findet Namen, Zutaten und Kategorien. Das Mikrofon im Suchfeld hört zu.', 'Search finds names, ingredients and categories. The microphone in the search field listens.'),
+    L('Die Sinn-Suche (das Funken-Symbol im Suchfeld) findet auch nach Bedeutung, zum Beispiel „etwas Süßes“. Dafür lädt die App einmal ein Sprachmodell (rund 120 MB); danach läuft sie im Gerät.', 'Meaning search (the spark symbol in the search field) also finds by meaning, for example “something sweet”. For this the app loads a language model once (about 120 MB); after that it runs on the device.'),
+    L('„KI prüft“ bei den Treffern nach Bedeutung lässt Claude urteilen, was wirklich passt. Hinaus gehen die Suchfrage und von den Treffern Name, Kategorie und Zutaten.', '“AI check” at the meaning hits lets Claude judge what really fits. The search query and, for the hits, name, category and ingredients are sent.'),
+  ]],
+  ['karte', L('Am Rezept', 'At the recipe'), [
+    L('Der Winkel neben dem Namen klappt die Werkzeuge auf: bearbeiten, Kategorie, Ordner, Bild, nur dieses Rezept zeigen, mehr, löschen.', 'The angle next to the name opens the tools: edit, category, folder, picture, show only this recipe, more, delete.'),
+    L('Unter „Mehr“: Drucken, Teilen per QR-Code, Einheiten (wie notiert, US, metrisch), Übersetzen, Nährwerte schätzen und Rechtschreibung prüfen.', 'Under “More”: print, share by QR code, units (as written, US, metric), translate, estimate nutrition and check spelling.'),
+    L('Die Portionen rechnest du mit Plus und Minus um. „Kochen“ zeigt Schritt für Schritt mit den Zutaten des Schritts; der Bildschirm bleibt dabei an.', 'You convert the servings with plus and minus. “Cook” shows step by step with the ingredients of the step; the screen stays on.'),
+    L('Ein Tipp aufs Bild zeigt es groß. Von dort änderst du den Ausschnitt, ersetzt das Bild oder lässt eines erzeugen.', 'A tap on the picture shows it large. From there you change the crop, replace the picture or have one created.'),
+  ]],
+  ['einkauf', L('Einkauf und Planer', 'Shopping and planner'), [
+    L('„Einkaufen“ am Rezept legt die Zutaten auf die Liste. Die Liste ordnet nach Warengruppen; jeder Laden merkt sich seine eigene Reihenfolge.', '“Shop” at the recipe puts the ingredients on the list. The list is sorted by product groups; every shop remembers its own order.'),
+    L('Im Planer trägst du Gerichte für die Woche ein. „Vorschlag“ lässt Claude deine eigenen Rezepte auf die Woche verteilen; du siehst den Vorschlag, bevor er übernommen wird. Hinaus gehen nur die Namen und Kategorien.', 'In the planner you enter dishes for the week. “Suggest” lets Claude spread your own recipes over the week; you see the suggestion before it is used. Only the names and categories are sent.'),
+    L('„Einkaufsliste für die Woche“ legt alles Geplante auf einmal auf die Liste.', '“Shopping list for the week” puts everything planned on the list at once.'),
+  ]],
+  ['ordner', L('Ordnung', 'Order'), [
+    L('Kategorien kannst du umbenennen, mit einem eigenen Bild versehen, neu anlegen, zusammenlegen und in der Reihenfolge verschieben. Ein Ordner sammelt Rezepte quer zu den Kategorien; die Kategorie bleibt dabei erhalten.', 'You can rename categories, give them their own picture, add new ones, merge them and change their order. A folder collects recipes across categories; the category is kept.'),
+    L('Unter „Bilder“ siehst du alle Bilder. Nur dort wird ein Bild gelöscht; das Rezept mit seinem Text bleibt. „KI-Bilder“ erzeugt für jedes Rezept ohne Bild eines; vorher stehen Anzahl und Kosten da.', 'Under “Pictures” you see all pictures. A picture is deleted only there; the recipe with its text stays. “AI pictures” creates one for every recipe without a picture; number and cost are shown first.'),
+  ]],
+  ['tresor', L('Sichern', 'Backup'), [
+    L('Die Rezepte liegen nur in diesem Gerät. Wird der Browser geleert, sind sie weg. Eine Sicherung als Datei schützt davor und bringt das Buch auf ein anderes Gerät.', 'The recipes are stored on this device only. If the browser is cleared, they are gone. A backup file protects against that and takes the book to another device.'),
+    L('Der Tresor hält dazu mehrere Stände im Gerät: fünf automatische und zehn benannte. Er hilft, wenn etwas falsch gelöscht oder eingelesen wurde.', 'The vault also keeps several states on the device: five automatic and ten named ones. It helps when something was deleted or imported by mistake.'),
+    L('Eine Sicherung liest auch Dateien aus Muttis Rezeptbuch und dem Mixarium. KI-Schlüssel kommen nie in eine Sicherung.', 'A backup also reads files from Muttis Rezeptbuch and the Mixarium. AI keys never go into a backup.'),
+  ]],
+  ['auge', L('Darstellung und Sprache', 'Appearance and language'), [
+    L('Farbe, Hell oder Dunkel, Schriftgröße und hoher Kontrast stellst du in den Einstellungen unter „Darstellung“ ein, die ersten drei auch in der Leiste am Rand.', 'You set colour, light or dark, text size and high contrast in the settings under “Appearance”, the first three also in the bar at the edge.'),
+    L('Die Sprache folgt dem Gerät; du kannst sie dort auch fest wählen. Rezepte bleiben, wie sie geschrieben sind. „Übersetzen“ am Rezept oder „Alle übersetzen“ in den Einstellungen legt eine Fassung in einer anderen Sprache dazu; vorher steht da, was es etwa kostet.', 'The language follows the device; you can also choose it there. Recipes stay as they are written. “Translate” at the recipe or “Translate all” in the settings adds a version in another language; the approximate cost is shown first.'),
+  ]],
+  ['drucken', L('Drucken und Buch', 'Print and book'), [
+    L('„Drucken“ am Rezept druckt eine Seite oder speichert sie als PDF.', '“Print” at the recipe prints one page or saves it as a PDF.'),
+    L('In den Einstellungen unter „Buch“ wird aus allen Rezepten oder aus einer Kategorie ein Buch: als PDF zum Drucken oder als Datei zum Blättern und Weitergeben.', 'In the settings under “Book” all recipes or one category become a book: as a PDF to print or as a file to leaf through and pass on.'),
+  ]],
+  ['laden', L('Ohne Netz und als App', 'Offline and as an app'), [
+    L('Nach dem ersten Öffnen läuft die App ohne Netz. Netz brauchen nur die KI-Funktionen, der Web-Import und das erste Laden des Sprachmodells.', 'After the first opening the app runs offline. Only the AI functions, the web import and the first download of the language model need the network.'),
+    L('„Als App installieren“ in den Einstellungen legt sie auf den Startbildschirm, wenn dein Browser das anbietet.', '“Install as an app” in the settings puts it on the home screen if your browser offers that.'),
+  ]],
+];

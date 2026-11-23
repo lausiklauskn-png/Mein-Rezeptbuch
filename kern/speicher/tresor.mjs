@@ -10,12 +10,13 @@ export function tresor(lager) {
   return {
     liste: async () => (await liste()).sort((a, b) => b.ts.localeCompare(a.ts)),
     /** art: 'auto' oder 'benannt'. sicherung: das Objekt aus sicherung.schreibe(). */
-    async ablegen(sicherung, art = 'benannt', name = '') {
-      const l = await liste(), ts = new Date().toISOString(), id = (art === 'auto' ? 'a-' : 'b-') + ts + '-' + Math.random().toString(36).slice(2, 6);
+    /** Mit { ts, alt } kommt ein Stand aus der alten App: er behält seine Zeit und trägt seine alte Kennung (gegen doppeltes Übernehmen). */
+    async ablegen(sicherung, art = 'benannt', name = '', { ts = new Date().toISOString(), alt = '' } = {}) {
+      const l = await liste(), id = (art === 'auto' ? 'a-' : 'b-') + ts + '-' + Math.random().toString(36).slice(2, 6);
       const gleiche = l.filter((x) => x.art === art).sort((a, b) => a.ts.localeCompare(b.ts)), max = art === 'auto' ? MAX_AUTO : MAX_BENANNT;
       while (gleiche.length >= max) { const alt = gleiche.shift(); await lager.weg(eintrag(alt.id)); l.splice(l.findIndex((x) => x.id === alt.id), 1); }
       await lager.setz(eintrag(id), sicherung);
-      l.push({ id, art, ts, name: name || (art === 'auto' ? 'Automatisch' : 'Sicherung'), anzahl: (sicherung.recipes || []).length });
+      l.push({ id, art, ts, name: name || (art === 'auto' ? 'Automatisch' : 'Sicherung'), anzahl: (sicherung.recipes || []).length, ...(alt ? { alt } : {}) });
       await lager.setz(LISTE, l); return id;
     },
     hol: (id) => lager.hol(eintrag(id)),

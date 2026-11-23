@@ -592,7 +592,9 @@ a.knopf{text-decoration:none}
 
 /* ---- Klaus 23.11. (Abend): schlanke Blätter. Symbolreihe statt Kopfzeile, Auskunft im Knopf statt in einer eigenen Zeile, Funde rot markiert ---- */
 .toast{left:16px;right:16px;margin-inline:auto;width:fit-content;transform:none;max-width:calc(100vw - 96px);white-space:nowrap}
-.toast{overflow:hidden;text-overflow:ellipsis}
+.toast{overflow:hidden;max-width:calc(100vw - 32px)}
+.toast span{min-width:0;overflow:hidden;text-overflow:ellipsis}
+.toast button{flex:none}
 .imp-reihe{display:flex;gap:4px;margin:2px 0 12px}
 .imp-reihe button{flex:none;display:inline-flex;align-items:center;gap:6px;height:36px;min-width:36px;justify-content:center;padding:0 9px;border-radius:999px;color:var(--mut)}
 .imp-reihe button .ic{width:20px;height:20px}
@@ -661,3 +663,41 @@ a.knopf{text-decoration:none}
 .recht-liste{list-style:none;margin:0 0 12px;padding:0;display:grid;gap:6px;max-height:50svh;overflow:auto}
 .recht-liste label{display:flex;gap:10px;align-items:flex-start;font-size:14px}
 .recht-liste s{color:var(--mut)}.recht-liste b{color:var(--ink)}
+
+/* ── Zusätze (neu/zusatz.mjs): KI-Richter, Sammel-Bilder, Wochenplan-Vorschlag ── */
+.ueber .chip{margin-left:8px;flex:none}
+.chip.ki small{font-weight:500;color:var(--mut);margin-left:4px}
+.chip.ok{color:var(--akz);border-color:var(--akz)}
+.chip.ok svg{width:14px;height:14px}
+#sinn-rest{margin-top:10px}
+#sinn-rest .gitter{margin-top:8px;opacity:.82}
+.fenster p.eine{margin:6px 0 12px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.fortschritt{height:6px;border-radius:3px;background:var(--fl2);overflow:hidden;margin:0 0 12px}
+.fortschritt i{display:block;height:100%;width:0;background:var(--akz);transition:width .3s ease}
+.plan-vorschlag .zeile{align-items:flex-start;cursor:default}
+.plan-vorschlag .zeile b{flex:none;width:3.2em;color:var(--akz)}
+.knopf:not(.gross) small{font-weight:500;opacity:.75;margin-left:6px;font-size:.82em}
+.haken-zeile{display:flex;align-items:center;gap:8px;margin:10px 0 12px;font-size:14px}
+.haken-zeile input{width:18px;height:18px;accent-color:var(--akz)}
+/* Sprache und Übersetzen: Wahl der Sprache als Liste, Zielsprachen als Chips, kleiner Umschalter Übersetzung/Original in der Meta-Zeile */
+.wahl-liste .zeile[aria-checked="true"]{font-weight:600}
+.imp-kopf span small{display:block;font-size:12px;font-weight:400;color:var(--mut);line-height:1.3;margin-top:1px}
+.tagwahl .chip .ic{width:15px;height:15px}
+.meta .chip.ueb-um{min-height:24px;padding:0 8px;gap:4px;font-size:12px;font-weight:700;letter-spacing:.04em;cursor:pointer;background:rgba(22,15,9,.5);color:#fff;border:1px solid rgba(255,255,255,.28)}
+.md-detail .meta .chip.ueb-um{background:var(--fl2);color:var(--ink);border-color:transparent}
+.meta .chip.ueb-um[aria-pressed="false"]{opacity:.75;text-decoration:line-through}
+.themen .zeile[data-a="alle-uebersetzen"] span small{display:block;margin-left:0}
+/* drei Kacheln im Foto-Weg (Kamera, Datei, Vom Teller) */
+.zwei-gross:has(> :nth-child(3)){grid-template-columns:repeat(3,1fr)}
+/* Handbuch: Themen zum Aufklappen */
+.handbuch{max-height:62vh;overflow:auto;margin:0 -4px 10px;padding:0 4px}
+.handbuch details{border-bottom:1px solid var(--line)}
+.handbuch summary{display:flex;align-items:center;gap:10px;padding:11px 2px;cursor:pointer;font-weight:600;list-style:none}
+.handbuch summary::-webkit-details-marker{display:none}
+.handbuch summary .ic{width:20px;height:20px;flex:none;color:var(--akz)}
+.handbuch details[open] summary{color:var(--akz)}
+.handbuch p{margin:0 2px 10px 32px;font-size:14px;line-height:1.45;color:var(--ink)}
+/* hoher Kontrast: Wasserfarben-Felder bekommen einen deutlichen Rand, Nebentext wird nicht blasser gemischt */
+:root[data-kontrast] .kfeld{border:1.5px solid currentColor}
+:root[data-kontrast] :is(.zeile small,.karte small,.quelle,small){opacity:1}
+:root[data-kontrast] :is(.knopf,.chip,.feld,.zeile,.karte){border-color:var(--line)}

@@ -1,4 +1,5 @@
 // Küchen-Kern · Farbpaletten: Wasserfarben der Privaten Akte plus Hellbraun und Dunkelbraun (Klaus 23.11.).
+import { text } from './sprache.mjs';
 export const FARBEN = {
   braun: { de: 'Hellbraun', en: 'Light brown', k: ['#e9cfae', '#f1dfc6', '#f8eedf'], schrift: '#3b2614', akz: '#a9480c', fl: '#f6ece0' },
   dunkel: { de: 'Dunkelbraun', en: 'Dark brown', dunkel: true, k: ['#4a3424', '#3a2a1d', '#2b2016'], schrift: '#f4ece2', akz: '#f2a65e', fl: '#2b241d' },
@@ -12,9 +13,9 @@ export const FARBEN = {
 };
 export const TOENE = { geraet: 'Wie das Gerät', hell: 'Hell', dunkel: 'Dunkel' };
 export const TOENE_EN = { geraet: 'Same as device', hell: 'Light', dunkel: 'Dark' };
-/** Name einer Farbe bzw. eines Tons in der Sprache der Oberfläche (de, sonst en). */
-export const farbName = (name, sprache = 'de') => { const f = FARBEN[name] || FARBEN.braun; return sprache === 'de' ? f.de : f.en; };
-export const tonName = (ton, sprache = 'de') => (sprache === 'de' ? TOENE : TOENE_EN)[ton] || (sprache === 'de' ? TOENE : TOENE_EN).geraet;
+/** Name einer Farbe bzw. eines Tons in der Sprache der Oberfläche (de, en; die übrigen Sprachen über die Tabellen, sonst en). */
+export const farbName = (name, sprache = 'de') => { const f = FARBEN[name] || FARBEN.braun; return text(sprache, f.de, f.en); };
+export const tonName = (ton, sprache = 'de') => { const t = typeof TOENE[ton] === 'string' ? ton : 'geraet'; return text(sprache, TOENE[t], TOENE_EN[t]); };
 /** true, wenn die Palette mit diesem Ton dunkel gezeigt wird. ton: 'geraet' | 'hell' | 'dunkel'. Dunkelbraun ist immer dunkel. */
 export function istDunkel(name, ton = 'geraet') {
   if ((FARBEN[name] || FARBEN.braun).dunkel) return true;
@@ -22,7 +23,7 @@ export function istDunkel(name, ton = 'geraet') {
 }
 /** Setzt die Palette als CSS-Variablen auf ein Element (meist <html>). Dunkel gilt für JEDE Farbe und mischt Grund, Flächen,
  *  Linien, Knöpfe und Kopf aus der Palettenfarbe (Abgleich Mixarium Runde 3, Klaus 23.11.). */
-export function farbeSetzen(el, name, ton = 'geraet') {
+export function farbeSetzen(el, name, ton = 'geraet', { kontrast = false } = {}) {
   const f = FARBEN[name] || FARBEN.braun, s = el.style, ink = f.ink || f.schrift, d = istDunkel(name, ton), m = (p, auf) => `color-mix(in srgb,${f.akz} ${p}%,${auf})`;
   const v = f.dunkel
     ? { '--bg': '#17130f', '--fl': '#221c16', '--fl2': f.fl, '--ink': '#f4ece2', '--mut': '#b9ab9b', '--akz-ink': '#231507', '--duo': '#7a4a1d', '--line': 'rgba(255,230,200,.12)', '--glas': 'rgba(0,0,0,.22)',
@@ -35,7 +36,13 @@ export function farbeSetzen(el, name, ton = 'geraet') {
     : { '--bg': `color-mix(in srgb,${f.k[2]} 40%,#fbfbfa)`, '--fl': '#ffffff', '--fl2': f.fl, '--ink': ink, '--mut': `color-mix(in srgb,${ink} 74%,#ffffff)`, '--akz-ink': '#ffffff', '--duo': f.k[0], '--line': `color-mix(in srgb,${ink} 13%,transparent)`, '--glas': 'rgba(255,255,255,.72)',
         '--vl': `linear-gradient(120deg,color-mix(in srgb,${f.k[0]} 60%,#fff),color-mix(in srgb,${f.k[2]} 60%,#fff))`, '--vl-schrift': ink, '--vl-rand': `color-mix(in srgb,${f.akz} 28%,transparent)`,
         '--k1': f.k[0], '--k2': f.k[1], '--k3': f.k[2], '--kopf-schrift': f.schrift, '--akz': f.akz };
+  /* Hoher Kontrast (Schalter der alten App, `a11yHc`): Schrift rein schwarz bzw. weiß auf reinem Grund, Nebentext fast so stark,
+     Linien deutlich, die Akzentfarbe dunkler bzw. heller. Die Palette bleibt erkennbar, die Wasserfarben treten zurück. */
+  if (kontrast) Object.assign(v, d
+    ? { '--bg': '#000000', '--fl': '#0b0b0b', '--fl2': '#161616', '--ink': '#ffffff', '--mut': '#e6e6e6', '--line': 'rgba(255,255,255,.62)', '--glas': 'rgba(0,0,0,.9)', '--akz': `color-mix(in srgb,${f.akz} 45%,#ffffff)`, '--akz-ink': '#000000', '--vl-schrift': '#ffffff', '--kopf-schrift': f.dunkel ? f.schrift : '#ffffff' }
+    : { '--bg': '#ffffff', '--fl': '#ffffff', '--fl2': '#f1f1f1', '--ink': '#000000', '--mut': '#262626', '--line': 'rgba(0,0,0,.6)', '--glas': 'rgba(255,255,255,.96)', '--akz': `color-mix(in srgb,${f.akz} 62%,#000000)`, '--akz-ink': '#ffffff', '--vl-schrift': '#000000' });
   for (const [k, w] of Object.entries(v)) s.setProperty(k, w);
+  if (kontrast) el.dataset.kontrast = '1'; else delete el.dataset.kontrast;
   el.dataset.hell = d ? 'dunkel' : 'hell'; s.colorScheme = d ? 'dark' : 'light';
   document.querySelector('meta[name=theme-color]')?.setAttribute('content', d && !f.dunkel ? '#0a0e17' : f.k[1]);
 }

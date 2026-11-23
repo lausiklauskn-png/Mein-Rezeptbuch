@@ -14,7 +14,24 @@ Klaus 23.11.2026: „Brief lesen, bevor gebaut wird. Und dann Brief ergänzen, s
 
 ---
 
-## Runde D · 23.11.2026 abends · Kern 0.18–0.20, PWA 0.12.0 (Nacht-Sitzung, Klaus war wach)
+## Runde E · 23./24.11.2026 nachts · Kern 0.21–0.22, PWA 0.13.0–0.14.0 (gemeinsame Nacht-Sitzung)
+
+| Kern | neu |
+|---|---|
+| 0.21 | KI-Helfer (`ki/helfer.mjs`: Nährwerte, Rechtschreibung, Übersetzen mit Kostenschätzung, Wochenplan-Vorschlag) · Drucken (`ausgabe/druck.mjs`) · QR-Teilen (`teilen/qr.mjs`) · Einheiten metrisch/US (`modell/einheiten.mjs`) |
+| 0.22 | **Sprachtabellen** `kern/sprachen/{es,fr,it,pt,ru,zh}.mjs` (Werkzeug `kern/sprachen/schluessel.mjs --pruefe`) · **Buch** (`ausgabe/buch.mjs`: PDF-Buch und Blätterbuch; `anzahlText` für „12 Getränke“) · **Tresor-Stände der alten App** (`speicher/alt-tresor.mjs`; `tresor.ablegen(…, { ts, alt })`) · **KI-Richter der Suche** (`suche/richter.mjs`) · **Prüfung des Bildauftrags und Sammel-Weg** (`ki/bild.mjs`: `pruefeBildAuftrag`, `sammelBilder`, `sammelKosten`) · **Vom Teller** (`import/scan.mjs`: `erkennen(v, { vomTeller: true })`, der Auftrag sagt „dish or drink“) · **hoher Kontrast** (`farbeSetzen(el, farbe, ton, { kontrast })`) · `wasKurz` für die kurze Zeile im Knopf · `ohneName(sprache)` · Symbole `teller`, `kontrast`, `hilfe` |
+
+### Für das Mixarium zum Prüfen (nicht blind übernehmen)
+
+- **`neu/zusatz.mjs`** im Rezeptbuch ist das Vorbild für KI-Richter, KI-Bilder für alle, Prüfung des Bildauftrags, alte Tresor-Stände, Buch und Handbuch; es hängt an wenigen Stellen in `app.mjs`. Probe `tests/smoke_neu_zusatz.mjs` (9 Abschnitte, `NUR_TEIL=3,4` fährt einzelne), Gegenprobe `tests/gegenprobe_neu_zusatz.py` (30 Fälle).
+- **Meldung mit Knopf:** der Text steht in einem `<span>` und kürzt sich, der Knopf hat `flex:none` – der Fund kam aus dem Mixarium (bei 390 px lag „Rückgängig“ außerhalb), danke.
+- **Sprache:** die App lädt beim Start und bei jedem Wechsel erst die Kern-Tabelle, dann die eigene. Texte mit Zahl laufen über `fuelle(L('{0} …', '{0} …'), n)`; ein `${}` in `L()` trifft keine Tabelle.
+- **Zwei Riegel decken einander:** in drei Gegenproben musste die Sabotage beide nehmen (alter Tresor: Merker + alte Kennung; Vom Teller: zurückgesetzt nach der Wahl + beim Tipp auf „Kamera“; Meldung: `span` + `flex:none`).
+- **Eine Probe, die im Browser ein Versprechen nie erfüllt, hängt für immer:** beim Anlegen des Bestands über IndexedDB immer `onerror`/`try…catch` → `reject`.
+
+---
+
+## Runde D · 23.11.2026 abends · Kern 0.18–0.20, PWA 0.12.0 (Nacht-Sitzung, Klaus war wach) (vorige Fassung)
 
 | Kern | neu |
 |---|---|
@@ -39,25 +56,3 @@ Klaus 23.11.2026: „Brief lesen, bevor gebaut wird. Und dann Brief ergänzen, s
 - **„Sichern“ in der fliegenden Leiste**, „dass man nicht erst in die Einstellungen muss“.
 - **Direktlink zur Schlüssel-Seite** des Anbieters im Schlüssel-Fenster (`schluesselAdresse(a)` im Kern).
 - **Kein Verweis auf die bisherige App** in der neuen App.
-
----
-
-## Runde C · 23.11.2026 · Kern 0.11–0.16, PWA 0.9.4 (gemeinsame Sitzung) (vorige Fassung)
-
-Beide Apps werden seit heute in einer Sitzung gebaut; dieser Eintrag hält fest, was dabei für beide gilt.
-
-| Kern | neu |
-|---|---|
-| 0.11–0.13 | Kategorien und Einkaufs-Einheiten je Ausgabe (`kategorienMit`, `einkaufMit`), Wochenplan (`modell/plan.mjs`), Bar-Einheiten im Text-Import |
-| 0.14–0.15 | Kategorie-Sticker mit Mini-Foto aus der eigenen Kategorie (`katBild`, `bildWaehlen`); ohne Bild ein Zeichen |
-| 0.16 | Hinweis-Blasen `oberflaeche/hinweis.mjs`: `title` und `aria-label` reiner Symbolknöpfe werden als Blase gezeigt, in den Einstellungen abschaltbar |
-
-### Von Klaus heute gesagt, gilt für beide Apps
-
-- **Erklärtexte hinter ein „?“** an genau der Stelle, die sie erklären, auch beim Schlüssel. „Die App soll bedienungsfreundlich sein und nicht ein Buch werden.“ Umgesetzt: Rezeptbuch 0.9.4, Mixarium 10.0.0-vor17.
-- **Meldungen kurz und einzeilig.**
-- **Tipp aufs Bild** öffnet das Vollbild, von dort ein Knopf zum Bild-Blatt; der Winkel steht am Monitor neben dem Bild.
-- **Sticker:** eine Kategorie zeigt Fotos aus ihr selbst (Sushi bleibt Sushi), der Name bleibt lesbar.
-- Die Tooltip-Funktion der alten Apps ist übernommen (Kern 0.16).
-
----

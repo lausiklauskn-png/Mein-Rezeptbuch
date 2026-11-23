@@ -1,13 +1,16 @@
 // Mein Rezeptbuch (neu) · Service Worker: die App läuft nach dem ersten Öffnen ohne Netz.
 // Vorrat = Hülle und alle Module. Beispielbuch und Katalog gehören NICHT dazu (Beispiele liegen nach dem Laden im Gerät).
 // Bei jeder neuen Fassung FASSUNG hochzählen; `node --test` prüft, dass die Liste zu den Modulen passt.
-const FASSUNG = 'rezeptbuch-neu-0.13.0';
+const FASSUNG = 'rezeptbuch-neu-0.14.0';
 const VORRAT = [
  "./",
  "./index.html",
  "./app.css",
  "./manifest.webmanifest",
+ "./muttis.html",
+ "./muttis.webmanifest",
  "../ausgaben/rezeptbuch/ausgabe.json",
+ "../ausgaben/muttis/ausgabe.json",
  "../icons/icon-book-192.png?v=1",
  "../icons/ausgeloest-48fb59f123.jpg?v=1",
  "./start-rezepte.json",
@@ -20,6 +23,7 @@ const VORRAT = [
  "../kern/modell/einheiten.mjs",
  "../kern/ki/helfer.mjs",
  "../kern/ausgabe/druck.mjs",
+ "../kern/ausgabe/buch.mjs",
  "../kern/teilen/qr.mjs",
  "../kern/modell/mengen.mjs",
  "../kern/modell/plan.mjs",
@@ -38,9 +42,11 @@ const VORRAT = [
  "../kern/sicherung/sicherung.mjs",
  "../kern/speicher/speicher.mjs",
  "../kern/suche/bedeutung.mjs",
+ "../kern/suche/richter.mjs",
  "../sbkim/03_embedding.js",
  "../sbkim/04_match.js",
  "../kern/speicher/tresor.mjs",
+ "../kern/speicher/alt-tresor.mjs",
  "../kern/ki/bild.mjs",
  "../kern/speicher/uebernahme.mjs",
  "../kern/oberflaeche/sprache.mjs",
@@ -55,6 +61,20 @@ const VORRAT = [
  "../assets/pruefer-formate.js",
  "../assets/pruefer-mail.js",
  "../assets/pruefer-anhang.js",
+ "./zusatz.mjs",
+ "./handbuch.mjs",
+ "./sprachen/es.mjs",
+ "./sprachen/fr.mjs",
+ "./sprachen/it.mjs",
+ "./sprachen/pt.mjs",
+ "./sprachen/ru.mjs",
+ "./sprachen/zh.mjs",
+ "../kern/sprachen/es.mjs",
+ "../kern/sprachen/fr.mjs",
+ "../kern/sprachen/it.mjs",
+ "../kern/sprachen/pt.mjs",
+ "../kern/sprachen/ru.mjs",
+ "../kern/sprachen/zh.mjs",
  "./app.mjs"
 ];
 self.addEventListener('install', (e) => { e.waitUntil(caches.open(FASSUNG).then((c) => c.addAll(VORRAT)).then(() => self.skipWaiting())); });

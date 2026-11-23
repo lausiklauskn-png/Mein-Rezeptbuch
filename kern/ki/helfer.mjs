@@ -285,5 +285,8 @@ export function wasGehtHinaus(art, was, sprache = 'de', dazu = {}) {
     ...((dazu.kategorien || []).length ? [T('ihre Kategorien', 'their categories')] : []), ...(str(dazu.wuensche) ? [T('deine Wünsche', 'your wishes')] : [])];
   else return '';
   const viele = art !== 'wochenplan' && n > 1 ? ' ' + fuelle(T('von {0} Rezepten', 'of {0} recipes'), n) : '';
+  if (dazu.kurz) return und(teile) + viele;   /* nur das Was, für die kurze Zeile „Anthropic · …“; ohne Satzanfang und Empfänger, damit es in jeder Sprache stimmt */
   return T('Hinaus geht: ', 'Sent: ') + und(teile) + viele + ' ' + T('an Anthropic (Claude).', 'to Anthropic (Claude).');
 }
+/** Nur das Was aus wasGehtHinaus („Name, Portionen und Zutaten“), für die kurze Zeile im Knopf. */
+export const wasKurz = (art, was, sprache = 'de', dazu = {}) => wasGehtHinaus(art, was, sprache, { ...dazu, kurz: true });

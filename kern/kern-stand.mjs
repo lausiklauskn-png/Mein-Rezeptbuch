@@ -2,7 +2,7 @@
 import { readdirSync, readFileSync, writeFileSync, statSync } from 'node:fs';
 import { createHash } from 'node:crypto';
 import { join } from 'node:path';
-export const FASSUNG = '0.21.0';
+export const FASSUNG = '0.22.0';
 export function stand(ordner = 'kern') {
   const dateien = {};
   const geh = (d) => { for (const n of readdirSync(d).sort()) { const p = join(d, n); if (statSync(p).isDirectory()) geh(p); else dateien[p] = createHash('sha256').update(readFileSync(p)).digest('hex'); } };

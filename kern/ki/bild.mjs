@@ -39,8 +39,8 @@ export async function kiBild(schluessel, rezept, { groesse = '1024x1024', hol = 
   if (!schluessel) throw new Error('Kein OpenAI-Schlüssel');
   let letzter = null; const text = auftrag ? auftrag(rezept) : bildAuftrag(rezept, art);
   for (const v of BILD_MODELLE) { try { return await einVersuch(schluessel, text, v, groesse, hol); } catch (f) { letzter = f; if (!f.andresModell) break; } }
-  if (letzter?.status === 401) throw new Error('Der OpenAI-Schlüssel wurde abgelehnt. Bitte prüfen.');
-  if (letzter?.status === 429) throw new Error('OpenAI meldet: Limit erreicht oder kein Guthaben.');
+  if (letzter?.status === 401) throw Object.assign(new Error('Der OpenAI-Schlüssel wurde abgelehnt. Bitte prüfen.'), { status: 401 });
+  if (letzter?.status === 429) throw Object.assign(new Error('OpenAI meldet: Limit erreicht oder kein Guthaben.'), { status: 429 });
   throw letzter || new Error('Kein Bild erhalten');
 }
 /** Gratis-Foto ohne Schlüssel (Pollinations). */
@@ -49,4 +49,40 @@ export async function gratisBild(rezept, { hol = fetch, saat = Date.now(), art =
   const ant = await hol('https://image.pollinations.ai/prompt/' + auftrag + '?width=768&height=576&model=flux&nologo=true&seed=' + saat);
   if (!ant.ok) throw new Error('Der Gratis-Dienst antwortet nicht (HTTP ' + ant.status + ').');
   return alsDataUrl(await ant.blob());
+}
+
+/* ── Prüfung des Bildauftrags und der Sammel-Weg ─────────────────────────────────────────────────────────────────────
+   Der Auftrag entsteht aus Rezepttext (Name, erste Zutaten, erste Schritte). Steht darin eine Anweisung an eine KI, geht
+   dieser Teil nicht ungefragt hinaus: einzeln wird die Stelle gezeigt und entschieden (raus oder rein), im Sammel-Weg
+   wird das Rezept übersprungen. `pruefe` ist kiAnweisungen aus pruefung/datei.mjs (Text → Stellen). */
+export const BILD_PREIS = 0.04;   /* US-Dollar je Bild, wie in KOSTEN genannt */
+/** Prüft die Teile, aus denen der Auftrag entsteht. Zurück: { stellen:[{ teil:'name'|'zutat'|'schritt', text }], sauber }.
+ *  `sauber` ist das Rezept ohne die Teile mit Fund; es rücken nur geprüfte Teile nach. */
+export async function pruefeBildAuftrag(rezept, pruefe) {
+  const stellen = [], fund = async (t) => !!t && (await pruefe(String(t))).length > 0;
+  let name = rezept.name || ''; if (await fund(name)) { stellen.push({ teil: 'name', text: name }); name = ''; }
+  const ings = []; for (const z of rezept.ings || []) { if (ings.length >= 5) break; if (!z || !z.name) continue; if (await fund(z.name)) stellen.push({ teil: 'zutat', text: z.name }); else ings.push(z); }
+  const steps = []; for (const s of rezept.steps || []) { if (steps.length >= 2) break; const kurz = ((s && s.txt) || '').slice(0, 80); if (!kurz) continue; if (await fund(kurz)) stellen.push({ teil: 'schritt', text: kurz }); else steps.push(s); }
+  return { stellen, sauber: { ...rezept, name, ings, steps } };
+}
+export const ohneBild = (rezepte) => (rezepte || []).filter((r) => r && r.name && !r.blank && !r.img);
+/** „12 Bilder · etwa 0,48 $ · OpenAI“ – steht vor dem Start des Sammel-Wegs da. */
+export function sammelKosten(n, sprache = 'de') { const b = (n * BILD_PREIS).toFixed(2); return sprache === 'de' ? `${n} ${n === 1 ? 'Bild' : 'Bilder'} · etwa ${b.replace('.', ',')} $ · OpenAI` : `${n} ${n === 1 ? 'picture' : 'pictures'} · about $${b} · OpenAI`; }
+/** Sammel-Weg: ein KI-Bild für jedes Rezept ohne Bild, eins nach dem anderen.
+ *  je(rezept, dataUrl): die App legt das Bild ab. abbruch(): true = nach dem laufenden Bild aufhören. fortschritt(i, n, rezept).
+ *  Ein Rezept mit einer Anweisung im Auftrag wird übersprungen (es geht nicht hinaus). Ein abgelehnter Schlüssel oder ein
+ *  erreichtes Limit beendet den Lauf, sonst hält ein Fehlschlag den Rest nicht auf.
+ *  Zurück: { fertig, fehler:[{ uid, name, text }], uebersprungen:[{ uid, name, stellen }], offen, abgebrochen, grund }. */
+export async function sammelBilder(rezepte, { schluessel, je, pruefe, art = 'essen', hol = fetch, fortschritt = () => {}, abbruch = () => false } = {}) {
+  const liste = ohneBild(rezepte), aus = { fertig: 0, fehler: [], uebersprungen: [], offen: 0, abgebrochen: false, grund: '' };
+  if (!schluessel) { aus.offen = liste.length; aus.grund = 'kein-schluessel'; return aus; }
+  for (let i = 0; i < liste.length; i++) {
+    if (abbruch()) { aus.abgebrochen = true; aus.offen = liste.length - i; break; }
+    const r = liste[i]; fortschritt(i, liste.length, r);
+    const p = pruefe ? await pruefeBildAuftrag(r, pruefe) : { stellen: [] };
+    if (p.stellen.length) { aus.uebersprungen.push({ uid: r.uid, name: r.name, stellen: p.stellen }); continue; }
+    try { await je(r, await kiBild(schluessel, r, { hol, art })); aus.fertig++; }
+    catch (f) { aus.fehler.push({ uid: r.uid, name: r.name, text: (f && f.message) || String(f) }); if (f && (f.status === 401 || f.status === 429)) { aus.grund = f.status === 401 ? 'schluessel' : 'limit'; aus.offen = liste.length - i - 1; break; } }
+  }
+  return aus;
 }
