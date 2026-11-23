@@ -168,3 +168,24 @@ Auftrag: Brief `docs/BRIEF_SITZUNG_2026-11-23_REZEPTBUCH-KUECHEN-KERN.md` im Rep
 | IndexedDB `MeinRzBackup1` | IndexedDB `MrzBackup1` | Bilder, Tresor |
 
 Beide Ausgaben liegen unter derselben Herkunft `lausiklauskn-png.github.io`: jede liest **nur** ihre Endung, nichts wird gelöscht.
+
+## 11 · Neu dazu (Klaus 23.11., nach der ersten Vorschau)
+
+| Funktion | Ziel | Stufe | Im Kern / Probe |
+|---|---|---|---|
+| **Werkstatt** als fünfter Bereich: Bücher, Import, KI-Helfer, Tresor, Einstellungen an einem Ort | kern (Rahmen) | 1 | neu |
+| Blatt hinter **+**: alle Wege zu einem neuen Rezept; Menü **⋮** am Rezept: Übersetzen, Nährwerte, Rechtschreibung, Foto, Food-Zine, QR, Drucken | kern | 1 | neu |
+| **Rezeptpakete**: JSON im Format der Sicherung (v10, mit Bildern), Katalog in der App, Laden nur auf Tippen | kern | 5 | neu |
+| **Beispielbuch** (~54 MB) beim ersten Start anbieten, nicht ungefragt laden | ausgabe | 5 | neu |
+| Pakete prüfen vor dem Einlesen: Prüfsumme aus dem Katalog, Bilder neu kodiert (ohne Metadaten), nur bekannte Felder | kern | 5 | neu |
+| Pakete mit fertigen Übersetzungen (`r.translations`), damit ohne KI-Schlüssel auch andere Sprachen gehen | kern | 5 | neu |
+| **Tresor-Garantie**: Sicherung zusätzlich als Datei im Gerät (Capacitor Filesystem, Ordner Dokumente), Erinnerung nach Änderungen, Probe Export → Import byte-gleich | kern | 4 | neu |
+
+## 12 · Abgleich Mein Mixarium (für Sitzung B)
+
+| Funktion im Mixarium | Vorschlag | Begründung |
+|---|---|---|
+| **Mix-Labor** (`lab*`, 25 Funktionen): KI erfindet ein Getränk aus Kategorie, Geschmack und Wunsch-Zutaten; Lebenszyklus experimentell → in Bewertung → akzeptiert; 4 Bewertungsachsen (Geschmack 40 %, Umsetzbarkeit 25 %, Originalität 20 %, Beschreibung 15 %); Warnung → KI-Überarbeitung → Rauswurf; Favorit-Schutz, Einzelpersonen-Modus, Protokoll | **kern-Modul `labor`**, ein- und ausschaltbar je Ausgabe | Ablauf und Bewertung sind nicht getränkeabhängig; Kategorien, Geschmacks-Tags und Prompt kommen aus der Ausgabe. Im Mixarium an, im Rezeptbuch als „Küchen-Labor“ möglich (Klaus entscheidet) |
+| Bekannte Drinks entdecken (TheCocktailDB) | nur Mixarium | Netz nur auf Knopfdruck, eigene Datenquelle |
+| Schalter „ohne Alkohol“ (`mxNoAlc9`) | nur Mixarium | Getränke-Schicht |
+| 8 Themen | ersetzt | eine Palette hell/dunkel je Ausgabe (Brief) |
