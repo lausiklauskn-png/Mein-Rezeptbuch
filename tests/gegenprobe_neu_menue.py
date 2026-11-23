@@ -6,7 +6,7 @@ F=[('ki-ohne-schluessel', "  if (!SK.anthropic) { schluesselFenster('anthropic',
    ('teil-link-nicht-gelesen', "const geteiltesRezept = /^#share=/.test(location.hash) ? location.href : '';", "const geteiltesRezept = '';", 'neu/app.mjs', 'der geteilte Link wird beim Start gelesen'),
    ('einheit-wird-gespeichert', "  einheiten: () => { const f = ['', 'us', 'metrisch']; E.einheiten = f[(f.indexOf(E.einheiten || '') + 1) % f.length]; sichern();", "  einheiten: () => { const f = ['', 'us', 'metrisch']; E.einheiten = f[(f.indexOf(E.einheiten || '') + 1) % f.length]; if (E.einheiten) Z.rezepte = Z.rezepte.map((x) => rezeptIn(x, E.einheiten)); sichern();", 'neu/app.mjs', 'gespeichert bleibt das Rezept, wie es notiert ist'),
    ('naehr-mit-schritten', "Ingredients: ${(r.ings || []).map(zutatZeile).filter(Boolean).join(', ')}.", "Ingredients: ${(r.ings || []).map(zutatZeile).filter(Boolean).join(', ')}. Steps: ${(r.steps || []).map((s) => s.txt).join(' ')}.", 'kern/ki/helfer.mjs', 'Name und Zutaten, keine Schritte'),
-   ('ki-zeile-ohne-auskunft', "<small>Anthropic · ${esc(was.replace(/^[^:]+:\\s*/, '').replace(/\\s+(an|to) Anthropic.*$/, ''))}</small>", "<small></small>", 'neu/app.mjs', 'eine KI-Zeile sagt in der Zeile, was an wen hinausgeht')]
+   ('ki-zeile-ohne-auskunft', "<small>${esc(kiKurz(was))}</small></span><i class=\"ki-marke\">", "<small></small></span><i class=\"ki-marke\">", 'neu/app.mjs', 'eine KI-Zeile sagt in der Zeile, was an wen hinausgeht')]
 nur=os.environ.get('NUR_FALL'); nur=nur.split(',') if nur else None; gefangen=0; durch=0; tot=0
 if os.environ.get('NUR_ANKER'):
     for name,a,b,f,erwartet in F:
