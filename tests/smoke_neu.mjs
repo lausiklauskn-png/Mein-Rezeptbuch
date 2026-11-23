@@ -98,6 +98,12 @@ try {
     ok(await q.evaluate(() => { const b = document.querySelector('.md-detail .rezept-held>img').getBoundingClientRect(); return [...document.querySelectorAll('.rwerk .chip')].filter((c) => c.offsetHeight).every((c) => c.getBoundingClientRect().top >= b.bottom - 1); }), 'Monitor: die aufgeklappten Werkzeuge liegen unter dem Bild, keins darauf');
     await q.click('[data-a=nurdies]'); ok(await q.locator('.md-liste').isHidden() && await q.locator('.kopf').isHidden(), '„Nur dieses Rezept“ blendet Liste und Leiste aus'); await q.click('[data-a=nurdies]'); ok(await q.locator('.md-liste').isVisible(), 'derselbe Knopf holt sie zurück');
     await q.click('[data-a=rail]'); await q.waitForTimeout(350); ok(await q.locator('.kopf.zu').count() === 1 && (await q.locator('.kopf').boundingBox()).width < 70, 'Leiste klappt auf Symbole zusammen');
+    { await q.hover('[data-a=rail]'); await q.mouse.move(5, 790); await q.waitForTimeout(250); const w = q.locator('.md-detail [data-a=rleiste]'); const lbl = await w.getAttribute('aria-label'); await w.hover(); await q.waitForTimeout(650);
+      const bl = await q.evaluate(() => { const b = document.getElementById('hinweis-blase'); return b && getComputedStyle(b).display !== 'none' && b.style.opacity === '1' ? b.textContent : ''; });
+      ok(bl === lbl, 'Hinweis-Blase (wie in der alten App): ein Symbol-Knopf zeigt nach kurzer Zeit seine Beschriftung', bl + ' / ' + lbl);
+      await q.mouse.move(5, 790); await q.waitForTimeout(300); ok(await q.evaluate(() => getComputedStyle(document.getElementById('hinweis-blase')).display === 'none'), 'beim Wegfahren verschwindet die Blase');
+      await q.evaluate(() => { const x = document.createElement('button'); x.title = 'Probe-Titel'; x.textContent = 'T'; x.id = 'tprobe'; x.style.cssText = 'position:fixed;left:600px;top:300px;z-index:9'; document.body.appendChild(x); });
+      await q.hover('#tprobe'); await q.waitForTimeout(650); ok(await q.evaluate(() => !document.getElementById('tprobe').hasAttribute('title') && document.getElementById('hinweis-blase').textContent === 'Probe-Titel'), 'ein title wird zur Blase und verschwindet als title (sonst zeigte der Browser eine zweite)'); await q.mouse.move(5, 790); }
     ok(await q.evaluate(() => document.documentElement.scrollWidth <= innerWidth), 'kein seitliches Verrutschen bei 1280 px'); await kk.close(); }
 
   console.log('10 · Einkaufsliste und Wochenplan');
