@@ -1,7 +1,7 @@
 // Mein Rezeptbuch – neue PWA (Ausgabe „rezeptbuch“ des Küchen-Kerns). Erste Fassung: Start, Rezept, Anlegen/Bearbeiten,
 // Kategorien, Suche, Sicherung ein/aus, Beispielbuch, Übernahme aus der alten App. Netz nur auf Knopfdruck.
 import { normalisiere, istInhalt, katVonRezept, neueUid, KAT_OHNE, sicht } from '../kern/modell/rezept.mjs';
-import { alleKategorien, beschriftung, anzahl, leereKategorien, KATEGORIEN_FEST, anlegen as katAnlegen, umbenennen as katUmbenennen, loeschen as katLoeschen, umsortieren as katUmsortieren } from '../kern/modell/kategorien.mjs';
+import { alleKategorien, beschriftung, anzahl, leereKategorien, KATEGORIEN_FEST, anlegen as katAnlegen, umbenennen as katUmbenennen, loeschen as katLoeschen, umsortieren as katUmsortieren, katBild, bildWaehlen } from '../kern/modell/kategorien.mjs';
 import { suche } from '../kern/modell/suche.mjs';
 import { skaliere } from '../kern/modell/mengen.mjs';
 import { leererZustand } from '../kern/modell/zustand.mjs';
@@ -22,7 +22,7 @@ import { tresor } from '../kern/speicher/tresor.mjs';
 import { ladeBausteine, korpus as semKorpus, sucheBedeutung } from '../kern/suche/bedeutung.mjs';
 import { woche, planen, entplanen, ausAltemMenu, tagIso } from '../kern/modell/plan.mjs';
 
-const FASSUNG = '0.9.1';
+const FASSUNG = '0.9.2';
 const breit = () => matchMedia('(min-width:1000px)').matches;
 const $ = (id) => document.getElementById(id);
 const esc = (t) => String(t ?? '').replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
@@ -40,6 +40,8 @@ function sichern() { clearTimeout(schreibUhr); schreibUhr = setTimeout(() => lag
 const rezept = (uid) => Z.rezepte.find((r) => r.uid === uid);
 const zeig = (r) => (r ? sicht(r, 'de') : r);   // Anzeige: liegt eine Übersetzung in der App-Sprache am Rezept, gilt sie; bearbeitet wird das Original
 const katName = (c) => beschriftung(c, 'de', Z.kategorien);
+/* Sticker einer Kategorie (Klaus 23.11.): ein kleines Foto aus der Kategorie, sonst das Zeichen. Der Name steht immer daneben. */
+const katSticker = (c) => { const b = katBild(Z.rezepte, Z.kategorien, c.id); return b ? `<img class="sticker" src="${esc(b.img)}" alt="" loading="lazy">` : katZeichen(c); };
 const katZeichen = (c) => { const e = Z.kategorien.namen?.[c.id]?.emoji || c.emoji || c.emojiAlt; /* Vorgabe: das Zeichen aus der alten App, frei änderbar */ return e ? `<span aria-hidden="true">${esc(e)}</span>` : ic(c.art === 'ohne' ? 'frage' : c.art === 'unbekannt' ? 'paket' : 'karte'); };
 
 /* ---------- Meldungen ---------- */
@@ -105,7 +107,7 @@ function startRest() {
     return `<div class="ueber"><h2>Treffer</h2><small>${tr.length} von ${alle.length}</small></div>` + (tr.length ? `<div class="gitter">${tr.map((r) => karte(r, katVon.get(katVonRezept(r)))).join('')}</div>` : sinn.length ? '' : `<div class="leer"><p>Nichts gefunden für „${esc(s.frage)}“.</p></div>`)
       + (E.sinn ? `<p class="sinn-status" id="sinn-status" role="status">${esc(sem.status)}</p>` : '') + (sinn.length ? `<div class="ueber"><h2>Nach Bedeutung</h2><small>${sinn.length}</small></div><div class="gitter" id="sinn-treffer">${sinn.map((r) => karte(r, katVon.get(katVonRezept(r)))).join('')}</div>` : '');
   }
-  const erstesBild = (id) => alle.find((r) => (id === 'alle' || katVonRezept(r) === id) && r.img);
+  const erstesBild = (id) => katBild(Z.rezepte, Z.kategorien, id);
   h += `<div class="fotokat" role="group" aria-label="Kategorien">` + [{ id: 'alle', de: 'Alle' }, ...kats].map((c) => {
     const b = erstesBild(c.id), n = c.id === 'alle' ? alle.length : anzahl(Z.rezepte, c.id);
     return `<button data-a="kat" data-kat="${esc(c.id)}" aria-pressed="${s.kat === c.id}"><span class="bild">${b ? `<img src="${esc(b.img)}" alt="" loading="lazy">` : (c.id === 'alle' ? ic('buch') : katZeichen(c))}</span><span>${esc(c.id === 'alle' ? 'Alle' : katName(c))} <small>${n}</small></span></button>`;
@@ -245,7 +247,7 @@ function kategorienHtml() {
   const kats = alleKategorien(Z.rezepte, Z.kategorien), aus = (Z.kategorien.ausgeblendet || []).filter((id) => !kats.some((c) => c.id === id)).map((id) => KATEGORIEN_FEST.find((c) => c.id === id)).filter(Boolean);
   return `<div class="ueber"><h2 style="font-size:19px">Kategorien</h2>${frag('Namen und Zeichen kannst du frei ändern; ein leeres Namensfeld heißt Vorgabe. Zum Ordnen eine Zeile am Griff lange drücken oder mit der Maus ziehen. Eine Kategorie mit Rezepten fragt beim Löschen, wohin die Rezepte sollen. Ein eigener Name gilt in allen Sprachen.')}</div>
    <div class="liste" id="kat-liste">${kats.map((c) => { const n = anzahl(Z.rezepte, c.id), eig = Z.kategorien.namen?.[c.id]?.name || '';
-     return `<div class="kat-zeile" data-kid="${esc(c.id)}"><span class="griff" aria-hidden="true">${ic('griff')}</span><button class="kat-zeichen" data-a="kat-emoji" data-kid="${esc(c.id)}" aria-label="Zeichen ändern">${katZeichen(c)}</button>
+     return `<div class="kat-zeile" data-kid="${esc(c.id)}"><span class="griff" aria-hidden="true">${ic('griff')}</span><button class="kat-zeichen" data-a="kat-emoji" data-kid="${esc(c.id)}" aria-label="Bild oder Zeichen ändern">${katSticker(c)}</button>
       ${c.art === 'ohne' ? `<span class="kat-fest">${esc(katName(c))}</span>` : `<input class="feld kat-name" data-kid="${esc(c.id)}" value="${esc(c.art === 'eigen' && !eig ? c.de : eig)}" placeholder="${esc(c.de || c.id)}" aria-label="Name der Kategorie ${esc(katName(c))}" autocomplete="off">`}
       <small>${n}</small>${c.art === 'ohne' ? '<span style="width:34px"></span>' : `<button class="rund" data-a="kat-weg" data-kid="${esc(c.id)}" aria-label="Kategorie ${esc(katName(c))} löschen">${ic('muell')}</button>`}</div>`; }).join('')}</div>
    <div class="reihe" style="margin-top:12px"><button class="knopf akz" data-a="kat-neu">${ic('plus')}Neue Kategorie</button></div>
@@ -253,7 +255,7 @@ function kategorienHtml() {
 }
 function katWahlFenster(titel, ohneId, aktion, uid = '') {
   const kats = alleKategorien(Z.rezepte, Z.kategorien).filter((c) => c.art !== 'ohne' && c.id !== ohneId);
-  fenster(`<h2>${esc(titel)}</h2><div class="wahl-liste">${kats.map((c) => `<button class="zeile" data-a="${aktion}" data-ziel="${esc(c.id)}" data-kid="${esc(ohneId || '')}" data-uid="${esc(uid)}"><span class="kat-zeichen">${katZeichen(c)}</span><span>${esc(katName(c))}</span></button>`).join('')}
+  fenster(`<h2>${esc(titel)}</h2><div class="wahl-liste">${kats.map((c) => `<button class="zeile" data-a="${aktion}" data-ziel="${esc(c.id)}" data-kid="${esc(ohneId || '')}" data-uid="${esc(uid)}"><span class="kat-zeichen">${katSticker(c)}</span><span>${esc(katName(c))}</span></button>`).join('')}
     <button class="zeile" data-a="${aktion}" data-ziel="" data-kid="${esc(ohneId || '')}" data-uid="${esc(uid)}">${ic('frage')}<span>ohne Kategorie</span></button></div>
     ${aktion === 'kat-setzen' ? `<form class="suche" data-form="kat-neu-zu" style="margin-top:10px">${ic('plus')}<input name="n" placeholder="Neue Kategorie anlegen" autocomplete="off" aria-label="Neue Kategorie"></form>` : ''}`);
 }
@@ -510,7 +512,9 @@ const A = {
     for (const t of w.tage) for (const uid of Z.plan[tagIso(t)] || []) { const r = rezept(uid); if (r && !posten.some((p) => p.uid === uid)) { posten = [...posten, { uid, portionen: r.servings }]; n++; } }
     Z.einkauf = { ...Z.einkauf, posten }; sichern(); kopfZeichnen(); leisteZeichnen(); melde(n ? `${n} Rezepte auf die Einkaufsliste gesetzt` : 'Alle Gerichte der Woche stehen schon auf der Liste', 'Zur Liste', () => geh('einkauf')); },
   'kat-neu': () => { const a = katAnlegen(Z.kategorien, ''); Z.kategorien = a.kat; sichern(); zeichne(); document.querySelector(`.kat-name[data-kid="${a.id}"]`)?.focus(); },
-  'kat-emoji': (e) => fenster(`<h2>Zeichen wählen</h2><div class="emoji-raster">${EMOJI.map((x) => `<button data-a="kat-emoji-setzen" data-kid="${esc(e.dataset.kid)}" data-e="${x}">${x}</button>`).join('')}</div><div class="reihe" style="margin-top:10px"><button class="knopf" data-a="kat-emoji-setzen" data-kid="${esc(e.dataset.kid)}" data-e="">Vorgabe</button></div>`),
+  'kat-emoji': (e) => { const id = e.dataset.kid, bilder = Z.rezepte.filter((r) => istInhalt(r) && r.img && katVonRezept(r) === id), gew = Z.kategorien.namen?.[id]?.bild, jetzt = katBild(Z.rezepte, Z.kategorien, id)?.uid;
+    fenster(`<h2>Bild oder Zeichen</h2>${bilder.length ? `<p>Ein kleines Foto aus dieser Kategorie, wie ein Sticker. Ohne Wahl steht das erste Rezept mit Bild.</p><div class="sticker-raster">${bilder.map((r) => `<button data-a="kat-bild-setzen" data-kid="${esc(id)}" data-uid="${esc(r.uid)}" aria-pressed="${r.uid === jetzt}" aria-label="${esc(r.name)}"><img src="${esc(r.img)}" alt="" loading="lazy"></button>`).join('')}</div>${gew ? `<div class="reihe" style="margin-top:8px"><button class="knopf" data-a="kat-bild-setzen" data-kid="${esc(id)}" data-uid="">Vorgabe: erstes Bild</button></div>` : ''}<h3 style="margin-top:14px">Zeichen, wenn es kein Bild gibt</h3>` : '<p>In dieser Kategorie hat noch kein Rezept ein Bild. Bis dahin steht das Zeichen.</p>'}<div class="emoji-raster">${EMOJI.map((x) => `<button data-a="kat-emoji-setzen" data-kid="${esc(id)}" data-e="${x}">${x}</button>`).join('')}</div><div class="reihe" style="margin-top:10px"><button class="knopf" data-a="kat-emoji-setzen" data-kid="${esc(id)}" data-e="">Vorgabe</button></div>`); },
+  'kat-bild-setzen': (e) => { Z.kategorien = bildWaehlen(Z.kategorien, e.dataset.kid, e.dataset.uid || null); sichern(); fensterZu(); zeichne(); },
   'kat-emoji-setzen': (e) => { const id = e.dataset.kid, namen = { ...(Z.kategorien.namen || {}) }, v = { ...(namen[id] || {}) }; if (e.dataset.e) v.emoji = e.dataset.e; else delete v.emoji; if (Object.keys(v).length) namen[id] = v; else delete namen[id];
     Z.kategorien = { ...Z.kategorien, namen, eigene: Z.kategorien.eigene.map((c) => (c.id === id && !e.dataset.e ? (({ emoji, ...rest }) => rest)(c) : c)) }; sichern(); fensterZu(); zeichne(); },
   'kat-weg': (e) => { const id = e.dataset.kid, n = anzahl(Z.rezepte, id); if (n) { katWahlFenster(`Wohin mit den ${n} Rezepten?`, id, 'kat-weg-ziel'); return; } A['kat-weg-ziel']({ dataset: { kid: id, ziel: '' } }, null, true); },

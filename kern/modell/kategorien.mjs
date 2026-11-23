@@ -91,6 +91,23 @@ export function kategorienMit(fest, { familie = [] } = {}) {
     gruppiere: (rezepte, kat) => gruppiere(rezepte, kat, fest, familie),
     loeschen: (rezepte, kat, id, ziel) => loeschen(rezepte, kat, id, ziel, fest),
     umsortieren: (rezepte, kat, id, vorId) => umsortieren(rezepte, kat, id, vorId, fest, familie),
-    beschriftung, symbol, anlegen, umbenennen, anzahl,
+    beschriftung, symbol, anlegen, umbenennen, anzahl, katBild, bildWaehlen,
   };
+}
+
+/** Sticker-Bild einer Kategorie (Klaus 23.11.: „kleine Bilderchen sprechen mehr als Emojis … wie kleine Sticker“).
+ *  Das selbst gewählte Rezept (namen[id].bild = uid), wenn es noch da ist, in dieser Kategorie steht und ein Bild hat;
+ *  sonst das erste Rezept der Kategorie mit Bild; sonst null (dann gilt das Zeichen). 'alle' nimmt das erste mit Bild.
+ *  Gespeichert wird nur die Kennung des Rezepts, nie das Bild: die Sicherung bleibt klein, ein neues Rezeptbild zieht mit. */
+export function katBild(rezepte, kat = leereKategorien(), id) {
+  const passt = (r) => istInhalt(r) && r.img && (id === 'alle' || katVonRezept(r) === id);
+  const gewaehlt = kat.namen?.[id]?.bild;
+  return (gewaehlt && rezepte.find((r) => r.uid === gewaehlt && passt(r))) || rezepte.find(passt) || null;
+}
+/** Sticker-Bild wählen (uid eines Rezepts) oder mit null zurück auf die Vorgabe. */
+export function bildWaehlen(kat, id, uid) {
+  const namen = { ...(kat.namen || {}) }, e = { ...(namen[id] || {}) };
+  if (uid) e.bild = String(uid); else delete e.bild;
+  if (Object.keys(e).length) namen[id] = e; else delete namen[id];
+  return { ...kat, namen };
 }
