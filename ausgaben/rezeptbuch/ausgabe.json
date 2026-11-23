@@ -1,0 +1,45 @@
+{
+ "name": "rezeptbuch",
+ "titel": "Mein Rezeptbuch",
+ "kurz": "Rezeptbuch",
+ "store": true,
+ "speicher": {
+  "endung": "9m",
+  "indexedDb": "MeinRzBackup1",
+  "schluesselAlt": [
+   "mrz9m",
+   "mms9m",
+   "mfd9m",
+   "mrzcats9m",
+   "mrzcatsneu9m",
+   "mrzcatsaus9m",
+   "mrzcatord9m",
+   "mlang9m"
+  ]
+ },
+ "farbe": "braun",
+ "zeichen": {
+  "web": "icons/icon-book-512.png",
+  "app": null
+ },
+ "begruessung": {
+  "de": "Was kochen wir heute?",
+  "en": "What are we cooking today?"
+ },
+ "ziele": [
+  "web",
+  "android",
+  "windows"
+ ],
+ "lieferung": {
+  "web": "auf-tippen",
+  "android": "im-paket",
+  "windows": "im-paket"
+ },
+ "netzmodule": "eingebaut-nicht-geladen",
+ "alkoholErlaubt": false,
+ "beispiele": [
+  "beispielbuch-mein-rezeptbuch",
+  "foodzine-beispiele"
+ ]
+}

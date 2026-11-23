@@ -1,0 +1,46 @@
+{
+ "version": 1,
+ "pakete": [
+  {
+   "id": "beispielbuch-mein-rezeptbuch",
+   "titel": "Beispielbuch: 44 Rezepte",
+   "datei": "beispielbuch-mein-rezeptbuch.json",
+   "art": "rezepte",
+   "alkohol": false,
+   "anzahl": 44,
+   "bytes": 10587363,
+   "sha256": "5b36aa36f35ef9007dca39b2ae1c2f7d0ed0c606215adda7e0290f2c6d124651",
+   "fuer": [
+    "rezeptbuch",
+    "muttis"
+   ]
+  },
+  {
+   "id": "foodzine-beispiele",
+   "titel": "Food-Zine-Beispiele: 8 Sätze",
+   "datei": "foodzine-beispiele.json",
+   "art": "foodzine",
+   "alkohol": false,
+   "anzahl": 8,
+   "bytes": 15306844,
+   "sha256": "119a280df80120835f131dae33c60939100d16bd640a1f8075e695c4dcce9c73",
+   "fuer": [
+    "rezeptbuch",
+    "muttis"
+   ]
+  },
+  {
+   "id": "getraenke-mit-alkohol-fuer-mixarium",
+   "titel": "Getränke mit Alkohol: 8 Rezepte",
+   "datei": "getraenke-mit-alkohol-fuer-mixarium.json",
+   "art": "rezepte",
+   "alkohol": true,
+   "anzahl": 8,
+   "bytes": 1564537,
+   "sha256": "a8ce482836e110bd19b83e778696acb2aef58bcb264b60d451639b0c5e97124c",
+   "fuer": [
+    "mixarium-voll"
+   ]
+  }
+ ]
+}
