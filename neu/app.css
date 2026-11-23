@@ -482,3 +482,29 @@ main{zoom:var(--z,1)}.koch .k-mitte,.koch .k-text{zoom:var(--z,1)}
 .sticker-raster button[aria-pressed="true"]{box-shadow:0 0 0 3px var(--akz)}
 .sticker-raster img{width:100%;height:100%;object-fit:cover;display:block}
 .kat-zeichen:has(.sticker){border-radius:50%}
+
+/* ---------- Foto-Scan, Reinigung vor der KI, Datei prüfen, Schlüssel ---------- */
+.scan-name{display:flex;align-items:center;gap:7px;color:var(--ink);font-size:14px;margin:0}
+.scan-name .ic{width:18px;height:18px;color:var(--akz);flex:none}
+.scan-name b{overflow-wrap:anywhere}
+.scan-liste{font-size:12.5px;overflow-wrap:anywhere;margin:0}
+.scan-vor{display:flex;gap:6px;overflow-x:auto;max-width:100%}
+.scan-vor img{height:120px;width:auto;border-radius:10px;border:1px solid var(--line);background:#fff;flex:none}
+.scan-vor span{align-self:center;color:var(--mut);font-size:13px;padding:0 6px}
+.fenster .scan-was{font-size:12.5px;margin:0;color:var(--ink)}
+.scan-wahl{margin-bottom:0}
+.imp-p .laeden{max-width:100%;margin-left:0;margin-right:0;padding-left:0;padding-right:0;overflow:visible;flex-wrap:wrap}
+.ki-liste{margin:0 0 10px;padding-left:20px;font-size:13px;display:grid;gap:5px;overflow-wrap:anywhere;list-style:disc}
+ol.ki-liste{list-style:decimal}
+.fenster .ki-liste{color:var(--ink)}
+.ki-vermerk{margin-top:14px;font-size:12.5px;color:var(--mut)}
+.ki-vermerk summary{cursor:pointer}
+.ki-vermerk p{margin:6px 0}
+.pruef-stand{padding:8px 10px;border-radius:10px;border:1px solid var(--line);background:var(--fl)}
+.fenster .pruef-stand{color:var(--ink)}
+.pruef-stand.warnung{border-color:#c0392b;box-shadow:inset 3px 0 0 #c0392b}
+.pruef-stand.sauber{box-shadow:inset 3px 0 0 #2e8b57}
+.pruef-bild{max-width:100%;border-radius:10px;margin-bottom:8px}
+.fenster .schl-stand{min-height:18px;margin:8px 0 10px;font-size:12.5px}
+.schl-stand[data-ok="true"]{color:#2e8b57}
+.schl-stand[data-ok="false"]{color:#c0392b}

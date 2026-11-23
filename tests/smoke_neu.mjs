@@ -37,7 +37,7 @@ try {
   await p.goBack(); await p.waitForSelector('.fotokat'); ok(await p.locator('.karte').count() === 7, 'Zurück-Taste führt in die Kategorie zurück');
 
   console.log('4 · Anlegen, neue Kategorie, Neuladen');
-  await p.click('[data-a=neu]'); ok(await p.locator('.imp-tabs button').count() === 4, 'das Plus öffnet das Blatt mit allen Wegen'); await p.click('[data-a=neu-form]'); await p.fill('[name=name]', 'Probe <b>Suppe</b>'); await p.fill('[name=katneu]', 'Eintöpfe');
+  await p.click('[data-a=neu]'); ok(await p.locator('.imp-tabs button').count() === 5, 'das Plus öffnet das Blatt mit allen Wegen'); await p.click('[data-a=neu-form]'); await p.fill('[name=name]', 'Probe <b>Suppe</b>'); await p.fill('[name=katneu]', 'Eintöpfe');
   await p.fill('[name=ings]', '500 g Kartoffeln (mehlig)\n1 ½ l Brühe\nSalz'); await p.fill('[name=steps]', 'Schälen.\n\nKochen.'); await p.click('button[type=submit]');
   await p.waitForSelector('.rezept-held h1'); ok((await p.locator('h1').innerText()) === 'Probe <b>Suppe</b>', 'Name wird als Text gezeigt, nicht als HTML');
   const zl = await p.locator('.zut li').allInnerTexts(); ok(zl.length === 3 && zl[0].startsWith('500 g') && zl[0].includes('mehlig') && zl[1].startsWith('1 ½ l'), 'Zutaten: Menge, Einheit, Name, Notiz getrennt', zl.join(' | '));
@@ -215,10 +215,10 @@ try {
   }
   await p.click('.rezept-held'); ok(await p.locator('.fenster [data-a=ki-bild]').count() === 1 && await p.locator('.fenster [data-a=gratis-bild]').count() === 1 && await p.locator('.fenster [data-a=bild-dazu]').count() === 1, 'Tipp aufs Bild öffnet das Bild-Blatt: einfügen, KI-Bild, Gratis-Foto');
   ok(!(await p.locator('.fenster').innerText()).match(/Bild löschen/), 'im Bild-Blatt steht kein „Bild löschen“');
-  await p.click('.fenster [data-a=ki-bild]'); ok(await p.locator('#schl-openai').count() === 1, 'ohne Schlüssel fragt die App zuerst nach dem Schlüssel');
+  await p.click('.fenster [data-a=ki-bild]'); ok(await p.locator('#schl-feld').count() === 1 && await p.locator('[data-form=schluessel][data-anbieter=openai]').count() === 1, 'ohne Schlüssel fragt die App zuerst nach dem OpenAI-Schlüssel');
   ok(await p.locator('.fenster h2 .frag').count() === 1 && !(await p.locator('.fenster').innerText()).includes('Den Schlüssel legst du'), 'Schlüssel-Fenster (Klaus 23.11.): die Erklärung steht hinter einem „?“, kein Absatz');
   const rufe = []; await p.route('https://api.openai.com/**', (r) => { rufe.push({ kopf: r.request().headers().authorization, leib: JSON.parse(r.request().postData()) }); setTimeout(() => r.fulfill({ contentType: 'application/json', body: JSON.stringify({ data: [{ b64_json: 'iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8z8BQDwAEhQGAhKmMIQAAAABJRU5ErkJggg==' }] }) }), 1500); });
-  await p.fill('#schl-openai', 'sk-probe'); await p.click('[data-form=schluessel] button[type=submit]');
+  await p.fill('#schl-feld', 'sk-probe'); await p.click('[data-form=schluessel] button[type=submit]'); await p.waitForFunction(() => /gehen an OpenAI/.test(document.querySelector('.fenster')?.innerText || ''), null, { timeout: 5000 }).catch(() => {});   /* der Schlüssel wird im Kern-Speicher abgelegt, dann kommt die Frage */
   ok((await p.locator('.fenster').innerText()).includes('gehen an OpenAI') && rufe.length === 0, 'vor dem Senden steht, was hinausgeht und was es kostet; gesendet ist noch nichts');
   await p.click('[data-a=ja]'); await p.waitForTimeout(700);
   ok(await p.locator('#warten-zeile.an').isVisible().catch(() => false) && /KI-Bild wird erzeugt/.test(await p.locator('#warten-zeile').innerText().catch(() => '')) && await p.locator('#warten-balken.an').count() === 1, 'Ladebalken (Klaus 23.11.): während das KI-Bild entsteht, stehen Balken und Zeile da');
@@ -226,7 +226,7 @@ try {
   ok(await p.locator('#warten-zeile.an, #warten-balken.an').count() === 0, 'Ladebalken: danach ist er wieder weg');
   ok(rufe.length === 1 && rufe[0].kopf === 'Bearer sk-probe' && rufe[0].leib.prompt.includes('Ratatouille') && !('response_format' in rufe[0].leib), 'ein Aufruf an OpenAI, mit dem Schlüssel und dem Rezeptnamen');
   ok((await p.locator('.rezept-held > img').getAttribute('src')).startsWith('data:image/jpeg'), 'das Bild liegt als data:-Adresse im Rezept');
-  ok(await p.evaluate(() => localStorage.getItem('openaiImgKey9m') === 'sk-probe' && !localStorage.getItem('openaiImgKey9')), 'der Schlüssel liegt unter dem Namen der bisherigen App, Muttis bleibt leer');
+  ok(await p.evaluate(() => !localStorage.getItem('openaiImgKey9m') && !localStorage.getItem('openaiKey9m') && !localStorage.getItem('openaiImgKey9')), 'der Schlüssel liegt im Kern-Speicher; der Speicher der bisherigen App und der von Muttis bleiben unberührt');
   await p.click('#leiste .fl-griff'); await p.click('#leiste [data-zu=werkstatt]'); const [lad] = await Promise.all([p.waitForEvent('download'), p.click('[data-a=sichern]')]);
   ok(!(await readFile(await lad.path(), 'utf8')).includes('sk-probe'), 'der Schlüssel steht nicht in der Sicherung');
   await p.click('[data-a=tresor]'); await p.fill('[data-form=tresor] input', 'Vor dem Aufräumen'); await p.click('[data-form=tresor] button[type=submit]'); await p.waitForSelector('.tr-liste .zeile');
