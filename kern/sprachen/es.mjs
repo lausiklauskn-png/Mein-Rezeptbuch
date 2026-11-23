@@ -211,4 +211,5 @@ export default {
   'Seiten {0}–{1} von {2}': 'Páginas {0}–{1} de {2}',
   'Zurück': 'Atrás',
   'Weiter': 'Siguiente',
+  'Notizen': 'Notas',
 };

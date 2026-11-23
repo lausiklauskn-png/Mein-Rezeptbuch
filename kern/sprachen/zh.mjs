@@ -211,4 +211,5 @@ export default {
   'Seiten {0}–{1} von {2}': '第 {0}–{1} 页，共 {2} 页',
   'Zurück': '返回',
   'Weiter': '下一页',
+  'Notizen': '备注',
 };

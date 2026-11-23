@@ -211,4 +211,5 @@ export default {
   'Seiten {0}–{1} von {2}': 'Pagine {0}–{1} di {2}',
   'Zurück': 'Indietro',
   'Weiter': 'Avanti',
+  'Notizen': 'Note',
 };

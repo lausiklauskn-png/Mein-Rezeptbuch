@@ -284,7 +284,7 @@ export function wasGehtHinaus(art, was, sprache = 'de', dazu = {}) {
   else if (art === 'wochenplan') teile = [n === 1 ? T('der Name von 1 Rezept', 'the name of 1 recipe') : fuelle(T('die Namen von {0} Rezepten', 'the names of {0} recipes'), n),
     ...((dazu.kategorien || []).length ? [T('ihre Kategorien', 'their categories')] : []), ...(str(dazu.wuensche) ? [T('deine Wünsche', 'your wishes')] : [])];
   else return '';
-  const viele = art !== 'wochenplan' && n > 1 ? ' ' + fuelle(T('von {0} Rezepten', 'of {0} recipes'), n) : '';
+  const viele = art !== 'wochenplan' && n > 1 ? ' ' + (typeof dazu.vieleText === 'function' ? dazu.vieleText(n) : fuelle(T('von {0} Rezepten', 'of {0} recipes'), n)) : '';   /* vieleText: eine Ausgabe sagt es mit ihrem Wort („von 12 Getränken“) */
   if (dazu.kurz) return und(teile) + viele;   /* nur das Was, für die kurze Zeile „Anthropic · …“; ohne Satzanfang und Empfänger, damit es in jeder Sprache stimmt */
   return T('Hinaus geht: ', 'Sent: ') + und(teile) + viele + ' ' + T('an Anthropic (Claude).', 'to Anthropic (Claude).');
 }
