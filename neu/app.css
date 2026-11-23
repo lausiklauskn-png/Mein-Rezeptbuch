@@ -228,8 +228,6 @@ body:has(#fensterort:not(:empty)) .fl{display:none}
 .k-bild img{width:100%;height:100%;object-fit:cover;display:block}
 .k-nr{font-size:13px;color:var(--k-mut);letter-spacing:.06em;text-transform:uppercase}
 .k-text{font-size:21px;line-height:1.45;max-width:40ch}
-.koch[data-ks="klein"] .k-text{font-size:17px}
-.koch[data-ks="groß"] .k-text{font-size:26px}
 .k-notiz{color:var(--k-mut);font-size:14px}
 .k-nurschmal{display:grid;gap:12px;justify-items:start}
 .k-zut{display:flex;flex-wrap:wrap;gap:6px}
@@ -283,7 +281,6 @@ body:has(.koch) .fl{display:none}
  .k-inhalt{padding:14px 0}
  .k-bild{max-height:42vh}
  .k-text{font-size:25px;max-width:46ch}
- .koch[data-ks="klein"] .k-text{font-size:20px}.koch[data-ks="groß"] .k-text{font-size:31px}
  .k-nurschmal{display:none}
  .k-seite{display:flex;flex-direction:column;gap:12px;width:320px;flex:none;align-self:flex-start;margin-top:14px;background:rgba(255,255,255,.05);border-radius:18px;padding:16px}
  .k-seite h3{font-size:12.5px;letter-spacing:.06em;text-transform:uppercase;color:var(--k-mut);font-weight:600}
@@ -435,3 +432,13 @@ body:has(.koch) .fl{display:none}
 }
 @media(min-width:1000px){.md-detail .wk-pf.zur{display:none}}
 @media print{.wk-pf,.rwerk{display:none!important}}
+
+/* Schrift-Regler (Kern): der Inhalt und die Mitte der Kochansicht folgen --z; Kopf und Leiste bleiben. */
+main{zoom:var(--z,1)}.koch .k-mitte,.koch .k-text{zoom:var(--z,1)}
+.schriftregler{display:flex;align-items:center;gap:10px}.schriftregler input{flex:1;min-width:0;accent-color:var(--akz)}.schriftregler output{min-width:52px;text-align:right;font-weight:700}
+.schriftknopf span{font-size:11px;font-weight:600;line-height:1}.schriftknopf b{font-size:16px}
+.chip[aria-checked="true"]{background:var(--vl);color:var(--vl-schrift);border-color:var(--vl-rand);font-weight:700}
+/* Kopf am Handy: eine Zeile, feste Höhe, ob auf- oder eingeklappt */
+@media(max-width:999px){.kopf{height:calc(52px + env(safe-area-inset-top,0px));flex-wrap:nowrap}}
+/* Dunkel: Flächen, die im Hellen weiß sind, folgen der Palette */
+:root[data-hell="dunkel"] :is(.rund,.suche,.fenster input,.fenster textarea,input,textarea,select){background:var(--fl2);color:var(--ink);border-color:var(--line)}

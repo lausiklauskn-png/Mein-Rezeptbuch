@@ -191,6 +191,30 @@ try {
   await p.waitForTimeout(350); await p.reload(); await p.waitForSelector('.karte'); ok(await p.locator('.karte').count() === 42, 'auch nach dem Neuladen');
   await k.close();
 
+  console.log('11c · Abgleich Mixarium Runde 3: Kopf eine Zeile, Dunkel je Farbe, Schrift-Regler');
+  ({ p, k } = await seite());
+  await p.click('[data-a=beispiel]'); await p.waitForSelector('.karte', { timeout: 20000 });
+  const kh = () => p.locator('#kopf').evaluate((e) => Math.round(e.getBoundingClientRect().height)); const kh0 = await kh(); await p.click('[data-a=werkzeug]');
+  const tops = await p.locator('#kopf button:visible').evaluateAll((l) => l.map((b) => { const r = b.getBoundingClientRect(); return Math.round(r.top + r.height / 2); }));
+  ok(await kh() === kh0 && Math.max(...tops) - Math.min(...tops) <= 2 && await p.evaluate(() => document.documentElement.scrollWidth <= innerWidth), 'Kopf aufgeklappt: gleiche Höhe, alle Knöpfe auf einer Linie, kein Überlauf', `${kh0} → ${await kh()} · ${tops.join(',')}`);
+  await p.click('#kopf [data-a=schrift]'); const fs = () => p.locator('.karte b, .karte strong, .karte').first().evaluate((e) => e.getBoundingClientRect().width);
+  const b0 = await fs(); await p.locator('#schriftregler').evaluate((e) => { e.value = 130; e.dispatchEvent(new Event('input', { bubbles: true })); });
+  ok(await p.locator('#schriftregler').count() === 1 && (await p.locator('#schriftzahl').innerText()) === '130 %' && await fs() > b0 * 1.2, 'Schrift-Regler: die Seite wächst beim Schieben, der Regler bleibt stehen, die Zahl steht daneben', `${b0} → ${await fs()}`);
+  await p.click('.fenster [data-a=fenster-zu]'); await p.waitForTimeout(350); await p.reload(); await p.waitForSelector('.karte');
+  ok(await p.evaluate(() => getComputedStyle(document.documentElement).getPropertyValue('--z').trim()) === '1.3', 'die Schriftgröße bleibt nach dem Neuladen');
+  await p.click('[data-a=werkzeug]'); await p.click('#kopf [data-a=schrift]'); await p.click('[data-a=schrift-100]'); await p.click('.fenster [data-a=fenster-zu]');
+  const grund = async (farbe) => { await p.click('#kopf [data-a=farbe]'); await p.click(`[data-a=farbe-wahl][data-farbe=${farbe}]`); return p.evaluate(() => getComputedStyle(document.body).backgroundColor + '|' + getComputedStyle(document.querySelector('.karte')).backgroundColor); };
+  await p.click('#kopf [data-a=farbe]'); await p.click('[data-a=ton][data-ton=dunkel]'); await p.click('.schleier', { position: { x: 5, y: 5 } });
+  const dunkle = []; for (const f of ['braun', 'blau', 'gruen', 'gelb', 'koralle', 'see', 'flieder']) dunkle.push(await grund(f));
+  ok(new Set(dunkle).size === 7, 'Dunkel gilt für jede Farbe: sieben Farben geben sieben verschiedene Grund- und Kartenfarben', String(new Set(dunkle).size));
+  const hellig = (c) => { const [r, g, b] = c.match(/[\d.]+/g).map(Number); return c.startsWith('color(') ? (r + g + b) / 3 * 255 : (r + g + b) / 3; };
+  const fill = await p.evaluate(() => [...document.querySelectorAll('#kopf .ic, .fotokat .ic, .karte .ic')].slice(0, 6).map((e) => getComputedStyle(e).fill));
+  ok(fill.length > 0 && fill.every((c) => hellig(c) > 150) && hellig(dunkle[0].split('|')[0]) < 60, 'im Dunkeln sind die Strichsymbole hell und der Grund dunkel', fill.join(' ') + ' · ' + dunkle[0]);
+  await p.click('#kopf [data-a=farbe]'); await p.click('[data-a=ton][data-ton=hell]'); ok(await p.evaluate(() => document.documentElement.dataset.hell) === 'hell', 'zurück auf Hell');
+  await k.close();
+  const kd = await browser.newContext({ viewport: { width: 390, height: 800 }, colorScheme: 'dark' }); const pd = await kd.newPage(); await pd.goto(URL0); await pd.waitForSelector('.gruss');
+  ok(await pd.evaluate(() => document.documentElement.dataset.hell) === 'dunkel', 'ohne eigene Wahl folgt die App dem Gerät (dunkel)'); await kd.close();
+
   console.log('12 · Text-Import ohne KI, ohne Netz');
   ({ p, k } = await seite());
   await p.click('[data-a=neu]'); await p.click('[data-a=neu-tab][data-t=text]');
