@@ -90,7 +90,12 @@ try {
     ok(await q.locator('#leiste').isHidden() && await q.locator('.rail-n').count() === 5, 'Leiste steht links, kein Griff am Rand');
     await q.locator('.md-liste').evaluate((e) => { e.scrollTop = 600; }); await q.locator('.md-liste .karte', { has: q.getByText('Ebi Tempura', { exact: true }) }).click();
     ok((await q.locator('.md-detail h1').innerText()) === 'Ebi Tempura' && await q.locator('.md-liste').evaluate((e) => e.scrollTop) > 300, 'Tipp links wechselt das Rezept rechts, die Liste bleibt an ihrer Stelle', (await q.locator('.md-detail h1').innerText()) + ' / ' + await q.locator('.md-liste').evaluate((e) => e.scrollTop));
-    ok(await q.locator('.rezept-held .rund').count() === 0 && await q.locator('.rezept-held .wk-pf:visible').count() === 1, 'auf dem Bild liegt nur der kleine Pfeil in der Namenszeile'); await q.click('[data-a=rleiste]');
+    ok(await q.locator('.rezept-held .rund').count() === 0 && await q.locator('.rezept-held .wk-pf:visible').count() === 1, 'es gibt nur den kleinen Pfeil in der Namenszeile');
+    { const lage = await q.evaluate(() => { const b = document.querySelector('.md-detail .rezept-held>img').getBoundingClientRect(), w = document.querySelector('.md-detail [data-a=rleiste]').getBoundingClientRect(), h = document.querySelector('.md-detail h1').getBoundingClientRect(); return { winkel: w.top >= b.bottom - 1, name: h.top >= b.bottom - 1 }; });
+      ok(lage.winkel && lage.name, 'Monitor: Name und Winkel stehen unter dem Bild, nicht darauf (Klaus 23.11.)', JSON.stringify(lage)); }
+    await q.click('.md-detail h1'); ok(await q.locator('.vollbild').count() === 0, 'Monitor: ein Tipp auf den Namen öffnet kein Vollbild');
+    await q.click('[data-a=rleiste]'); await q.waitForTimeout(250);
+    ok(await q.evaluate(() => { const b = document.querySelector('.md-detail .rezept-held>img').getBoundingClientRect(); return [...document.querySelectorAll('.rwerk .chip')].filter((c) => c.offsetHeight).every((c) => c.getBoundingClientRect().top >= b.bottom - 1); }), 'Monitor: die aufgeklappten Werkzeuge liegen unter dem Bild, keins darauf');
     await q.click('[data-a=nurdies]'); ok(await q.locator('.md-liste').isHidden() && await q.locator('.kopf').isHidden(), '„Nur dieses Rezept“ blendet Liste und Leiste aus'); await q.click('[data-a=nurdies]'); ok(await q.locator('.md-liste').isVisible(), 'derselbe Knopf holt sie zurück');
     await q.click('[data-a=rail]'); await q.waitForTimeout(350); ok(await q.locator('.kopf.zu').count() === 1 && (await q.locator('.kopf').boundingBox()).width < 70, 'Leiste klappt auf Symbole zusammen');
     ok(await q.evaluate(() => document.documentElement.scrollWidth <= innerWidth), 'kein seitliches Verrutschen bei 1280 px'); await kk.close(); }
@@ -162,6 +167,11 @@ try {
   ok(vb === '390,800,390,800,contain', 'Tipp aufs Bild: Vollbild so groß wie das Fenster, ganzes Bild', vb);
   await p.keyboard.press('Escape'); ok(await p.locator('.vollbild').count() === 0 && await p.locator('.rezept-held h1').count() === 1, 'Esc schließt das Vollbild, das Rezept steht noch da');
   await p.click('.rezept-held'); await p.goBack(); ok(await p.locator('.vollbild').count() === 0 && (await p.locator('.rezept-held h1').innerText()).includes('Dragon'), 'die Zurück-Taste schließt das Vollbild und bleibt im Rezept');
+  await p.click('.rezept-held'); ok(await p.locator('.vollbild [data-a=voll-werk]').count() === 1, 'im Vollbild steht „Bild bearbeiten“ (Klaus 23.11.: Tipp aufs Bild öffnet Vollbild und Bild-Blatt)');
+  await p.click('.vollbild [data-a=voll-werk]'); await p.waitForTimeout(250);
+  ok(await p.locator('.vollbild').count() === 0 && await p.locator('.fenster [data-a=ki-bild]').count() === 1, '„Bild bearbeiten“ schließt das Vollbild und öffnet das Bild-Blatt');
+  ok(await p.evaluate(() => !history.state?.voll), 'danach steht kein Vollbild-Schritt mehr in der Geschichte');
+  await p.locator('.schleier').click({ position: { x: 5, y: 5 } }); ok(await p.locator('.fenster').count() === 0 && (await p.locator('.rezept-held h1').innerText()).includes('Dragon'), 'Bild-Blatt zu, das Rezept steht noch da');
   if (!(await p.locator('.rwerk').count())) await p.click('[data-a=rleiste]'); await p.click('.rwerk [data-a=bild-blatt]'); await p.click('[data-a=zuschnitt]'); await p.locator('[data-a=zs-lage]', { hasText: 'Oben' }).click();
   await p.locator('#zs-zoom').evaluate((e) => { e.value = 200; e.dispatchEvent(new Event('input', { bubbles: true })); }); await p.click('[data-a=zs-ok]');
   const stil = await p.locator('.rezept-held > img').getAttribute('style'); ok(/object-position:50% 0%/.test(stil) && /scale\(2\)/.test(stil), 'Bildausschnitt: Lage oben und Zoom 2 sind am Kopfbild', stil);
