@@ -16,7 +16,7 @@ try {
   console.log('1 · Leerer Start, Beispielbuch');
   let { p, k } = await seite();
   ok(await p.locator('.leer').count() === 1, 'leeres Buch zeigt die Begrüßung mit drei Wegen');
-  ok((await p.locator('header.kopf button').count()) === 2, 'Kopf eingeklappt: nur + und Pfeil');
+  ok((await p.locator('header.kopf button').evaluateAll((l) => l.map((b) => b.dataset.a).join(' '))) === 'zur-suche farbe neu', 'Kopf am Handy: Suche, Farbpalette und das Plus; kein Pfeil zum Aufklappen');
   await p.click('[data-a=beispiel]'); await p.waitForSelector('.karte', { timeout: 20000 });
   const karten = await p.locator('.karte').count(); ok(karten === 42, 'Beispielbuch: 42 Rezepte als Karten', String(karten));
   const kats = await p.locator('.fotokat button').allInnerTexts();
@@ -47,7 +47,7 @@ try {
   ok(await p.locator('.karte').count() === 43, 'nach Neuladen sind 43 Rezepte da'); ok((await p.locator('.fotokat button').allInnerTexts()).some((t) => /^Eintöpfe\s+1$/.test(t.trim())), 'die neue Kategorie ist da');
 
   console.log('5 · Sicherung hin und zurück, Beispiele entfernen');
-  await p.click('[data-a=werkzeug]'); await p.click('.werkzeuge [data-zu=werkstatt]');
+  await p.click('#leiste .fl-griff'); await p.click('#leiste [data-zu=werkstatt]');
   const [dl] = await Promise.all([p.waitForEvent('download'), p.click('[data-a=sichern]')]); const pfad = await dl.path();
   const datei = JSON.parse(await readFile(pfad, 'utf8')); ok(datei.version === 11 && datei.recipes.length === 43 && datei.kategorien.eigene.length === 2, 'Sicherung: Fassung 11, 43 Rezepte, 2 eigene Kategorien');
   await p.click('[data-a=beispiele-weg]'); await p.click('[data-a=ja]'); await p.click('#leiste .fl-griff'); await p.click('#leiste [data-zu=start]'); await p.waitForSelector('.karte');
@@ -68,7 +68,7 @@ try {
   ({ p, k } = await seite());
   const g = await p.locator('#leiste .fl-griff').boundingBox(); await p.mouse.move(g.x + 5, g.y + 30); await p.mouse.down(); await p.waitForTimeout(500); await p.mouse.move(30, 300, { steps: 6 }); await p.mouse.up();
   ok(await p.locator('#leiste.l').count() === 1, 'Leiste rastet links ein'); await p.waitForTimeout(350); await p.reload(); await p.waitForSelector('.gruss'); ok(await p.locator('#leiste.l').count() === 1, 'die Lage ist gemerkt');
-  await p.click('[data-a=werkzeug]'); await p.click('.werkzeuge .farbknopf'); await p.click('[data-farbe=dunkel]'); ok(await p.evaluate(() => document.documentElement.dataset.hell === 'dunkel'), 'Farbe Dunkelbraun gewählt');
+  await p.click('#leiste .fl-griff'); await p.click('#leiste [data-a=farbe]'); await p.click('[data-farbe=dunkel]'); ok(await p.evaluate(() => document.documentElement.dataset.hell === 'dunkel'), 'Farbe Dunkelbraun gewählt');
   ok(await p.evaluate(() => document.documentElement.scrollWidth <= innerWidth), 'kein seitliches Verrutschen bei 390 px');
   await k.close();
 
@@ -134,7 +134,7 @@ try {
   ok((await p.locator('.w-tag').nth(2).locator('.w-slot').innerText()).includes('Ratatouille'), 'Gericht an einem Tag geplant');
   await p.click('[data-a=plan-einkauf]'); await p.click('#leiste .fl-griff'); await p.click('#leiste [data-zu=einkauf]'); await p.waitForSelector('.ek-gruppe');
   ok(await p.locator('.quelle-chip', { hasText: 'Ratatouille' }).count() === 1, '„Einkaufsliste für die Woche“ nimmt das geplante Gericht auf');
-  await p.click('[data-a=werkzeug]'); await p.click('.werkzeuge [data-zu=werkstatt]'); const [d2] = await Promise.all([p.waitForEvent('download'), p.click('[data-a=sichern]')]); const s2 = JSON.parse(await readFile(await d2.path(), 'utf8'));
+  await p.click('#leiste .fl-griff'); await p.click('#leiste [data-zu=werkstatt]'); const [d2] = await Promise.all([p.waitForEvent('download'), p.click('[data-a=sichern]')]); const s2 = JSON.parse(await readFile(await d2.path(), 'utf8'));
   ok(s2.einkauf?.posten?.length === 3 && Object.keys(s2.plan || {}).length === 1, 'Einkaufsliste und Wochenplan stehen in der Sicherung');
   await k.close();
 
@@ -243,23 +243,32 @@ try {
   console.log('11c · Abgleich Mixarium Runde 3: Kopf eine Zeile, Dunkel je Farbe, Schrift-Regler');
   ({ p, k } = await seite());
   await p.click('[data-a=beispiel]'); await p.waitForSelector('.karte', { timeout: 20000 });
-  const kh = () => p.locator('#kopf').evaluate((e) => Math.round(e.getBoundingClientRect().height)); const kh0 = await kh(); await p.click('[data-a=werkzeug]');
-  const tops = await p.locator('#kopf button:visible').evaluateAll((l) => l.map((b) => { const r = b.getBoundingClientRect(); return Math.round(r.top + r.height / 2); }));
-  ok(await kh() === kh0 && Math.max(...tops) - Math.min(...tops) <= 2 && await p.evaluate(() => document.documentElement.scrollWidth <= innerWidth), 'Kopf aufgeklappt: gleiche Höhe, alle Knöpfe auf einer Linie, kein Überlauf', `${kh0} → ${await kh()} · ${tops.join(',')}`);
-  await p.click('#kopf [data-a=schrift]'); const fs = () => p.locator('.karte b, .karte strong, .karte').first().evaluate((e) => e.getBoundingClientRect().width);
+  /* Klaus 23.11.: am schmalen Schirm stehen die Werkzeuge in der fliegenden Leiste, dazu „Sichern“. */
+  const flTipp = async (a) => { await p.click('#leiste .fl-griff'); await p.click(`#leiste [data-a=${a}]`); };
+  await p.click('#leiste .fl-griff');
+  const lw = await p.locator('#leiste .fl-werk button').evaluateAll((l) => l.map((b) => b.dataset.a + ':' + b.innerText.trim().split('\n').pop()));
+  ok(lw.join(' ') === 'ton:Hell ton:Dunkel farbe:Farbe schrift:Schrift sichern:Sichern' && await p.locator('#leiste [data-ton=hell] svg').count() === 1 && await p.locator('#leiste [data-ton=dunkel] svg').count() === 1 && await p.locator('#leiste [data-zu=werkstatt]').count() === 1 && await p.locator('#leiste [data-a=neu]').count() === 0, 'fliegende Leiste: Sonne und Mond (Hell/Dunkel), Farbe, Schrift, Sichern und die Einstellungen; das Plus bleibt oben', lw.join(' '));
+  await p.click('#leiste [data-ton=dunkel]'); ok(await p.evaluate(() => document.documentElement.dataset.hell) === 'dunkel', 'der Mond schaltet sofort auf Dunkel'); await flTipp('ton][data-ton=hell'); ok(await p.evaluate(() => document.documentElement.dataset.hell) === 'hell', 'die Sonne schaltet zurück auf Hell'); await p.click('#leiste .fl-griff');
+  ok(await p.locator('#leiste .fl-knoepfe').evaluate((e) => { const r = e.getBoundingClientRect(); return r.right <= innerWidth + 1 && r.bottom <= innerHeight && r.top >= 0 && e.scrollHeight <= e.clientHeight + 1; }), 'die aufgeklappte Leiste passt ganz auf den Schirm, ohne zu rollen');
+  { const [dl] = await Promise.all([p.waitForEvent('download'), p.click('#leiste [data-a=sichern]')]); const sich = JSON.parse(await readFile(await dl.path(), 'utf8'));
+    ok(sich.recipes.length === 42 && await p.locator('#leiste .fl-knoepfe').count() === 0, '„Sichern“ in der Leiste speichert die Sicherung sofort; die Leiste klappt zu', String(sich.recipes.length)); }
+  await p.click('#kopf [data-a=zur-suche]'); ok(await p.evaluate(() => document.activeElement?.id === 'suchfeld'), '„Suchen“ oben setzt die Schreibmarke ins Suchfeld');
+  { const kb = await p.locator('#kopf').evaluate((e) => ({ h: Math.round(e.getBoundingClientRect().height), ueber: e.scrollWidth - e.clientWidth, name: getComputedStyle(e.querySelector('.name')).display !== 'none' && e.querySelector('.name').getBoundingClientRect().width > 60 })); ok(kb.ueber <= 0 && kb.name, 'der Kopf läuft nicht über, der Name bleibt lesbar', JSON.stringify(kb)); }
+  await p.click('#leiste .fl-griff');
+  await p.click('#leiste [data-a=schrift]'); const fs = () => p.locator('.karte b, .karte strong, .karte').first().evaluate((e) => e.getBoundingClientRect().width);
   const b0 = await fs(); await p.locator('#schriftregler').evaluate((e) => { e.value = 130; e.dispatchEvent(new Event('input', { bubbles: true })); });
   ok(await p.locator('#schriftregler').count() === 1 && (await p.locator('#schriftzahl').innerText()) === '130 %' && await fs() > b0 * 1.2, 'Schrift-Regler: die Seite wächst beim Schieben, der Regler bleibt stehen, die Zahl steht daneben', `${b0} → ${await fs()}`);
   await p.click('.fenster [data-a=fenster-zu]'); await p.waitForTimeout(350); await p.reload(); await p.waitForSelector('.karte');
   ok(await p.evaluate(() => getComputedStyle(document.documentElement).getPropertyValue('--z').trim()) === '1.3', 'die Schriftgröße bleibt nach dem Neuladen');
-  await p.click('[data-a=werkzeug]'); await p.click('#kopf [data-a=schrift]'); await p.click('[data-a=schrift-100]'); await p.click('.fenster [data-a=fenster-zu]');
-  const grund = async (farbe) => { await p.click('#kopf [data-a=farbe]'); await p.click(`[data-a=farbe-wahl][data-farbe=${farbe}]`); return p.evaluate(() => getComputedStyle(document.body).backgroundColor + '|' + getComputedStyle(document.querySelector('.karte')).backgroundColor); };
-  await p.click('#kopf [data-a=farbe]'); await p.click('[data-a=ton][data-ton=dunkel]'); await p.click('.schleier', { position: { x: 5, y: 5 } });
+  await flTipp('schrift'); await p.click('[data-a=schrift-100]'); await p.click('.fenster [data-a=fenster-zu]');
+  const grund = async (farbe) => { await flTipp('farbe'); await p.click(`[data-a=farbe-wahl][data-farbe=${farbe}]`); return p.evaluate(() => getComputedStyle(document.body).backgroundColor + '|' + getComputedStyle(document.querySelector('.karte')).backgroundColor); };
+  await flTipp('farbe'); await p.click('[data-a=ton][data-ton=dunkel]'); await p.click('.schleier', { position: { x: 5, y: 5 } });
   const dunkle = []; for (const f of ['braun', 'blau', 'gruen', 'gelb', 'koralle', 'see', 'flieder']) dunkle.push(await grund(f));
   ok(new Set(dunkle).size === 7, 'Dunkel gilt für jede Farbe: sieben Farben geben sieben verschiedene Grund- und Kartenfarben', String(new Set(dunkle).size));
   const hellig = (c) => { const [r, g, b] = c.match(/[\d.]+/g).map(Number); return c.startsWith('color(') ? (r + g + b) / 3 * 255 : (r + g + b) / 3; };
   const fill = await p.evaluate(() => [...document.querySelectorAll('#kopf .ic, .fotokat .ic, .karte .ic')].slice(0, 6).map((e) => getComputedStyle(e).fill));
   ok(fill.length > 0 && fill.every((c) => hellig(c) > 150) && hellig(dunkle[0].split('|')[0]) < 60, 'im Dunkeln sind die Strichsymbole hell und der Grund dunkel', fill.join(' ') + ' · ' + dunkle[0]);
-  await p.click('#kopf [data-a=farbe]'); await p.click('[data-a=ton][data-ton=hell]'); ok(await p.evaluate(() => document.documentElement.dataset.hell) === 'hell', 'zurück auf Hell');
+  await flTipp('farbe'); await p.click('[data-a=ton][data-ton=hell]'); ok(await p.evaluate(() => document.documentElement.dataset.hell) === 'hell', 'zurück auf Hell');
   await k.close();
   const kd = await browser.newContext({ viewport: { width: 390, height: 800 }, colorScheme: 'dark' }); const pd = mitThemen(await kd.newPage()); await pd.goto(URL0); await pd.waitForSelector('.gruss');
   ok(await pd.evaluate(() => document.documentElement.dataset.hell) === 'dunkel', 'ohne eigene Wahl folgt die App dem Gerät (dunkel)'); await kd.close();
@@ -328,6 +337,7 @@ try {
     await q.click('#leiste [data-zu=werkstatt]'); await q.waitForSelector('.themen');
     ok(await q.locator('.themen .gruppe').count() === 6 && await q.locator('.themen .gruppe.auf').count() === 0 && await q.locator('.themen .zeile').count() === 0 && (await q.locator('.ueber h2').innerText()) === 'Einstellungen', 'Einstellungen: sechs Themen, alle eingeklappt, keine lange Liste');
     ok(await q.locator('.themen .frag').count() === 0 && await q.locator('main p:not(.quelle)').count() === 0, 'eingeklappt steht kein Erklärtext und kein „?“ da');
+    ok(await q.locator('main a[href="../"], main a[href$="index.html"]').count() === 0 && /^Mein Rezeptbuch \d+\.\d+\.\d+$/.test((await q.locator('#fassung').innerText()).trim()), 'kein Verweis auf die bisherige App; unten steht nur die Fassung');
     const feld = await q.locator('.gkopf .kfeld').first().evaluate((e) => { const c = document.createElement('canvas'); c.width = c.height = 1; const x = c.getContext('2d'); x.fillStyle = getComputedStyle(e).backgroundColor; x.fillRect(0, 0, 1, 1); return { m: [...x.getImageData(0, 0, 1, 1).data], b: e.offsetWidth }; });   /* über eine Leinwand: die Farbe kommt als color-mix und nicht als rgb() */
     ok(Math.min(...feld.m.slice(0, 3)) > 190 && new Set(feld.m.slice(0, 3)).size > 1 && feld.b <= 40, 'die Zeichen stehen in dezenten Farbfeldern (Wasserfarbe: hell, nicht grau, nicht kräftig)', JSON.stringify(feld));
     await q.click('[data-a=werk-auf][data-g=beispiele]'); ok(await q.locator('.gruppe.auf[data-g=beispiele] .zeile').count() === 2 && await q.locator('.themen .gruppe.auf').count() === 1, 'ein Tipp klappt ein Thema auf: Beispielbuch laden, Beispiele entfernen');

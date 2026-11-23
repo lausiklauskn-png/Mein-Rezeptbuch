@@ -5,7 +5,7 @@
 import { text, fuelle } from '../oberflaeche/sprache.mjs';
 
 export const ANBIETER = {
-  anthropic: { name: 'Anthropic', beginn: 'sk-ant-', seite: 'console.anthropic.com/settings/keys',
+  anthropic: { name: 'Anthropic', beginn: 'sk-ant-', seite: 'platform.claude.com/settings/keys',
     wofuer: ['Foto-Scan, Web-Import, Übersetzen und die übrigen KI-Helfer (Claude)', 'Photo scan, web import, translation and the other AI helpers (Claude)'] },
   openai: { name: 'OpenAI', beginn: 'sk-', seite: 'platform.openai.com/api-keys',
     wofuer: ['KI-Bilder', 'AI pictures'] },
@@ -13,6 +13,8 @@ export const ANBIETER = {
     wofuer: ['Texterkennung beim Foto-Scan (Mistral OCR, Rechenzentrum in der EU)', 'Text recognition for the photo scan (Mistral OCR, data centre in the EU)'] },
 };
 const eintrag = (a) => 'schluessel-' + a;
+/** Die Seite des Anbieters, auf der man einen Schlüssel erstellt (Klaus 23.11.: Direktlink, „dass man schneller an den Punkt kommt“). */
+export const schluesselAdresse = (a) => (ANBIETER[a] ? 'https://' + ANBIETER[a].seite : '');
 
 /** lager: Kern-Speicher. altNamen: { anthropic: ['claudeKey9m'], … } – die Speicher-Namen der bisherigen App (nur lesen). */
 /* Schon der Zugriff auf localStorage kann werfen (abgeschotteter Rahmen, gesperrter Speicher): dann gibt es keinen alten Schlüssel. */

@@ -10,7 +10,7 @@ import { lies, schreibe, fuehreZusammen, hinweise } from '../kern/sicherung/sich
 import { ausAltemSpeicher } from '../kern/speicher/uebernahme.mjs';
 import { speicher } from '../kern/speicher/speicher.mjs';
 import { symbol as ic } from '../kern/oberflaeche/symbole.mjs';
-import { FARBEN, TOENE, farbeSetzen } from '../kern/oberflaeche/farben.mjs';
+import { FARBEN, TOENE, farbeSetzen, istDunkel } from '../kern/oberflaeche/farben.mjs';
 import { schriftSetzen, schriftRegler, schriftWert } from '../kern/oberflaeche/schrift.mjs';
 import { bildAusDatei } from '../kern/oberflaeche/bild.mjs';
 import { zutatenFuerSchritt, zeitImSchritt } from '../kern/modell/kochen.mjs';
@@ -25,14 +25,14 @@ import { tresor } from '../kern/speicher/tresor.mjs';
 import { ladeBausteine, korpus as semKorpus, sucheBedeutung } from '../kern/suche/bedeutung.mjs';
 import { woche, planen, entplanen, ausAltemMenu, tagIso } from '../kern/modell/plan.mjs';
 import { text as spText, fuelle } from '../kern/oberflaeche/sprache.mjs';
-import { schluessel as schluesselLager, ANBIETER, erklaerung as schlErklaerung, formPasst, pruefeSchluessel } from '../kern/ki/schluessel.mjs';
+import { schluessel as schluesselLager, ANBIETER, erklaerung as schlErklaerung, formPasst, pruefeSchluessel, schluesselAdresse } from '../kern/ki/schluessel.mjs';
 import { STUFEN } from '../kern/ki/claude.mjs';
 import { vorbereiten, erkennen, rezeptAusScan, wasGehtHinaus, wohinKurz, istPdf, istBild } from '../kern/import/scan.mjs';
 import { vermerken, vermerkHtml, fundeZumEntscheiden, fundName, meldung as kiMeldung } from '../kern/ki/reinigung.mjs';
 import { dateiPruefen, pruefHtml, kiAnweisungen } from '../kern/pruefung/datei.mjs';
 import { webAdresse, holeSeite, ausEingefuegtem, ohneKi, fuerKi, mitKi, holeBild } from '../kern/import/web.mjs';
 
-const FASSUNG = '0.12.1';
+const FASSUNG = '0.12.2';
 const breit = () => matchMedia('(min-width:1000px)').matches;
 const $ = (id) => document.getElementById(id);
 const esc = (t) => String(t ?? '').replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
@@ -80,7 +80,7 @@ addEventListener('popstate', (e) => { const st = e.state || { ansicht: 'start' }
 const mik = (feld) => (diktatMoeglich() ? `<button type="button" class="mik" data-a="diktat" data-feld="${feld}" aria-label="Sprechen statt tippen" aria-pressed="false">${ic('mikro')}</button>` : '');
 /* ---------- Kopf ---------- */
 function kopfZeichnen() {
-  const w = s.werkzeug, k = $('kopf');
+  const k = $('kopf');
   k.classList.toggle('zu', !!E.railZu);
   if (breit()) {
     const n = (zu, i, t) => `<button class="rail-n" data-a="geh" data-zu="${zu}" ${(zu === 'start' ? ['start', 'rezept', 'kochen'].includes(s.ansicht) : s.ansicht === zu) ? 'aria-current="page"' : ''} title="${t}">${ic(i)}<span class="t">${t}</span></button>`;
@@ -89,11 +89,9 @@ function kopfZeichnen() {
      <button class="rail-n" data-a="farbe" title="Farbe"><span class="farbknopf"></span><span class="t">Farbe</span></button>`;
     return;
   }
-  $('kopf').innerHTML = `<img class="logo" src="../icons/icon-book-192.png?v=1" alt="" width="30" height="30">`
-    + (w ? `<div class="werkzeuge" aria-label="Werkzeuge"><button class="rund" data-a="zur-suche" aria-label="Suchen">${ic('suche')}</button><button class="farbknopf" data-a="farbe" aria-label="Farbpalette"></button><button class="rund schriftknopf" data-a="schrift" aria-label="Schriftgröße"><span aria-hidden="true">A<b>A</b></span></button><button class="rund" data-a="geh" data-zu="werkstatt" aria-label="Einstellungen">${ic('einst')}</button></div>`
-      : `<span class="name">${esc(ausgabe.titel)}</span>`)
-    + `<button class="rund akz" data-a="neu" aria-label="Neues Rezept">${ic('plus')}</button>`
-    + `<button class="pfeil ${w ? 'auf' : ''}" data-a="werkzeug" aria-expanded="${w}" aria-label="${w ? 'Werkzeuge einklappen' : 'Werkzeuge ausklappen: Suche, Farbe, Einstellungen'}">${ic('links')}</button>`;
+  /* Klaus 23.11.: am schmalen Schirm bleiben oben Suche, Farbpalette und das Plus; Schrift, Hell/Dunkel, Sichern und die Einstellungen
+     stehen in der fliegenden Leiste. Kein Pfeil mehr, nichts zum Aufklappen. */
+  k.innerHTML = `<img class="logo" src="../icons/icon-book-192.png?v=1" alt="" width="30" height="30"><span class="name">${esc(ausgabe.titel)}</span><button class="rund" data-a="zur-suche" aria-label="Suchen" title="Suchen">${ic('suche')}</button><button class="farbknopf" data-a="farbe" aria-label="Farbpalette" title="Farbe"></button><button class="rund akz" data-a="neu" aria-label="Neues Rezept" title="Neues Rezept">${ic('plus')}</button>`;
 }
 
 /* ---------- Start ---------- */
@@ -510,7 +508,7 @@ function werkstattHtml() {
   return `<div class="ueber"><h2 style="font-size:19px">${L('Einstellungen', 'Settings')}</h2><small>${n} ${L('Rezepte', 'recipes')}</small></div>
   <div class="themen">${themen.map(([id, i, kc, titel, hilfe, zeilen]) => { const auf = s.werkAuf.has(id);
     return `<div class="gruppe ${auf ? 'auf' : ''}" data-g="${id}" style="--kc:${kc}"><div class="gkopf-zeile"><button class="gkopf" data-a="werk-auf" data-g="${id}" aria-expanded="${auf}">${kfeld(i)}<span>${esc(titel)}</span>${ic(auf ? 'hoch' : 'rechts', 'pf')}</button>${auf && hilfe ? frag(hilfe) : ''}</div>${auf ? `<div class="liste">${zeilen}</div>` : ''}</div>`; }).join('')}</div>
-  <p class="quelle">Mein Rezeptbuch ${FASSUNG} · <a href="../" style="color:inherit">${L('Zur bisherigen App', 'To the previous app')}</a></p>`;
+  <p class="quelle" id="fassung">Mein Rezeptbuch ${FASSUNG}</p>`;   /* kein Verweis auf die bisherige App (Klaus 23.11.: „Wir müssen nicht auf eine schlechtere Version verweisen.“) */
 }
 
 /* ---------- Fenster ---------- */
@@ -521,7 +519,7 @@ let jaTun = null, zuTun = null;
 /* Frage mit Antwort als Zusage (für Abläufe, die warten): Ja → true; Abbrechen, Schleier, Esc → false. html ist fertiges HTML. */
 function frageP(titel, html, ja) { return new Promise((fertig) => { fenster(`<h2>${esc(titel)}</h2>${html}<div class="reihe"><button class="knopf akz" data-a="ja">${esc(ja)}</button><button class="knopf" data-a="fenster-zu">${L('Abbrechen', 'Cancel')}</button></div>`); jaTun = () => fertig(true); zuTun = () => fertig(false); }); }
 function farbFenster() {
-  fenster(`<h2>Farbe</h2><div class="laeden" role="radiogroup" aria-label="Hell oder dunkel" style="margin-bottom:10px">${Object.entries(TOENE).map(([t, n]) => `<button class="chip" role="radio" aria-checked="${E.ton === t}" data-a="ton" data-ton="${t}">${n}</button>`).join('')}</div><div class="fleckliste" role="menu">${Object.entries(FARBEN).map(([n, f]) => `<button role="menuitemradio" aria-checked="${E.farbe === n}" data-a="farbe-wahl" data-farbe="${n}"><span class="fleck" style="background:linear-gradient(135deg,${f.k[0]},${f.k[2]})"></span>${esc(f.de)}</button>`).join('')}</div>`);
+  fenster(`<h2>Farbe</h2><div class="laeden" role="radiogroup" aria-label="Hell oder dunkel" style="margin-bottom:10px">${[['hell', 'sonne', L('Hell', 'Light')], ['dunkel', 'mond', L('Dunkel', 'Dark')]].map(([t, i, n]) => `<button class="chip" role="radio" aria-checked="${E.ton === t}" data-a="ton" data-ton="${t}">${ic(i)}${n}</button>`).join('')}</div><div class="fleckliste" role="menu">${Object.entries(FARBEN).map(([n, f]) => `<button role="menuitemradio" aria-checked="${E.farbe === n}" data-a="farbe-wahl" data-farbe="${n}"><span class="fleck" style="background:linear-gradient(135deg,${f.k[0]},${f.k[2]})"></span>${esc(f.de)}</button>`).join('')}</div>`);
 }
 
 /* ---------- Sicherung, Beispiele ---------- */
@@ -534,7 +532,7 @@ function schluesselFenster(a = 'openai', danach = '') {
   fenster(`<h2 class="imp-kopf">${ic('schluessel')}<span>${esc(B.name)}</span>${frag(schlErklaerung(a, spr()))}</h2>
    <form data-form="schluessel" data-anbieter="${esc(a)}" data-danach="${esc(danach)}"><input type="password" class="feld" id="schl-feld" autocomplete="off" placeholder="${esc(B.beginn)}…" value="${esc(SK[a])}" style="width:100%" aria-label="${esc(B.name)}-${L('Schlüssel', 'key')}">
    <p class="schl-stand" id="schl-stand" role="status"></p>
-   <div class="reihe"><button class="knopf akz gross" type="submit">${ic('haken')}${L('Speichern', 'Save')}</button><button class="rund" type="button" data-a="schluessel-pruefen" data-anbieter="${esc(a)}" aria-label="${esc(tP)}" title="${esc(tP)}">${ic('schild')}</button>${SK[a] ? `<button class="rund rot" type="button" data-a="schluessel-weg" data-anbieter="${esc(a)}" aria-label="${L('Schlüssel löschen', 'Delete key')}" title="${L('Schlüssel löschen', 'Delete key')}">${ic('muell')}</button>` : ''}</div></form>`);
+   <div class="reihe"><button class="knopf akz gross" type="submit">${ic('haken')}${L('Speichern', 'Save')}</button><a class="knopf" id="schl-holen" href="${esc(schluesselAdresse(a))}" target="_blank" rel="noopener noreferrer" title="${esc(fuelle(L('Öffnet die Seite von {0}, auf der du einen Schlüssel erstellst', 'Opens the page of {0} where you create a key'), B.name))}">${ic('link')}${L('Schlüssel holen', 'Get a key')}</a><button class="rund" type="button" data-a="schluessel-pruefen" data-anbieter="${esc(a)}" aria-label="${esc(tP)}" title="${esc(tP)}">${ic('schild')}</button>${SK[a] ? `<button class="rund rot" type="button" data-a="schluessel-weg" data-anbieter="${esc(a)}" aria-label="${L('Schlüssel löschen', 'Delete key')}" title="${L('Schlüssel löschen', 'Delete key')}">${ic('muell')}</button>` : ''}</div></form>`);
 }
 /* ---------- Bild-Blatt: Tipp aufs Bild. Ansehen, anpassen, ersetzen, von der KI erzeugen lassen. Gelöscht wird im Bilder-Ordner. ---------- */
 function bildBlatt(uid) {
@@ -594,15 +592,16 @@ async function startRezepte() {
 /* ---------- Flying Widget ---------- */
 function katInSicht() { const a = document.querySelector('.fotokat [aria-pressed="true"]'), l = a?.parentElement; if (l && (a.offsetLeft < l.scrollLeft || a.offsetLeft + a.offsetWidth > l.scrollLeft + l.clientWidth)) l.scrollLeft = a.offsetLeft - (l.clientWidth - a.offsetWidth) / 2; }
 function leisteZeichnen() {
-  const o = $('leiste'), L = E.leiste, u = L.seite === 'u';
-  o.className = 'fl ' + L.seite; document.body.dataset.fl = L.seite;
-  o.style.top = u ? '' : (s.leisteAuf ? Math.min(70, Math.max(30, L.pos)) : L.pos) + '%'; o.style.left = u ? (s.leisteAuf ? 50 : L.pos) + '%' : '';
+  const o = $('leiste'), lage = E.leiste, u = lage.seite === 'u';
+  o.className = 'fl ' + lage.seite; document.body.dataset.fl = lage.seite;
+  o.style.top = u ? '' : (s.leisteAuf ? Math.min(70, Math.max(30, lage.pos)) : lage.pos) + '%'; o.style.left = u ? (s.leisteAuf ? 50 : lage.pos) + '%' : '';
   if (!s.leisteAuf) { o.innerHTML = `<button class="fl-griff" data-a="leiste-auf" aria-label="Leiste öffnen: Rezepte, Planer, Einkauf, Einstellungen. Lange drücken oder ziehen verschiebt sie."><span></span></button>`; return; }
   const k = (a, i, t, x = '') => `<button role="menuitem" data-a="${a}" ${x}>${i}${t}</button>`;
   o.innerHTML = `<div class="fl-knoepfe" role="menu"><button class="fl-zu" data-a="leiste-zu" aria-label="Schließen">${ic('x')}</button>`
     + k('geh', ic('buch'), 'Rezepte', `data-zu="start" ${s.ansicht === 'start' ? 'aria-current="page"' : ''}`) + k('geh', ic('plan'), 'Planer', `data-zu="plan" ${s.ansicht === 'plan' ? 'aria-current="page"' : ''}`)
     + k('geh', ic('einkauf'), 'Einkauf' + (ekOffen() ? ` <span class="zahl">${ekOffen()}</span>` : ''), `data-zu="einkauf" ${s.ansicht === 'einkauf' ? 'aria-current="page"' : ''}`) + k('geh', ic('einst'), 'Einstellungen', `data-zu="werkstatt" ${s.ansicht === 'werkstatt' ? 'aria-current="page"' : ''}`)
-    + '<hr>' + k('nach-oben', ic('hoch'), 'Nach oben') + k('zurueck', ic('zurueck'), 'Zurück') + k('farbe', '<span class="farbknopf"></span>', 'Farbe') + '</div>';
+    + '<hr>' + k('nach-oben', ic('hoch'), 'Nach oben') + k('zurueck', ic('zurueck'), 'Zurück')
+    + `<hr><div class="fl-werk" role="group" aria-label="Werkzeuge">${k('ton', ic('sonne'), L('Hell', 'Light'), `data-ton="hell" aria-pressed="${!istDunkel(E.farbe, E.ton)}"`)}${k('ton', ic('mond'), L('Dunkel', 'Dark'), `data-ton="dunkel" aria-pressed="${istDunkel(E.farbe, E.ton)}"`)}${k('farbe', '<span class="farbknopf"></span>', 'Farbe')}${k('schrift', '<span class="aa" aria-hidden="true">A<b>A</b></span>', 'Schrift')}${k('sichern', ic('tresor'), 'Sichern', `class="breit" title="${L('Sicherung als Datei speichern', 'Save a backup file')}"`)}</div></div>`;
 }
 let zug = null, gezogen = 0;
 const zieht = () => { if (!zug || zug.weit) return; zug.weit = true; const o = $('leiste'); o.classList.add('zieht'); const g = o.querySelector('.fl-griff span'); if (g) g.innerHTML = ic('pfeile'); };
@@ -644,7 +643,6 @@ const A = {
   'ordner-neu': () => { const a = ordAnlegen(Z.ordner, ''); Z.ordner = a.ordner; sichern(); zeichne(); document.querySelector(`.ord-name[data-oid="${a.id}"]`)?.focus(); },
   'ordner-weg': (e) => { const vorher = { r: Z.rezepte, o: Z.ordner }, o = findeOrdner(Z.ordner, e.dataset.oid), l = ordLoeschen(Z.rezepte, Z.ordner, e.dataset.oid); Z.rezepte = l.rezepte; Z.ordner = l.ordner; sichern(); zeichne();
     melde(fuelle(l.betroffen ? L('Ordner „{0}“ gelöscht, {1} Rezepte bleiben', 'Folder “{0}” deleted, {1} recipes stay') : L('Ordner „{0}“ gelöscht', 'Folder “{0}” deleted'), ordTitel(o), l.betroffen), L('Rückgängig', 'Undo'), () => { Z.rezepte = vorher.r; Z.ordner = vorher.o; sichern(); zeichne(); }); },
-  werkzeug: () => { s.werkzeug = !s.werkzeug; kopfZeichnen(); },
   'zur-suche': () => { if (s.ansicht !== 'start') geh('start'); $('suchfeld')?.focus(); },
   sinn: () => { if (E.sinn) { E.sinn = false; sem.ids = []; sem.fuer = ''; sichern(); zeichne(); melde('Sinn-Suche aus'); return; }
     frage('Sinn-Suche einschalten?', 'Sie findet Rezepte auch nach Bedeutung, zum Beispiel „etwas Süßes“ oder „Eintopf“. Dafür lädt die App einmalig ein Sprachmodell aus dem Netz (etwa 120 MB). Danach rechnet sie im Gerät; deine Rezepte gehen nirgendwohin.', 'Einschalten', () => { E.sinn = true; sem.status = ''; sichern(); zeichne(); if (s.frage.trim()) semPlanen(); else semBereit().then(() => melde('Sinn-Suche bereit')).catch(() => melde('Die Sinn-Suche ließ sich nicht laden.')); }, false); },
@@ -748,7 +746,7 @@ const A = {
   rail: () => { E.railZu = !E.railZu; sichern(); kopfZeichnen(); },
   schrift: () => fenster(`<h2>Schriftgröße ${frag('Die Schrift ändert sich, während du schiebst. Sie gilt für die ganze App, auch beim Kochen.')}</h2>${schriftRegler(E.schrift)}<div class="reihe" style="margin-top:14px"><button class="knopf" data-a="schrift-100">Zurück auf 100 %</button><button class="knopf akz" data-a="fenster-zu">Fertig</button></div>`),
   'schrift-100': () => { E.schrift = schriftSetzen(document.documentElement, 100); $('schriftregler').value = 100; $('schriftzahl').textContent = '100 %'; sichern(); },
-  ton: (e) => { E.ton = e.dataset.ton; farbeSetzen(document.documentElement, E.farbe, E.ton); sichern(); farbFenster(); kopfZeichnen(); },
+  ton: (e) => { E.ton = e.dataset.ton; farbeSetzen(document.documentElement, E.farbe, E.ton); sichern(); if (e.closest('.fenster')) farbFenster(); kopfZeichnen(); },
   portion: (e) => { const r = rezept(s.uid); const n = Math.min(99, Math.max(1, (s.portion[r.uid] || r.servings) + +e.dataset.d)); s.portion[r.uid] = n; zeichne(); },
   'bild-waehlen': () => { formLesen(document.querySelector('[data-form=rezept]')); $('datei-bild').click(); },
   'bild-weg': () => { formLesen(document.querySelector('[data-form=rezept]')); s.form.img = ''; zeichne(); },
@@ -771,6 +769,7 @@ document.addEventListener('click', (ev) => {
   const e = ev.target.closest('[data-a]');
   if (s.leisteAuf && !ev.target.closest('#leiste')) { s.leisteAuf = false; leisteZeichnen(); }
   if (e && A[e.dataset.a]) A[e.dataset.a](e, ev);
+  if (e && s.leisteAuf && e.closest('.fl-werk')) { s.leisteAuf = false; leisteZeichnen(); }   /* ein Werkzeug aus der Leiste gewählt: Leiste zu */
 });
 document.addEventListener('submit', (ev) => { ev.preventDefault(); const f = ev.target.dataset.form;
   if (f === 'rezept') formSpeichern(ev.target);
@@ -840,9 +839,9 @@ async function start() {
     else if (!new URLSearchParams(location.search).has('leer')) await startRezepte();   /* …/neu/?leer beginnt ohne Startrezepte (für Proben und für alle, die leer anfangen wollen) */
   }
   ergaenze(); E.scan = { anbieter: 'anthropic', stufe: 'schnell', ...(E.scan || {}) };
-  if (!TOENE[E.ton]) E.ton = 'geraet'; farbeSetzen(document.documentElement, E.farbe, E.ton); E.schrift = schriftSetzen(document.documentElement, E.schrift);
+  if (E.ton !== 'hell' && E.ton !== 'dunkel') E.ton = matchMedia('(prefers-color-scheme: dark)').matches ? 'dunkel' : 'hell';   /* „wie das Gerät“ gibt es als Wahl nicht mehr (Klaus 23.11.): beim ersten Start gilt einmal das Gerät, danach Sonne oder Mond */
+  farbeSetzen(document.documentElement, E.farbe, E.ton); E.schrift = schriftSetzen(document.documentElement, E.schrift);
   hinweiseEinrichten(document, { aus: () => !!E.hinweiseAus });   // Hinweis-Blasen wie in der alten App (Kern), ausschaltbar
-  matchMedia('(prefers-color-scheme: dark)').addEventListener('change', () => { if (E.ton === 'geraet') farbeSetzen(document.documentElement, E.farbe, E.ton); });
   const geteilt = new URLSearchParams(location.search), geteilteAdresse = webAdresse(geteilt.get('url') || '') || webAdresse(geteilt.get('text') || '');   /* über „Teilen“ an die installierte App geschickt */
   history.replaceState({ ansicht: 'start' }, '', location.pathname);
   zeichne(true);

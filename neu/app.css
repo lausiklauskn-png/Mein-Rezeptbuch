@@ -636,3 +636,13 @@ a.knopf{text-decoration:none}
    Ein Eintrag ist so breit wie sein Name; Name und Zahl bleiben auf einer Zeile. */
 .fotokat button{max-width:none;min-width:60px}
 .fotokat button>span:last-child{white-space:nowrap}
+/* Fliegende Leiste: Werkzeuge aus dem Kopf (Suchen, Farbe, Schrift) und „Sichern“, zwei je Zeile */
+.fl-werk{display:grid;grid-template-columns:1fr 1fr;gap:1px}
+.fl-knoepfe .fl-werk button{min-width:0;padding:2px 6px;gap:6px;font-size:12.5px}
+.fl-werk .aa{font-size:11px;font-weight:700;width:17px;text-align:center;letter-spacing:-.5px}.fl-werk .aa b{font-size:14px}
+.fl.u .fl-werk{grid-column:1/-1;grid-template-columns:repeat(4,1fr)}
+.fl-knoepfe{max-width:196px}
+.fl-werk button[aria-pressed="true"]{background:var(--vl);color:var(--vl-schrift);box-shadow:inset 0 0 0 1px var(--vl-rand)}
+.laeden .chip .ic{width:16px;height:16px}
+.fl-werk button.breit{grid-column:1/-1}
+.fl.u .fl-werk{grid-template-columns:repeat(5,1fr)}.fl.u .fl-werk button.breit{grid-column:auto}

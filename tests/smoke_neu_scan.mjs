@@ -210,7 +210,9 @@ try {
   const zeilen = await p.locator('#schl-liste .zeile').allInnerTexts();
   ok(zeilen.length === 3 && /Anthropic/.test(zeilen[0]) && /OpenAI/.test(zeilen[1]) && /Mistral/.test(zeilen[2]), 'Einstellungen → KI-Schlüssel: Anthropic, OpenAI, Mistral', zeilen.join(' | ').replace(/\n/g, ' '));
   ok(/gespeichert/.test(zeilen[0]) && /noch keiner/.test(zeilen[1]) && /noch keiner/.test(zeilen[2]), 'ein Schlüssel der bisherigen App gilt; Muttis Schlüssel (andere Endung) nicht');
-  await p.click('#schl-liste [data-anbieter=anthropic]'); ok((await p.inputValue('#schl-feld')).length > 20 && await p.locator('[data-a=schluessel-weg]').count() === 1 && await p.locator('.fenster .reihe').count() === 1, 'das Fenster zeigt den gespeicherten Schlüssel verdeckt; Speichern, Prüfen, Löschen in EINER Reihe');
+  await p.click('#schl-liste [data-anbieter=anthropic]');
+  { const l = p.locator('#schl-holen'); ok(await l.getAttribute('href') === 'https://platform.claude.com/settings/keys' && await l.getAttribute('target') === '_blank' && (await l.getAttribute('rel')).includes('noopener') && (await l.innerText()).includes('Schlüssel holen'), 'Schlüssel-Fenster: Direktlink zur Schlüssel-Seite von Anthropic, in einem neuen Fenster', await l.getAttribute('href')); }
+  ok((await p.inputValue('#schl-feld')).length > 20 && await p.locator('[data-a=schluessel-weg]').count() === 1 && await p.locator('.fenster .reihe').count() === 1, 'das Fenster zeigt den gespeicherten Schlüssel verdeckt; Speichern, Prüfen, Löschen in EINER Reihe');
   await p.click('[data-a=schluessel-pruefen]'); await p.waitForFunction(() => document.getElementById('schl-stand').dataset.ok === 'true');
   ok(rufe.length === 1 && rufe[0].leib.messages[0].content === 'Hi' && rufe[0].leib.max_tokens <= 32 && (await p.locator('#schl-stand').innerText()).includes('funktioniert'), '„Prüfen“ schickt eine kleinste Anfrage und sagt: der Schlüssel funktioniert');
   claudeStatus = 401; await p.click('[data-a=schluessel-pruefen]'); await p.waitForFunction(() => document.getElementById('schl-stand').dataset.ok === 'false'); ok((await p.locator('#schl-stand').innerText()).includes('lehnt diesen Schlüssel ab'), 'ein abgelehnter Schlüssel wird gesagt'); claudeStatus = 200;
@@ -218,10 +220,10 @@ try {
   ok(/noch keiner/.test(await p.locator('#schl-liste [data-anbieter=anthropic]').innerText()) && await p.evaluate(() => localStorage.getItem('claudeKey9m') === 'sk-ant-alt-aus-der-alten-app-0000'), 'gelöscht: hier gilt keiner mehr, der Speicher der bisherigen App ist unverändert');
   await p.waitForTimeout(300); await p.reload(); await p.waitForSelector('.gruss'); await zurWerkstatt(p);
   ok(/noch keiner/.test(await p.locator('#schl-liste [data-anbieter=anthropic]').innerText()), 'nach dem Neuladen kommt der alte Schlüssel nicht still zurück');
-  await p.click('#schl-liste [data-anbieter=mistral]'); await p.fill('#schl-feld', 'm-falsch'); await p.click('[data-a=schluessel-pruefen]'); await p.waitForFunction(() => document.getElementById('schl-stand').dataset.ok === 'false');
+  await p.click('#schl-liste [data-anbieter=mistral]'); ok(await p.locator('#schl-holen').getAttribute('href') === 'https://console.mistral.ai/api-keys', 'Direktlink bei Mistral'); await p.fill('#schl-feld', 'm-falsch'); await p.click('[data-a=schluessel-pruefen]'); await p.waitForFunction(() => document.getElementById('schl-stand').dataset.ok === 'false');
   ok(rufe.some((r) => r.wer === 'mistral-modelle'), 'Mistral wird über die Modell-Liste geprüft (kostenlos)');
   await p.click('[data-form=schluessel] button[type=submit]'); await p.waitForFunction(() => /ungewohnt/.test(document.getElementById('toast').innerText)); ok(/gespeichert/.test(await p.locator('#schl-liste [data-anbieter=mistral]').innerText()), 'ein ungewohnt kurzer Schlüssel wird gespeichert, mit Hinweis');
-  await p.click('#schl-liste [data-anbieter=openai]'); await p.fill('#schl-feld', 'sk-geheim-1234567890abcdefghij'); await p.click('[data-form=schluessel] button[type=submit]'); await p.waitForTimeout(300);
+  await p.click('#schl-liste [data-anbieter=openai]'); ok(await p.locator('#schl-holen').getAttribute('href') === 'https://platform.openai.com/api-keys', 'Direktlink bei OpenAI'); await p.fill('#schl-feld', 'sk-geheim-1234567890abcdefghij'); await p.click('[data-form=schluessel] button[type=submit]'); await p.waitForTimeout(300);
   const [dl] = await Promise.all([p.waitForEvent('download'), p.click('[data-a=sichern]')]); const sich = await readFile(await dl.path(), 'utf8');
   ok(!sich.includes('sk-geheim') && !sich.includes('m-falsch'), 'kein Schlüssel steht in der Sicherung');
   await k.close();
