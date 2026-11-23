@@ -12,6 +12,8 @@ Auftrag: `docs/NACHTAUFTRAG.md`. Hier steht, was in der Nacht auf `main` gekomme
 |---|---|---|
 | Kern 0.18.0 · PWA 0.10.0 | **KI-Schlüssel** für Anthropic, OpenAI, Mistral (Werkstatt → KI; speichern, prüfen, löschen; nur im Kern-Speicher des Geräts, ein Schlüssel der alten App gilt weiter und wird nur gelesen). **Foto-Scan** im Blatt hinter „+“: Foto aufnehmen oder Dateien wählen (auch PDF, mehrere = Stapel), Claude liest oder Mistral OCR + Claude, drei Stufen (schnell = Haiku 5.5, Standard = Sonnet 5.5, Profi = Opus 5.5). **Reinigung vor der KI**: Foto neu gezeichnet (1200 px, ohne Aufnahmedaten), PDF als Seitenbilder mit 300 dpi, versteckter Text zugedeckt, einmal anhalten, Vermerk am Rezept. **„Datei prüfen“** mit dem Prüfkern aus Workflow PDF. Vor dem Senden steht, was hinausgeht. | `test/kern-ki.test.js` (16) · `tests/smoke_neu_scan.mjs` (74) · `tests/gegenprobe_neu_scan.py` (9 Fälle) |
 
+| Kern 0.19.0 · PWA 0.11.0 | **Web-Import ohne öffentliche Weiterleiter** (Blatt hinter „+“ → Web): die Seite wird direkt abgerufen, ihre Rezeptdaten (schema.org) ohne KI gelesen, das Bild als eigene Kopie geholt. Lässt der Browser das Lesen nicht zu: Hinweis, „Seite öffnen“, Einfügen (Seitentext oder Quelltext). Ohne Rezeptdaten: „Ohne KI aufteilen“ oder „Mit Claude lesen“ (nur der sichtbare Text; versteckte Teile der Seite gehen nicht mit; steht darin eine Anweisung an eine KI, hält die App einmal an). Die App meldet sich als Ziel für „Teilen“ an. | `test/kern-web.test.js` (8) · `tests/smoke_neu_web.mjs` (32) · `tests/gegenprobe_neu_web.py` (5 Fälle) |
+
 Entscheidungen der Nacht (mit Grund):
 
 - **Schlüssel im Kern-Speicher statt im localStorage der alten App.** Die PWA 0.9.5 schrieb den OpenAI-Schlüssel unter dem Namen der alten App und löschte ihn dort auch; die alte App soll aber nur gelesen werden. Ein dort hinterlegter Schlüssel gilt weiter.
@@ -19,6 +21,9 @@ Entscheidungen der Nacht (mit Grund):
 - **Scan-Ergebnis landet im Formular** (wie beim Text-Import), nicht in einer eigenen Ergebnis-Ansicht: ein Weg zum Prüfen vor dem Speichern. Ein Stapel wird gleich eingetragen und lässt sich als Ganzes rückgängig machen (wie in der alten App, dort ohne Rückgängig).
 - **Der Fund „versteckter Text“ steht beim einzelnen PDF auf dem Scan-Blatt**, der Knopf heißt dann „Ohne ihn senden“; nur der Stapel fragt in einem eigenen Fenster (einmal).
 - **Sprache:** neue Texte stehen als Deutsch/Englisch-Paar im Code (`L(de, en)`, Kern `oberflaeche/sprache.mjs`); die übrigen sechs Sprachen kommen über Tabellen mit dem deutschen Text als Schlüssel.
+
+- **Web-Import im Browser:** kein Dienst dazwischen heißt, dass viele Seiten das direkte Lesen verweigern (CORS). Dafür steht der Weg „Seite öffnen, alles kopieren, einfügen“. In der APK/Windows-App geht der direkte Abruf über natives HTTP (Bau-Vorbereitung).
+- **Kategorie beim Web-Import** wird nur gesetzt, wenn ein Kategoriename der eigenen Sammlung in den Angaben der Seite vorkommt; sonst bleibt sie leer (nichts wird geraten).
 
 Nicht gemessen (Nacht): echte Aufrufe an Anthropic und Mistral (alle Antworten sind gestellt) · die Kamera am Gerät · pdf.js und die Texterkennung liegen wie in der alten App unter `/Workflow-PDF/vendor/` auf derselben Adresse; in einer APK oder Windows-App müssen sie ins Paket.
 
