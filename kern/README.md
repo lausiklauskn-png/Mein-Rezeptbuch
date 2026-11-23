@@ -43,6 +43,9 @@ Das Alkohol-Paket aus `beispiele/` ist im Katalog nur für `mixarium-voll` freig
 | `modell/kategorien-fest.mjs` | die 18 festen Kategorien in 8 Sprachen, aus der alten App übernommen |
 | `modell/suche.mjs` | Wortsuche, auch über den Kategorienamen |
 | `sicherung/sicherung.mjs` | liest Fassung 9/10 der alten Apps, schreibt Fassung 11 mit Block `kategorien`; Zusammenführen an `uid` |
+| `modell/mengen.mjs` | Mengen für andere Portionen umrechnen (Brüche, Bereiche) |
+| `speicher/speicher.mjs` | Zustand im Gerät (IndexedDB), eine Datenbank je Ausgabe |
+| `oberflaeche/` | Symbole (Phosphor Duotone, nur die genutzten), Farbpaletten, Bild aus Datei verkleinern |
 | `speicher/uebernahme.mjs` | liest den alten localStorage nur mit der Endung der eigenen Ausgabe, löscht nichts |
 
 Probe: `node --test test/kern.test.js` (13 Fälle). Wächter für den Sushi-Fehler: **alles, was die Suche findet, steht in genau einer Gruppe von „Alle“**.
@@ -51,3 +54,8 @@ Probe: `node --test test/kern.test.js` (13 Fälle). Wächter für den Sushi-Fehl
 
 `node kern/kern-stand.mjs` schreibt `KERN.json` mit Fassung und SHA-256 jeder Datei unter `kern/`. Das Mixarium übernimmt `kern/`
 byte-gleich und prüft gegen diese Liste; `node --test` hier besteht darauf, dass `KERN.json` zum Stand passt.
+
+## Die neue PWA (`neu/`)
+
+Erste sichtbare Fassung der Ausgabe „rezeptbuch“, ohne Bauschritt (ES-Module direkt). Läuft neben der alten App unter `/neu/`.
+Probe im echten Browser: `node tests/smoke_neu.mjs` (30 Prüfpunkte: leerer Start, Beispielbuch, Sushi-Kategorie, Suche, Portionen, Anlegen, Neuladen, Sicherung hin und zurück, Beispiele entfernen, Übernahme aus der alten App, Leiste, Farbe).
