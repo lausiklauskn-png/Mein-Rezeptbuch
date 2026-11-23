@@ -23,7 +23,7 @@ import { tresor } from '../kern/speicher/tresor.mjs';
 import { ladeBausteine, korpus as semKorpus, sucheBedeutung } from '../kern/suche/bedeutung.mjs';
 import { woche, planen, entplanen, ausAltemMenu, tagIso } from '../kern/modell/plan.mjs';
 
-const FASSUNG = '0.9.3';
+const FASSUNG = '0.9.4';
 const breit = () => matchMedia('(min-width:1000px)').matches;
 const $ = (id) => document.getElementById(id);
 const esc = (t) => String(t ?? '').replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
@@ -296,8 +296,8 @@ function neuFenster(tab = 'selbst') {
     selbst: () => `<p>Name, Zutaten und Schritte selbst eintragen, mit Foto.</p><button class="knopf akz" data-a="neu-form">${ic('stift')}Rezept schreiben</button>`,
     text: () => `<span class="mitmik"><textarea class="feld" id="imp-text" style="min-height:150px" placeholder="Rezepttext hier einfügen: aus einer Mail, einer Notiz oder von einer Webseite kopiert. Erste Zeile ist der Name."></textarea>${mik('#imp-text')}</span>
       <div class="reihe" style="margin-top:8px"><button class="knopf akz" data-a="imp-text">Aufteilen</button>${frag('Die App teilt den Text ohne KI in Zutaten und Schritte. Sie erkennt die Überschriften „Zutaten“ und „Zubereitung“, Mengen, Einheiten, Portionen und Zeit. Du siehst das Ergebnis im Formular und kannst es ändern, bevor es gespeichert wird.')}</div>`,
-    datei: () => `<p>Eine Sicherung oder Rezeptdatei (JSON) einlesen. Doppelte Rezepte werden erkannt, eigene Kategorien kommen mit.</p><button class="knopf akz" data-a="einlesen">${ic('ordner')}Datei wählen</button>`,
-    pakete: () => `<p>Das Beispielbuch laden (${beispielText()}). Es lässt sich später mit einem Tipp wieder entfernen.</p><button class="knopf akz" data-a="beispiel">${ic('laden')}Beispielbuch laden</button>`,
+    datei: () => `<button class="knopf akz" data-a="einlesen">${ic('ordner')}Datei wählen</button>${frag('Eine Sicherung oder Rezeptdatei (JSON) einlesen. Doppelte Rezepte werden erkannt, eigene Kategorien kommen mit.')}`,
+    pakete: () => `<button class="knopf akz" data-a="beispiel">${ic('laden')}Beispielbuch laden</button>${frag(`Das Beispielbuch (${beispielText()}) lässt sich später mit einem Tipp wieder entfernen.`)}`,
   };
   fenster(`<h2>Rezept hinzufügen</h2><div class="imp-tabs" role="tablist">${IMP.map(([t, i, l]) => `<button role="tab" aria-selected="${t === tab}" data-a="neu-tab" data-t="${t}">${ic(i)}${l}</button>`).join('')}</div><div class="imp-p">${inhalt[tab]()}</div>
    <p class="quelle">Foto-Scan, Webseite und „vom Teller“ folgen mit den KI-Funktionen.</p>`);
@@ -372,7 +372,7 @@ function farbFenster() {
 const schlNamen = () => ['openaiImgKey' + ausgabe.speicher.endung, 'openaiKey' + ausgabe.speicher.endung];
 function openaiSchluessel() { try { return schlNamen().map((n) => localStorage.getItem(n)).find(Boolean) || ''; } catch { return ''; } }
 function schluesselFenster(danach = '') {
-  fenster(`<h2>OpenAI-Schlüssel</h2><p>Für KI-Bilder. Den Schlüssel legst du bei OpenAI an: platform.openai.com/api-keys, „Create new secret key“. Er bleibt in diesem Gerät.</p>
+  fenster(`<h2>OpenAI-Schlüssel ${frag('Für KI-Bilder. Den Schlüssel legst du bei OpenAI an: platform.openai.com/api-keys, „Create new secret key“. Er bleibt in diesem Gerät und kommt in keine Sicherung.')}</h2>
    <form data-form="schluessel" data-danach="${esc(danach)}"><input type="password" id="schl-openai" autocomplete="off" placeholder="sk-…" value="${esc(openaiSchluessel())}" style="width:100%">
    <div class="reihe" style="margin-top:12px"><button class="knopf akz" type="submit">${ic('haken')}Speichern</button>${openaiSchluessel() ? `<button class="knopf" type="button" data-a="schluessel-weg">Schlüssel löschen</button>` : ''}<button class="knopf" type="button" data-a="fenster-zu">Abbrechen</button></div></form>`);
 }
@@ -384,7 +384,7 @@ function bildBlatt(uid) {
    ${zeile('bild-dazu', 'kamera', r.img ? 'Bild ersetzen' : 'Bild einfügen', 'Foto aufnehmen oder Datei wählen', `data-uid="${esc(uid)}"`)}
    ${zeile('ki-bild', 'funken', 'Bild von der KI erzeugen', 'OpenAI, ' + KOSTEN_TEXT, `data-uid="${esc(uid)}"`)}
    ${zeile('gratis-bild', 'bild', 'Gratis-Foto erzeugen', 'ohne Schlüssel, über den Dienst Pollinations', `data-uid="${esc(uid)}"`)}</div>
-   <p style="margin-top:10px">Ein Bild löschst du in der Werkstatt unter „Bilder“.</p><div class="reihe"><button class="knopf" data-a="fenster-zu">Schließen</button></div>`);
+   <div class="reihe" style="margin-top:10px"><button class="knopf" data-a="fenster-zu">Schließen</button>${frag('Ein Bild löschst du in der Werkstatt unter „Bilder“.')}</div>`);
 }
 async function bildErzeugen(uid, gratis) {
   const r = rezept(uid); if (!r) return; fensterZu(); melde(gratis ? 'Gratis-Foto wird erzeugt …' : 'KI-Bild wird erzeugt, das dauert etwa 20 Sekunden …');
@@ -514,7 +514,7 @@ const A = {
     Z.einkauf = { ...Z.einkauf, posten }; sichern(); kopfZeichnen(); leisteZeichnen(); melde(n ? `${n} Rezepte auf die Einkaufsliste gesetzt` : 'Alle Gerichte der Woche stehen schon auf der Liste', 'Zur Liste', () => geh('einkauf')); },
   'kat-neu': () => { const a = katAnlegen(Z.kategorien, ''); Z.kategorien = a.kat; sichern(); zeichne(); document.querySelector(`.kat-name[data-kid="${a.id}"]`)?.focus(); },
   'kat-emoji': (e) => { const id = e.dataset.kid, bilder = Z.rezepte.filter((r) => istInhalt(r) && r.img && katVonRezept(r) === id), gew = Z.kategorien.namen?.[id]?.bild, jetzt = katBild(Z.rezepte, Z.kategorien, id)?.uid;
-    fenster(`<h2>Bild oder Zeichen</h2>${bilder.length ? `<p>Ein kleines Foto aus dieser Kategorie, wie ein Sticker. Ohne Wahl steht das erste Rezept mit Bild.</p><div class="sticker-raster">${bilder.map((r) => `<button data-a="kat-bild-setzen" data-kid="${esc(id)}" data-uid="${esc(r.uid)}" aria-pressed="${r.uid === jetzt}" aria-label="${esc(r.name)}"><img src="${esc(r.img)}" alt="" loading="lazy"></button>`).join('')}</div>${gew ? `<div class="reihe" style="margin-top:8px"><button class="knopf" data-a="kat-bild-setzen" data-kid="${esc(id)}" data-uid="">Vorgabe: erstes Bild</button></div>` : ''}<h3 style="margin-top:14px">Zeichen, wenn es kein Bild gibt</h3>` : '<p>In dieser Kategorie hat noch kein Rezept ein Bild. Bis dahin steht das Zeichen.</p>'}<div class="emoji-raster">${EMOJI.map((x) => `<button data-a="kat-emoji-setzen" data-kid="${esc(id)}" data-e="${x}">${x}</button>`).join('')}</div><div class="reihe" style="margin-top:10px"><button class="knopf" data-a="kat-emoji-setzen" data-kid="${esc(id)}" data-e="">Vorgabe</button></div>`); },
+    fenster(`<h2>Bild oder Zeichen</h2>${bilder.length ? `<h3>Foto als Sticker ${frag('Ein kleines Foto aus dieser Kategorie, wie ein Sticker. Ohne Wahl steht das erste Rezept mit Bild.')}</h3><div class="sticker-raster">${bilder.map((r) => `<button data-a="kat-bild-setzen" data-kid="${esc(id)}" data-uid="${esc(r.uid)}" aria-pressed="${r.uid === jetzt}" aria-label="${esc(r.name)}"><img src="${esc(r.img)}" alt="" loading="lazy"></button>`).join('')}</div>${gew ? `<div class="reihe" style="margin-top:8px"><button class="knopf" data-a="kat-bild-setzen" data-kid="${esc(id)}" data-uid="">Vorgabe: erstes Bild</button></div>` : ''}<h3 style="margin-top:14px">Zeichen, wenn es kein Bild gibt</h3>` : '<p>In dieser Kategorie hat noch kein Rezept ein Bild. Bis dahin steht das Zeichen.</p>'}<div class="emoji-raster">${EMOJI.map((x) => `<button data-a="kat-emoji-setzen" data-kid="${esc(id)}" data-e="${x}">${x}</button>`).join('')}</div><div class="reihe" style="margin-top:10px"><button class="knopf" data-a="kat-emoji-setzen" data-kid="${esc(id)}" data-e="">Vorgabe</button></div>`); },
   'kat-bild-setzen': (e) => { Z.kategorien = bildWaehlen(Z.kategorien, e.dataset.kid, e.dataset.uid || null); sichern(); fensterZu(); zeichne(); },
   'kat-emoji-setzen': (e) => { const id = e.dataset.kid, namen = { ...(Z.kategorien.namen || {}) }, v = { ...(namen[id] || {}) }; if (e.dataset.e) v.emoji = e.dataset.e; else delete v.emoji; if (Object.keys(v).length) namen[id] = v; else delete namen[id];
     Z.kategorien = { ...Z.kategorien, namen, eigene: Z.kategorien.eigene.map((c) => (c.id === id && !e.dataset.e ? (({ emoji, ...rest }) => rest)(c) : c)) }; sichern(); fensterZu(); zeichne(); },
@@ -557,7 +557,7 @@ const A = {
   'zs-ok': () => { const z = zs; zs = null; Z.rezepte = Z.rezepte.map((r) => (r.uid === z.uid ? { ...r, imgCrop: { ...(r.imgCrop || {}), x: Math.round(z.x), y: Math.round(z.y), scale: Math.round(z.z * 100) / 100 } } : r)); sichern(); fensterZu(); zeichne(); },
   nurdies: () => { s.nurDies = !s.nurDies; zeichne(); },
   rail: () => { E.railZu = !E.railZu; sichern(); kopfZeichnen(); },
-  schrift: () => fenster(`<h2>Schriftgröße</h2><p>Die Schrift ändert sich, während du schiebst. Sie gilt für die ganze App, auch beim Kochen.</p>${schriftRegler(E.schrift)}<div class="reihe" style="margin-top:14px"><button class="knopf" data-a="schrift-100">Zurück auf 100 %</button><button class="knopf akz" data-a="fenster-zu">Fertig</button></div>`),
+  schrift: () => fenster(`<h2>Schriftgröße ${frag('Die Schrift ändert sich, während du schiebst. Sie gilt für die ganze App, auch beim Kochen.')}</h2>${schriftRegler(E.schrift)}<div class="reihe" style="margin-top:14px"><button class="knopf" data-a="schrift-100">Zurück auf 100 %</button><button class="knopf akz" data-a="fenster-zu">Fertig</button></div>`),
   'schrift-100': () => { E.schrift = schriftSetzen(document.documentElement, 100); $('schriftregler').value = 100; $('schriftzahl').textContent = '100 %'; sichern(); },
   ton: (e) => { E.ton = e.dataset.ton; farbeSetzen(document.documentElement, E.farbe, E.ton); sichern(); farbFenster(); kopfZeichnen(); },
   portion: (e) => { const r = rezept(s.uid); const n = Math.min(99, Math.max(1, (s.portion[r.uid] || r.servings) + +e.dataset.d)); s.portion[r.uid] = n; zeichne(); },
