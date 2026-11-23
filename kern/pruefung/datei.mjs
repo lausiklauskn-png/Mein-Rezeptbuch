@@ -58,19 +58,34 @@ export async function dateiPruefen(name, quelle) {
   } catch (e) { return { stand: 'ungeprueft', funde: [], schritte: [], hinweise: ['Die Prüfung lief nicht: ' + ((e && e.message) || e)], markiert: null, art: '' }; }
 }
 const esc = (t) => String(t ?? '').replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
-export const STAND = { warnung: ['Auffällig', 'Suspicious'], sauber: ['Nichts Auffälliges gefunden', 'Nothing suspicious found'], ungeprueft: ['Nicht vollständig geprüft', 'Not fully checked'] };
-/** Das Ergebnis als HTML für ein Fenster der App. */
+export const STAND = { warnung: ['Auffällig', 'Suspicious'], sauber: ['Nichts Auffälliges gefunden', 'Nothing suspicious found'], ungeprueft: ['Nicht vollständig geprüft (heißt nicht „sauber“)', 'Not fully checked (does not mean “clean”)'] };
+/** Das Ergebnis als HTML für ein Fenster der App: eine Zeile mit dem Stand, die Funde als kurze Namen;
+ *  Sätze, „Was jetzt tun“ und Hinweise stehen eingeklappt dahinter (Klaus 23.11.: keine Textwände). */
 export function pruefHtml(p, s = 'de') {
-  return `<div data-pruef-dialog="${esc(p.stand)}"><p class="pruef-stand ${esc(p.stand)}" data-pruef-stand><b>${esc(text(s, STAND[p.stand][0], STAND[p.stand][1]))}</b>${p.stand === 'ungeprueft' ? ' · ' + esc(text(s, '„ungeprüft“ heißt nicht „sauber“', '“unchecked” does not mean “clean”')) : ''}</p>
-   ${p.funde.length ? `<ul class="ki-liste" data-pruef-funde>${p.funde.map((x) => `<li data-kennung="${esc(x.kennung)}"><b>${esc(fundName(x.kennung, s))}</b><br>${esc(x.satz || '')}</li>`).join('')}</ul>` : ''}
-   ${p.schritte.length ? `<p><b>${esc(text(s, 'Was jetzt tun', 'What to do now'))}</b></p><ol class="ki-liste" data-was-tun>${p.schritte.map((t) => `<li>${esc(t)}</li>`).join('')}</ol>` : ''}
+  const mehr = p.funde.some((x) => x.satz) || p.schritte.length || (p.hinweise || []).length;
+  return `<div data-pruef-dialog="${esc(p.stand)}"><p class="pruef-stand ${esc(p.stand)}" data-pruef-stand><b>${esc(text(s, STAND[p.stand][0], STAND[p.stand][1]))}</b></p>
+   ${p.funde.length ? `<ul class="ki-liste kurz" data-pruef-funde>${p.funde.map((x) => `<li data-kennung="${esc(x.kennung)}">${esc(fundName(x.kennung, s))}</li>`).join('')}</ul>` : ''}
    ${p.markiert ? `<img class="pruef-bild" data-pruef-markiert src="${esc(p.markiert)}" alt="">` : ''}
-   ${(p.hinweise || []).slice(0, 4).map((t) => `<p><small>${esc(t)}</small></p>`).join('')}</div>`;
+   ${mehr ? `<details class="pruef-mehr" data-pruef-mehr><summary>${esc(text(s, 'Einzelheiten', 'Details'))}</summary>
+     ${p.funde.filter((x) => x.satz).map((x) => `<p>${esc(x.satz)}</p>`).join('')}
+     ${p.schritte.length ? `<p><b>${esc(text(s, 'Was jetzt tun', 'What to do now'))}</b></p><ol class="ki-liste" data-was-tun>${p.schritte.map((t) => `<li>${esc(t)}</li>`).join('')}</ol>` : ''}
+     ${(p.hinweise || []).slice(0, 4).map((t) => `<p><small>${esc(t)}</small></p>`).join('')}</details>` : ''}</div>`;
 }
 export const PRUEF_ERKLAERUNG = ['Geprüft wird die Originaldatei, im Gerät und ohne Netz. Gesucht wird nach versteckten Anweisungen an eine KI, unsichtbarem Text und Tarnungen. Es wird nichts entfernt. Das ist keine Virenprüfung.', 'The original file is checked on this device, offline. It looks for hidden instructions to an AI, invisible text and disguises. Nothing is removed. This is not a virus scan.'];
 
-/** Stehen in einem Text Anweisungen an eine KI? (Bildauftrag, Suchfrage.) Zurück: die Stellen; [] wenn nichts oder der Prüfer fehlt. */
+/* Aus einer langen Zeile das Stück um die gefundene Wendung (der Prüfer nennt sie im Satz in Anführungszeichen); sonst der Anfang. */
+function ausschnitt(zeile, satz, breite = 160) {
+  if (zeile.length <= breite) return zeile;
+  const w = /„([^„“”"]{3,})[“”"]/.exec(String(satz || '')), i = w ? zeile.toLowerCase().indexOf(w[1].toLowerCase()) : -1;
+  if (i < 0) return zeile.slice(0, breite - 1) + '…';
+  const a = Math.max(0, i - 40), e = Math.min(zeile.length, a + breite);
+  return (a ? '…' : '') + zeile.slice(a, e) + (e < zeile.length ? '…' : '');
+}
+/** Stehen in einem Text Anweisungen an eine KI? (Bildauftrag, Suchfrage, gelesener Text.) Zurück: die Stellen als
+ *  { zeile, satz, text } – `text` ist die Zeile selbst, damit die App sie markiert zeigen kann; [] wenn nichts oder der Prüfer fehlt.
+ *  Ein "\n" davor: der Prüfer hält eine erste Zeile wie „Hinweis: …“ sonst für einen Mailkopf und verschiebt die Zeilen. */
 export async function kiAnweisungen(t) {
   try { if (!globalThis.PrueferMail) await skript(voll(orte().assets + 'pruefer-mail.js')); } catch { return []; }   // fail-soft: ohne Prüfer kein Halt (benannte Grenze)
-  try { return ((globalThis.PrueferMail.pruefeMail(String(t || '')).stellen) || []).filter((x) => x.kennung === 'KI-ANWEISUNG'); } catch { return []; }
+  try { const roh = String(t || ''), zeilen = roh.split('\n');
+    return ((globalThis.PrueferMail.pruefeMail('\n' + roh).stellen) || []).filter((x) => x.kennung === 'KI-ANWEISUNG').map((x) => { const nr = Math.max(1, x.zeile - 1); return { ...x, zeile: nr, text: ausschnitt(String(zeilen[nr - 1] || '').trim(), x.satz) }; }); } catch { return []; }
 }

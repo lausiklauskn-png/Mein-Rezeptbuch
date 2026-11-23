@@ -7,6 +7,7 @@ import { frageClaude, bildBlock, jsonAusAntwort } from '../ki/claude.mjs';
 import { mistralOcr } from '../ki/ocr.mjs';
 import { scanBildAufbereiten, pdfFuersNetz, meldung, BILD_ROH_MAX } from '../ki/reinigung.mjs';
 import { text, fuelle } from '../oberflaeche/sprache.mjs';
+import { kiAnweisungen } from '../pruefung/datei.mjs';
 
 const EINLEITUNG = {
   bild: 'You are a recipe extraction expert. Look at this recipe image carefully and extract ALL information.',
@@ -44,19 +45,20 @@ export const istPdf = (datei) => !!datei && (datei.type === 'application/pdf' ||
 export const istBild = (datei) => !!datei && (/^image\//.test(datei.type || '') || /\.(jpe?g|png|webp|gif|heic|heif|bmp)$/i.test(datei.name || ''));
 const kb = (u) => Math.round((String(u).length - String(u).indexOf(',') - 1) * 0.75 / 1024);
 
-/** Schritt 1. Zurück: { art:'bild'|'pdf', name, bilder:[data:image/jpeg…], store, liste:[{seite,text,grund}], seiten, gesamt, kb }.
+/** Schritt 1. Zurück: { art:'bild'|'pdf', name, bilder:[data:image/jpeg…], store, liste:[{seite,text,grund}], marken:[{seite,bild}], zugedeckt, seiten, gesamt, kb }.
+ *  marken: Seiten mit Fund, die Stellen rot hinterlegt (zum Zeigen; hinaus gehen nur `bilder`). zudecken=false lässt die Stellen drin.
  *  Wirft mit Klartext, wenn die Datei nicht lesbar oder zu groß ist. Das Original wird nicht verändert. */
-export async function vorbereiten(datei, { sprache = 'de', fortschritt = () => {} } = {}) {
+export async function vorbereiten(datei, { sprache = 'de', fortschritt = () => {}, zudecken = true } = {}) {
   const name = (datei && datei.name) || '';
   if (!datei) throw new Error(text(sprache, 'Keine Datei gewählt.', 'No file chosen.'));
   if (datei.size > BILD_ROH_MAX) throw new Error(meldung('zuGross', sprache, Math.round(BILD_ROH_MAX / 1048576)));
   if (istPdf(datei)) {
-    let r; try { r = await pdfFuersNetz(datei, { fortschritt }); } catch (e) { throw new Error(meldung('pdfKaputt', sprache) + (e && e.message ? ' (' + e.message + ')' : '')); }
-    return { art: 'pdf', name, bilder: r.bilder, store: '', liste: r.liste, seiten: r.seiten, gesamt: r.gesamt, kb: r.bilder.reduce((n, b) => n + kb(b), 0) };
+    let r; try { r = await pdfFuersNetz(datei, { fortschritt, zudecken }); } catch (e) { throw new Error(meldung('pdfKaputt', sprache) + (e && e.message ? ' (' + e.message + ')' : '')); }
+    return { art: 'pdf', name, bilder: r.bilder, store: '', liste: r.liste, marken: r.marken || [], zugedeckt: !!zudecken, seiten: r.seiten, gesamt: r.gesamt, kb: r.bilder.reduce((n, b) => n + kb(b), 0) };
   }
   const b = await scanBildAufbereiten(datei);
   if (!b || !b.netz) throw new Error(meldung('fotoKaputt', sprache));
-  return { art: 'bild', name, bilder: [b.netz], store: b.store, liste: [], seiten: 1, gesamt: 1, kb: kb(b.netz) };
+  return { art: 'bild', name, bilder: [b.netz], store: b.store, liste: [], marken: [], zugedeckt: true, seiten: 1, gesamt: 1, kb: kb(b.netz) };
 }
 
 /** Ein Satz dazu, was hinausgeht und an wen – steht vor dem Senden auf dem Blatt. */
@@ -69,14 +71,22 @@ export function wasGehtHinaus(v, anbieter = 'anthropic', sprache = 'de') {
   return text(sprache, 'Hinaus geht: ', 'Sent: ') + was + ' ' + wohin + (v.gesamt > v.seiten ? ' ' + meldung('seitenMax', sprache, v.seiten, v.gesamt) : '');
 }
 
-/** Schritt 2. schluessel: { anthropic, mistral }. Zurück: das gelesene Rezept als Roh-Objekt (siehe auftrag). */
-export async function erkennen(v, { anbieter = 'anthropic', stufe = 'schnell', schluessel = {}, kategorien = [], hol = fetch, sprache = 'de', fortschritt = () => {} } = {}) {
+/** Dieselbe Auskunft in einer kurzen Zeile für das Blatt („Anthropic · 83 KB“); der ganze Satz steht hinter dem „?“. */
+export function wohinKurz(v, anbieter = 'anthropic', sprache = 'de') {
+  return (anbieter === 'mistral' ? text(sprache, 'Mistral, dann Anthropic', 'Mistral, then Anthropic') : 'Anthropic') + ' · ' + v.kb + ' KB' + (v.art === 'pdf' ? ' · ' + (v.bilder.length === 1 ? text(sprache, '1 Seite', '1 page') : fuelle(text(sprache, '{0} Seiten', '{0} pages'), v.bilder.length)) + (v.gesamt > v.seiten ? ' ' + fuelle(text(sprache, 'von {0}', 'of {0}'), v.gesamt) : '') : '');
+}
+
+/** Schritt 2. schluessel: { anthropic, mistral }. Zurück: das gelesene Rezept als Roh-Objekt (siehe auftrag).
+ *  beiAnweisung(stellen, text) → Promise<boolean>: nur auf dem Mistral-Weg; wird gefragt, wenn im gelesenen Text ein Befehl an eine KI steht. */
+export async function erkennen(v, { anbieter = 'anthropic', stufe = 'schnell', schluessel = {}, kategorien = [], hol = fetch, sprache = 'de', fortschritt = () => {}, beiAnweisung = null, pruefe = kiAnweisungen } = {}) {
   let inhalt;
   if (anbieter === 'mistral') {
     const teile = [];
     for (let i = 0; i < v.bilder.length; i++) { fortschritt(fuelle(text(sprache, 'Mistral liest den Text ({0} von {1}) …', 'Mistral is reading the text ({0} of {1}) …'), i + 1, v.bilder.length)); teile.push((await mistralOcr(schluessel.mistral, v.bilder[i], { hol, sprache })).text); }
     const gelesen = teile.join('\n\n').trim();
     if (!gelesen) throw new Error(text(sprache, 'Die Texterkennung hat keinen Text gefunden.', 'Text recognition found no text.'));
+    /* Der gelesene Text geht gleich an Claude: steht darin ein Befehl an eine KI, entscheidet erst der Mensch (beiAnweisung → true = trotzdem senden). */
+    if (beiAnweisung) { const stellen = await pruefe(gelesen); if (stellen.length && !(await beiAnweisung(stellen, gelesen))) { const f = new Error(text(sprache, 'Nicht gesendet.', 'Not sent.')); f.abgebrochen = true; throw f; } }
     inhalt = [{ type: 'text', text: gelesen }, { type: 'text', text: auftrag('text', kategorien) }];
   } else inhalt = [...v.bilder.map(bildBlock), { type: 'text', text: auftrag(v.bilder.length > 1 ? 'seiten' : 'bild', kategorien) }];
   fortschritt(text(sprache, 'Claude liest das Rezept …', 'Claude is reading the recipe …'));

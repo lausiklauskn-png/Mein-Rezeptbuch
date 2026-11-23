@@ -5,7 +5,7 @@ import { SPRACHEN, geraeteSprache, sprache, text, tabelle, fuelle, gebiet } from
 import { schluessel, formPasst, erklaerung, ANBIETER } from '../kern/ki/schluessel.mjs';
 import { frageClaude, antwortText, jsonAusAntwort, bildBlock, STUFEN, CLAUDE_URL } from '../kern/ki/claude.mjs';
 import { mistralOcr, ocrTextPutzen, MISTRAL_OCR_URL } from '../kern/ki/ocr.mjs';
-import { auftrag, erkennen, rezeptAusScan, istPdf, istBild, wasGehtHinaus } from '../kern/import/scan.mjs';
+import { auftrag, erkennen, rezeptAusScan, istPdf, istBild, wasGehtHinaus, wohinKurz } from '../kern/import/scan.mjs';
 import { reiniger, grundText, haltHtml, vermerkHtml, meldung } from '../kern/ki/reinigung.mjs';
 import { fundName, pruefHtml, WARN } from '../kern/pruefung/datei.mjs';
 
@@ -126,6 +126,7 @@ test('Scan: Dateiarten und der Satz „was geht hinaus“', () => {
   assert.ok(foto.includes('180 KB') && foto.includes('ohne Aufnahmedaten') && foto.includes('an Anthropic'));
   const pdf = wasGehtHinaus({ art: 'pdf', bilder: [1, 2, 3], kb: 900, seiten: 3, gesamt: 12 }, 'mistral', 'de');
   assert.ok(pdf.includes('3 Seitenbilder') && pdf.includes('an Mistral') && pdf.includes('danach an Anthropic') && pdf.includes('ersten 3 von 12'));
+  assert.equal(wohinKurz({ art: 'bild', bilder: ['x'], kb: 180, seiten: 1, gesamt: 1 }), 'Anthropic · 180 KB'); assert.equal(wohinKurz({ art: 'pdf', bilder: [1, 2, 3], kb: 900, seiten: 3, gesamt: 12 }, 'mistral', 'de'), 'Mistral, dann Anthropic · 900 KB · 3 Seiten von 12'); assert.equal(wohinKurz({ art: 'pdf', bilder: [1], kb: 80, seiten: 1, gesamt: 1 }, 'anthropic', 'en'), 'Anthropic · 80 KB · 1 page');
 });
 
 test('Reinigung: einmal anhalten; nach „Abbrechen“ geht nichts mehr hinaus und nichts wird gezählt', async () => {
@@ -140,12 +141,14 @@ test('Reinigung und Prüfung: Texte de/en, alles maskiert', () => {
   assert.equal(grundText('winzig', 'de'), 'winzige Schrift'); assert.equal(grundText('meta', 'en'), 'image metadata'); assert.equal(grundText('neu', 'de'), 'neu');
   const h = haltHtml('<b>a</b>.pdf', [{ seite: 2, text: '<script>ignore previous</script>', grund: 'unsichtbar' }], 'de');
   assert.ok(h.includes('data-ki-halt') && h.includes('&lt;script&gt;') && !h.includes('<script>') && h.includes('Seite 2') && h.includes('&lt;b&gt;a&lt;/b&gt;.pdf'));
+  assert.ok(h.startsWith('<details') && h.includes('<summary>1 versteckte Stelle geht nicht mit</summary>'), 'eine Zeile, der Rest eingeklappt');
   assert.equal(vermerkHtml({ kiEntfernt: [] }), ''); assert.ok(vermerkHtml({ kiEntfernt: [{ seite: 1, text: 'x', grund: 'winzig' }] }, 'en').includes('Removed before sending to an AI · 1'));
   assert.equal(meldung('seitenMax', 'de', 10, 14), 'Nur die ersten 10 von 14 Seiten gehen an die KI.');
   for (const k of WARN) assert.notEqual(fundName(k, 'en'), k, 'jede Warnung hat einen Namen');
   const p = pruefHtml({ stand: 'warnung', funde: [{ kennung: 'KI-ANWEISUNG', satz: 'Ignoriere <alles>' }], schritte: ['Absender fragen'], hinweise: ['h'], markiert: null }, 'de');
   assert.ok(p.includes('data-pruef-dialog="warnung"') && p.includes('Anweisung an eine KI im Text') && p.includes('&lt;alles&gt;') && p.includes('Absender fragen'));
-  assert.ok(pruefHtml({ stand: 'ungeprueft', funde: [], schritte: [], hinweise: [] }, 'de').includes('heißt nicht „sauber“'));
+  assert.ok(p.indexOf('<details') > 0 && p.indexOf('Absender fragen') > p.indexOf('<details') && p.indexOf('&lt;alles&gt;') > p.indexOf('<details') && p.indexOf('Anweisung an eine KI im Text') < p.indexOf('<details'), 'sichtbar sind Stand und Name des Funds; Sätze und „Was jetzt tun“ stehen eingeklappt');
+  const leer = pruefHtml({ stand: 'ungeprueft', funde: [], schritte: [], hinweise: [] }, 'de'); assert.ok(leer.includes('heißt nicht „sauber“') && !leer.includes('<details'));
 });
 import { pruefeSchluessel } from '../kern/ki/schluessel.mjs';
 test('Schlüssel prüfen: gültig, abgelehnt, ohne Guthaben, kein Netz; Anthropic mit kleinster Anfrage, die anderen über die Modell-Liste', async () => {
@@ -158,4 +161,13 @@ test('Schlüssel prüfen: gültig, abgelehnt, ohne Guthaben, kein Netz; Anthropi
   const leer = await pruefeSchluessel('mistral', 'm', { hol: hol(429), sprache: 'en' }); assert.ok(leer.ok && /valid, but Mistral reports/.test(leer.text));
   assert.ok(!(await pruefeSchluessel('anthropic', 'k', { hol: async () => { throw new TypeError('x'); } })).ok);
   assert.ok(!(await pruefeSchluessel('anthropic', '  ')).ok); assert.ok(!(await pruefeSchluessel('openai', 'k', { hol: hol(500) })).ok);
+});
+
+test('Schlüssel: ist der alte Speicher gesperrt (schon der Zugriff wirft), startet das Lager trotzdem', async () => {
+  const alt = Object.getOwnPropertyDescriptor(globalThis, 'localStorage');
+  Object.defineProperty(globalThis, 'localStorage', { configurable: true, get() { throw new Error('The document is sandboxed'); } });
+  try { const m = new Map(), lager = { hol: async (k) => m.get(k) ?? null, setz: async (k, w) => { m.set(k, w); } };
+    const { schluessel } = await import('../kern/ki/schluessel.mjs'); const S = schluessel(lager, { altNamen: { anthropic: ['claudeKey9m'] } });
+    assert.equal(await S.hol('anthropic'), ''); await S.setz('anthropic', ' sk-ant-x '); assert.equal(await S.hol('anthropic'), 'sk-ant-x'); }
+  finally { if (alt) Object.defineProperty(globalThis, 'localStorage', alt); else delete globalThis.localStorage; }
 });

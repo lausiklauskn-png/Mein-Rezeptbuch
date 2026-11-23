@@ -72,37 +72,90 @@ function seiteJpeg(c, deckel = BILD_NETZ_B64_MAX) {
   const f = Math.sqrt(deckel / u.length) * 0.95, k = document.createElement('canvas'); k.width = Math.max(1, Math.round(c.width * f)); k.height = Math.max(1, Math.round(c.height * f));
   const kx = k.getContext('2d'); kx.fillStyle = '#fff'; kx.fillRect(0, 0, k.width, k.height); kx.drawImage(c, 0, 0, k.width, k.height); u = k.toDataURL('image/jpeg', 0.85); k.width = k.height = 0; return u;
 }
-/** Ein PDF als Seitenbilder. Zurück: { bilder:[data:image/jpeg], liste:[{seite,text,grund}], seiten, gesamt }.
+/* Der Prüfer für Anweisungen an eine KI (assets/pruefer-mail.js, byte-gleich aus Workflow PDF). Fehlt er, wird ohne ihn gereinigt (benannte Grenze). */
+async function mailPruefer() { try { if (!globalThis.PrueferMail) await skript(voll(ORT.assets + 'pruefer-mail.js')); return globalThis.PrueferMail || null; } catch { return null; } }
+/* Welche Zeilen (Texte) richten sich an eine KI? Zurück: Menge der Zeilennummern. Ein "\n" davor, sonst hält der Prüfer die erste Zeile für einen Mailkopf. */
+function anweisungsZeilen(PM, zeilen) {
+  const aus = new Set(); if (!PM || !zeilen.length) return aus;
+  try { for (const st of PM.pruefeMail('\n' + zeilen.join('\n')).stellen || []) if (st.kennung === 'KI-ANWEISUNG') aus.add(Math.max(1, st.zeile - 1) - 1); } catch { /* ohne Prüfer keine Aussage */ }
+  return aus;
+}
+export const MARKE_KANTE = 1100, MARKE_ROT = '#d61e1e';
+/* Die Fundstellen einer Seite sichtbar machen (Klaus 23.11.: „eine rote Fläche dahinter, und der weiße Text ist zu sehen“).
+   c: die noch ungereinigte Seite; funde: [{ s, x, y, w, fh (Seiteneinheiten), versteckt }]; m: Bildpunkte je Einheit. */
+function markeZeichnen(c, funde, m) {
+  const f = Math.min(1, MARKE_KANTE / Math.max(c.width, c.height)), k = document.createElement('canvas'); k.width = Math.max(1, Math.round(c.width * f)); k.height = Math.max(1, Math.round(c.height * f));
+  const g = k.getContext('2d'); g.drawImage(c, 0, 0, k.width, k.height); g.textBaseline = 'middle';
+  let unten = 0;   /* damit sich zwei Marken nicht überdecken, rückt die nächste darunter */
+  for (const t of funde) {
+    const h = Math.max(18, Math.min(34, t.fh * m * f * 1.3)), schrift = Math.round(h * 0.62);
+    g.font = `600 ${schrift}px system-ui, sans-serif`;
+    const text = String(t.s).trim().replace(/\s+/g, ' ');
+    if (!t.versteckt) {   /* sichtbarer Text: nur umranden, er ist ja zu lesen */
+      const x = Math.max(0, t.x * m * f - 3), y = Math.max(0, (t.y - t.fh) * m * f - 3), w = Math.min(k.width - x, Math.max(t.w, t.fh) * m * f + 6), hh = Math.max(10, t.fh * 1.3 * m * f + 6);
+      g.fillStyle = 'rgba(214,30,30,.16)'; g.fillRect(x, y, w, hh); g.lineWidth = 2; g.strokeStyle = MARKE_ROT; g.strokeRect(x + 1, y + 1, w - 2, hh - 2); continue;
+    }
+    const w = Math.min(k.width - 8, g.measureText(text).width + schrift);
+    let x = Math.min(Math.max(4, t.x * m * f), Math.max(4, k.width - w - 4)), y = Math.min(Math.max(4, t.y * m * f - h), k.height - h - 4);
+    if (y < unten && y + h > unten - h) y = Math.min(unten + 2, k.height - h - 4);
+    unten = y + h;
+    g.fillStyle = MARKE_ROT; g.fillRect(x, y, w, h); g.fillStyle = '#fff';
+    let s = text; while (s.length > 4 && g.measureText(s).width > w - schrift) s = s.slice(0, -2); g.fillText(s === text ? s : s.slice(0, -1) + '…', x + schrift / 2, y + h / 2);
+  }
+  const u = k.toDataURL('image/jpeg', 0.86); k.width = k.height = 0; return u;
+}
+/** Ein PDF als Seitenbilder. Zurück: { bilder:[data:image/jpeg], liste:[{seite,text,grund,anweisung?}], marken:[{seite,bild}], seiten, gesamt }.
+ *  liste: versteckter Text (grund winzig|aussen|unsichtbar), sichtbare Anweisungen an eine KI (grund 'anweisung') und entfernte
+ *  Bild-Metadaten (grund 'meta'). marken: je Seite mit Fund ein Bild, auf dem die Stellen rot hinterlegt zu lesen sind.
+ *  zudecken=true (Vorgabe): die Stellen sind in `bilder` zugedeckt; false: die Seiten gehen, wie sie gezeichnet sind („Drin lassen“).
  *  fortschritt(seite, von) meldet den Stand. */
-export async function pdfFuersNetz(quelle, { fortschritt = () => {}, seitenMax = PDF_SEITEN_MAX } = {}) {
-  const RE = await reinigungLaden(), L = await pdfjsLaden();
+export async function pdfFuersNetz(quelle, { fortschritt = () => {}, seitenMax = PDF_SEITEN_MAX, zudecken = true } = {}) {
+  const RE = await reinigungLaden(), L = await pdfjsLaden(), PM = await mailPruefer();
   const pdf = await L.getDocument({ data: await bytesAus(quelle), isEvalSupported: false }).promise;   // isEvalSupported:false: CVE-2024-4367
-  const n = Math.min(pdf.numPages, seitenMax), bilder = [], liste = [];
+  const n = Math.min(pdf.numPages, seitenMax), bilder = [], liste = [], marken = [];
   for (let i = 1; i <= n; i++) {
     fortschritt(i, n);
     const p = await pdf.getPage(i), v1 = p.getViewport({ scale: 1 }), vp = p.getViewport({ scale: Math.min(PDF_DPI / 72, PDF_MAX_KANTE / Math.max(v1.width, v1.height)) });
     const c = document.createElement('canvas'); c.width = Math.round(vp.width); c.height = Math.round(vp.height);
     const x = c.getContext('2d', { willReadFrequently: true }); x.fillStyle = '#fff'; x.fillRect(0, 0, c.width, c.height);
     await p.render({ canvasContext: x, viewport: vp }).promise;
-    let zu = 0;
     try {
-      const img = x.getImageData(0, 0, c.width, c.height), tc = await p.getTextContent();
+      const img = x.getImageData(0, 0, c.width, c.height), tc = await p.getTextContent(), stuecke = [];
       for (const t of tc.items) {
         if (!t.str || !t.str.trim()) continue;
         const tr = L.Util.transform(vp.transform, t.transform);
         if (Math.abs(Math.atan2(tr[1], tr[0])) > 0.05) continue;   // schräger Text: nicht beurteilt (Grenze)
         const st = { s: t.str, x: tr[4] / vp.scale, y: tr[5] / vp.scale, w: t.width, fh: Math.hypot(tr[2], tr[3]) / vp.scale };
-        const g = RE.versteckt(st, img, vp.scale);
-        if (g) { liste.push({ seite: i, text: t.str, grund: g }); RE.zudecken(img, st, vp.scale); zu++; }
+        st.grund = RE.versteckt(st, img, vp.scale); st.versteckt = !!st.grund; stuecke.push(st);
       }
-      if (zu) x.putImageData(img, 0, 0);
+      /* Zeilen bilden (Stücke auf gleicher Grundlinie) und je Zeile fragen, ob sie sich an eine KI richtet. */
+      const zeilen = []; for (const st of stuecke) { const z = zeilen[zeilen.length - 1]; if (z && Math.abs(z[0].y - st.y) < Math.max(z[0].fh, st.fh) * 0.5 && z[0].versteckt === st.versteckt) z.push(st); else zeilen.push([st]); }
+      const an = anweisungsZeilen(PM, zeilen.map((z) => z.map((st) => st.s).join(' ')));
+      zeilen.forEach((z, nr) => { if (an.has(nr)) for (const st of z) { st.anweisung = true; if (!st.grund) st.grund = 'anweisung'; } });
+      const funde = stuecke.filter((st) => st.grund);
+      if (funde.length) {
+        marken.push({ seite: i, bild: markeZeichnen(c, funde, vp.scale) });
+        for (const st of funde) liste.push({ seite: i, text: st.s, grund: st.grund, ...(st.anweisung ? { anweisung: true } : {}) });
+        if (zudecken) {
+          for (const st of funde) if (st.versteckt) RE.zudecken(img, st, vp.scale);
+          x.putImageData(img, 0, 0); x.fillStyle = '#fff';
+          for (const st of funde) if (!st.versteckt) x.fillRect(st.x * vp.scale - 2, (st.y - st.fh * 1.1) * vp.scale, Math.max(st.w, st.fh) * vp.scale + 4, st.fh * 1.45 * vp.scale);   /* sichtbare Anweisung: weiß überdeckt */
+        }
+      }
     } catch { /* ohne Textebene bleibt die Seite, wie sie gezeichnet ist */ }
     const m = RE.datenAdresseOhneMeta(seiteJpeg(c));
     m.entfernt.forEach((e) => liste.push({ seite: i, text: e.art + ' (' + e.bytes + ' Byte)', grund: 'meta' }));
     bilder.push(m.url); c.width = c.height = 0; try { p.cleanup(); } catch { /* schon frei */ }
   }
   const gesamt = pdf.numPages; try { pdf.destroy(); } catch { /* schon frei */ }
-  return { bilder, liste, seiten: n, gesamt };
+  return { bilder, liste, marken, seiten: n, gesamt };
+}
+/** Die Funde, über die ein Mensch entscheidet (versteckter Text, Anweisungen an eine KI); Metadaten gehen still heraus. */
+export const fundeZumEntscheiden = (liste) => (liste || []).filter((e) => e.grund !== 'meta');
+/** Ein kurzer Name für das, was gefunden wurde: „Versteckter Text“ oder „Befehl an eine KI“ (mit Zahl ab zwei). */
+export function fundName(liste, s = 'de') {
+  const f = fundeZumEntscheiden(liste), n = f.length, ki = f.some((e) => e.anweisung || e.grund === 'anweisung');
+  return (ki ? text(s, 'Befehl an eine KI', 'Instruction to an AI') : text(s, 'Versteckter Text', 'Hidden text')) + (n > 1 ? ' · ' + n : '');
 }
 
 /** Hält einen Sendevorgang EINMAL an. frage(name, liste) → Promise<true|false> zeigt den Dialog (Sache der App).
@@ -115,15 +168,17 @@ export function reiniger(frage) {
 export function vermerken(rezept, liste, weg = 'scan') { const R = globalThis.WFP && globalThis.WFP.Reinigung; if (!rezept || !liste || !liste.length || !R) return 0; return R.vermerken(rezept, liste, weg); }
 
 /* ---------- Texte (de/en im Code, die übrigen Sprachen über die Tabellen) ---------- */
-const GRUND = { winzig: ['winzige Schrift', 'tiny text'], aussen: ['außerhalb der Seite', 'outside the page'], unsichtbar: ['auf der Seite nicht zu sehen', 'not visible on the page'], meta: ['Bild-Metadaten', 'image metadata'] };
+const GRUND = { anweisung: ['Befehl an eine KI', 'instruction to an AI'], winzig: ['winzige Schrift', 'tiny text'], aussen: ['außerhalb der Seite', 'outside the page'], unsichtbar: ['auf der Seite nicht zu sehen', 'not visible on the page'], meta: ['Bild-Metadaten', 'image metadata'] };
 export const grundText = (g, s = 'de') => (GRUND[g] ? text(s, GRUND[g][0], GRUND[g][1]) : String(g || ''));
 const esc = (t) => String(t ?? '').replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
 const stueck = (e, s) => `<li data-ki-entfernt-stueck data-grund="${esc(e.grund)}"><b>${esc(grundText(e.grund, s))}</b>${e.seite ? ' · ' + esc(text(s, 'Seite', 'Page')) + ' ' + esc(e.seite) : ''}<br>„${esc(String(e.text).slice(0, 120))}“</li>`;
-/** Inhalt des Halt-Dialogs (ohne Knöpfe; die setzt die App: „Ohne ihn senden“ / „Abbrechen“). */
+/** Inhalt des Halt-Hinweises: EINE Zeile („2 versteckte Stellen gehen nicht mit“), die Stellen selbst eingeklappt dahinter.
+ *  Klaus 23.11.: keine Absätze; ein Kochbuch ist ein Bilderbuch. Die Knöpfe setzt die App („Ohne ihn senden“ / „Abbrechen“). */
 export function haltHtml(name, liste, s = 'de') {
-  return `<div data-ki-halt><p>${esc(fuelle(text(s, 'In „{0}“ steht Text, den man auf der Seite nicht sieht. Eine KI würde ihn trotzdem lesen.', '“{0}” contains text you cannot see on the page. An AI would still read it.'), name || 'PDF'))}</p>
-   <ul class="ki-liste">${liste.slice(0, 8).map((e) => stueck(e, s)).join('')}</ul>${liste.length > 8 ? `<p><small>${esc(text(s, '… und weitere Stellen.', '… and more.'))}</small></p>` : ''}
-   <p>${esc(text(s, 'Gesendet wird die sichere Fassung, ohne diesen Text. Die Datei selbst bleibt unverändert.', 'The safe version is sent, without this text. The file itself stays unchanged.'))}</p></div>`;
+  const n = liste.length;
+  return `<details class="ki-halt" data-ki-halt><summary>${esc(n === 1 ? text(s, '1 versteckte Stelle geht nicht mit', '1 hidden passage is not sent') : fuelle(text(s, '{0} versteckte Stellen gehen nicht mit', '{0} hidden passages are not sent'), n))}</summary>
+   <p>${esc(fuelle(text(s, 'In „{0}“ steht Text, den man auf der Seite nicht sieht. Eine KI würde ihn lesen. Gesendet wird die Fassung ohne ihn; die Datei bleibt unverändert.', '“{0}” contains text you cannot see on the page. An AI would read it. The version without it is sent; the file stays unchanged.'), name || 'PDF'))}</p>
+   <ul class="ki-liste">${liste.slice(0, 8).map((e) => stueck(e, s)).join('')}</ul>${n > 8 ? `<p><small>${esc(text(s, '… und weitere Stellen.', '… and more.'))}</small></p>` : ''}</details>`;
 }
 export const HALT_JA = ['Ohne ihn senden', 'Send without it'], HALT_TITEL = ['Versteckten Text gefunden', 'Hidden text found'];
 /** Der Vermerk auf der Rezeptseite: aufklappbar, was vor dem Senden entfernt wurde. '' wenn nichts vermerkt ist. */
