@@ -1,11 +1,11 @@
 {
- "fassung": "0.16.0",
- "inhalt": "Ausgaben-Schalter, Rezeptmodell, Kategorien, Suche, Sicherung, Übernahme, Speicher, Mengen, Symbole, Farben, Bild, Kochansicht (Zutaten je Schritt, Zeit, Geräte), Einkaufsliste, Wochenplan, Text-Import, Spracheingabe, Bildauftrag je Ausgabe, englische Namen für Farben, Töne, Geräte und Schrift-Regler, Kategorien und Einkauf je Ausgabe (kategorienMit mit Familien-Namen, einkaufMit), Sticker-Bild je Kategorie (katBild), Text-Import mit Bar- und US-Einheiten, Hinweis-Blasen (Tooltips)",
+ "fassung": "0.17.0",
+ "inhalt": "Ausgaben-Schalter, Rezeptmodell, Kategorien, Suche, Sicherung, Übernahme, Speicher, Mengen, Symbole, Farben, Bild, Kochansicht (Zutaten je Schritt, Zeit, Geräte), Einkaufsliste, Wochenplan, Text-Import, Spracheingabe, Bildauftrag je Ausgabe, englische Namen für Farben, Töne, Geräte und Schrift-Regler, Kategorien und Einkauf je Ausgabe (kategorienMit mit Familien-Namen, einkaufMit), Sticker-Bild je Kategorie (katBild), Text-Import mit Bar- und US-Einheiten, Hinweis-Blasen (Tooltips), Ladebalken für alle Wartezeiten",
  "dateien": {
-  "kern/README.md": "7ca2041586fda725efb606444c970cf6311d9e6b93fdc9d691ab4630ef771643",
+  "kern/README.md": "7a2c8627e3c8964c46533969a6dde599836a54080c16389694381477091dc9a5",
   "kern/ausgabe/ausgabe.mjs": "56d01a3a8b5855af233956c5ecf83d66df138ddc0896cede65a74192fd626ecf",
   "kern/import/text.mjs": "261a6fb5f36b8d8e27816c2396a6453df13b47e6b0f1a88c870bc989bfb141e0",
-  "kern/kern-stand.mjs": "535081230d26ce745722ca1a8a0168d01ca49d16cb3af24639206d3866807ecf",
+  "kern/kern-stand.mjs": "c822169f59ffe21c7ddb349d0b10d803ff8f9413c2ebd98f2065398526833695",
   "kern/ki/bild.mjs": "db6a1e7ec3ded4666dcf29cbaef2661681f54cb643357a5efb1d92865ed53739",
   "kern/modell/einkauf.mjs": "fc7af5526a66c1ca704c97aec1c69dc1be9d7cb901f6aa90b5a9935eea663cbb",
   "kern/modell/kategorien-fest.mjs": "d7d5acf5934bb92898d04ef299f69638a33fb482586c2491555e5299733e010f",
@@ -24,6 +24,7 @@
   "kern/oberflaeche/hinweis.mjs": "376023bf5687a9243852601a1ee603feb4643b2c77264e3f93466bf4f24bed42",
   "kern/oberflaeche/schrift.mjs": "787f70003f4ac0582caf1d827a5d12097e46118e6350545e69c9d088a400e258",
   "kern/oberflaeche/symbole.mjs": "98bca7a15e44b18248abdaf8460a38fb59e5e8134bf7cfc6ab52e94d27bdb943",
+  "kern/oberflaeche/warten.mjs": "2987d4e43bd5e30a48b6c16bce82c267a27ce510435cf8cb005ded360f8283b5",
   "kern/pruefung/paket.mjs": "07aafc7db36b5fc553c044a72a0a9ac2668a0343b1308092c22f3339506d8b11",
   "kern/sicherung/sicherung.mjs": "d26f08cab10b9d7802e93219186a6cdc0a93847124259e2eb74870937a63a249",
   "kern/speicher/speicher.mjs": "f4933d93cd2c945480c0e2dc9335c40b3ff21440bc62a8e706fa1ff74e8e6010",

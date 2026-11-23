@@ -51,6 +51,7 @@ Das Alkohol-Paket aus `beispiele/` ist im Katalog nur für `mixarium-voll` freig
 | `modell/plan.mjs` | Wochenplan: Woche Mo–So mit Kalenderwoche, planen, altes Menü übernehmen |
 | `import/text.mjs` | Rezept aus eingefügtem Text ohne KI (Überschriften, Mengen, Einheiten auch oz/fl oz/Barlöffel/Dash/Schuss/cup, Portionen, Zeit) |
 | `oberflaeche/hinweis.mjs` | Hinweis-Blasen (Tooltips) aus `title`, wie das Floating-Tooltip der alten Apps; ausschaltbar; nimmt dem Element das `title`, damit nicht zwei Blasen erscheinen |
+| `oberflaeche/warten.mjs` | Ladebalken für jede Wartezeit (KI, Bild, Sprachmodell, Pakete, Dateien): oben ein Balken, unten eine Zeile mit Text und Sekundenzähler; `modellFortschritt` liest den Download-Stand des Sprachmodells, `bytesMitAnteil` den einer Datei |
 | `oberflaeche/diktat.mjs` | Spracheingabe für Textfelder (Web Speech im Browser) |
 | `speicher/speicher.mjs` | Zustand im Gerät (IndexedDB), eine Datenbank je Ausgabe |
 | `oberflaeche/` | Symbole (Phosphor Duotone, nur die genutzten), Farbpaletten mit `farbName`/`tonName` (de/en), Schrift-Regler (`schriftRegler(wert, sprache)`), Bild aus Datei verkleinern |
