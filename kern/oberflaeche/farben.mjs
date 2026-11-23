@@ -1,4 +1,5 @@
 // Küchen-Kern · Farbpaletten: Wasserfarben der Privaten Akte plus Hellbraun und Dunkelbraun (Klaus 23.11.).
+import { text } from './sprache.mjs';
 export const FARBEN = {
   braun: { de: 'Hellbraun', en: 'Light brown', k: ['#e9cfae', '#f1dfc6', '#f8eedf'], schrift: '#3b2614', akz: '#a9480c', fl: '#f6ece0' },
   dunkel: { de: 'Dunkelbraun', en: 'Dark brown', dunkel: true, k: ['#4a3424', '#3a2a1d', '#2b2016'], schrift: '#f4ece2', akz: '#f2a65e', fl: '#2b241d' },
@@ -12,9 +13,9 @@ export const FARBEN = {
 };
 export const TOENE = { geraet: 'Wie das Gerät', hell: 'Hell', dunkel: 'Dunkel' };
 export const TOENE_EN = { geraet: 'Same as device', hell: 'Light', dunkel: 'Dark' };
-/** Name einer Farbe bzw. eines Tons in der Sprache der Oberfläche (de, sonst en). */
-export const farbName = (name, sprache = 'de') => { const f = FARBEN[name] || FARBEN.braun; return sprache === 'de' ? f.de : f.en; };
-export const tonName = (ton, sprache = 'de') => (sprache === 'de' ? TOENE : TOENE_EN)[ton] || (sprache === 'de' ? TOENE : TOENE_EN).geraet;
+/** Name einer Farbe bzw. eines Tons in der Sprache der Oberfläche (de, en; die übrigen Sprachen über die Tabellen, sonst en). */
+export const farbName = (name, sprache = 'de') => { const f = FARBEN[name] || FARBEN.braun; return text(sprache, f.de, f.en); };
+export const tonName = (ton, sprache = 'de') => { const t = typeof TOENE[ton] === 'string' ? ton : 'geraet'; return text(sprache, TOENE[t], TOENE_EN[t]); };
 /** true, wenn die Palette mit diesem Ton dunkel gezeigt wird. ton: 'geraet' | 'hell' | 'dunkel'. Dunkelbraun ist immer dunkel. */
 export function istDunkel(name, ton = 'geraet') {
   if ((FARBEN[name] || FARBEN.braun).dunkel) return true;
