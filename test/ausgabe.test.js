@@ -63,3 +63,13 @@ import { stand } from '../kern/kern-stand.mjs';
 test('KERN.json passt zum Stand von kern/ (sonst: node kern/kern-stand.mjs)', () => {
   assert.deepEqual(lesen('KERN.json'), stand());
 });
+
+import { readFileSync as lesDatei, existsSync as gibtEs } from 'node:fs';
+import { dirname as ordnerVon, join as verbinde, normalize as glatt } from 'node:path';
+test('Service Worker der neuen PWA: jedes eingebundene Modul steht im Vorrat, jede Datei im Vorrat gibt es', () => {
+  const gesehen = new Set(); const imp = (p) => { if (gesehen.has(p)) return; gesehen.add(p); for (const m of lesDatei(p, 'utf8').matchAll(/from '(\.[^']+)'/g)) imp(glatt(verbinde(ordnerVon(p), m[1]))); }; imp('neu/app.mjs');
+  const sw = lesDatei('neu/sw.js', 'utf8'), vorrat = JSON.parse(sw.slice(sw.indexOf('const VORRAT = ') + 15, sw.indexOf('];') + 1)).map((v) => glatt(verbinde('neu', v.split('?')[0])));
+  for (const p of gesehen) assert.ok(vorrat.includes(glatt(p)), `fehlt im Vorrat: ${p}`);
+  for (const v of vorrat) assert.ok(gibtEs(v) , `im Vorrat, aber nicht da: ${v}`);
+  assert.equal(JSON.parse(lesDatei('neu/manifest.webmanifest', 'utf8')).id, '/Mein-Rezeptbuch/neu/index.html', 'eigene Manifest-Kennung, nicht die der alten App');
+});

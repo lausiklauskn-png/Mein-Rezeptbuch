@@ -37,7 +37,7 @@ try {
   await p.goBack(); await p.waitForSelector('.fotokat'); ok(await p.locator('.karte').count() === 7, 'Zurück-Taste führt in die Kategorie zurück');
 
   console.log('4 · Anlegen, neue Kategorie, Neuladen');
-  await p.click('[data-a=neu]'); await p.fill('[name=name]', 'Probe <b>Suppe</b>'); await p.fill('[name=katneu]', 'Eintöpfe');
+  await p.click('[data-a=neu]'); ok(await p.locator('.imp-tabs button').count() === 4, 'das Plus öffnet das Blatt mit allen Wegen'); await p.click('[data-a=neu-form]'); await p.fill('[name=name]', 'Probe <b>Suppe</b>'); await p.fill('[name=katneu]', 'Eintöpfe');
   await p.fill('[name=ings]', '500 g Kartoffeln (mehlig)\n1 ½ l Brühe\nSalz'); await p.fill('[name=steps]', 'Schälen.\n\nKochen.'); await p.click('button[type=submit]');
   await p.waitForSelector('.rezept-held h1'); ok((await p.locator('h1').innerText()) === 'Probe <b>Suppe</b>', 'Name wird als Text gezeigt, nicht als HTML');
   const zl = await p.locator('.zut li').allInnerTexts(); ok(zl.length === 3 && zl[0].startsWith('500 g') && zl[0].includes('mehlig') && zl[1].startsWith('1 ½ l'), 'Zutaten: Menge, Einheit, Name, Notiz getrennt', zl.join(' | '));
@@ -160,6 +160,21 @@ try {
   await p.locator('#zs-zoom').evaluate((e) => { e.value = 200; e.dispatchEvent(new Event('input', { bubbles: true })); }); await p.click('[data-a=zs-ok]');
   const stil = await p.locator('.rezept-held > img').getAttribute('style'); ok(/object-position:50% 0%/.test(stil) && /scale\(2\)/.test(stil), 'Bildausschnitt: Lage oben und Zoom 2 sind am Kopfbild', stil);
   await p.waitForTimeout(350); await p.reload(); await p.waitForSelector('.gruss'); await p.fill('#suchfeld', 'Dragon'); ok(/scale\(2\)/.test(await p.locator('.karte img').first().getAttribute('style') || ''), 'der Ausschnitt gilt auch auf der Karte und nach dem Neuladen');
+  await k.close();
+
+  console.log('12 · Text-Import ohne KI, ohne Netz');
+  ({ p, k } = await seite());
+  await p.click('[data-a=neu]'); await p.click('[data-a=neu-tab][data-t=text]');
+  await p.fill('#imp-text', 'Kartoffelsuppe\n\nFür 4 Personen · Zubereitungszeit: 35 Minuten\n\nZutaten:\n500 g Kartoffeln (mehlig)\n1 ½ l Gemüsebrühe\nSalz\n\nZubereitung\n1. Kartoffeln schälen.\n2. Mit Brühe 20 Minuten kochen.');
+  await p.click('[data-a=imp-text]'); await p.waitForSelector('[data-form=rezept]');
+  ok(await p.inputValue('[name=name]') === 'Kartoffelsuppe' && await p.inputValue('[name=servings]') === '4' && await p.inputValue('[name=prepTime]') === '35', 'Text aufgeteilt: Name, Portionen und Zeit stehen im Formular');
+  ok((await p.inputValue('[name=ings]')).split('\n').length === 3 && (await p.inputValue('[name=steps]')).split('\n\n').length === 2, 'drei Zutaten, zwei Schritte, zum Prüfen vor dem Speichern');
+  await p.click('button[type=submit]'); await p.waitForSelector('.rezept-held h1'); ok((await p.locator('.zut li').first().innerText()).startsWith('500 g'), 'gespeichert, Menge und Einheit getrennt');
+  const bereit = await p.evaluate(async () => { if (!('serviceWorker' in navigator)) return false; await navigator.serviceWorker.ready; for (let i = 0; i < 40 && !navigator.serviceWorker.controller; i++) await new Promise((r) => setTimeout(r, 100)); return !!navigator.serviceWorker.controller; });
+  ok(bereit, 'der Offline-Vorrat ist angelegt (Service Worker aktiv)');
+  const vorOffline = fehler.length; await p.waitForTimeout(300); await k.setOffline(true); await p.reload(); await p.waitForSelector('.gruss', { timeout: 10000 }).catch(() => {});
+  ok(await p.locator('.karte', { hasText: 'Kartoffelsuppe' }).count() === 1, 'ohne Netz neu geladen: die App startet und zeigt das Rezept');
+  await p.locator('.karte').first().click(); await p.click('[data-a=kochen]'); ok(await p.locator('.koch').count() === 1, 'ohne Netz: Kochansicht geht'); await k.setOffline(false); fehler.length = vorOffline;   // nur die erwarteten Netzfehler der Offline-Strecke fallen weg
   await k.close();
   ok(fehler.length === 0, 'keine Fehler in der Konsole, kein Netz nach draußen', fehler.join(' · '));
 } catch (e) { rot++; console.log('  ✗ ROT: Probe abgebrochen — ' + e.message.split('\n')[0]); }

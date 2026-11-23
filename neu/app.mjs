@@ -14,9 +14,11 @@ import { bildAusDatei } from '../kern/oberflaeche/bild.mjs';
 import { zutatenFuerSchritt, zeitImSchritt } from '../kern/modell/kochen.mjs';
 import { GERAETE, erkenne, geraetSvg } from '../kern/oberflaeche/geraete.mjs';
 import { einkaufsliste, gruppenFolge, gruppeVerschieben, WARENGRUPPEN } from '../kern/modell/einkauf.mjs';
+import { rezeptAusText, zutatAusZeile, zutatZeile } from '../kern/import/text.mjs';
+import { diktat, diktatAus, diktatMoeglich } from '../kern/oberflaeche/diktat.mjs';
 import { woche, planen, entplanen, ausAltemMenu, tagIso } from '../kern/modell/plan.mjs';
 
-const FASSUNG = '0.4.0';
+const FASSUNG = '0.5.0';
 const breit = () => matchMedia('(min-width:1000px)').matches;
 const $ = (id) => document.getElementById(id);
 const esc = (t) => String(t ?? '').replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
@@ -45,6 +47,7 @@ let toastTun = null;
 
 /* ---------- Navigation (mit Zurück-Taste) ---------- */
 function geh(ansicht, extra = {}, ersetzen = false) {
+  diktatAus();
   Object.assign(s, { ansicht, leisteAuf: false, ...extra });
   if (ansicht === 'kochen') { $('toast').innerHTML = ''; toastTun = null; }   // nichts über den Knöpfen der Kochansicht
   const st = { ansicht, uid: s.uid };
@@ -53,6 +56,7 @@ function geh(ansicht, extra = {}, ersetzen = false) {
 }
 addEventListener('popstate', (e) => { const st = e.state || { ansicht: 'start' }; Object.assign(s, { ansicht: st.ansicht, uid: st.uid || null, leisteAuf: false, form: null }); fensterZu(); zeichne(st.ansicht !== 'rezept' || !breit()); });
 
+const mik = (feld) => (diktatMoeglich() ? `<button type="button" class="mik" data-a="diktat" data-feld="${feld}" aria-label="Sprechen statt tippen" aria-pressed="false">${ic('mikro')}</button>` : '');
 /* ---------- Kopf ---------- */
 function kopfZeichnen() {
   const w = s.werkzeug, k = $('kopf');
@@ -81,7 +85,7 @@ const karte = (r, c) => `<button class="karte" data-a="rezept" data-uid="${esc(r
 function startHtml() {
   const heute = new Date().toLocaleDateString('de-DE', { weekday: 'long', day: 'numeric', month: 'long' });
   let h = `<p class="gruss">${esc(ausgabe.begruessung?.de || 'Was kochen wir heute?')}<small class="datum">${esc(heute)}</small></p>
-   <form class="suche" data-form="suche" role="search">${ic('suche')}<input id="suchfeld" name="q" value="${esc(s.frage)}" placeholder="Rezept, Zutat oder Kategorie …" aria-label="Suchen" autocomplete="off" enterkeyhint="search"><button type="button" id="suche-x" data-a="suche-leer" aria-label="Eingabe löschen" ${s.frage ? '' : 'hidden'}>${ic('x')}</button></form>`;
+   <form class="suche" data-form="suche" role="search">${ic('suche')}<input id="suchfeld" name="q" value="${esc(s.frage)}" placeholder="Rezept, Zutat oder Kategorie …" aria-label="Suchen" autocomplete="off" enterkeyhint="search">${mik('#suchfeld')}<button type="button" id="suche-x" data-a="suche-leer" aria-label="Eingabe löschen" ${s.frage ? '' : 'hidden'}>${ic('x')}</button></form>`;
   return h + `<div id="start-rest">${startRest()}</div>`;
 }
 function startRest() {
@@ -184,7 +188,7 @@ function einkaufHtml() {
   }
   return h + `</div>` + ekEigenForm() + `<div class="reihe" style="margin-top:12px"><button class="knopf" data-a="ek-abgehakt-weg">Abgehaktes entfernen</button><button class="knopf rot" data-a="ek-leeren">Liste leeren</button></div>`;
 }
-const ekEigenForm = () => `<form class="suche" data-form="ek-eigen" style="margin-top:12px;max-width:720px">${ic('plus')}<input name="t" placeholder="Noch etwas, z. B. Küchenrolle" aria-label="Eigenen Posten notieren" autocomplete="off" enterkeyhint="done"></form>`;
+const ekEigenForm = () => `<form class="suche" data-form="ek-eigen" style="margin-top:12px;max-width:720px">${ic('plus')}<input name="t" id="ek-feld" placeholder="Noch etwas, z. B. Küchenrolle" aria-label="Eigenen Posten notieren" autocomplete="off" enterkeyhint="done">${mik('#ek-feld')}</form>`;
 
 /* ---------- Wochenplan ---------- */
 const WT = ['Mo', 'Di', 'Mi', 'Do', 'Fr', 'Sa', 'So'];
@@ -251,14 +255,21 @@ document.addEventListener('pointerdown', (ev) => { const b = ev.target.closest?.
 document.addEventListener('pointermove', (ev) => { if (!zsZug || !zs) return; const r = zsZug.b.getBoundingClientRect(); zs.x = Math.min(100, Math.max(0, zsZug.cx - (ev.clientX - zsZug.x) / r.width * 100 / zs.z)); zs.y = Math.min(100, Math.max(0, zsZug.cy - (ev.clientY - zsZug.y) / r.height * 100 / zs.z)); zsZeigen(); });
 document.addEventListener('pointerup', () => { zsZug = null; }); document.addEventListener('pointercancel', () => { zsZug = null; });
 
-/* ---------- Anlegen und Bearbeiten ---------- */
-const zutatZeile = (z) => [z.amt, z.unit, z.name].filter(Boolean).join(' ') + (z.note ? ` (${z.note})` : '');
-function zutatAusZeile(t) {
-  const m = t.trim().match(/^([\d.,\/½¼¾⅓⅔⅛–-]+(?:\s+[\d\/½¼¾⅓⅔⅛]+)?)\s+(?:(g|kg|ml|l|cl|EL|TL|Prise|Prisen|Stück|Bund|Dose|Dosen|Pck\.?|Päckchen|Zehe|Zehen|Scheibe|Scheiben|Blatt|Tasse|Tassen|Becher|Stange|Stangen|Handvoll|Spritzer)\s+)?(.+)$/i);
-  if (!m) return { amt: '', unit: '', name: t.trim(), note: '' };
-  const nn = m[3].match(/^(.*?)\s*\(([^)]*)\)\s*$/);
-  return { amt: m[1].trim(), unit: m[2] || '', name: (nn ? nn[1] : m[3]).trim(), note: nn ? nn[2].trim() : '' };
+/* ---------- Blatt hinter +: jeder Weg zu einem neuen Rezept ---------- */
+const IMP = [['selbst', 'stift', 'Selbst'], ['text', 'datei', 'Text'], ['datei', 'ordner', 'Datei'], ['pakete', 'paket', 'Pakete']];
+function neuFenster(tab = 'selbst') {
+  const inhalt = {
+    selbst: () => `<p>Name, Zutaten und Schritte selbst eintragen, mit Foto.</p><button class="knopf akz" data-a="neu-form">${ic('stift')}Rezept schreiben</button>`,
+    text: () => `<span class="mitmik"><textarea class="feld" id="imp-text" style="min-height:150px" placeholder="Rezepttext hier einfügen: aus einer Mail, einer Notiz oder von einer Webseite kopiert. Erste Zeile ist der Name."></textarea>${mik('#imp-text')}</span>
+      <div class="reihe" style="margin-top:8px"><button class="knopf akz" data-a="imp-text">Aufteilen</button>${frag('Die App teilt den Text ohne KI in Zutaten und Schritte. Sie erkennt die Überschriften „Zutaten“ und „Zubereitung“, Mengen, Einheiten, Portionen und Zeit. Du siehst das Ergebnis im Formular und kannst es ändern, bevor es gespeichert wird.')}</div>`,
+    datei: () => `<p>Eine Sicherung oder Rezeptdatei (JSON) einlesen. Doppelte Rezepte werden erkannt, eigene Kategorien kommen mit.</p><button class="knopf akz" data-a="einlesen">${ic('ordner')}Datei wählen</button>`,
+    pakete: () => `<p>Das Beispielbuch laden (${beispielText()}). Es lässt sich später mit einem Tipp wieder entfernen.</p><button class="knopf akz" data-a="beispiel">${ic('laden')}Beispielbuch laden</button>`,
+  };
+  fenster(`<h2>Rezept hinzufügen</h2><div class="imp-tabs" role="tablist">${IMP.map(([t, i, l]) => `<button role="tab" aria-selected="${t === tab}" data-a="neu-tab" data-t="${t}">${ic(i)}${l}</button>`).join('')}</div><div class="imp-p">${inhalt[tab]()}</div>
+   <p class="quelle">Foto-Scan, Webseite und „vom Teller“ folgen mit den KI-Funktionen.</p>`);
 }
+
+/* ---------- Anlegen und Bearbeiten ---------- */
 function formHtml() {
   const f = s.form, kats = alleKategorien(Z.rezepte, Z.kategorien).filter((c) => c.art !== 'ohne');
   return `<div class="ueber"><h2 style="font-size:19px">${f.neu ? 'Neues Rezept' : 'Rezept bearbeiten'}</h2></div>
@@ -267,8 +278,8 @@ function formHtml() {
    <div class="zwei"><label>Kategorie<select class="feld" name="cat"><option value="">ohne Kategorie</option>${kats.map((c) => `<option value="${esc(c.id)}" ${f.cat === c.id ? 'selected' : ''}>${esc(katName(c))}</option>`).join('')}</select></label>
    <label>Neue Kategorie (statt Auswahl)<input class="feld" name="katneu" placeholder="z. B. Sushi" autocomplete="off"></label></div>
    <div class="zwei"><label>Portionen<input class="feld" name="servings" type="number" min="1" max="99" value="${esc(f.servings)}"></label><label>Zeit in Minuten<input class="feld" name="prepTime" type="number" min="0" max="999" value="${esc(f.prepTime ?? '')}"></label></div>
-   <label>Zutaten, eine je Zeile (z. B. „200 g Mehl“)<textarea class="feld" name="ings">${esc(f.ings)}</textarea></label>
-   <label>Schritte, einer je Absatz<textarea class="feld" name="steps" style="min-height:170px">${esc(f.steps)}</textarea></label>
+   <label>Zutaten, eine je Zeile (z. B. „200 g Mehl“)<span class="mitmik"><textarea class="feld" name="ings" id="f-ings">${esc(f.ings)}</textarea>${mik('#f-ings')}</span></label>
+   <label>Schritte, einer je Absatz<span class="mitmik"><textarea class="feld" name="steps" id="f-steps" style="min-height:170px">${esc(f.steps)}</textarea>${mik('#f-steps')}</span></label>
    <div class="formbild">${f.img ? `<img src="${esc(f.img)}" alt="">` : ''}<button type="button" class="knopf" data-a="bild-waehlen">${ic('kamera')}${f.img ? 'Anderes Foto' : 'Foto dazu'}</button>${f.img ? `<button type="button" class="knopf" data-a="bild-weg">Foto entfernen</button>` : ''}</div>
    <div class="reihe"><button class="knopf akz" type="submit">${ic('haken')}Speichern</button><button class="knopf" type="button" data-a="zurueck">Abbrechen</button></div>
   </form>`;
@@ -304,6 +315,7 @@ function werkstattHtml() {
    ${zeile('sichern', 'laden', 'Sicherung als Datei', 'alle Rezepte mit Bildern und Kategorien')}${zeile('einlesen', 'ordner', 'Sicherung einlesen', 'auch aus der alten App, aus Muttis Rezeptbuch und dem Mixarium')}</div></div>
   <div class="gruppe"><h3>Beispiele</h3><div class="liste">
    ${zeile('beispiel', 'paket', 'Beispielbuch laden', beispielText())}${b ? zeile('beispiele-weg', 'muell', 'Beispiele entfernen', `${b} Beispiel-Rezepte, eigene bleiben`) : ''}</div></div>
+  ${installFrage ? `<div class="gruppe"><h3>App</h3><div class="liste">${zeile('installieren', 'laden', 'Als App installieren', 'eigenes Symbol, läuft auch ohne Netz')}</div></div>` : ''}
   <div class="gruppe"><h3>Ordnung</h3><div class="liste">${zeile('geh', 'ordner', 'Kategorien', 'umbenennen, Zeichen, ordnen, löschen, neu', 'data-zu="kategorien"')}${zeile('geh', 'bild', 'Bilder', `${Z.rezepte.filter((r) => istInhalt(r) && r.img).length} Bilder ansehen, löschen, einfügen`, 'data-zu="bilder"')}</div></div>
   <div class="gruppe"><h3>Darstellung</h3><div class="liste">${zeile('farbe', 'einst', 'Farbe', FARBEN[E.farbe]?.de || '')}${zeile('kochschrift', 'koch', 'Schrift in der Kochansicht', E.kochSchrift)}</div></div>
   <div class="gruppe"><h3>Aufräumen</h3><div class="liste">${zeile('alles-weg', 'muell', 'Alle Rezepte löschen', 'mit Rückfrage')}</div></div>
@@ -390,7 +402,14 @@ const A = {
   werkzeug: () => { s.werkzeug = !s.werkzeug; kopfZeichnen(); },
   'zur-suche': () => { if (s.ansicht !== 'start') geh('start'); $('suchfeld')?.focus(); },
   'suche-leer': () => { s.frage = ''; zeichne(); $('suchfeld')?.focus(); },
-  neu: () => { s.form = formAus(null); geh('form'); },
+  neu: () => neuFenster(),
+  'neu-tab': (e) => { diktatAus(); neuFenster(e.dataset.t); },
+  'neu-form': () => { fensterZu(); s.form = formAus(null); geh('form'); },
+  'imp-text': () => { const r = rezeptAusText($('imp-text').value); if (!r) { melde('Bitte zuerst einen Text einfügen.'); return; } diktatAus(); fensterZu();
+    s.form = { ...formAus(null), name: r.name, servings: r.servings || 4, prepTime: r.prepTime ?? '', ings: r.ings.map(zutatZeile).join('\n'), steps: r.steps.map((x) => x.txt).join('\n\n') }; geh('form');
+    melde(r.sicher ? `${r.ings.length} Zutaten und ${r.steps.length} Schritte erkannt. Bitte prüfen.` : 'Ohne Überschriften aufgeteilt. Bitte Zutaten und Schritte prüfen.'); },
+  diktat: (e) => { const f = document.querySelector(e.dataset.feld); if (!f) return; diktat(f, 'de-DE', (an) => { e.setAttribute('aria-pressed', String(an)); }); f.focus(); },
+  installieren: async () => { const p = installFrage; if (!p) return; installFrage = null; p.prompt(); await p.userChoice.catch(() => null); zeichne(); },
   bearbeiten: () => { s.form = formAus(rezept(s.uid)); geh('form'); },
   loeschen: () => { const r = rezept(s.uid); if (!r) return; const vorher = Z.rezepte; Z.rezepte = Z.rezepte.filter((x) => x.uid !== r.uid); sichern(); geh('start', { uid: null }, true); melde(`„${r.name}“ gelöscht`, 'Rückgängig', () => { Z.rezepte = vorher; sichern(); zeichne(true); }); },
   kochen: () => { K.i = 0; K.kopf = true; geh('kochen', { uid: s.uid }); wachAn(); },
@@ -508,6 +527,10 @@ $('datei-bild').addEventListener('change', async (ev) => { const d = ev.target.f
   if (!s.form) return; try { s.form.img = await bildAusDatei(d); zeichne(); } catch { melde('Das Bild konnte nicht gelesen werden.'); } });
 let altY = 0; addEventListener('scroll', () => { if (breit()) return; const y = scrollY; $('kopf').classList.toggle('weg', y > altY + 4 && y > 80 ? true : y < altY - 4 || y < 40 ? false : $('kopf').classList.contains('weg')); altY = y; }, { passive: true });
 
+let installFrage = null;
+addEventListener('beforeinstallprompt', (ev) => { ev.preventDefault(); installFrage = ev; if (s.ansicht === 'werkstatt') zeichne(); });
+addEventListener('appinstalled', () => { installFrage = null; if (s.ansicht === 'werkstatt') zeichne(); });
+
 /* ---------- Start ---------- */
 async function start() {
   ausgabe = await (await fetch('../ausgaben/rezeptbuch/ausgabe.json')).json();
@@ -524,6 +547,7 @@ async function start() {
   history.replaceState({ ansicht: 'start' }, '');
   zeichne(true);
   lager.dauerhaft();
+  if ('serviceWorker' in navigator) navigator.serviceWorker.register('./sw.js').catch(() => {});   // Offline-Vorrat; ohne ihn läuft die App genauso, nur nicht ohne Netz
   fetch('../beispiele/KATALOG.json').then((a) => a.json()).then((k) => { katalog = k; if (s.ansicht === 'start' || s.ansicht === 'werkstatt') zeichne(); }).catch(() => {});
 }
 start().catch((f) => { $('main').innerHTML = `<div class="leer"><p>Das Rezeptbuch konnte nicht starten: ${esc(f.message)}</p></div>`; });

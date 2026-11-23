@@ -161,3 +161,18 @@ test('Wochenplan: Woche Mo–So mit Kalenderwoche, planen, entplanen, altes Men�
   p = entplanen(entplanen(p, '2026-11-23', 'a'), '2026-11-23', 'b'); assert.deepEqual(p, {});
   assert.deepEqual(ausAltemMenu([{ rid: 7, date: '2026-04-20' }, { rid: 0, date: '2026-04-21' }], [{ id: 7, uid: 'x' }]), { '2026-04-20': ['x'] });
 });
+
+import { rezeptAusText, zutatAusZeile } from '../kern/import/text.mjs';
+test('Text-Import ohne KI: Überschriften, Portionen, Zeit, Zutaten, nummerierte Schritte', () => {
+  const r = rezeptAusText(`Kartoffelsuppe\n\nFür 4 Personen · Zubereitungszeit: 35 Minuten\n\nZutaten:\n500 g Kartoffeln (mehlig)\n1 ½ l Gemüsebrühe\n2 EL Butter\n1 Zwiebel\nSalz und Pfeffer\n\nZubereitung\n1. Kartoffeln schälen und würfeln.\n2. Zwiebel in Butter andünsten,\nKartoffeln zugeben.\n3. Mit Brühe 20 Minuten kochen.\n\nGuten Appetit!`);
+  assert.equal(r.name, 'Kartoffelsuppe'); assert.equal(r.servings, 4); assert.equal(r.prepTime, 35); assert.equal(r.sicher, true);
+  assert.deepEqual(r.ings.map((z) => [z.amt, z.unit, z.name, z.note]), [['500', 'g', 'Kartoffeln', 'mehlig'], ['1 ½', 'l', 'Gemüsebrühe', ''], ['2', 'EL', 'Butter', ''], ['1', '', 'Zwiebel', ''], ['', '', 'Salz und Pfeffer', '']]);
+  assert.deepEqual(r.steps.map((s) => s.txt), ['Kartoffeln schälen und würfeln.', 'Zwiebel in Butter andünsten, Kartoffeln zugeben.', 'Mit Brühe 20 Minuten kochen.']);
+});
+test('Text-Import ohne Überschriften: Zutatenzeilen oben, Absätze unten, als unsicher markiert; leerer Text ergibt nichts', () => {
+  const r = rezeptAusText(`Pfannkuchen\n250 g Mehl\n3 Eier\n500 ml Milch\n\nAlles zu einem glatten Teig verrühren.\n\nIn der Pfanne goldbraun backen.`);
+  assert.equal(r.sicher, false); assert.equal(r.ings.length, 3); assert.equal(r.steps.length, 2); assert.equal(r.ings[1].name, 'Eier');
+  assert.equal(rezeptAusText('  \n '), null);
+  assert.deepEqual(zutatAusZeile('- 400-500 g Hähnchenbrust'), { amt: '400-500', unit: 'g', name: 'Hähnchenbrust', note: '' });
+  assert.deepEqual(zutatAusZeile('etwas Petersilie'), { amt: '', unit: '', name: 'etwas Petersilie', note: '' });
+});
