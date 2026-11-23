@@ -1,6 +1,6 @@
 // Küchen-Kern · Rezept aus eingefügtem Text, ohne KI. Erkennt Überschriften („Zutaten“, „Zubereitung“), Portionen, Zeit,
 // Mengen und Einheiten. Was nicht sicher zu erkennen ist, bleibt als Text stehen; nichts wird erfunden.
-const EINHEITEN = 'g|kg|mg|ml|l|cl|dl|EL|TL|Prise|Prisen|Stück|Stk\\.?|Bund|Dose|Dosen|Pck\\.?|Päckchen|Packung|Zehe|Zehen|Scheibe|Scheiben|Blatt|Blätter|Tasse|Tassen|Becher|Glas|Stange|Stangen|Handvoll|Spritzer|Messerspitze|Msp\\.?|Würfel|Zweig|Zweige|Kopf|Tube|Flasche';
+const EINHEITEN = 'g|kg|mg|ml|l|cl|dl|EL|TL|Prise|Prisen|Stück|Stk\\.?|Bund|Dose|Dosen|Pck\\.?|Päckchen|Packung|Zehe|Zehen|Scheibe|Scheiben|Blatt|Blätter|Tasse|Tassen|Becher|Glas|Stange|Stangen|Handvoll|Spritzer|Messerspitze|Msp\\.?|Würfel|Zweig|Zweige|Kopf|Tube|Flasche|fl\\.? ?oz|oz|Barlöffel|Dashes|Dash|Schuss|Beutel|Tropfen|cups|cup|tbsp|tsp|Dolden|Dolde';   // Bar- und US-Einheiten seit Kern 0.15 (Mixarium)
 const MENGE = '[\\d.,\\/½¼¾⅓⅔⅛]+(?:\\s*(?:-|–|bis)\\s*[\\d.,\\/½¼¾⅓⅔⅛]+)?(?:\\s+[\\d\\/½¼¾⅓⅔⅛]+)?';
 const ZUTAT = new RegExp(`^(${MENGE})\\s*(?:(${EINHEITEN})\\b\\.?\\s+)?(.+)$`, 'i');
 

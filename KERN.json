@@ -1,11 +1,11 @@
 {
- "fassung": "0.14.0",
- "inhalt": "Ausgaben-Schalter, Rezeptmodell, Kategorien, Suche, Sicherung, Übernahme, Speicher, Mengen, Symbole, Farben, Bild, Kochansicht (Zutaten je Schritt, Zeit, Geräte), Einkaufsliste, Wochenplan, Text-Import, Spracheingabe, Bildauftrag je Ausgabe, englische Namen für Farben, Töne, Geräte und Schrift-Regler, Kategorien und Einkauf je Ausgabe (kategorienMit mit Familien-Namen, einkaufMit), Sticker-Bild je Kategorie (katBild)",
+ "fassung": "0.15.0",
+ "inhalt": "Ausgaben-Schalter, Rezeptmodell, Kategorien, Suche, Sicherung, Übernahme, Speicher, Mengen, Symbole, Farben, Bild, Kochansicht (Zutaten je Schritt, Zeit, Geräte), Einkaufsliste, Wochenplan, Text-Import, Spracheingabe, Bildauftrag je Ausgabe, englische Namen für Farben, Töne, Geräte und Schrift-Regler, Kategorien und Einkauf je Ausgabe (kategorienMit mit Familien-Namen, einkaufMit), Sticker-Bild je Kategorie (katBild), Text-Import mit Bar- und US-Einheiten",
  "dateien": {
-  "kern/README.md": "634d82ad7deabe156eb9b3f98c93d44811fe39265730ebec0a97ce53535afb50",
+  "kern/README.md": "4ce8820ca9642ea42145ce13242826354c34113fe83b5f4c5318c683947058eb",
   "kern/ausgabe/ausgabe.mjs": "56d01a3a8b5855af233956c5ecf83d66df138ddc0896cede65a74192fd626ecf",
-  "kern/import/text.mjs": "98c3dcbba951e4d802467e42a52ecc5d3b60499723a05b9b5b578b23a80b88b2",
-  "kern/kern-stand.mjs": "1da655cd226f92b763df408aab45a2eb18c120b7ff3ce858d86f173b46b6f602",
+  "kern/import/text.mjs": "261a6fb5f36b8d8e27816c2396a6453df13b47e6b0f1a88c870bc989bfb141e0",
+  "kern/kern-stand.mjs": "4fdc87a5c1e2cd4e5c5532281e964d92d136b256febfea86f4ccae9ea5b8a1c4",
   "kern/ki/bild.mjs": "db6a1e7ec3ded4666dcf29cbaef2661681f54cb643357a5efb1d92865ed53739",
   "kern/modell/einkauf.mjs": "fc7af5526a66c1ca704c97aec1c69dc1be9d7cb901f6aa90b5a9935eea663cbb",
   "kern/modell/kategorien-fest.mjs": "d7d5acf5934bb92898d04ef299f69638a33fb482586c2491555e5299733e010f",

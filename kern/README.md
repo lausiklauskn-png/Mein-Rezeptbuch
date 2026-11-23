@@ -49,13 +49,13 @@ Das Alkohol-Paket aus `beispiele/` ist im Katalog nur für `mixarium-voll` freig
 | `ki/bild.mjs` | KI-Bild (OpenAI) und Gratis-Foto; Auftrag je Ausgabe: `art: 'essen'` (Vorgabe) oder `'getraenk'`, oder ganz eigener `auftrag`. Kosten-Hinweis de/en (`KOSTEN`). |
 | `modell/einkauf.mjs`, `modell/warengruppen.mjs` | Einkaufsliste: zusammenzählen (Einzahl/Mehrzahl, Einheiten), Warengruppen aus der alten App, Reihenfolge je Laden. Eigene Warengruppen und Einheiten je Ausgabe: `einkaufMit({ gruppen, einheiten })`. |
 | `modell/plan.mjs` | Wochenplan: Woche Mo–So mit Kalenderwoche, planen, altes Menü übernehmen |
-| `import/text.mjs` | Rezept aus eingefügtem Text ohne KI (Überschriften, Mengen, Einheiten, Portionen, Zeit) |
+| `import/text.mjs` | Rezept aus eingefügtem Text ohne KI (Überschriften, Mengen, Einheiten auch oz/fl oz/Barlöffel/Dash/Schuss/cup, Portionen, Zeit) |
 | `oberflaeche/diktat.mjs` | Spracheingabe für Textfelder (Web Speech im Browser) |
 | `speicher/speicher.mjs` | Zustand im Gerät (IndexedDB), eine Datenbank je Ausgabe |
 | `oberflaeche/` | Symbole (Phosphor Duotone, nur die genutzten), Farbpaletten mit `farbName`/`tonName` (de/en), Schrift-Regler (`schriftRegler(wert, sprache)`), Bild aus Datei verkleinern |
 | `speicher/uebernahme.mjs` | liest den alten localStorage nur mit der Endung der eigenen Ausgabe, löscht nichts |
 
-Probe: `node --test test/kern.test.js` (28 Fälle). Wächter für den Sushi-Fehler: **alles, was die Suche findet, steht in genau einer Gruppe von „Alle“**.
+Probe: `node --test test/kern.test.js` (29 Fälle). Wächter für den Sushi-Fehler: **alles, was die Suche findet, steht in genau einer Gruppe von „Alle“**.
 
 ## Pin (`KERN.json`)
 
