@@ -2,9 +2,10 @@
  "fassung": "0.21.0",
  "inhalt": "Ausgaben-Schalter, Rezeptmodell, Kategorien, Suche, Sicherung, Übernahme, Speicher, Mengen, Symbole, Farben, Bild, Kochansicht (Zutaten je Schritt, Zeit, Geräte), Einkaufsliste, Wochenplan, Text-Import, Spracheingabe, Bildauftrag je Ausgabe, englische Namen für Farben, Töne, Geräte und Schrift-Regler, Kategorien und Einkauf je Ausgabe (kategorienMit mit Familien-Namen, einkaufMit), Sticker-Bild je Kategorie (katBild), Text-Import mit Bar- und US-Einheiten, Hinweis-Blasen (Tooltips), Ladebalken für alle Wartezeiten, Sprache der Oberfläche (acht Sprachen, Tabellen), KI-Schlüssel (Anthropic, OpenAI, Mistral), Claude-Aufruf, Mistral OCR, Reinigung vor der KI, Foto-Scan, Datei prüfen, Web-Import ohne Weiterleiter, Ordner",
  "dateien": {
-  "kern/README.md": "c09e1eef72b40eb9a13001fad88ae5dab26c34622bfffb756ce0de905ba5e5bc",
+  "kern/README.md": "c0d734e63c1abcba27d6c1f997d0ba8a2f1e28592cf928cc43390611dbeb2650",
   "kern/ausgabe/ausgabe.mjs": "56d01a3a8b5855af233956c5ecf83d66df138ddc0896cede65a74192fd626ecf",
-  "kern/ausgabe/druck.mjs": "ae142f1b780f82b305618cb095730864e32d3785729515bf8e305ae0c6394124",
+  "kern/ausgabe/buch.mjs": "a131c105351d79f9100b7d60bbf84d34fe5aa68dc6c612857cdf271e8e34cf1f",
+  "kern/ausgabe/druck.mjs": "9eb3dd168207a1251e4e7177d442db73c5abbd834f8b10abd52e71f4a996219d",
   "kern/import/scan.mjs": "6e29b1a85df08e2c242ef0513af3dc33c8c4f4e8e4c5d3b34d92a9716bdadb62",
   "kern/import/text.mjs": "261a6fb5f36b8d8e27816c2396a6453df13b47e6b0f1a88c870bc989bfb141e0",
   "kern/import/web.mjs": "44ba458cb87934b492d8b2a3dd3208a44327042a42466c36353c7781760ce87d",
