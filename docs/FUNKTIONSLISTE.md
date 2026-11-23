@@ -189,3 +189,19 @@ Beide Ausgaben liegen unter derselben Herkunft `lausiklauskn-png.github.io`: jed
 | Bekannte Drinks entdecken (TheCocktailDB) | nur Mixarium | Netz nur auf Knopfdruck, eigene Datenquelle |
 | Schalter „ohne Alkohol“ (`mxNoAlc9`) | nur Mixarium | Getränke-Schicht |
 | 8 Themen | ersetzt | eine Palette hell/dunkel je Ausgabe (Brief) |
+
+## 13 · Abnahme der Vorschau (Klaus 23.11., zweite Runde)
+
+| Punkt | Entscheid | Folge für den Kern |
+|---|---|---|
+| 1 Farbpalette | ja | Wasserfarben der Privaten Akte + Hellbraun/Dunkelbraun, Farbscheibe, je Ausgabe gemerkt |
+| 2 Leiste | Flying Widget **wie Private Akte** | Griff, langer Druck oder Ziehen, Einrasten links/rechts/oben/unten, Lage gemerkt; Knöpfe schmal; keine untere Menüleiste am Handy |
+| 3–5, 7, 8 | ja | Startseite, Rezept, Kochansicht, Planer, Muttis-Ausgabe wie gezeigt |
+| 6 Einkaufsliste | ja, plus **Gruppen verschiebbar** | Reihenfolge der Warengruppen je Laden, langer Druck oder Maus festhalten |
+| 9 Symbole | **Phosphor Duotone** | nur genutzte Symbole ins Paket |
+| 10 App-Zeichen | Web-App Mein = goldenes Buch bleibt; drei neue Zeichen per ChatGPT | `docs/vorschau/app-zeichen-auftraege.md`; APK und Windows je Ausgabe gleich |
+| 11 Extras, 12 Pakete | ja | wie gezeigt |
+| neu 13 | Alles hinter + | Import-Blatt mit Reitern: Selbst, Foto-Scan, Web, Text/PDF, Vom Teller, Datei, Pakete, KI-Foto |
+| neu 14 | Bild anpassen | Bildausschnitt (heute `openCrop`): ziehen, Zoom, Höhe, Lagen, Vorschau Karte/Kopf/Liste; anderes Bild per Kamera, Datei, KI, Gratis, Food-Zine |
+| neu 15 | Food-Zine | drei Seiten, Auftrag ohne Schlüssel kopieren, Bild einsetzen oder mit Schlüssel erzeugen, Stil, Galerie |
+| Regel | **keine Funktion auslassen** außer SBKIM und Mycel | gilt für die ganze Liste oben |
