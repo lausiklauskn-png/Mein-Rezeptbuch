@@ -31,8 +31,12 @@ import { vorbereiten, erkennen, rezeptAusScan, wasGehtHinaus, wohinKurz, istPdf,
 import { vermerken, vermerkHtml, fundeZumEntscheiden, fundName, meldung as kiMeldung } from '../kern/ki/reinigung.mjs';
 import { dateiPruefen, pruefHtml, kiAnweisungen } from '../kern/pruefung/datei.mjs';
 import { webAdresse, holeSeite, ausEingefuegtem, ohneKi, fuerKi, mitKi, holeBild } from '../kern/import/web.mjs';
+import { naehrwerte, naehrwerteAnRezept, naehrwertZeilen, rechtschreibung, rechtschreibungAnwenden, wasGehtHinaus as helferHinaus } from '../kern/ki/helfer.mjs';
+import { druckRezept, drucke } from '../kern/ausgabe/druck.mjs';
+import { teilLink, ausTeilLink, qrSvg, passtInQr } from '../kern/teilen/qr.mjs';
+import { rezeptIn } from '../kern/modell/einheiten.mjs';
 
-const FASSUNG = '0.12.2';
+const FASSUNG = '0.13.0';
 const breit = () => matchMedia('(min-width:1000px)').matches;
 const $ = (id) => document.getElementById(id);
 const esc = (t) => String(t ?? '').replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
@@ -179,23 +183,62 @@ async function semLauf(f) {
 }
 
 /* ---------- Rezept ---------- */
+/* Einheiten: '' = wie notiert, sonst 'metrisch' oder 'us' (Kern modell/einheiten.mjs). Umgerechnet wird nur die Anzeige. */
+const inEinheit = (r) => (r && (E.einheiten === 'us' || E.einheiten === 'metrisch') ? rezeptIn(r, E.einheiten, { sprache: spr() }) : r);
+const einhName = () => ({ us: 'US', metrisch: L('metrisch', 'metric') }[E.einheiten] || L('wie notiert', 'as written'));
 function rezeptHtml() {
-  const r = zeig(rezept(s.uid)); if (!r) return `<div class="leer"><p>Dieses Rezept gibt es nicht mehr.</p><button class="knopf" data-a="geh" data-zu="start">Zur Startseite</button></div>`;
+  const r = inEinheit(zeig(rezept(s.uid))); if (!r) return `<div class="leer"><p>Dieses Rezept gibt es nicht mehr.</p><button class="knopf" data-a="geh" data-zu="start">Zur Startseite</button></div>`;
   const c = alleKategorien(Z.rezepte, Z.kategorien).find((x) => x.id === katVonRezept(r));
   const n = s.portion[r.uid] || r.servings, f = n / r.servings;
   const wk = (akt, i, t, kl = '') => `<button class="chip ${kl}" data-a="${akt}" aria-label="${esc(t)}" title="${esc(t)}">${ic(i)}<span class="wk-t">${esc(t)}</span></button>`;   /* am Handy nur das Symbol (Klaus 23.11.: „kein Button-Kino“), am Monitor neben dem Bild mit Wort */
   const winkel = (d) => `<svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="${d}"/></svg>`;
   return `<div class="rezept-held" data-a="held" role="button" tabindex="0" aria-label="${r.img ? 'Bild groß ansehen' : 'Bild einfügen'}">${r.img ? `<img src="${esc(r.img)}" alt="${esc(r.name)}" ${ausschnitt(r)}>` : ic('karte')}
-    <div class="verlauf"><div class="tzeile">${s.rleiste ? `<div class="rwerk">${wk('bearbeiten', 'stift', 'Bearbeiten')}${wk('kat-zuordnen', 'karte', 'Kategorie')}${wk('ordner-zuordnen', 'ordner', L('Ordner', 'Folder'))}${wk('bild-blatt', 'bild', 'Bild')}${wk('nurdies', 'voll', s.nurDies ? 'Alles zeigen' : 'Nur dieses Rezept', 'nurbreit')}${wk('loeschen', 'muell', 'Rezept löschen', 'rot')}</div>` : ''}<button class="wk-pf zur" data-a="zurueck" aria-label="Zurück">${winkel('M15 5l-7 7 7 7')}</button><h1>${esc(r.name)}</h1><button class="wk-pf" data-a="rleiste" aria-expanded="${s.rleiste}" aria-label="Werkzeuge für Rezept und Bild">${winkel(s.rleiste ? 'M5 9l7 7 7-7' : 'M5 15l7-7 7 7')}</button></div><div class="meta">${r.prepTime ? `<span>${ic('uhr')}${esc(r.prepTime)} Min</span>` : ''}<span>${ic('karte')}${esc(c ? katName(c) : '')}</span>${ordnerVonRezept(r, Z.ordner) ? `<span class="im-ordner">${ic('ordner')}${esc(ordTitel(findeOrdner(Z.ordner, r.folder)))}</span>` : ''}${r.rating?.stars ? `<span>${ic('stern')}${r.rating.stars}</span>` : ''}</div></div></div>
+    <div class="verlauf"><div class="tzeile">${s.rleiste ? `<div class="rwerk">${wk('bearbeiten', 'stift', 'Bearbeiten')}${wk('kat-zuordnen', 'karte', 'Kategorie')}${wk('ordner-zuordnen', 'ordner', L('Ordner', 'Folder'))}${wk('bild-blatt', 'bild', 'Bild')}${wk('nurdies', 'voll', s.nurDies ? 'Alles zeigen' : 'Nur dieses Rezept', 'nurbreit')}${wk('rmenue', 'mehr', L('Mehr: Drucken, Teilen, Nährwerte …', 'More: print, share, nutrition …'))}${wk('loeschen', 'muell', 'Rezept löschen', 'rot')}</div>` : ''}<button class="wk-pf zur" data-a="zurueck" aria-label="Zurück">${winkel('M15 5l-7 7 7 7')}</button><h1>${esc(r.name)}</h1><button class="wk-pf" data-a="rleiste" aria-expanded="${s.rleiste}" aria-label="Werkzeuge für Rezept und Bild">${winkel(s.rleiste ? 'M5 9l7 7 7-7' : 'M5 15l7-7 7 7')}</button></div><div class="meta">${r.prepTime ? `<span>${ic('uhr')}${esc(r.prepTime)} Min</span>` : ''}<span>${ic('karte')}${esc(c ? katName(c) : '')}</span>${ordnerVonRezept(r, Z.ordner) ? `<span class="im-ordner">${ic('ordner')}${esc(ordTitel(findeOrdner(Z.ordner, r.folder)))}</span>` : ''}${r.rating?.stars ? `<span>${ic('stern')}${r.rating.stars}</span>` : ''}</div></div></div>
    <div class="bogen"><div class="zweispalt"><div>
     ${r.steps.length ? `<div class="reihe"><button class="knopf akz" data-a="kochen" style="flex:1.3">${ic('koch')}Kochen</button><button class="knopf" data-a="auf-liste" style="flex:1">${ic('einkauf')}Einkaufen</button><button class="knopf" data-a="planen" aria-label="In den Wochenplan">${ic('plan')}</button></div>` : `<div class="reihe"><button class="knopf" data-a="auf-liste">${ic('einkauf')}Einkaufen</button><button class="knopf" data-a="planen">${ic('plan')}Planen</button></div>`}
     <div class="portion"><span>Portionen</span><span class="st"><button data-a="portion" data-d="-1" aria-label="Weniger">${ic('minus')}</button><b id="portionen">${n}</b><button data-a="portion" data-d="1" aria-label="Mehr">${ic('plus')}</button></span></div>
-    <h2 class="h">Zutaten</h2><ul class="zut">${r.ings.map((z) => `<li><b>${esc([skaliere(z.amt, f), z.unit].filter(Boolean).join(' '))}</b><span>${esc(z.name)}${z.note ? `<small>${esc(z.note)}</small>` : ''}</span></li>`).join('')}</ul>${geraeteVon(r).length ? `<h2 class="h">Geräte</h2><div class="gr-liste">${geraeteVon(r).map((g) => `<span class="gr-chip">${geraetSvg(g)}${esc(GERAETE[g].de)}</span>`).join('')}</div>` : ''}</div>
+    <h2 class="h">Zutaten</h2><ul class="zut">${r.ings.map((z) => `<li><b>${esc([skaliere(z.amt, f), z.unit].filter(Boolean).join(' '))}</b><span>${esc(z.name)}${z.note ? `<small>${esc(z.note)}</small>` : ''}</span></li>`).join('')}</ul>${naehrHtml(r, n)}${geraeteVon(r).length ? `<h2 class="h">Geräte</h2><div class="gr-liste">${geraeteVon(r).map((g) => `<span class="gr-chip">${geraetSvg(g)}${esc(GERAETE[g].de)}</span>`).join('')}</div>` : ''}</div>
     <div><h2 class="h">Zubereitung</h2><ol class="schritte">${r.steps.map((x) => `<li><span>${esc(x.txt)}${x.note ? `<small>${esc(x.note)}</small>` : ''}</span></li>`).join('')}</ol>
     ${r.source ? `<p class="quelle">Quelle: ${esc(r.source)}</p>` : ''}${vermerkHtml(r, spr())}</div></div></div>`;
 }
 
 const geraeteVon = (r) => [...new Set(r.steps.flatMap((x) => erkenne(x.txt)))];
+/* Nährwerte je Portion (r.nutrition wie in der alten App): eine eingeklappte Zeile, aufgeklappt die Werte. „geschätzt“, wenn sie von der KI kommen. */
+function naehrHtml(r) {
+  const z = naehrwertZeilen(r.nutrition, spr()); if (!z.length) return '';
+  return `<details class="naehr" data-naehr><summary>${ic('flamme')}<span>${z[0].wert} kcal ${L('je Portion', 'per serving')}${r.nutrition.quelle === 'ki' ? ' · ' + L('geschätzt', 'estimated') : ''}</span></summary><ul>${z.slice(1).map((x) => `<li><span>${esc(x.name)}</span><b>${x.wert} ${esc(x.einheit)}</b></li>`).join('')}</ul></details>`;
+}
+/* ---------- Menü am Rezept (abgenommene Vorschau, Punkt 11): hinter dem Winkel → „Mehr“. Eine Liste, je Zeile ein Zeichen und ein Wort.
+   KI-Zeilen sagen in der Zeile selbst, was an wen hinausgeht (Klaus: Auskunft im Knopf); gesendet wird erst beim Tipp. ---------- */
+const kiZeile = (a, i, t, was) => `<button class="zeile" data-a="${a}" title="${esc(was)}">${ic(i)}<span>${esc(t)}<small>Anthropic · ${esc(was.replace(/^[^:]+:\s*/, '').replace(/\s+(an|to) Anthropic.*$/, ''))}</small></span><i class="ki-marke">KI</i></button>`;
+function rezeptMenue() {
+  const r = rezept(s.uid); if (!r) return;
+  fenster(`<h2 class="imp-kopf"><span>${esc(zeig(r).name)}</span></h2><div class="liste menue" id="rmenue">
+   ${zeile('drucken', 'drucken', L('Drucken', 'Print'))}${zeile('qr', 'qr', L('Teilen per QR-Code', 'Share by QR code'))}${zeile('einheiten', 'waage', L('Einheiten', 'Units'), einhName())}
+   ${kiZeile('naehrwerte', 'flamme', L('Nährwerte schätzen', 'Estimate nutrition'), helferHinaus('naehrwerte', r, spr()))}${kiZeile('rechtschreibung', 'abc', L('Rechtschreibung prüfen', 'Check spelling'), helferHinaus('rechtschreibung', r, spr()))}</div>`);
+}
+const rezeptSetzen = (neu) => { Z.rezepte = Z.rezepte.map((x) => (x.uid === neu.uid ? { ...neu, modified: new Date().toISOString() } : x)); sichern(); };
+async function kiAmRezept(art) {
+  const r = rezept(s.uid); if (!r) return;
+  if (!SK.anthropic) { schluesselFenster('anthropic', 'rmenue'); return; }
+  fensterZu();
+  try {
+    if (art === 'naehrwerte') { const w = await W.mit(L('Nährwerte werden geschätzt …', 'Estimating nutrition …'), () => naehrwerte(r, { schluessel: SK.anthropic, stufe: E.scan.stufe, sprache: spr() })); rezeptSetzen(naehrwerteAnRezept(r, w)); zeichne(); melde(L('Nährwerte geschätzt', 'Nutrition estimated')); return; }
+    const e = await W.mit(L('Rechtschreibung wird geprüft …', 'Checking spelling …'), () => rechtschreibung(r, { schluessel: SK.anthropic, stufe: E.scan.stufe, sprache: spr() }));
+    if (!e.aenderungen.length) { melde(L('Keine Fehler gefunden', 'No mistakes found')); return; }
+    s.recht = e;
+    fenster(`<h2 class="imp-kopf">${ic('abc')}<span>${fuelle(L('{0} Vorschläge', '{0} suggestions'), e.aenderungen.length)}</span></h2><form data-form="recht"><ul class="recht-liste">${e.aenderungen.map((x, i) => `<li><label><input type="checkbox" name="n" value="${i}" checked><span><s>${esc(x.alt)}</s> <b>${esc(x.neu)}</b></span></label></li>`).join('')}</ul><div class="reihe"><button class="knopf akz gross" type="submit">${ic('haken')}${L('Übernehmen', 'Apply')}</button></div></form>`);
+  } catch (f) { melde(f.message); }
+}
+async function qrFenster() {
+  const r = rezept(s.uid); if (!r) return;
+  let link = ''; try { link = await teilLink(zeig(r), location.origin + location.pathname); } catch { link = ''; }
+  if (!link || !passtInQr(link, 'L')) { melde(L('Dieses Rezept ist zu lang für einen QR-Code', 'This recipe is too long for a QR code')); return; }
+  s.teil = link;
+  fenster(`<h2 class="imp-kopf">${ic('qr')}<span>${esc(zeig(r).name)}</span></h2><div class="qr-bild" id="qr-bild" title="${L('Mit der Kamera eines anderen Geräts scannen: das Rezept öffnet sich dort im Rezeptbuch. Ohne Bild.', 'Scan with the camera of another device: the recipe opens there in the recipe book. Without picture.')}">${qrSvg(link, { stufe: 'L', groesse: 300, titel: zeig(r).name })}</div>
+   <div class="reihe">${navigator.share ? `<button class="knopf akz gross" data-a="qr-teilen">${ic('teilen')}${L('Link teilen', 'Share link')}</button>` : ''}<button class="knopf gross" data-a="qr-kopieren">${ic('kopieren')}${L('Link kopieren', 'Copy link')}</button></div>`);
+}
+
 
 /* ---------- Kochansicht: ein Schritt groß, Wischen oder Pfeiltasten, Bildschirm bleibt an ---------- */
 const K = { i: 0, kopf: true, wach: null, uhr: null, rest: 0 };
@@ -500,7 +543,7 @@ function werkstattHtml() {
     ['ordnung', 'karte', WF.gelb, L('Ordnung', 'Order'), '',
       zeile('geh', 'karte', L('Kategorien', 'Categories'), '', 'data-zu="kategorien"') + zeile('geh', 'ordner', L('Ordner', 'Folders'), String(Z.ordner.length), 'data-zu="ordner"') + zeile('geh', 'bild', L('Bilder', 'Pictures'), String(bilder), 'data-zu="bilder"')],
     ['aussehen', 'auge', WF.blau, L('Darstellung', 'Appearance'), '',
-      zeile('farbe', 'auge', L('Farbe, hell und dunkel', 'Colour, light and dark'), (FARBEN[E.farbe]?.de || '') + ' · ' + TOENE[E.ton]) + zeile('schrift', 'stift', L('Schriftgröße', 'Text size'), schriftWert(E.schrift) + ' %') + zeile('hinweise', 'frage', L('Hinweis-Blasen', 'Tooltips'), E.hinweiseAus ? L('aus', 'off') : L('an', 'on'), `aria-pressed="${!E.hinweiseAus}"`) + (installFrage ? zeile('installieren', 'laden', L('Als App installieren', 'Install as an app')) : '')],
+      zeile('farbe', 'auge', L('Farbe, hell und dunkel', 'Colour, light and dark'), (FARBEN[E.farbe]?.de || '') + ' · ' + TOENE[E.ton]) + zeile('schrift', 'stift', L('Schriftgröße', 'Text size'), schriftWert(E.schrift) + ' %') + zeile('einheiten', 'waage', L('Einheiten', 'Units'), einhName()) + zeile('hinweise', 'frage', L('Hinweis-Blasen', 'Tooltips'), E.hinweiseAus ? L('aus', 'off') : L('an', 'on'), `aria-pressed="${!E.hinweiseAus}"`) + (installFrage ? zeile('installieren', 'laden', L('Als App installieren', 'Install as an app')) : '')],
     ['beispiele', 'paket', WF.petrol, L('Beispiele', 'Examples'), '',
       zeile('beispiel', 'paket', L('Beispielbuch laden', 'Load example book'), beispielText()) + (b ? zeile('beispiele-weg', 'muell', L('Beispiele entfernen', 'Remove examples'), String(b)) : '')],
     ['aufraeumen', 'muell', WF.koralle, L('Aufräumen', 'Clean up'), '', zeile('alles-weg', 'muell', L('Alle Rezepte löschen', 'Delete all recipes'), L('mit Rückfrage', 'asks first'))],
@@ -705,6 +748,14 @@ const A = {
   'bild-dazu': (e) => { s.bildZiel = e.dataset.uid; fensterZu(); $('datei-bild').click(); },
   zuschnitt: () => zuschnittFenster(s.uid),
   rleiste: () => { s.rleiste = !s.rleiste; zeichne(); },
+  rmenue: () => rezeptMenue(),
+  drucken: () => { const r = rezept(s.uid); if (!r) return; fensterZu(); const c = alleKategorien(Z.rezepte, Z.kategorien).find((x) => x.id === katVonRezept(r)); drucke(druckRezept(inEinheit(zeig(r)), { portionen: s.portion[r.uid] || r.servings, sprache: spr(), kategorieName: c ? katName(c) : '' }), { sprache: spr() }).catch((f) => melde(f.message)); },
+  qr: () => qrFenster(),
+  'qr-kopieren': () => { navigator.clipboard?.writeText(s.teil || '').then(() => melde(L('Link kopiert', 'Link copied')), () => melde(L('Kopieren ging nicht', 'Copying failed'))); },
+  'qr-teilen': () => { navigator.share?.({ title: zeig(rezept(s.uid))?.name || '', url: s.teil }).catch(() => {}); },
+  einheiten: () => { const f = ['', 'us', 'metrisch']; E.einheiten = f[(f.indexOf(E.einheiten || '') + 1) % f.length]; sichern(); zeichne(); if (document.getElementById('rmenue')) rezeptMenue(); },
+  naehrwerte: () => kiAmRezept('naehrwerte'),
+  rechtschreibung: () => kiAmRezept('rechtschreibung'),
   'bild-blatt': () => bildBlatt(s.uid),
   // Tipp aufs Bild: mit Bild das Vollbild, ohne Bild gleich das Bild-Blatt. Am Monitor steht die Namenszeile UNTER dem Bild
   // (Klaus 23.11.: „der Winkel soll im Monitor stehen, nicht im Bild“); ein Tipp dort öffnet kein Bild.
@@ -774,8 +825,9 @@ document.addEventListener('click', (ev) => {
 document.addEventListener('submit', (ev) => { ev.preventDefault(); const f = ev.target.dataset.form;
   if (f === 'rezept') formSpeichern(ev.target);
   else if (f === 'web-holen') webHolen();
+  else if (f === 'recht') { const r = rezept(s.uid), wahl = new FormData(ev.target).getAll('n').map(Number), e = s.recht; if (!r || !e) return; rezeptSetzen(rechtschreibungAnwenden(r, e.aenderungen.filter((_, i) => wahl.includes(i)))); s.recht = null; fensterZu(); zeichne(); melde(fuelle(L('{0} übernommen', '{0} applied'), wahl.length)); }
   else if (f === 'schluessel') { const a = ev.target.dataset.anbieter, k = $('schl-feld').value.trim(), danach = ev.target.dataset.danach;
-    (k ? S.setz(a, k) : S.weg(a)).then(() => { SK[a] = k; fensterZu(); zeichne(); melde(!k ? L('Schlüssel gelöscht', 'Key deleted') : formPasst(a, k) ? L('Schlüssel gespeichert', 'Key saved') : L('Gespeichert. Der Schlüssel sieht ungewohnt aus, bitte prüfen.', 'Saved. The key looks unusual, please check it.')); if (k && danach === 'scan') neuFenster('scan'); else if (k && danach === 'web') neuFenster('web'); else if (k && danach) A['ki-bild']({ dataset: { uid: danach } }); }).catch(() => melde(L('Der Schlüssel ließ sich nicht speichern.', 'The key could not be saved.'))); }
+    (k ? S.setz(a, k) : S.weg(a)).then(() => { SK[a] = k; fensterZu(); zeichne(); melde(!k ? L('Schlüssel gelöscht', 'Key deleted') : formPasst(a, k) ? L('Schlüssel gespeichert', 'Key saved') : L('Gespeichert. Der Schlüssel sieht ungewohnt aus, bitte prüfen.', 'Saved. The key looks unusual, please check it.')); if (k && danach === 'scan') neuFenster('scan'); else if (k && danach === 'web') neuFenster('web'); else if (k && danach === 'rmenue') rezeptMenue(); else if (k && danach) A['ki-bild']({ dataset: { uid: danach } }); }).catch(() => melde(L('Der Schlüssel ließ sich nicht speichern.', 'The key could not be saved.'))); }
   else if (f === 'tresor') { const n = String(new FormData(ev.target).get('name') || '').trim(); tr.ablegen(schreibe(Z), 'benannt', n).then(() => { tresorFenster(); melde('Stand im Tresor gesichert'); }).catch(() => melde('Der Tresor ließ sich nicht beschreiben.')); }
   else if (f === 'ek-eigen') { const t = String(new FormData(ev.target).get('t') || '').trim(); if (!t) return; Z.einkauf = { ...Z.einkauf, eigene: [...Z.einkauf.eigene, { id: Date.now().toString(36), text: t }] }; sichern(); zeichne(); document.querySelector('[data-form="ek-eigen"] input')?.focus(); }
   else if (f === 'ordner-neu-zu') { const n = String(new FormData(ev.target).get('n') || '').trim(), uid = ev.target.dataset.uid; if (!n || !uid) return; const a = ordAnlegen(Z.ordner, n); Z.ordner = a.ordner; A['ordner-setzen']({ dataset: { uid, oid: a.id } }); }
@@ -843,9 +895,11 @@ async function start() {
   farbeSetzen(document.documentElement, E.farbe, E.ton); E.schrift = schriftSetzen(document.documentElement, E.schrift);
   hinweiseEinrichten(document, { aus: () => !!E.hinweiseAus });   // Hinweis-Blasen wie in der alten App (Kern), ausschaltbar
   const geteilt = new URLSearchParams(location.search), geteilteAdresse = webAdresse(geteilt.get('url') || '') || webAdresse(geteilt.get('text') || '');   /* über „Teilen“ an die installierte App geschickt */
+  const geteiltesRezept = /^#share=/.test(location.hash) ? location.href : '';   /* Link aus einem QR-Code (Format der bisherigen App) */
   history.replaceState({ ansicht: 'start' }, '', location.pathname);
   zeichne(true);
   if (geteilteAdresse) { s.web = { adresse: geteilteAdresse, text: '', stand: '', seitentext: '' }; neuFenster('web'); }
+  if (geteiltesRezept) { try { const r = await ausTeilLink(geteiltesRezept); if (r && r.name) { s.form = { ...formAus(null), name: r.name, cat: alleKategorien(Z.rezepte, Z.kategorien).some((c) => c.id === r.cat) ? r.cat : '', servings: r.servings || 4, prepTime: r.prepTime ?? '', ings: (r.ings || []).map(zutatZeile).join('\n'), steps: (r.steps || []).map((x) => x.txt).join('\n\n'), flavors: r.flavors || [] }; geh('form'); melde(L('Geteiltes Rezept. Bitte prüfen.', 'Shared recipe. Please check.')); } } catch { melde(L('Der geteilte Link ließ sich nicht lesen', 'The shared link could not be read')); } }
   lager.dauerhaft();
   if ('serviceWorker' in navigator) navigator.serviceWorker.register('./sw.js').catch(() => {});   // Offline-Vorrat; ohne ihn läuft die App genauso, nur nicht ohne Netz
   fetch('../beispiele/KATALOG.json').then((a) => a.json()).then((k) => { katalog = k; if (s.ansicht === 'start' || s.ansicht === 'werkstatt') zeichne(); }).catch(() => {});
