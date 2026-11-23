@@ -454,5 +454,21 @@ main{zoom:var(--z,1)}.koch .k-mitte,.koch .k-text{zoom:var(--z,1)}
 .vollbild{position:fixed;inset:0;z-index:60;background:#000;display:grid;place-items:center;cursor:zoom-out;animation:auf .18s ease-out}
 .vollbild img{width:100vw;height:100svh;object-fit:contain;display:block}
 .vollbild p{position:absolute;left:0;right:0;bottom:0;margin:0;padding:28px 16px calc(14px + env(safe-area-inset-bottom,0px));color:#fff;font-weight:700;font-size:17px;background:linear-gradient(to top,rgba(0,0,0,.7),transparent)}
+.voll-werk{position:absolute;top:calc(10px + env(safe-area-inset-top,0px));left:10px;height:40px;padding:0 14px 0 11px;border-radius:20px;border:0;background:rgba(255,255,255,.16);color:#fff;display:flex;align-items:center;gap:7px;font-weight:600;font-size:14px;cursor:pointer}.voll-werk .ic{width:18px;height:18px}
 .voll-x{position:absolute;top:calc(10px + env(safe-area-inset-top,0px));right:10px;width:40px;height:40px;border-radius:50%;border:0;background:rgba(255,255,255,.16);color:#fff;display:grid;place-items:center;cursor:pointer}
 .bb-bild{cursor:zoom-in}
+
+/* Monitor: Name und Winkel stehen UNTER dem Bild, nicht darauf (Klaus 23.11.); die Werkzeuge klappen als Zeile darunter auf. */
+@media(min-width:1000px){
+ .md-detail .rezept-held,body[data-fl] .md-detail .rezept-held{height:auto;display:block;overflow:visible;background:none;cursor:default;margin:0;color:var(--ink)}
+ .md-detail .rezept-held>img{height:min(58vh,520px);background:var(--fl2);cursor:zoom-in}
+ .md-detail .rezept-held>.ic{display:block;margin:28px auto;cursor:pointer}
+ .md-detail .rezept-held .verlauf{position:relative;inset:auto;background:none;color:var(--ink);padding:16px 30px 0}
+ .md-detail .rezept-held .meta{color:var(--mut)}
+ .md-detail .rezept-held .wk-pf{color:var(--ink);filter:none}
+ .md-detail .tzeile{flex-wrap:wrap}
+ .md-detail .rwerk{position:static;order:5;width:100%;flex-direction:row;flex-wrap:wrap;margin-top:8px;animation:none}
+ .md-detail .rwerk .chip{background:var(--fl2);color:var(--ink);box-shadow:none}
+ .md-detail .rwerk .chip.nurbreit{display:inline-flex!important}
+ .md-detail .bogen{margin-top:0}
+}
