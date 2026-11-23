@@ -62,4 +62,4 @@ byte-gleich und prüft gegen diese Liste; `node --test` hier besteht darauf, das
 ## Die neue PWA (`neu/`)
 
 Erste sichtbare Fassung der Ausgabe „rezeptbuch“, ohne Bauschritt (ES-Module direkt). Läuft neben der alten App unter `/neu/`.
-Probe im echten Browser: `node tests/smoke_neu.mjs` (57 Prüfpunkte: leerer Start, Beispielbuch, Sushi-Kategorie, Suche, Portionen, Anlegen, Neuladen, Sicherung hin und zurück, Beispiele entfernen, Übernahme aus der alten App, Leiste, Farbe, Kochansicht, Monitor-Aufteilung, Einkaufsliste, Wochenplan).
+Probe im echten Browser: `node tests/smoke_neu.mjs` (73 Prüfpunkte: leerer Start, Beispielbuch, Sushi-Kategorie, Suche, Portionen, Anlegen, Neuladen, Sicherung hin und zurück, Beispiele entfernen, Übernahme aus der alten App, Leiste, Farbe, Kochansicht, Monitor-Aufteilung, Einkaufsliste, Wochenplan, Kategorien verwalten, Bilder-Ordner, Bildausschnitt).

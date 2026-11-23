@@ -123,6 +123,44 @@ try {
   await p.click('[data-a=werkzeug]'); await p.click('.werkzeuge [data-zu=werkstatt]'); const [d2] = await Promise.all([p.waitForEvent('download'), p.click('[data-a=sichern]')]); const s2 = JSON.parse(await readFile(await d2.path(), 'utf8'));
   ok(s2.einkauf?.posten?.length === 3 && Object.keys(s2.plan || {}).length === 1, 'Einkaufsliste und Wochenplan stehen in der Sicherung');
   await k.close();
+
+  console.log('11 · Kategorien verwalten, Bilder, Bildausschnitt');
+  ({ p, k } = await seite()); await p.click('[data-a=beispiel]'); await p.waitForSelector('.karte', { timeout: 20000 });
+  const zuWerk = async (zu) => { await p.click('#leiste .fl-griff'); await p.click('#leiste [data-zu=werkstatt]'); await p.click(`.zeile[data-zu=${zu}]`); };
+  const leiste = async () => { await p.click('#leiste .fl-griff'); await p.click('#leiste [data-zu=start]'); await p.waitForSelector('.fotokat'); return p.locator('.fotokat button').allInnerTexts(); };
+  await zuWerk('kategorien'); await p.waitForSelector('.kat-zeile');
+  const fisch = p.locator('.kat-name[data-kid=fisch]'); await fisch.fill('Fisch & Meer'); await fisch.blur();
+  await p.click('.kat-zeile[data-kid=fisch] [data-a=kat-emoji]'); await p.locator('.emoji-raster button', { hasText: '🍣' }).click();
+  let lt = await leiste(); ok(lt.some((t) => /Fisch & Meer\s+2$/.test(t.trim())), 'umbenannt: „Fisch & Meer“ steht in der Leiste', lt.join(' | '));
+  await zuWerk('kategorien'); ok((await p.locator('.kat-zeile[data-kid=fisch] .kat-zeichen').innerText()) === '🍣', 'das gewählte Zeichen bleibt');
+  const kid = async () => p.locator('.kat-zeile').evaluateAll((z) => z.map((x) => x.dataset.kid)); const vorK = await kid();
+  const gb = await p.locator('.kat-zeile').nth(2).locator('.griff').boundingBox(), eb = await p.locator('.kat-zeile').first().boundingBox();
+  await p.mouse.move(gb.x + 10, gb.y + 15); await p.mouse.down(); await p.waitForTimeout(400); await p.mouse.move(gb.x + 10, eb.y + 3, { steps: 8 }); await p.mouse.up();
+  const nachK = await kid(); ok(nachK[0] === vorK[2] && nachK.length === vorK.length && new Set(nachK).size === nachK.length, 'Kategorie ziehen: die dritte steht jetzt oben, keine geht verloren', nachK.slice(0, 4).join(','));
+  await p.click('.kat-zeile[data-kid=suppe] [data-a=kat-weg]'); await p.locator('.wahl-liste .zeile', { hasText: 'Vegetarisch' }).click();
+  ok(await p.locator('.kat-zeile[data-kid=suppe]').count() === 0 && (await p.locator('.kat-zeile[data-kid=vegi] small').innerText()) === '10', 'Löschen mit Ziel: Suppen weg, Vegetarisch hat 8 + 2 = 10');
+  ok(await p.locator('[data-a=kat-zurueck][data-kid=suppe]').count() === 1, 'die gelöschte feste Kategorie lässt sich zurückholen');
+  await p.click('[data-a=kat-neu]'); await p.keyboard.type('Sonntagsessen'); await p.keyboard.press('Tab');
+  await p.waitForTimeout(350); await p.reload(); await p.waitForSelector('.gruss'); lt = await p.locator('.fotokat button').allInnerTexts();
+  ok(lt[1].includes(nachK[0] === 'fleisch' ? 'Fleisch' : '') && lt.some((t) => /Fisch & Meer/.test(t)) && !lt.some((t) => /Suppen/.test(t)), 'nach Neuladen: Reihenfolge, Name und Löschung sind da', lt.join(' | '));
+  await p.fill('#suchfeld', 'Ratatouille'); await p.locator('.karte').first().click(); await p.click('[data-a=kat-zuordnen]'); await p.fill('[data-form=kat-neu-zu] input', 'Sommerküche'); await p.keyboard.press('Enter');
+  ok((await p.locator('.rezept-held .meta').innerText()).includes('Sommerküche'), 'aus dem Rezept: neue Kategorie anlegen und zuordnen in einem Griff');
+
+  await zuWerk('bilder'); await p.waitForSelector('.bildkachel'); const nB = await p.locator('.bildkachel').count(); ok(nB === 30, 'Bilder-Ordner zeigt alle 30 Bilder', String(nB));
+  await p.click('[data-a=bilder-gross]'); ok(await p.locator('.bildgitter.gross').count() === 1, 'große Vorschau per Tipp');
+  await p.locator('.bildkachel').nth(0).click(); await p.locator('.bildkachel').nth(1).click(); await p.click('[data-a=bilder-weg]');
+  ok(await p.locator('.bildkachel').count() === 28 && await p.locator('[data-a=bild-dazu]').count() === 14, 'zwei Bilder gelöscht, die Rezepte stehen jetzt unter „ohne Bild“');
+  await p.click('[data-a=toast-tun]'); ok(await p.locator('.bildkachel').count() === 30, 'Rückgängig holt die Bilder zurück');
+  const png = Buffer.from('iVBORw0KGgoAAAANSUhEUgAAAAoAAAAKCAYAAACNMs+9AAAAFUlEQVR42mP8z8BQz0AEYBxVSF+FABJADveWkH6oAAAAAElFTkSuQmCC', 'base64');
+  await p.locator('[data-a=bild-dazu]').first().click().catch(() => {}); await p.setInputFiles('#datei-bild', { name: 'foto.png', mimeType: 'image/png', buffer: png }); await p.waitForFunction(() => document.querySelectorAll('.bildkachel').length === 31);
+  ok(true, 'Bild einfügen bei einem Rezept ohne Bild');
+  await p.click('[data-a=bilder-alle-weg]'); await p.click('[data-a=ja]'); ok(await p.locator('.bildkachel').count() === 0, '„Alle Bilder löschen“ mit Rückfrage'); await p.click('[data-a=toast-tun]');
+  await p.click('#leiste .fl-griff'); await p.click('#leiste [data-zu=start]'); await p.fill('#suchfeld', ''); await p.locator('.fotokat button').first().click(); ok(await p.locator('.karte').count() === 42, 'alle 42 Rezepte sind noch da');
+  await p.fill('#suchfeld', 'Dragon'); await p.locator('.karte').first().click(); await p.click('[data-a=zuschnitt]'); await p.locator('[data-a=zs-lage]', { hasText: 'Oben' }).click();
+  await p.locator('#zs-zoom').evaluate((e) => { e.value = 200; e.dispatchEvent(new Event('input', { bubbles: true })); }); await p.click('[data-a=zs-ok]');
+  const stil = await p.locator('.rezept-held > img').getAttribute('style'); ok(/object-position:50% 0%/.test(stil) && /scale\(2\)/.test(stil), 'Bildausschnitt: Lage oben und Zoom 2 sind am Kopfbild', stil);
+  await p.waitForTimeout(350); await p.reload(); await p.waitForSelector('.gruss'); await p.fill('#suchfeld', 'Dragon'); ok(/scale\(2\)/.test(await p.locator('.karte img').first().getAttribute('style') || ''), 'der Ausschnitt gilt auch auf der Karte und nach dem Neuladen');
+  await k.close();
   ok(fehler.length === 0, 'keine Fehler in der Konsole, kein Netz nach draußen', fehler.join(' · '));
 } catch (e) { rot++; console.log('  ✗ ROT: Probe abgebrochen — ' + e.message.split('\n')[0]); }
 await browser.close(); srv.close();

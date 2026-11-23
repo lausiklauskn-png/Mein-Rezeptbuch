@@ -360,3 +360,44 @@ body:has(.koch) .fl{display:none}
 }
 .quelle-chip .ic [opacity],.w-weg .ic [opacity],.w-leer .ic [opacity],.fl-zu .ic [opacity],.suche button .ic [opacity],.laeden .ic [opacity],.k-klapp .ic [opacity],.k-kopf .rund .ic [opacity]{opacity:0}
 .w-leer.mehr{border:0;min-height:26px;padding:0 6px;font-size:12px;justify-self:start}
+
+/* Kategorien verwalten */
+.kat-zeile{display:flex;align-items:center;gap:8px;padding:5px 8px;border-top:1px solid var(--line);background:var(--fl)}
+.kat-zeile:first-child{border-top:0}
+.kat-zeile .griff{width:26px;height:34px;display:grid;place-items:center;color:var(--mut);touch-action:none;cursor:grab;flex:none}
+.kat-zeile .griff .ic{width:17px;height:17px}
+.kat-zeichen{width:34px;height:34px;border-radius:10px;display:grid;place-items:center;background:var(--fl2);color:var(--akz);font-size:19px;flex:none}
+.kat-zeile .feld{flex:1;min-width:0;padding:6px 9px}
+.kat-fest{flex:1;min-width:0;font-size:14px;color:var(--mut)}
+.kat-zeile small{color:var(--mut);font-variant-numeric:tabular-nums;min-width:22px;text-align:right}
+.kat-zeile .rund{background:none;color:var(--mut)}
+.kat-zeile.zieht{position:relative;z-index:3;box-shadow:0 10px 26px rgba(0,0,0,.25)}
+.kat-zeile.ziel-vor{box-shadow:0 -3px 0 0 var(--akz)}
+.kat-zeile.ziel-nach{box-shadow:0 3px 0 0 var(--akz)}
+.emoji-raster{display:grid;grid-template-columns:repeat(auto-fill,minmax(42px,1fr));gap:4px}
+.emoji-raster button{height:42px;border-radius:10px;font-size:22px;display:grid;place-items:center;background:var(--fl)}
+.wahl-liste .kat-zeichen{width:30px;height:30px;font-size:16px}
+
+/* Bilder-Ordner */
+.bildgitter{display:grid;grid-template-columns:repeat(auto-fill,minmax(92px,1fr));gap:6px}
+.bildgitter.gross{grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:10px}
+.bildkachel{position:relative;aspect-ratio:1;border-radius:12px;overflow:hidden;background:var(--fl2)}
+.bildgitter.gross .bildkachel{aspect-ratio:4/3}
+.bildkachel img{width:100%;height:100%;object-fit:cover;display:block}
+.bildkachel .hk{position:absolute;top:6px;right:6px;width:22px;height:22px;border-radius:50%;background:rgba(255,255,255,.85);border:2px solid #fff;display:grid;place-items:center;color:#fff}
+.bildkachel[aria-pressed="true"]{outline:3px solid var(--akz);outline-offset:-3px}
+.bildkachel[aria-pressed="true"] .hk{background:var(--akz)}
+.bildkachel .hk .ic{width:14px;height:14px}.bildkachel .hk .ic [opacity]{opacity:0}
+.bildkachel .bn{position:absolute;inset:auto 0 0 0;padding:14px 6px 4px;font-size:10.5px;line-height:1.2;color:#fff;background:linear-gradient(to top,rgba(12,8,4,.8),transparent);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;text-align:left}
+.bildgitter.gross .bn{font-size:13px;padding:22px 10px 8px}
+
+/* Bild anpassen */
+.zs-rahmen{aspect-ratio:3/2;border-radius:16px;overflow:hidden;background:#000;touch-action:none;cursor:grab;outline:2px solid var(--akz);outline-offset:2px}
+.zs-rahmen img,.zs-vor img{width:100%;height:100%;object-fit:cover;display:block}
+.zs-regler{display:grid;grid-template-columns:48px 1fr 40px;align-items:center;gap:8px;font-size:12.5px;color:var(--mut)}
+.zs-regler input{width:100%;accent-color:var(--akz)}
+.zs-regler b{font-variant-numeric:tabular-nums;text-align:right;color:var(--ink)}
+.zs-vor{display:flex;gap:10px;align-items:flex-end;margin-top:10px;font-size:11px;color:var(--mut);text-align:center}
+.zs-vor span{display:block;border-radius:10px;overflow:hidden;margin-bottom:3px}
+.zs-vor .vk{width:104px;aspect-ratio:4/3}.zs-vor .vh{width:150px;aspect-ratio:3/2}
+.karte .bild,.fotokat .bild,.held,.rezept-held{overflow:hidden}

@@ -1,7 +1,7 @@
 // Mein Rezeptbuch – neue PWA (Ausgabe „rezeptbuch“ des Küchen-Kerns). Erste Fassung: Start, Rezept, Anlegen/Bearbeiten,
 // Kategorien, Suche, Sicherung ein/aus, Beispielbuch, Übernahme aus der alten App. Netz nur auf Knopfdruck.
 import { normalisiere, istInhalt, katVonRezept, neueUid, KAT_OHNE } from '../kern/modell/rezept.mjs';
-import { alleKategorien, beschriftung, anzahl, leereKategorien } from '../kern/modell/kategorien.mjs';
+import { alleKategorien, beschriftung, anzahl, leereKategorien, KATEGORIEN_FEST, anlegen as katAnlegen, umbenennen as katUmbenennen, loeschen as katLoeschen, umsortieren as katUmsortieren } from '../kern/modell/kategorien.mjs';
 import { suche } from '../kern/modell/suche.mjs';
 import { skaliere } from '../kern/modell/mengen.mjs';
 import { leererZustand } from '../kern/modell/zustand.mjs';
@@ -16,7 +16,7 @@ import { GERAETE, erkenne, geraetSvg } from '../kern/oberflaeche/geraete.mjs';
 import { einkaufsliste, gruppenFolge, gruppeVerschieben, WARENGRUPPEN } from '../kern/modell/einkauf.mjs';
 import { woche, planen, entplanen, ausAltemMenu, tagIso } from '../kern/modell/plan.mjs';
 
-const FASSUNG = '0.3.0';
+const FASSUNG = '0.4.0';
 const breit = () => matchMedia('(min-width:1000px)').matches;
 const $ = (id) => document.getElementById(id);
 const esc = (t) => String(t ?? '').replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
@@ -24,7 +24,7 @@ const esc = (t) => String(t ?? '').replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '
 let ausgabe = null, lager = null;
 let Z = leererZustand();                     // Rezepte, Wochenplan, Ordner, Kategorien
 let E = { farbe: 'braun', leiste: { seite: 'r', pos: 64 }, zuletzt: null, kochSchrift: 'mittel', railZu: false };   // Einstellungen dieses Geräts
-const s = { ansicht: 'start', uid: null, frage: '', kat: 'alle', portion: {}, werkzeug: false, leisteAuf: false, form: null, nurDies: false, planTag: new Date() };
+const s = { ansicht: 'start', uid: null, frage: '', kat: 'alle', portion: {}, werkzeug: false, leisteAuf: false, form: null, nurDies: false, planTag: new Date(), bilder: { gross: false, filter: 'alle', wahl: new Set() }, bildZiel: null };
 const LEER_EINKAUF = () => ({ posten: [], haken: {}, eigene: [], laeden: { Supermarkt: [] }, laden: 'Supermarkt' });
 function ergaenze() { Z.einkauf = { ...LEER_EINKAUF(), ...(Z.einkauf || {}) }; if (!Z.einkauf.laeden[Z.einkauf.laden]) Z.einkauf.laden = Object.keys(Z.einkauf.laeden)[0] || 'Supermarkt'; if (!Z.einkauf.laeden[Z.einkauf.laden]) Z.einkauf.laeden[Z.einkauf.laden] = []; if (!Z.plan) Z.plan = ausAltemMenu(Z.menu, Z.rezepte); }
 
@@ -33,7 +33,7 @@ let schreibUhr = null;
 function sichern() { clearTimeout(schreibUhr); schreibUhr = setTimeout(() => lager.schreibe({ fassung: 1, zustand: Z, einstellungen: E }).catch(() => melde('Speichern ist fehlgeschlagen. Bitte eine Sicherung als Datei anlegen.')), 150); }
 const rezept = (uid) => Z.rezepte.find((r) => r.uid === uid);
 const katName = (c) => beschriftung(c, 'de', Z.kategorien);
-const katZeichen = (c) => { const e = Z.kategorien.namen?.[c.id]?.emoji || c.emoji; return e ? `<span aria-hidden="true">${esc(e)}</span>` : ic(c.art === 'ohne' ? 'frage' : c.art === 'unbekannt' ? 'paket' : 'karte'); };
+const katZeichen = (c) => { const e = Z.kategorien.namen?.[c.id]?.emoji || c.emoji || c.emojiAlt;   // Vorgabe: das Zeichen der Kategorie aus der alten App, frei änderbar return e ? `<span aria-hidden="true">${esc(e)}</span>` : ic(c.art === 'ohne' ? 'frage' : c.art === 'unbekannt' ? 'paket' : 'karte'); };
 
 /* ---------- Meldungen ---------- */
 let toastUhr = null;
@@ -72,7 +72,10 @@ function kopfZeichnen() {
 }
 
 /* ---------- Start ---------- */
-const bildOder = (r, gr = '') => (r.img ? `<img src="${esc(r.img)}" alt="" loading="lazy" ${gr}>` : ic('karte'));
+/** Bildausschnitt (r.imgCrop wie in der alten App: x, y in Prozent, scale) als Stil. */
+const zahl = (v, sonst) => (Number.isFinite(+v) && v !== '' && v != null ? +v : sonst);   // 0 ist ein gültiger Wert (Lage oben/links)
+const ausschnitt = (r) => { const c = r.imgCrop; if (!c || (c.x === 50 && c.y === 50 && (c.scale || 1) === 1)) return ''; const x = zahl(c.x, 50), y = zahl(c.y, 50), z = Math.min(3, Math.max(1, zahl(c.scale, 1))); return `style="object-position:${x}% ${y}%;${z > 1 ? `transform:scale(${z});transform-origin:${x}% ${y}%` : ''}"`; };
+const bildOder = (r, gr = '') => (r.img ? `<img src="${esc(r.img)}" alt="" loading="lazy" ${ausschnitt(r)} ${gr}>` : ic('karte'));
 const karte = (r, c) => `<button class="karte" data-a="rezept" data-uid="${esc(r.uid)}"><span class="bild">${bildOder(r)}</span><span class="text"><strong>${esc(r.name)}</strong><small>${r.prepTime ? ic('uhr') + esc(r.prepTime) + ' Min · ' : ''}${esc(c ? katName(c) : '')}</small></span></button>`;
 
 function startHtml() {
@@ -121,8 +124,8 @@ function rezeptHtml() {
   const r = rezept(s.uid); if (!r) return `<div class="leer"><p>Dieses Rezept gibt es nicht mehr.</p><button class="knopf" data-a="geh" data-zu="start">Zur Startseite</button></div>`;
   const c = alleKategorien(Z.rezepte, Z.kategorien).find((x) => x.id === katVonRezept(r));
   const n = s.portion[r.uid] || r.servings, f = n / r.servings;
-  return `<div class="rezept-held">${r.img ? `<img src="${esc(r.img)}" alt="${esc(r.name)}">` : ic('karte')}
-    <div class="oben"><button class="rund" data-a="zurueck" aria-label="Zurück">${ic('zurueck')}</button><span><button class="rund nurbreit" data-a="nurdies" aria-label="${s.nurDies ? 'Liste und Leiste wieder zeigen' : 'Nur dieses Rezept zeigen'}" title="${s.nurDies ? 'Alles zeigen' : 'Nur dieses Rezept'}">${ic('voll')}</button><button class="rund" data-a="bearbeiten" aria-label="Bearbeiten">${ic('stift')}</button><button class="rund" data-a="loeschen" aria-label="Rezept löschen">${ic('muell')}</button></span></div>
+  return `<div class="rezept-held">${r.img ? `<img src="${esc(r.img)}" alt="${esc(r.name)}" ${ausschnitt(r)}>` : ic('karte')}
+    <div class="oben"><button class="rund" data-a="zurueck" aria-label="Zurück">${ic('zurueck')}</button><span><button class="rund nurbreit" data-a="nurdies" aria-label="${s.nurDies ? 'Liste und Leiste wieder zeigen' : 'Nur dieses Rezept zeigen'}" title="${s.nurDies ? 'Alles zeigen' : 'Nur dieses Rezept'}">${ic('voll')}</button>${r.img ? `<button class="rund" data-a="zuschnitt" aria-label="Bild anpassen">${ic('zuschnitt')}</button>` : ''}<button class="rund" data-a="kat-zuordnen" aria-label="Kategorie zuordnen">${ic('ordner')}</button><button class="rund" data-a="bearbeiten" aria-label="Bearbeiten">${ic('stift')}</button><button class="rund" data-a="loeschen" aria-label="Rezept löschen">${ic('muell')}</button></span></div>
     <div class="verlauf"><h1>${esc(r.name)}</h1><div class="meta">${r.prepTime ? `<span>${ic('uhr')}${esc(r.prepTime)} Min</span>` : ''}<span>${ic('karte')}${esc(c ? katName(c) : '')}</span>${r.rating?.stars ? `<span>${ic('stern')}${r.rating.stars}</span>` : ''}</div></div></div>
    <div class="bogen"><div class="zweispalt"><div>
     ${r.steps.length ? `<div class="reihe"><button class="knopf akz" data-a="kochen" style="flex:1.3">${ic('koch')}Kochen</button><button class="knopf" data-a="auf-liste" style="flex:1">${ic('einkauf')}Einkaufen</button><button class="knopf" data-a="planen" aria-label="In den Wochenplan">${ic('plan')}</button></div>` : `<div class="reihe"><button class="knopf" data-a="auf-liste">${ic('einkauf')}Einkaufen</button><button class="knopf" data-a="planen">${ic('plan')}Planen</button></div>`}
@@ -201,6 +204,53 @@ function planWahlFenster(tag, uidFest) {
   fenster(`<h2>Gericht planen</h2><div class="wahl-liste">${alle.map((r) => `<button class="zeile" data-a="plan-setzen" data-tag="${tag}" data-uid="${esc(r.uid)}">${r.img ? `<img src="${esc(r.img)}" alt="" loading="lazy">` : ic('karte')}<span>${esc(r.name)}</span></button>`).join('') || '<p>Noch keine Rezepte im Buch.</p>'}</div>`);
 }
 
+/* ---------- Kategorien verwalten ---------- */
+const EMOJI = '🥗 🍜 🍲 🐟 🥦 🍰 🍮 🍷 🥤 🍹 🍸 🍋 ☕ 🍶 🫙 🥨 🍢 🍣 🍕 🍝 🍔 🌮 🥘 🍛 🥩 🍗 🥓 🧀 🥚 🥞 🧇 🍞 🥐 🥖 🥔 🥕 🌽 🍅 🍆 🥑 🌶 🧄 🧅 🍄 🥜 🍎 🍓 🍒 🍑 🍍 🥭 🍌 🍇 🍪 🧁 🍫 🍦 🍯 🫖 🍵 🥛 🧃 🍺 🎄 🎂 ❤️ ⭐ 🔥 ❄️ 👶 👵'.split(' ');
+function kategorienHtml() {
+  const kats = alleKategorien(Z.rezepte, Z.kategorien), aus = (Z.kategorien.ausgeblendet || []).filter((id) => !kats.some((c) => c.id === id)).map((id) => KATEGORIEN_FEST.find((c) => c.id === id)).filter(Boolean);
+  return `<div class="ueber"><h2 style="font-size:19px">Kategorien</h2>${frag('Namen und Zeichen kannst du frei ändern; ein leeres Namensfeld heißt Vorgabe. Zum Ordnen eine Zeile am Griff lange drücken oder mit der Maus ziehen. Eine Kategorie mit Rezepten fragt beim Löschen, wohin die Rezepte sollen. Ein eigener Name gilt in allen Sprachen.')}</div>
+   <div class="liste" id="kat-liste">${kats.map((c) => { const n = anzahl(Z.rezepte, c.id), eig = Z.kategorien.namen?.[c.id]?.name || '';
+     return `<div class="kat-zeile" data-kid="${esc(c.id)}"><span class="griff" aria-hidden="true">${ic('griff')}</span><button class="kat-zeichen" data-a="kat-emoji" data-kid="${esc(c.id)}" aria-label="Zeichen ändern">${katZeichen(c)}</button>
+      ${c.art === 'ohne' ? `<span class="kat-fest">${esc(katName(c))}</span>` : `<input class="feld kat-name" data-kid="${esc(c.id)}" value="${esc(c.art === 'eigen' && !eig ? c.de : eig)}" placeholder="${esc(c.de || c.id)}" aria-label="Name der Kategorie ${esc(katName(c))}" autocomplete="off">`}
+      <small>${n}</small>${c.art === 'ohne' ? '<span style="width:34px"></span>' : `<button class="rund" data-a="kat-weg" data-kid="${esc(c.id)}" aria-label="Kategorie ${esc(katName(c))} löschen">${ic('muell')}</button>`}</div>`; }).join('')}</div>
+   <div class="reihe" style="margin-top:12px"><button class="knopf akz" data-a="kat-neu">${ic('plus')}Neue Kategorie</button></div>
+   ${aus.length ? `<div class="gruppe"><h3>Ausgeblendet</h3><div class="liste">${aus.map((c) => `<button class="zeile" data-a="kat-zurueck" data-kid="${esc(c.id)}">${ic('plus')}<span>${esc(c.de)}<small>wieder zeigen</small></span></button>`).join('')}</div></div>` : ''}`;
+}
+function katWahlFenster(titel, ohneId, aktion, uid = '') {
+  const kats = alleKategorien(Z.rezepte, Z.kategorien).filter((c) => c.art !== 'ohne' && c.id !== ohneId);
+  fenster(`<h2>${esc(titel)}</h2><div class="wahl-liste">${kats.map((c) => `<button class="zeile" data-a="${aktion}" data-ziel="${esc(c.id)}" data-kid="${esc(ohneId || '')}" data-uid="${esc(uid)}"><span class="kat-zeichen">${katZeichen(c)}</span><span>${esc(katName(c))}</span></button>`).join('')}
+    <button class="zeile" data-a="${aktion}" data-ziel="" data-kid="${esc(ohneId || '')}" data-uid="${esc(uid)}">${ic('frage')}<span>ohne Kategorie</span></button></div>
+    ${aktion === 'kat-setzen' ? `<form class="suche" data-form="kat-neu-zu" style="margin-top:10px">${ic('plus')}<input name="n" placeholder="Neue Kategorie anlegen" autocomplete="off" aria-label="Neue Kategorie"></form>` : ''}`);
+}
+
+/* ---------- Bilder-Ordner ---------- */
+function bilderHtml() {
+  const B = s.bilder, mit = Z.rezepte.filter((r) => istInhalt(r) && r.img), ohne = Z.rezepte.filter((r) => istInhalt(r) && !r.img);
+  const gez = mit.filter((r) => B.filter === 'alle' || (B.filter === 'beispiele' ? r.beispiel : !r.beispiel));
+  for (const u of [...B.wahl]) if (!gez.some((r) => r.uid === u)) B.wahl.delete(u);
+  return `<div class="ueber"><h2 style="font-size:19px">Bilder</h2><small>${mit.length} Bilder · ${ohne.length} Rezepte ohne Bild</small></div>
+   <div class="laeden">${[['alle', 'Alle'], ['eigene', 'Eigene'], ['beispiele', 'Beispiele']].map(([f, t]) => `<button class="chip" data-a="bilder-filter" data-f="${f}" aria-pressed="${B.filter === f}">${t}</button>`).join('')}<button class="chip" data-a="bilder-gross" aria-pressed="${B.gross}">${ic('voll')}${B.gross ? 'Groß' : 'Klein'}</button>${frag('Tippe Bilder an, um sie auszuwählen. „Löschen“ entfernt nur das Bild; das Rezept mit seinem Text bleibt.')}</div>
+   <div class="reihe" style="margin-bottom:10px"><button class="knopf rot" data-a="bilder-weg" ${B.wahl.size ? '' : 'disabled'}>${ic('muell')}Löschen (${B.wahl.size})</button><button class="knopf" data-a="bilder-alle-wahl">${B.wahl.size === gez.length && gez.length ? 'Auswahl aufheben' : 'Alle auswählen'}</button><button class="knopf rot" data-a="bilder-alle-weg" ${mit.length ? '' : 'disabled'}>Alle Bilder löschen</button></div>
+   <div class="bildgitter ${B.gross ? 'gross' : ''}">${gez.map((r) => `<button class="bildkachel" data-a="bild-wahl" data-uid="${esc(r.uid)}" aria-pressed="${B.wahl.has(r.uid)}"><img src="${esc(r.img)}" alt="" loading="lazy"><span class="hk">${B.wahl.has(r.uid) ? ic('haken') : ''}</span><span class="bn">${esc(r.name)}</span></button>`).join('') || '<p class="quelle">Keine Bilder in dieser Auswahl.</p>'}</div>
+   ${ohne.length ? `<div class="gruppe"><h3>Rezepte ohne Bild</h3><div class="liste">${ohne.map((r) => `<button class="zeile" data-a="bild-dazu" data-uid="${esc(r.uid)}">${ic('kamera')}<span>${esc(r.name)}<small>Foto einfügen</small></span></button>`).join('')}</div></div>` : ''}`;
+}
+/* Bild anpassen: Ausschnitt ziehen, Zoom, schnelle Lagen. Gespeichert in r.imgCrop wie in der alten App. */
+let zs = null;
+function zuschnittFenster(uid) {
+  const r = rezept(uid); if (!r?.img) return; zs = { uid, x: zahl(r.imgCrop?.x, 50), y: zahl(r.imgCrop?.y, 50), z: Math.min(3, Math.max(1, zahl(r.imgCrop?.scale, 1))) };
+  fenster(`<h2>Bild anpassen</h2><div class="zs-rahmen" id="zs-rahmen"><img src="${esc(r.img)}" alt="" draggable="false" id="zs-bild"></div>
+   <div class="laeden" style="margin:10px 0 6px">${[['Mitte', '50,50'], ['Oben', '50,0'], ['Unten', '50,100'], ['Links', '0,50'], ['Rechts', '100,50']].map(([t, l]) => `<button class="chip" data-a="zs-lage" data-l="${l}">${t}</button>`).join('')}</div>
+   <label class="zs-regler">Zoom<input type="range" id="zs-zoom" min="100" max="300" value="${Math.round(zs.z * 100)}"><b id="zs-wert"></b></label>
+   <div class="zs-vor"><div><span class="vk"><img src="${esc(r.img)}" alt=""></span>Karte</div><div><span class="vh"><img src="${esc(r.img)}" alt=""></span>Kopfbild</div></div>
+   <div class="reihe" style="margin-top:12px"><button class="knopf akz" data-a="zs-ok">${ic('haken')}Übernehmen</button><button class="knopf" data-a="zs-null">Zurücksetzen</button><button class="knopf" data-a="fenster-zu">Abbrechen</button></div>`);
+  zsZeigen();
+}
+function zsZeigen() { if (!zs) return; document.querySelectorAll('#zs-bild, .zs-vor img').forEach((i) => { i.style.objectPosition = `${zs.x}% ${zs.y}%`; i.style.transformOrigin = `${zs.x}% ${zs.y}%`; i.style.transform = `scale(${zs.z})`; }); const w = $('zs-wert'); if (w) w.textContent = zs.z.toFixed(1).replace('.', ',') + '×'; }
+let zsZug = null;
+document.addEventListener('pointerdown', (ev) => { const b = ev.target.closest?.('#zs-rahmen'); if (!b || !zs) return; zsZug = { b, x: ev.clientX, y: ev.clientY, cx: zs.x, cy: zs.y }; try { b.setPointerCapture(ev.pointerId); } catch { /* ohne */ } });
+document.addEventListener('pointermove', (ev) => { if (!zsZug || !zs) return; const r = zsZug.b.getBoundingClientRect(); zs.x = Math.min(100, Math.max(0, zsZug.cx - (ev.clientX - zsZug.x) / r.width * 100 / zs.z)); zs.y = Math.min(100, Math.max(0, zsZug.cy - (ev.clientY - zsZug.y) / r.height * 100 / zs.z)); zsZeigen(); });
+document.addEventListener('pointerup', () => { zsZug = null; }); document.addEventListener('pointercancel', () => { zsZug = null; });
+
 /* ---------- Anlegen und Bearbeiten ---------- */
 const zutatZeile = (z) => [z.amt, z.unit, z.name].filter(Boolean).join(' ') + (z.note ? ` (${z.note})` : '');
 function zutatAusZeile(t) {
@@ -254,9 +304,10 @@ function werkstattHtml() {
    ${zeile('sichern', 'laden', 'Sicherung als Datei', 'alle Rezepte mit Bildern und Kategorien')}${zeile('einlesen', 'ordner', 'Sicherung einlesen', 'auch aus der alten App, aus Muttis Rezeptbuch und dem Mixarium')}</div></div>
   <div class="gruppe"><h3>Beispiele</h3><div class="liste">
    ${zeile('beispiel', 'paket', 'Beispielbuch laden', beispielText())}${b ? zeile('beispiele-weg', 'muell', 'Beispiele entfernen', `${b} Beispiel-Rezepte, eigene bleiben`) : ''}</div></div>
+  <div class="gruppe"><h3>Ordnung</h3><div class="liste">${zeile('geh', 'ordner', 'Kategorien', 'umbenennen, Zeichen, ordnen, löschen, neu', 'data-zu="kategorien"')}${zeile('geh', 'bild', 'Bilder', `${Z.rezepte.filter((r) => istInhalt(r) && r.img).length} Bilder ansehen, löschen, einfügen`, 'data-zu="bilder"')}</div></div>
   <div class="gruppe"><h3>Darstellung</h3><div class="liste">${zeile('farbe', 'einst', 'Farbe', FARBEN[E.farbe]?.de || '')}${zeile('kochschrift', 'koch', 'Schrift in der Kochansicht', E.kochSchrift)}</div></div>
   <div class="gruppe"><h3>Aufräumen</h3><div class="liste">${zeile('alles-weg', 'muell', 'Alle Rezepte löschen', 'mit Rückfrage')}</div></div>
-  <p class="quelle">Mein Rezeptbuch, neue Fassung ${FASSUNG}. Import per Foto und Web, Bücher und Übersetzung folgen. <a href="../" style="color:inherit">Zur bisherigen App</a></p>`;
+  <p class="quelle">Mein Rezeptbuch, neue Fassung ${FASSUNG}. Ordner, Import per Foto und Web, Bücher und Übersetzung folgen. <a href="../" style="color:inherit">Zur bisherigen App</a></p>`;
 }
 
 /* ---------- Fenster ---------- */
@@ -323,7 +374,7 @@ function zeichne(einzug = false) {
     const alt = m.querySelector('.md-liste')?.scrollTop || 0;
     m.innerHTML = `<div class="md ${s.nurDies ? 'nur' : ''}"><div class="md-liste">${startHtml()}</div><div class="md-detail">${rezept(s.uid) ? rezeptHtml() : ''}</div></div>`;
     const l = m.querySelector('.md-liste'); if (l) l.scrollTop = alt;
-  } else m.innerHTML = s.ansicht === 'rezept' || s.ansicht === 'kochen' ? rezeptHtml() : s.ansicht === 'form' ? formHtml() : s.ansicht === 'werkstatt' ? werkstattHtml() : s.ansicht === 'einkauf' ? einkaufHtml() : s.ansicht === 'plan' ? planHtml() : startHtml();
+  } else m.innerHTML = s.ansicht === 'rezept' || s.ansicht === 'kochen' ? rezeptHtml() : s.ansicht === 'form' ? formHtml() : s.ansicht === 'werkstatt' ? werkstattHtml() : s.ansicht === 'einkauf' ? einkaufHtml() : s.ansicht === 'plan' ? planHtml() : s.ansicht === 'kategorien' ? kategorienHtml() : s.ansicht === 'bilder' ? bilderHtml() : startHtml();
   m.classList.toggle('einzug', einzug); document.body.dataset.ansicht = s.ansicht; document.body.classList.toggle('nur', breit() && lesen && s.nurDies);
   if (s.ansicht !== 'kochen') { wachAus(); weckerAus(); }
   kochZeichnen();
@@ -366,6 +417,29 @@ const A = {
   'plan-einkauf': () => { const w = woche(s.planTag); let posten = Z.einkauf.posten, n = 0;
     for (const t of w.tage) for (const uid of Z.plan[tagIso(t)] || []) { const r = rezept(uid); if (r && !posten.some((p) => p.uid === uid)) { posten = [...posten, { uid, portionen: r.servings }]; n++; } }
     Z.einkauf = { ...Z.einkauf, posten }; sichern(); kopfZeichnen(); leisteZeichnen(); melde(n ? `${n} Rezepte auf die Einkaufsliste gesetzt` : 'Alle Gerichte der Woche stehen schon auf der Liste', 'Zur Liste', () => geh('einkauf')); },
+  'kat-neu': () => { const a = katAnlegen(Z.kategorien, ''); Z.kategorien = a.kat; sichern(); zeichne(); document.querySelector(`.kat-name[data-kid="${a.id}"]`)?.focus(); },
+  'kat-emoji': (e) => fenster(`<h2>Zeichen wählen</h2><div class="emoji-raster">${EMOJI.map((x) => `<button data-a="kat-emoji-setzen" data-kid="${esc(e.dataset.kid)}" data-e="${x}">${x}</button>`).join('')}</div><div class="reihe" style="margin-top:10px"><button class="knopf" data-a="kat-emoji-setzen" data-kid="${esc(e.dataset.kid)}" data-e="">Vorgabe</button></div>`),
+  'kat-emoji-setzen': (e) => { const id = e.dataset.kid, namen = { ...(Z.kategorien.namen || {}) }, v = { ...(namen[id] || {}) }; if (e.dataset.e) v.emoji = e.dataset.e; else delete v.emoji; if (Object.keys(v).length) namen[id] = v; else delete namen[id];
+    Z.kategorien = { ...Z.kategorien, namen, eigene: Z.kategorien.eigene.map((c) => (c.id === id && !e.dataset.e ? (({ emoji, ...rest }) => rest)(c) : c)) }; sichern(); fensterZu(); zeichne(); },
+  'kat-weg': (e) => { const id = e.dataset.kid, n = anzahl(Z.rezepte, id); if (n) { katWahlFenster(`Wohin mit den ${n} Rezepten?`, id, 'kat-weg-ziel'); return; } A['kat-weg-ziel']({ dataset: { kid: id, ziel: '' } }, null, true); },
+  'kat-weg-ziel': (e, ev, leer) => { const vorher = { r: Z.rezepte, k: Z.kategorien }, id = e.dataset.kid, c = alleKategorien(Z.rezepte, Z.kategorien).find((x) => x.id === id), name = c ? katName(c) : id;
+    const l = katLoeschen(Z.rezepte, Z.kategorien, id, leer ? null : e.dataset.ziel); Z.rezepte = l.rezepte; Z.kategorien = l.kat; sichern(); fensterZu(); zeichne();
+    melde(`„${name}“ gelöscht${l.verschoben ? `, ${l.verschoben} Rezepte umgehängt` : ''}`, 'Rückgängig', () => { Z.rezepte = vorher.r; Z.kategorien = vorher.k; sichern(); zeichne(); }); },
+  'kat-zurueck': (e) => { Z.kategorien = { ...Z.kategorien, ausgeblendet: Z.kategorien.ausgeblendet.filter((x) => x !== e.dataset.kid), eigene: Z.kategorien.eigene }; const c = KATEGORIEN_FEST.find((x) => x.id === e.dataset.kid);
+    Z.kategorien = { ...Z.kategorien, eigene: [...Z.kategorien.eigene] }; sichern(); zeichne(); if (c) melde(`„${c.de}“ steht wieder in der Liste`); },
+  'kat-zuordnen': () => { const r = rezept(s.uid); if (r) katWahlFenster('Kategorie zuordnen', null, 'kat-setzen', r.uid); },
+  'kat-setzen': (e) => { Z.rezepte = Z.rezepte.map((r) => (r.uid === e.dataset.uid ? { ...r, cat: e.dataset.ziel } : r)); sichern(); fensterZu(); zeichne(); melde('Kategorie geändert'); },
+  'bilder-filter': (e) => { s.bilder.filter = e.dataset.f; zeichne(); },
+  'bilder-gross': () => { s.bilder.gross = !s.bilder.gross; zeichne(); },
+  'bild-wahl': (e) => { const w = s.bilder.wahl; if (w.has(e.dataset.uid)) w.delete(e.dataset.uid); else w.add(e.dataset.uid); zeichne(); },
+  'bilder-alle-wahl': () => { const w = s.bilder.wahl, alle = [...document.querySelectorAll('.bildkachel')].map((b) => b.dataset.uid); if (w.size === alle.length) w.clear(); else alle.forEach((u) => w.add(u)); zeichne(); },
+  'bilder-weg': () => { const w = new Set(s.bilder.wahl), vorher = Z.rezepte; Z.rezepte = Z.rezepte.map((r) => (w.has(r.uid) ? { ...r, img: '' } : r)); s.bilder.wahl.clear(); sichern(); zeichne(); melde(`${w.size} Bilder gelöscht, die Rezepte bleiben`, 'Rückgängig', () => { Z.rezepte = vorher; sichern(); zeichne(); }); },
+  'bilder-alle-weg': () => { const n = Z.rezepte.filter((r) => r.img).length; frage('Alle Bilder löschen?', `${n} Bilder werden entfernt. Die Rezepte mit ihrem Text bleiben.`, 'Alle Bilder löschen', () => { const vorher = Z.rezepte; Z.rezepte = Z.rezepte.map((r) => (r.img ? { ...r, img: '' } : r)); s.bilder.wahl.clear(); sichern(); zeichne(); melde(`${n} Bilder gelöscht`, 'Rückgängig', () => { Z.rezepte = vorher; sichern(); zeichne(); }); }); },
+  'bild-dazu': (e) => { s.bildZiel = e.dataset.uid; $('datei-bild').click(); },
+  zuschnitt: () => zuschnittFenster(s.uid),
+  'zs-lage': (e) => { const [x, y] = e.dataset.l.split(','); zs.x = +x; zs.y = +y; zsZeigen(); },
+  'zs-null': () => { zs.x = 50; zs.y = 50; zs.z = 1; $('zs-zoom').value = 100; zsZeigen(); },
+  'zs-ok': () => { const z = zs; zs = null; Z.rezepte = Z.rezepte.map((r) => (r.uid === z.uid ? { ...r, imgCrop: { ...(r.imgCrop || {}), x: Math.round(z.x), y: Math.round(z.y), scale: Math.round(z.z * 100) / 100 } } : r)); sichern(); fensterZu(); zeichne(); },
   nurdies: () => { s.nurDies = !s.nurDies; zeichne(); },
   rail: () => { E.railZu = !E.railZu; sichern(); kopfZeichnen(); },
   kochschrift: () => { E.kochSchrift = { klein: 'mittel', mittel: 'groß', 'groß': 'klein' }[E.kochSchrift] || 'mittel'; sichern(); zeichne(); },
@@ -394,21 +468,28 @@ document.addEventListener('click', (ev) => {
 document.addEventListener('submit', (ev) => { ev.preventDefault(); const f = ev.target.dataset.form;
   if (f === 'rezept') formSpeichern(ev.target);
   else if (f === 'ek-eigen') { const t = String(new FormData(ev.target).get('t') || '').trim(); if (!t) return; Z.einkauf = { ...Z.einkauf, eigene: [...Z.einkauf.eigene, { id: Date.now().toString(36), text: t }] }; sichern(); zeichne(); document.querySelector('[data-form="ek-eigen"] input')?.focus(); }
+  else if (f === 'kat-neu-zu') { const n = String(new FormData(ev.target).get('n') || '').trim(), uid = document.querySelector('[data-a="kat-setzen"]')?.dataset.uid; if (!n || !uid) return; const a = katAnlegen(Z.kategorien, n); Z.kategorien = a.kat; A['kat-setzen']({ dataset: { uid, ziel: a.id } }); }
   else if (f === 'laden') { const n = String(new FormData(ev.target).get('n') || '').trim(); if (!n) return; Z.einkauf = { ...Z.einkauf, laeden: { ...Z.einkauf.laeden, [n]: Z.einkauf.laeden[n] || [...(Z.einkauf.laeden[Z.einkauf.laden] || [])] }, laden: n }; sichern(); fensterZu(); zeichne(); }
 });
 /* Warengruppe verschieben: lange drücken (350 ms) oder mit der Maus ziehen; die Reihenfolge gilt für den gewählten Laden */
 let gz = null;
 const gzAn = () => { if (!gz || gz.weit) return; gz.weit = true; gz.gr.classList.add('zieht'); };
-document.addEventListener('pointerdown', (ev) => { const h = ev.target.closest?.('.ek-gruppe h3'); if (!h) return; gz = { gr: h.parentNode, y: ev.clientY, weit: false, ziel: null, uhr: setTimeout(gzAn, 350) }; try { h.setPointerCapture(ev.pointerId); } catch { /* ohne */ } });
+document.addEventListener('pointerdown', (ev) => { const h = ev.target.closest?.('.ek-gruppe h3, .kat-zeile .griff'); if (!h) return; const gr = h.closest('.ek-gruppe, .kat-zeile'); gz = { gr, art: gr.classList.contains('kat-zeile') ? 'kat' : 'ek', y: ev.clientY, weit: false, ziel: null, uhr: setTimeout(gzAn, 350) }; try { h.setPointerCapture(ev.pointerId); } catch { /* ohne */ } });
 document.addEventListener('pointermove', (ev) => { if (!gz) return; if (!gz.weit && Math.abs(ev.clientY - gz.y) < 8) return; gzAn(); gz.gr.style.transform = `translateY(${ev.clientY - gz.y}px)`;
-  const andere = [...document.querySelectorAll('.ek-gruppe')].filter((g) => g !== gz.gr); andere.forEach((g) => g.classList.remove('ziel-vor', 'ziel-nach')); let ziel = null, vor = true;
+  const andere = [...document.querySelectorAll(gz.art === 'kat' ? '.kat-zeile' : '.ek-gruppe')].filter((g) => g !== gz.gr); andere.forEach((g) => g.classList.remove('ziel-vor', 'ziel-nach')); let ziel = null, vor = true;
   for (const g of andere) { const r = g.getBoundingClientRect(); ziel = g; if (ev.clientY < r.top + r.height / 2) { vor = true; break; } vor = false; }
-  if (ziel) { ziel.classList.add(vor ? 'ziel-vor' : 'ziel-nach'); gz.ziel = { id: ziel.dataset.g, vor }; } });
+  if (ziel) { ziel.classList.add(vor ? 'ziel-vor' : 'ziel-nach'); gz.ziel = { id: ziel.dataset.g || ziel.dataset.kid, vor, nach: ziel.nextElementSibling === gz.gr ? ziel.nextElementSibling?.nextElementSibling : ziel.nextElementSibling }; } });
 const gzLos = () => { if (!gz) return; const g = gz; gz = null; clearTimeout(g.uhr); if (!g.weit) return;
-  if (g.ziel) { const alle = gruppenFolge(Z.einkauf.laeden[Z.einkauf.laden]), i = alle.indexOf(g.ziel.id), vorId = g.ziel.vor ? g.ziel.id : alle.filter((x) => x !== g.gr.dataset.g)[alle.filter((x) => x !== g.gr.dataset.g).indexOf(g.ziel.id) + 1] ?? null;
-    Z.einkauf = { ...Z.einkauf, laeden: { ...Z.einkauf.laeden, [Z.einkauf.laden]: gruppeVerschieben(Z.einkauf.laeden[Z.einkauf.laden], g.gr.dataset.g, vorId) } }; sichern(); void i; }
+  if (g.ziel) { const vorId = g.ziel.vor ? g.ziel.id : (g.ziel.nach?.dataset.g || g.ziel.nach?.dataset.kid || null);
+    if (g.art === 'kat') Z.kategorien = katUmsortieren(Z.rezepte, Z.kategorien, g.gr.dataset.kid, vorId);
+    else Z.einkauf = { ...Z.einkauf, laeden: { ...Z.einkauf.laeden, [Z.einkauf.laden]: gruppeVerschieben(Z.einkauf.laeden[Z.einkauf.laden], g.gr.dataset.g, vorId) } };
+    sichern(); }
   zeichne(); };
 document.addEventListener('pointerup', gzLos); document.addEventListener('pointercancel', gzLos);
+document.addEventListener('change', (ev) => { const f = ev.target.closest?.('.kat-name'); if (!f) return; const id = f.dataset.kid, eig = Z.kategorien.eigene.some((c) => c.id === id);
+  if (eig && f.value.trim()) Z.kategorien = { ...katUmbenennen(Z.kategorien, id, ''), eigene: Z.kategorien.eigene.map((c) => (c.id === id ? { ...c, de: f.value.trim() } : c)) }; else if (!eig) Z.kategorien = katUmbenennen(Z.kategorien, id, f.value);
+  sichern(); });
+document.addEventListener('input', (ev) => { if (ev.target.id === 'zs-zoom' && zs) { zs.z = +ev.target.value / 100; zsZeigen(); } });
 document.addEventListener('input', (ev) => {
   if (ev.target.id !== 'suchfeld') return;
   s.frage = ev.target.value; $('start-rest').innerHTML = startRest(); $('suche-x').hidden = !s.frage;   // das Feld selbst bleibt stehen (Tastatur, Diktat)
@@ -423,7 +504,8 @@ document.addEventListener('touchend', (ev) => { if (wischX == null) return; cons
 matchMedia('(min-width:1000px)').addEventListener('change', () => zeichne());
 document.addEventListener('keydown', (ev) => { if (ev.key === 'Escape' && s.ansicht !== 'kochen') { if ($('fensterort').innerHTML) fensterZu(); else if (s.leisteAuf) { s.leisteAuf = false; leisteZeichnen(); } } });
 $('datei-sicherung').addEventListener('change', async (ev) => { const d = ev.target.files[0]; ev.target.value = ''; if (!d) return; try { einfuegen(lies(await d.text())); } catch (f) { melde(f.message || 'Die Datei konnte nicht gelesen werden.'); } });
-$('datei-bild').addEventListener('change', async (ev) => { const d = ev.target.files[0]; ev.target.value = ''; if (!d || !s.form) return; try { s.form.img = await bildAusDatei(d); zeichne(); } catch { melde('Das Bild konnte nicht gelesen werden.'); } });
+$('datei-bild').addEventListener('change', async (ev) => { const d = ev.target.files[0]; ev.target.value = ''; if (!d) return; if (s.bildZiel) { const uid = s.bildZiel; s.bildZiel = null; try { const img = await bildAusDatei(d); Z.rezepte = Z.rezepte.map((r) => (r.uid === uid ? { ...r, img, imgCrop: { x: 50, y: 50, scale: 1 } } : r)); sichern(); zeichne(); melde('Bild eingefügt'); } catch { melde('Das Bild konnte nicht gelesen werden.'); } return; }
+  if (!s.form) return; try { s.form.img = await bildAusDatei(d); zeichne(); } catch { melde('Das Bild konnte nicht gelesen werden.'); } });
 let altY = 0; addEventListener('scroll', () => { if (breit()) return; const y = scrollY; $('kopf').classList.toggle('weg', y > altY + 4 && y > 80 ? true : y < altY - 4 || y < 40 ? false : $('kopf').classList.contains('weg')); altY = y; }, { passive: true });
 
 /* ---------- Start ---------- */

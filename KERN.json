@@ -2,7 +2,7 @@
  "fassung": "0.5.0",
  "inhalt": "Ausgaben-Schalter, Rezeptmodell, Kategorien, Suche, Sicherung, Übernahme, Speicher, Mengen, Symbole, Farben, Bild, Kochansicht (Zutaten je Schritt, Zeit, Geräte), Einkaufsliste, Wochenplan",
  "dateien": {
-  "kern/README.md": "91583cdbe7d7206d6226c6dcabd472ca1e8889d0d6f02647aa92bba0d78fac96",
+  "kern/README.md": "883e1c4917dc02595eedced103eb6fa9e42ffa50094582d52f64808420a7f65e",
   "kern/ausgabe/ausgabe.mjs": "56d01a3a8b5855af233956c5ecf83d66df138ddc0896cede65a74192fd626ecf",
   "kern/kern-stand.mjs": "00821f4fa279ebc93c7c6a5de83f4c45cc48982dfee1700a0935e7273d25294a",
   "kern/modell/einkauf.mjs": "16bc08dfef9f5d06afdc3db86bb3b52598bfbff7d7cf735c42a1463bfece32e6",
