@@ -44,6 +44,8 @@ Das Alkohol-Paket aus `beispiele/` ist im Katalog nur für `mixarium-voll` freig
 | `modell/suche.mjs` | Wortsuche, auch über den Kategorienamen |
 | `sicherung/sicherung.mjs` | liest Fassung 9/10 der alten Apps, schreibt Fassung 11 mit Block `kategorien`; Zusammenführen an `uid` |
 | `modell/mengen.mjs` | Mengen für andere Portionen umrechnen (Brüche, Bereiche) |
+| `modell/kochen.mjs` | Kochansicht: Zutaten eines Schritts und Zeitangabe, aus dem Schritttext, ohne KI |
+| `oberflaeche/geraete.mjs` | gezeichnete Gerätschaften, erkannt aus dem Text, erweiterbar je Ausgabe (`erweitern()`) |
 | `speicher/speicher.mjs` | Zustand im Gerät (IndexedDB), eine Datenbank je Ausgabe |
 | `oberflaeche/` | Symbole (Phosphor Duotone, nur die genutzten), Farbpaletten, Bild aus Datei verkleinern |
 | `speicher/uebernahme.mjs` | liest den alten localStorage nur mit der Endung der eigenen Ausgabe, löscht nichts |
@@ -58,4 +60,4 @@ byte-gleich und prüft gegen diese Liste; `node --test` hier besteht darauf, das
 ## Die neue PWA (`neu/`)
 
 Erste sichtbare Fassung der Ausgabe „rezeptbuch“, ohne Bauschritt (ES-Module direkt). Läuft neben der alten App unter `/neu/`.
-Probe im echten Browser: `node tests/smoke_neu.mjs` (30 Prüfpunkte: leerer Start, Beispielbuch, Sushi-Kategorie, Suche, Portionen, Anlegen, Neuladen, Sicherung hin und zurück, Beispiele entfernen, Übernahme aus der alten App, Leiste, Farbe).
+Probe im echten Browser: `node tests/smoke_neu.mjs` (45 Prüfpunkte: leerer Start, Beispielbuch, Sushi-Kategorie, Suche, Portionen, Anlegen, Neuladen, Sicherung hin und zurück, Beispiele entfernen, Übernahme aus der alten App, Leiste, Farbe, Kochansicht, Monitor-Aufteilung).

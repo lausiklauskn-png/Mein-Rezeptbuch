@@ -69,6 +69,30 @@ try {
   await p.click('[data-a=werkzeug]'); await p.click('.werkzeuge .farbknopf'); await p.click('[data-farbe=dunkel]'); ok(await p.evaluate(() => document.documentElement.dataset.hell === 'dunkel'), 'Farbe Dunkelbraun gewählt');
   ok(await p.evaluate(() => document.documentElement.scrollWidth <= innerWidth), 'kein seitliches Verrutschen bei 390 px');
   await k.close();
+
+  console.log('8 · Kochansicht');
+  ({ p, k } = await seite()); await p.click('[data-a=beispiel]'); await p.waitForSelector('.karte', { timeout: 20000 });
+  await p.fill('#suchfeld', 'Szegediner'); await p.locator('.karte').first().click(); await p.waitForSelector('[data-a=kochen]'); await p.click('[data-a=kochen]'); await p.waitForSelector('.koch');
+  ok((await p.locator('.k-nr').innerText()).toUpperCase() === 'SCHRITT 1 VON 5', 'Kochansicht öffnet bei Schritt 1 von 5', await p.locator('.k-nr').innerText());
+  const zt = await p.locator('.k-nurschmal .k-zut span').allInnerTexts(); ok(zt.some((t) => t.includes('Knoblauch')) && zt.some((t) => t.includes('Zwiebeln')) && !zt.some((t) => t.includes('Sauerkraut')), 'nur die Zutaten dieses Schritts', zt.join(' | '));
+  ok((await p.locator('.k-nurschmal .gr-k').allInnerTexts()).join().includes('Messer'), 'Geräte des Schritts als Kacheln');
+  await p.keyboard.press('ArrowRight'); await p.keyboard.press('ArrowRight'); await p.keyboard.press('ArrowRight');
+  ok((await p.locator('.k-nr').innerText()).includes('4'), 'Pfeiltaste blättert'); ok(await p.locator('.k-nurschmal .k-timer').count() === 1 && (await p.locator('#k-zeit').first().innerText()).includes('120'), 'Zeit im Schritt (90–120 Minuten) gibt einen Wecker', await p.locator('#k-zeit').first().innerText().catch(() => 'kein Wecker'));
+  await p.locator('.k-nurschmal .k-timer').click(); await p.waitForTimeout(1200); ok(/^119:5\d$/.test(await p.locator('#k-zeit').first().innerText()), 'der Wecker läuft', await p.locator('#k-zeit').first().innerText());
+  await p.click('[data-a=k-kopf]'); ok(await p.locator('.k-kopf').count() === 0 && await p.locator('.k-kopf-zu .k-balken').count() === 1, 'Kopf klappt auf die Fortschrittslinie zusammen');
+  await p.keyboard.press('Escape'); await p.waitForSelector('.koch', { state: 'detached' }); ok(await p.locator('.rezept-held h1').count() === 1, 'Esc schließt und führt zum Rezept zurück');
+  await k.close();
+
+  console.log('9 · Monitor: Leiste links, Liste, Rezept');
+  { const kk = await browser.newContext({ viewport: { width: 1280, height: 800 } }); const q = await kk.newPage(); q.on('pageerror', (e) => fehler.push(e.message));
+    await q.goto(URL0); await q.waitForSelector('.gruss'); await q.click('[data-a=beispiel]'); await q.waitForSelector('.md-detail h1', { timeout: 20000 });
+    ok(await q.locator('.md-liste .karte').count() === 42 && await q.locator('.md-detail h1').count() === 1, 'Liste links, Rezept rechts');
+    ok(await q.locator('#leiste').isHidden() && await q.locator('.rail-n').count() === 3, 'Leiste steht links, kein Griff am Rand');
+    await q.locator('.md-liste').evaluate((e) => { e.scrollTop = 600; }); await q.locator('.md-liste .karte', { has: q.getByText('Ebi Tempura', { exact: true }) }).click();
+    ok((await q.locator('.md-detail h1').innerText()) === 'Ebi Tempura' && await q.locator('.md-liste').evaluate((e) => e.scrollTop) > 300, 'Tipp links wechselt das Rezept rechts, die Liste bleibt an ihrer Stelle', (await q.locator('.md-detail h1').innerText()) + ' / ' + await q.locator('.md-liste').evaluate((e) => e.scrollTop));
+    await q.click('[data-a=nurdies]'); ok(await q.locator('.md-liste').isHidden() && await q.locator('.kopf').isHidden(), '„Nur dieses Rezept“ blendet Liste und Leiste aus'); await q.click('[data-a=nurdies]'); ok(await q.locator('.md-liste').isVisible(), 'derselbe Knopf holt sie zurück');
+    await q.click('[data-a=rail]'); await q.waitForTimeout(350); ok(await q.locator('.kopf.zu').count() === 1 && (await q.locator('.kopf').boundingBox()).width < 70, 'Leiste klappt auf Symbole zusammen');
+    ok(await q.evaluate(() => document.documentElement.scrollWidth <= innerWidth), 'kein seitliches Verrutschen bei 1280 px'); await kk.close(); }
   ok(fehler.length === 0, 'keine Fehler in der Konsole, kein Netz nach draußen', fehler.join(' · '));
 } catch (e) { rot++; console.log('  ✗ ROT: Probe abgebrochen — ' + e.message.split('\n')[0]); }
 await browser.close(); srv.close();

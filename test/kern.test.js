@@ -124,3 +124,18 @@ test('Übernahme: liest nur die Schlüssel der eigenen Ausgabe, eigene Kategorie
   assert.deepEqual(m.rezepte.map((r) => r.name), ['Muttis Braten']);
   assert.equal(ausAltemSpeicher({ getItem: () => null }, '9m'), null);
 });
+
+import { zutatenFuerSchritt, zeitImSchritt, stichworte } from '../kern/modell/kochen.mjs';
+import { erkenne } from '../kern/oberflaeche/geraete.mjs';
+test('Kochansicht: Zutaten je Schritt, Zeit im Schritt, Geräte aus dem Text', () => {
+  const r = normalisiere({ id: 1, name: 'Bowl', cat: 'fisch', ings: [{ name: 'Sushi-Reis' }, { name: 'Reisessig' }, { name: 'frischer Lachs' }, { name: 'Zwiebel' }, { name: 'Honig oder Ahornsirup' }],
+    steps: [{ txt: 'Reis kochen und mit Reisessig würzen.' }, { txt: 'Den Lachs in Würfel schneiden, Zwiebeln hacken und 8–10 Minuten braten.' }, { txt: 'Mit Honig abschmecken und 2 Stunden kalt stellen.' }] });
+  assert.deepEqual(zutatenFuerSchritt(r, 0).map((z) => z.name), ['Sushi-Reis', 'Reisessig']);
+  assert.deepEqual(zutatenFuerSchritt(r, 1).map((z) => z.name), ['frischer Lachs', 'Zwiebel']);
+  assert.deepEqual(zutatenFuerSchritt(r, 2).map((z) => z.name), ['Honig oder Ahornsirup']);
+  assert.deepEqual(stichworte('frischer Lachs (ohne Haut)'), ['lachs']);
+  const g = normalisiere({ id: 2, name: 'Gulasch', ings: [{ name: 'Knoblauchzehen' }, { name: 'Fleischbrühe' }, { name: 'Lachs' }], steps: [{ txt: 'Fleisch anbraten, Knoblauch zugeben, Lachswürfel dazu.' }] });
+  assert.deepEqual(zutatenFuerSchritt(g, 0).map((z) => z.name), ['Knoblauchzehen', 'Lachs'], '„Fleisch“ im Text ist nicht „Fleischbrühe“');
+  assert.equal(zeitImSchritt(r.steps[1].txt), 10); assert.equal(zeitImSchritt(r.steps[2].txt), 120); assert.equal(zeitImSchritt('Gut umrühren.'), 0); assert.equal(zeitImSchritt('5 Min. andünsten'), 5);
+  assert.deepEqual(erkenne(r.steps[1].txt), ['messer', 'brett', 'pfanne']); assert.deepEqual(erkenne('Servieren.'), []);
+});
