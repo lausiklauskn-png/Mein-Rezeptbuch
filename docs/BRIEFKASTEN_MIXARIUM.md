@@ -34,6 +34,11 @@ Klaus 23.11.2026: „Brief lesen, bevor gebaut wird. Und dann Brief ergänzen, s
 - **Farbfelder in Wasserfarben:** durchscheinend, nicht kräftig leuchtend, Strichzeichnung im selben Ton (wie die Labor-Kacheln).
 - **Dateiprüfung im Hintergrund.** Wird etwas gefunden: **markieren** (rote Fläche, der versteckte Text ist lesbar), dann **entscheiden: raus oder rein**. Keine Panik-Texte.
 - **Vorbild Private Akte** für Übersicht; vor dem Weiterbauen eine klickbare Vorschau als HTML-Datei (`tools/vorschau-bauen.mjs`).
+- **Kopf am schmalen Schirm:** oben bleiben Suche, Farbpalette und das Plus; kein Pfeil zum Aufklappen. Schrift, Hell/Dunkel, Sichern und die Einstellungen stehen in der **fliegenden Leiste**.
+- **Hell und Dunkel als Sonne und Mond** (Strichzeichnung), „wie das Gerät“ fällt als Wahl weg.
+- **„Sichern“ in der fliegenden Leiste**, „dass man nicht erst in die Einstellungen muss“.
+- **Direktlink zur Schlüssel-Seite** des Anbieters im Schlüssel-Fenster (`schluesselAdresse(a)` im Kern).
+- **Kein Verweis auf die bisherige App** in der neuen App.
 
 ---
 
