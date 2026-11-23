@@ -1,7 +1,7 @@
 // Mein Rezeptbuch (neu) · Service Worker: die App läuft nach dem ersten Öffnen ohne Netz.
 // Vorrat = Hülle und alle Module. Beispielbuch und Katalog gehören NICHT dazu (Beispiele liegen nach dem Laden im Gerät).
 // Bei jeder neuen Fassung FASSUNG hochzählen; `node --test` prüft, dass die Liste zu den Modulen passt.
-const FASSUNG = 'rezeptbuch-neu-0.9.5';
+const FASSUNG = 'rezeptbuch-neu-0.10.0';
 const VORRAT = [
  "./",
  "./index.html",
@@ -36,6 +36,17 @@ const VORRAT = [
  "../kern/speicher/tresor.mjs",
  "../kern/ki/bild.mjs",
  "../kern/speicher/uebernahme.mjs",
+ "../kern/oberflaeche/sprache.mjs",
+ "../kern/ki/schluessel.mjs",
+ "../kern/ki/claude.mjs",
+ "../kern/ki/ocr.mjs",
+ "../kern/ki/reinigung.mjs",
+ "../kern/import/scan.mjs",
+ "../kern/pruefung/datei.mjs",
+ "../assets/reinigung.js",
+ "../assets/pruefer-formate.js",
+ "../assets/pruefer-mail.js",
+ "../assets/pruefer-anhang.js",
  "./app.mjs"
 ];
 self.addEventListener('install', (e) => { e.waitUntil(caches.open(FASSUNG).then((c) => c.addAll(VORRAT)).then(() => self.skipWaiting())); });

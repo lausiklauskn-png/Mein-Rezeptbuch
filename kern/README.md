@@ -53,6 +53,13 @@ Das Alkohol-Paket aus `beispiele/` ist im Katalog nur für `mixarium-voll` freig
 | `oberflaeche/hinweis.mjs` | Hinweis-Blasen (Tooltips) aus `title`, wie das Floating-Tooltip der alten Apps; ausschaltbar; nimmt dem Element das `title`, damit nicht zwei Blasen erscheinen |
 | `oberflaeche/warten.mjs` | Ladebalken für jede Wartezeit (KI, Bild, Sprachmodell, Pakete, Dateien): oben ein Balken, unten eine Zeile mit Text und Sekundenzähler; `modellFortschritt` liest den Download-Stand des Sprachmodells, `bytesMitAnteil` den einer Datei |
 | `oberflaeche/diktat.mjs` | Spracheingabe für Textfelder (Web Speech im Browser) |
+| `oberflaeche/sprache.mjs` | Sprache der Oberfläche: acht Sprachen, erste Wahl folgt dem Gerät. Deutsch ist die Quelle, Englisch steht im Code daneben (`text(sprache, de, en)`), die übrigen sechs kommen aus Tabellen mit dem deutschen Text als Schlüssel (`tabelle`, `ladeTabelle`); ohne Eintrag Englisch, nie ein Schlüsselname |
+| `ki/schluessel.mjs` | KI-Schlüssel für Anthropic, OpenAI und Mistral: nur im Gerät (Kern-Speicher), nie in einer Sicherung. Ein Schlüssel der bisherigen App gilt weiter (nur gelesen); gelöscht bleibt gelöscht. `pruefeSchluessel` fragt den Anbieter auf Knopfdruck |
+| `ki/claude.mjs` | ein Aufruf an Claude (Anthropic Messages) mit dem eigenen Schlüssel: drei Stufen (schnell = Haiku 5.5, standard = Sonnet 5.5, profi = Opus 5.5), Fehler im Klartext, `jsonAusAntwort` (JSON-Sanitizer der alten App) |
+| `ki/ocr.mjs` | Texterkennung mit Mistral OCR (EU), aus der alten App (`SbkimOcr`, Anbieter mistral) |
+| `ki/reinigung.mjs` | Reinigung vor der KI: ein Foto geht nie als Original hinaus (`bildFuersNetz`, 1200 px, ohne Aufnahmedaten), ein PDF als Seitenbilder mit 300 dpi, versteckter Text zugedeckt (`pdfFuersNetz`, lädt `assets/reinigung.js` und pdf.js erst dann); einmal anhalten (`reiniger`), Vermerk am Rezept (`kiEntfernt`) |
+| `import/scan.mjs` | Foto-Scan: `vorbereiten(datei)` zeigt, was hinausgeht, `erkennen()` liest mit Claude oder mit Mistral OCR + Claude, `rezeptAusScan()`; die Kategorien nennt die Ausgabe |
+| `pruefung/datei.mjs` | „Datei prüfen“ auf Knopfdruck mit dem Prüfkern aus Workflow PDF (`assets/pruefer-*.js`, im Gerät, markiert, entfernt nichts) und `kiAnweisungen(text)` für Bildaufträge |
 | `speicher/speicher.mjs` | Zustand im Gerät (IndexedDB), eine Datenbank je Ausgabe |
 | `oberflaeche/` | Symbole (Phosphor Duotone, nur die genutzten), Farbpaletten mit `farbName`/`tonName` (de/en), Schrift-Regler (`schriftRegler(wert, sprache)`), Bild aus Datei verkleinern |
 | `speicher/uebernahme.mjs` | liest den alten localStorage nur mit der Endung der eigenen Ausgabe, löscht nichts |

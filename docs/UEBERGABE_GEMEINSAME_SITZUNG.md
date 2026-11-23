@@ -4,6 +4,25 @@ Stand **23.11.2026, 18:05 Uhr** (Europe/Berlin). Die gemeinsame Sitzung (Tag) ü
 die Rezeptbuch-Seite und gilt für beide Apps; die Mixarium-Seite steht in `Mein-Mixarium/docs/UEBERGABE_GEMEINSAME_SITZUNG.md`.
 Der Auftrag für die Nacht steht in `docs/NACHTAUFTRAG.md`.
 
+## Nacht 23./24.11. (Nacht-Sitzung, laufend nachgeführt)
+
+Auftrag: `docs/NACHTAUFTRAG.md`. Hier steht, was in der Nacht auf `main` gekommen ist; der Rest der Datei ist der Stand von 18:05.
+
+| Fassung | Was | Proben |
+|---|---|---|
+| Kern 0.18.0 · PWA 0.10.0 | **KI-Schlüssel** für Anthropic, OpenAI, Mistral (Werkstatt → KI; speichern, prüfen, löschen; nur im Kern-Speicher des Geräts, ein Schlüssel der alten App gilt weiter und wird nur gelesen). **Foto-Scan** im Blatt hinter „+“: Foto aufnehmen oder Dateien wählen (auch PDF, mehrere = Stapel), Claude liest oder Mistral OCR + Claude, drei Stufen (schnell = Haiku 5.5, Standard = Sonnet 5.5, Profi = Opus 5.5). **Reinigung vor der KI**: Foto neu gezeichnet (1200 px, ohne Aufnahmedaten), PDF als Seitenbilder mit 300 dpi, versteckter Text zugedeckt, einmal anhalten, Vermerk am Rezept. **„Datei prüfen“** mit dem Prüfkern aus Workflow PDF. Vor dem Senden steht, was hinausgeht. | `test/kern-ki.test.js` (16) · `tests/smoke_neu_scan.mjs` (74) · `tests/gegenprobe_neu_scan.py` (9 Fälle) |
+
+Entscheidungen der Nacht (mit Grund):
+
+- **Schlüssel im Kern-Speicher statt im localStorage der alten App.** Die PWA 0.9.5 schrieb den OpenAI-Schlüssel unter dem Namen der alten App und löschte ihn dort auch; die alte App soll aber nur gelesen werden. Ein dort hinterlegter Schlüssel gilt weiter.
+- **Modelle der drei Scan-Stufen sind die heutigen ihrer Klasse** (Haiku 5.5, Sonnet 5.5, Opus 5.5). Die alte App nannte Haiku 4.5, Sonnet 4.6, Opus 4.5; Klaus hat das Labor schon auf Haiku 5.5 gestellt.
+- **Scan-Ergebnis landet im Formular** (wie beim Text-Import), nicht in einer eigenen Ergebnis-Ansicht: ein Weg zum Prüfen vor dem Speichern. Ein Stapel wird gleich eingetragen und lässt sich als Ganzes rückgängig machen (wie in der alten App, dort ohne Rückgängig).
+- **Der Fund „versteckter Text“ steht beim einzelnen PDF auf dem Scan-Blatt**, der Knopf heißt dann „Ohne ihn senden“; nur der Stapel fragt in einem eigenen Fenster (einmal).
+- **Sprache:** neue Texte stehen als Deutsch/Englisch-Paar im Code (`L(de, en)`, Kern `oberflaeche/sprache.mjs`); die übrigen sechs Sprachen kommen über Tabellen mit dem deutschen Text als Schlüssel.
+
+Nicht gemessen (Nacht): echte Aufrufe an Anthropic und Mistral (alle Antworten sind gestellt) · die Kamera am Gerät · pdf.js und die Texterkennung liegen wie in der alten App unter `/Workflow-PDF/vendor/` auf derselben Adresse; in einer APK oder Windows-App müssen sie ins Paket.
+
+
 ## Versionen auf `main`
 
 | | Rezeptbuch | Mixarium |
