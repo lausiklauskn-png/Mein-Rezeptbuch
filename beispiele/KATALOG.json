@@ -3,13 +3,13 @@
  "pakete": [
   {
    "id": "beispielbuch-mein-rezeptbuch",
-   "titel": "Beispielbuch: 44 Rezepte",
+   "titel": "Beispielbuch: 43 Rezepte",
    "datei": "beispielbuch-mein-rezeptbuch.json",
    "art": "rezepte",
    "alkohol": false,
-   "anzahl": 44,
-   "bytes": 10587363,
-   "sha256": "5b36aa36f35ef9007dca39b2ae1c2f7d0ed0c606215adda7e0290f2c6d124651",
+   "anzahl": 43,
+   "bytes": 10228605,
+   "sha256": "71d9ed73f22d0ce08fa00163459d8a1e40c1ef947cbf2b0511f75db66e4578bd",
    "fuer": [
     "rezeptbuch",
     "muttis"

@@ -21,7 +21,7 @@ MOTIV={
 md=["# Beispielbuch Mein Rezeptbuch – Änderungsliste","",
 "Überarbeitet am 23.11.2026 aus Klaus' Sicherung `mein-rezeptbuch-2026-09-16-11h19.json` (Release `eingang-rezepte`, 55,6 MB) und den Bildern im Release `eingang-bilder` (92 Dateien, 464 MB).","",
 "## Ergebnis","","| Datei | Inhalt |","|---|---|",
-"| `beispielbuch-mein-rezeptbuch.json` | 44 Rezepte für das öffentliche Beispielbuch (Essen und alkoholfreie Getränke) |",
+"| `beispielbuch-mein-rezeptbuch.json` | 43 Rezepte für das öffentliche Beispielbuch (Essen und alkoholfreie Getränke) |",
 "| `foodzine-beispiele.json` | 8 vollständige Food-Zine-Sätze mit je drei Seiten |",
 "| `getraenke-mit-alkohol-fuer-mixarium.json` | 8 Getränke mit Alkohol, für Mein Mixarium |","",
 "## Was überall gemacht wurde","",
