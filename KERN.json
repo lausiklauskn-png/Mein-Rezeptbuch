@@ -1,16 +1,21 @@
 {
- "fassung": "0.2.0",
- "inhalt": "Ausgaben-Schalter, Rezeptmodell, Kategorien, Suche, Sicherung, Übernahme",
+ "fassung": "0.3.0",
+ "inhalt": "Ausgaben-Schalter, Rezeptmodell, Kategorien, Suche, Sicherung, Übernahme, Speicher, Mengen, Symbole, Farben, Bild",
  "dateien": {
-  "kern/README.md": "5cc3369d91c85aa3570bbbdb3f514134b9b73eca6b8b9fd64bf00b66e46b4e36",
+  "kern/README.md": "f8d4b094a867ffaf244dc3ac787ce1669bd0c53eee242f9bcf3c146bdde38519",
   "kern/ausgabe/ausgabe.mjs": "56d01a3a8b5855af233956c5ecf83d66df138ddc0896cede65a74192fd626ecf",
-  "kern/kern-stand.mjs": "e7fab6dc99e0788bf52529219615f4aaf3d62a0555f94ac96c519b6535f5cfb7",
+  "kern/kern-stand.mjs": "57a6611dad7e4b1e1909f00b08d0aac221e689aefe4603473826a0c932dc1032",
   "kern/modell/kategorien-fest.mjs": "d7d5acf5934bb92898d04ef299f69638a33fb482586c2491555e5299733e010f",
   "kern/modell/kategorien.mjs": "d8e21e52305ee8dab245dbb73cebb6166d61ddce76e550432cceaa1fb4ef7dab",
+  "kern/modell/mengen.mjs": "e6c5d9efe0479034817101b2198eebbeec188ef20a3998ada088a6d736b8bfe6",
   "kern/modell/rezept.mjs": "cc27c377ff9aaa7d6fdc11dab11159331ea83a78d0f8299d66d059f7901a9469",
   "kern/modell/suche.mjs": "6b9a1a9b4d251d459c1ee818138a815a630e1f70bb0cdc587f12c323dec94220",
   "kern/modell/zustand.mjs": "f3e7db34eb49f3dd5a5755e4f39bb0528e237328142bc9a4967bec5caed3508b",
+  "kern/oberflaeche/bild.mjs": "9aaac396bdc5929424360d4ff825bce7eb878b0194eb964d09ad7406ec735726",
+  "kern/oberflaeche/farben.mjs": "a75ed9de0afb2cce639965b02d05c0c2d2bcb182d07e63ef389772fc701fd62b",
+  "kern/oberflaeche/symbole.mjs": "98bca7a15e44b18248abdaf8460a38fb59e5e8134bf7cfc6ab52e94d27bdb943",
   "kern/sicherung/sicherung.mjs": "db193c7da5cf8609de05a1e8a73a1debb794d749d34692bfaf07f630e519bf86",
+  "kern/speicher/speicher.mjs": "bcee2bb579de1d40f48b73aca31cc4ffad675aee2c4b8eaeae1daa8289b39ade",
   "kern/speicher/uebernahme.mjs": "04f10f5e951e5bf6956294985a75ec3440271af3befa87a9e3467de95855185a"
  }
 }

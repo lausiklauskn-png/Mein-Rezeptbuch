@@ -1,0 +1,26 @@
+<!doctype html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#f1dfc6">
+<meta name="description" content="Mein Rezeptbuch: Rezepte sammeln, kochen, planen. Läuft im Gerät, ohne Konto.">
+<meta name="robots" content="noindex">
+<title>Mein Rezeptbuch</title>
+<link rel="icon" type="image/png" sizes="192x192" href="../icons/icon-book-192.png?v=1">
+<link rel="stylesheet" href="./app.css?v=0.1.0">
+<script type="module" src="./app.mjs?v=0.1.0"></script>
+</head>
+<body>
+<div class="app" id="app">
+  <header class="kopf" id="kopf"></header>
+  <main id="main"><p class="laden">Rezeptbuch wird geöffnet …</p></main>
+</div>
+<aside class="fl r" id="leiste" aria-label="Bereiche"></aside>
+<div id="fensterort"></div>
+<input type="file" id="datei-sicherung" accept=".json,application/json" hidden>
+<input type="file" id="datei-bild" accept="image/*" hidden>
+<div class="toast" id="toast" role="status" aria-live="polite"></div>
+<noscript><p style="padding:20px">Für Mein Rezeptbuch bitte JavaScript einschalten.</p></noscript>
+</body>
+</html>
