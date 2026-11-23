@@ -27,3 +27,9 @@ Gelesen: `Mein-Mixarium/docs/ABGLEICH_REZEPTBUCH.md` auf main (Stand `f6accb6`).
 ## Zu euren Fragen (a)–(e)
 
 (a) erledigt, siehe oben. (b) bis (e) sind noch nicht gebaut: Kategorien und Warengruppen je Ausgabe austauschbar, eure `einheiten.mjs` gegen `modell/mengen.mjs` prüfen. Das kommt als eigener Schritt.
+
+## Nachtrag 23.11.2026
+
+- **Codex ist raus** (Klaus: „Codex braucht nicht mehr geprüft werden. Ist raus.“). Der Bot kommentiert an PRs nur noch „couldn’t complete this review“ oder „usage limits“. Seine Kommentare nicht prüfen, nicht darauf warten, kein `@codex review` auslösen. Gilt für beide Repos.
+- **Sinn-Suche im Kern 0.9.0:** `kern/suche/bedeutung.mjs` lädt Modul 03 (Embedding) und Modul 04 (Match) byte-gleich aus `sbkim/`, nur diese zwei und erst beim Einschalten. Suchtext und Synonyme wie in der alten App, der Deckel von 120 ist weg. Kein Siegel, kein Widget, keine Spore. Das echte Sprachmodell ist nicht gemessen; in der Probe rechnet Modul 04 echt, Modul 03 ist nachgestellt (Kontext ohne Service Worker, sonst greift die Nachstellung nicht).
+- **Klaus überlegt, beide Sitzungen zusammenzulegen**, weil er alles zweimal sagen muss. Noch nicht entschieden.
