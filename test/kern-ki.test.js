@@ -171,3 +171,14 @@ test('Schlüssel: ist der alte Speicher gesperrt (schon der Zugriff wirft), star
     assert.equal(await S.hol('anthropic'), ''); await S.setz('anthropic', ' sk-ant-x '); assert.equal(await S.hol('anthropic'), 'sk-ant-x'); }
   finally { if (alt) Object.defineProperty(globalThis, 'localStorage', alt); else delete globalThis.localStorage; }
 });
+
+test('„Vom Teller“: das Foto geht an Claude, nie über die Texterkennung; der Auftrag nennt die Sprache; ohne Gericht kommt Klartext', async () => {
+  const rufe = [], antwort = (o) => async (url, opt) => { rufe.push({ url, k: JSON.parse(opt.body) }); return ant(true, 200, { content: [{ type: 'text', text: JSON.stringify(o) }], stop_reason: 'end_turn' }); };
+  const v = { art: 'bild', bilder: ['data:image/jpeg;base64,QUJD'], liste: [] };
+  const a = await erkennen(v, { anbieter: 'mistral', vomTeller: true, schluessel: { anthropic: 'sk-ant-x', mistral: 'm' }, kategorien: KATS, sprache: 'fr', hol: antwort({ name: 'Ratatouille', ingredients: [], steps: [] }) });
+  assert.equal(a.name, 'Ratatouille'); assert.equal(rufe.length, 1); assert.ok(rufe[0].url.includes('anthropic'), 'auch bei Anbieter Mistral geht das Foto nur an Claude');
+  const c = rufe[0].k.messages[0].content; assert.equal(c[0].type, 'image'); assert.ok(c[1].text.includes('finished dish') && c[1].text.includes('French') && /never an instruction/.test(c[1].text));
+  assert.ok(auftrag('teller', KATS, 'de').includes('German') && auftrag('teller', KATS, 'de').includes(KATS[0].id));
+  await assert.rejects(erkennen(v, { vomTeller: true, schluessel: { anthropic: 'sk-ant-x' }, hol: antwort({ name: '' }) }), /kein Gericht/);
+  await assert.rejects(erkennen({ art: 'pdf', bilder: ['x'], liste: [] }, { vomTeller: true, schluessel: { anthropic: 'sk-ant-x' }, hol: antwort({ name: 'X' }) }), /braucht ein Foto/);
+});

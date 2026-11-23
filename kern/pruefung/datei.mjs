@@ -81,6 +81,8 @@ function ausschnitt(zeile, satz, breite = 160) {
   const a = Math.max(0, i - 40), e = Math.min(zeile.length, a + breite);
   return (a ? '…' : '') + zeile.slice(a, e) + (e < zeile.length ? '…' : '');
 }
+/** Ist die Prüfliste da (oder lässt sie sich laden)? Für Wege, die ohne sie NICHT laufen dürfen (KI-Richter der Suche). */
+export async function pruefListeDa() { try { if (!globalThis.PrueferMail) await skript(voll(orte().assets + 'pruefer-mail.js')); return !!(globalThis.PrueferMail && globalThis.PrueferMail.pruefeMail); } catch { return false; } }
 /** Stehen in einem Text Anweisungen an eine KI? (Bildauftrag, Suchfrage, gelesener Text.) Zurück: die Stellen als
  *  { zeile, satz, text } – `text` ist die Zeile selbst, damit die App sie markiert zeigen kann; [] wenn nichts oder der Prüfer fehlt.
  *  Ein "\n" davor: der Prüfer hält eine erste Zeile wie „Hinweis: …“ sonst für einen Mailkopf und verschiebt die Zeilen. */
