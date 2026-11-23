@@ -175,6 +175,18 @@ try {
   const hoehe = () => p.locator('.rezept-held').evaluate((e) => e.getBoundingClientRect().height + ':' + e.getBoundingClientRect().top); const h0 = await hoehe();
   ok(await p.locator('.rezept-held .rund').count() === 0 && await p.locator('.rwerk').count() === 0 && await p.locator('.rleiste').count() === 0, 'Rezept: kein runder Knopf auf dem Bild, keine eigene Zeile, Werkzeuge eingeklappt');
   await p.click('[data-a=rleiste]'); ok(await p.locator('.rwerk .chip:visible').count() >= 4, 'Pfeil klappt auf: Bearbeiten, Kategorie, Bild, Rezept löschen'); ok(await hoehe() === h0, 'das Aufklappen verschiebt nichts', h0 + ' → ' + await hoehe()); await p.click('[data-a=rleiste]');
+  { // Falle aus dem Mixarium: bei einem langen Namen lag „Rezept löschen“ über dem Winkel
+    const alt = await p.locator('.rezept-held h1').innerText();
+    const werkzeuge = async (soll) => { if ((await p.locator('.rwerk').count() > 0) !== soll) await p.click('.rezept-held [data-a=rleiste]'); await p.waitForTimeout(300); };   // das Aufklappen ist eine kurze Bewegung; gemessen wird danach
+    const umbenennen = async (n) => { await werkzeuge(true); await p.click('.rwerk [data-a=bearbeiten]'); await p.fill('[name=name]', n); await p.click('button[type=submit]'); await p.waitForSelector('.rezept-held h1'); };
+    await umbenennen('Sehr langer Rezeptname über vier Zeilen: Ofengemüse mit Kräutern, gerösteten Pinienkernen, Feta und Zitronen-Joghurt');
+    await werkzeuge(true);
+    const lage = await p.evaluate(() => { const w = document.querySelector('.rezept-held [data-a=rleiste]').getBoundingClientRect(); const oben = document.elementFromPoint(w.x + w.width / 2, w.y + w.height / 2); const chips = [...document.querySelectorAll('.rwerk .chip')].map((c) => c.getBoundingClientRect()).filter((c) => c.height > 0); if (chips.length < 4) return { zuwenig: chips.length }; return { oben: !!oben?.closest('[data-a=rleiste]'), ueber: chips.every((c) => c.bottom <= w.top + 1), sichtbar: chips.every((c) => c.top >= document.querySelector('.rezept-held').getBoundingClientRect().top) }; });
+    ok(lage.oben && lage.ueber, 'langer Name: der Winkel bleibt obenauf, kein Werkzeug reicht unter seine Oberkante', JSON.stringify(lage));
+    ok(lage.sichtbar, 'langer Name: alle Werkzeuge liegen im Bild', JSON.stringify(lage));
+    if (lage.oben) { await p.click('.rezept-held [data-a=rleiste]'); ok(await p.locator('.rwerk').count() === 0, 'langer Name: der Winkel klappt wieder zu'); } else ok(false, 'langer Name: der Winkel klappt wieder zu', 'Winkel verdeckt');
+    await umbenennen(alt); await werkzeuge(false);
+  }
   await p.click('.rezept-held'); ok(await p.locator('.fenster [data-a=ki-bild]').count() === 1 && await p.locator('.fenster [data-a=gratis-bild]').count() === 1 && await p.locator('.fenster [data-a=bild-dazu]').count() === 1, 'Tipp aufs Bild öffnet das Bild-Blatt: einfügen, KI-Bild, Gratis-Foto');
   ok(!(await p.locator('.fenster').innerText()).match(/Bild löschen/), 'im Bild-Blatt steht kein „Bild löschen“');
   await p.click('.fenster [data-a=ki-bild]'); ok(await p.locator('#schl-openai').count() === 1, 'ohne Schlüssel fragt die App zuerst nach dem Schlüssel');

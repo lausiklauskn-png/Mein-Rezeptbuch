@@ -416,10 +416,12 @@ body:has(.koch) .fl{display:none}
 .imp-p .mitmik{width:100%}
 
 /* Rezept: Leiste über dem Bild, einklappbar. Auf dem Bild liegt kein Knopf mehr; ein Tipp aufs Bild öffnet das Bild-Blatt. */
-.tzeile{display:flex;align-items:flex-start;gap:6px}.tzeile h1{flex:1;min-width:0}
+.tzeile{position:relative;display:flex;align-items:flex-start;gap:6px}.tzeile h1{flex:1;min-width:0}
 .wk-pf{flex:none;width:34px;height:34px;display:grid;place-items:center;color:#fff;background:none;border:0;border-radius:50%;cursor:pointer;margin:-3px -6px 0 0;filter:drop-shadow(0 1px 2px rgba(0,0,0,.6))}
 .wk-pf.zur{margin:-3px 0 0 -8px}.wk-pf:focus-visible{outline:2px solid #fff}
-.rwerk{position:absolute;right:10px;bottom:96px;z-index:2;display:flex;flex-direction:column;align-items:stretch;gap:5px;animation:auf .18s ease-out}
+/* Die Werkzeuge hängen an der Namenszeile und stehen immer ÜBER ihr, egal wie viele Zeilen der Name hat (Falle aus dem
+   Mixarium: mit festem Abstand lag bei langem Namen „Rezept löschen“ über dem Winkel). */
+.rwerk{position:absolute;right:-6px;bottom:calc(100% + 8px);z-index:2;display:flex;flex-direction:column;align-items:stretch;gap:5px;animation:auf .18s ease-out}
 .rwerk .chip{min-height:34px;cursor:pointer;white-space:nowrap;background:rgba(255,255,255,.94);color:#241c15;border:0;box-shadow:0 2px 8px rgba(0,0,0,.25)}.rwerk .chip .ic{width:16px;height:16px}.rwerk .chip.rot{color:#a3321f}
 .rezept-held{margin-top:0;cursor:pointer}
 .rezept-held:focus-visible{outline:3px solid var(--akz);outline-offset:-3px}
