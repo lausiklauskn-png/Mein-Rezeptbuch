@@ -48,6 +48,8 @@ Das Alkohol-Paket aus `beispiele/` ist im Katalog nur für `mixarium-voll` freig
 | `oberflaeche/geraete.mjs` | gezeichnete Gerätschaften, erkannt aus dem Text, erweiterbar je Ausgabe (`erweitern()`) |
 | `modell/einkauf.mjs`, `modell/warengruppen.mjs` | Einkaufsliste: zusammenzählen (Einzahl/Mehrzahl, Einheiten), Warengruppen aus der alten App, Reihenfolge je Laden |
 | `modell/plan.mjs` | Wochenplan: Woche Mo–So mit Kalenderwoche, planen, altes Menü übernehmen |
+| `import/text.mjs` | Rezept aus eingefügtem Text ohne KI (Überschriften, Mengen, Einheiten, Portionen, Zeit) |
+| `oberflaeche/diktat.mjs` | Spracheingabe für Textfelder (Web Speech im Browser) |
 | `speicher/speicher.mjs` | Zustand im Gerät (IndexedDB), eine Datenbank je Ausgabe |
 | `oberflaeche/` | Symbole (Phosphor Duotone, nur die genutzten), Farbpaletten, Bild aus Datei verkleinern |
 | `speicher/uebernahme.mjs` | liest den alten localStorage nur mit der Endung der eigenen Ausgabe, löscht nichts |
@@ -62,4 +64,4 @@ byte-gleich und prüft gegen diese Liste; `node --test` hier besteht darauf, das
 ## Die neue PWA (`neu/`)
 
 Erste sichtbare Fassung der Ausgabe „rezeptbuch“, ohne Bauschritt (ES-Module direkt). Läuft neben der alten App unter `/neu/`.
-Probe im echten Browser: `node tests/smoke_neu.mjs` (73 Prüfpunkte: leerer Start, Beispielbuch, Sushi-Kategorie, Suche, Portionen, Anlegen, Neuladen, Sicherung hin und zurück, Beispiele entfernen, Übernahme aus der alten App, Leiste, Farbe, Kochansicht, Monitor-Aufteilung, Einkaufsliste, Wochenplan, Kategorien verwalten, Bilder-Ordner, Bildausschnitt).
+Probe im echten Browser: `node tests/smoke_neu.mjs` (80 Prüfpunkte: leerer Start, Beispielbuch, Sushi-Kategorie, Suche, Portionen, Anlegen, Neuladen, Sicherung hin und zurück, Beispiele entfernen, Übernahme aus der alten App, Leiste, Farbe, Kochansicht, Monitor-Aufteilung, Einkaufsliste, Wochenplan, Kategorien verwalten, Bilder-Ordner, Bildausschnitt, Text-Import, Neuladen ohne Netz).

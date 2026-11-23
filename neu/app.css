@@ -401,3 +401,19 @@ body:has(.koch) .fl{display:none}
 .zs-vor span{display:block;border-radius:10px;overflow:hidden;margin-bottom:3px}
 .zs-vor .vk{width:104px;aspect-ratio:4/3}.zs-vor .vh{width:150px;aspect-ratio:3/2}
 .karte .bild,.fotokat .bild,.held,.rezept-held{overflow:hidden}
+
+/* Spracheingabe, Import-Blatt */
+.mik{width:30px;height:30px;border-radius:50%;display:grid;place-items:center;color:var(--akz);flex:none}
+.mik .ic{width:19px;height:19px}.mik .ic [opacity]{opacity:0}
+.mik[aria-pressed="true"]{background:var(--akz);color:var(--akz-ink)}
+.mitmik{position:relative;display:block}
+.mitmik .mik{position:absolute;right:6px;bottom:6px;background:var(--fl)}
+.mitmik .mik[aria-pressed="true"]{background:var(--akz)}
+.mitmik textarea{padding-right:42px;display:block}
+.imp-tabs{display:flex;gap:4px;overflow-x:auto;scrollbar-width:none;margin:0 calc(-1 * var(--rand)) 12px;padding:0 var(--rand);border-bottom:1px solid var(--line)}
+.imp-tabs::-webkit-scrollbar{display:none}
+.imp-tabs button{flex:none;display:grid;justify-items:center;gap:1px;padding:5px 12px 6px;font-size:12px;color:var(--mut);border-bottom:2.5px solid transparent;margin-bottom:-1px}
+.imp-tabs button .ic{width:19px;height:19px}
+.imp-tabs button[aria-selected="true"]{color:var(--akz);border-bottom-color:var(--akz);font-weight:600}
+.imp-p{display:grid;gap:8px;justify-items:start}
+.imp-p .mitmik{width:100%}
