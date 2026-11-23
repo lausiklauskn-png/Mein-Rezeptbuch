@@ -54,11 +54,14 @@ der Windows-App für beide Apps freigeben kann.
 1. Arbeite in beiden Repos immer gegen `origin/main` (der GitHub-Default-Branch von Mein-Rezeptbuch ist ein toter Decoy).
    Lies `CLAUDE.md` in beiden Repos.
 2. Lies, in dieser Reihenfolge:
-   - `Mein-Rezeptbuch/docs/BRIEFKASTEN_MIXARIUM.md` (Runde C ist der neueste Stand)
-   - `Mein-Mixarium/docs/ABGLEICH_REZEPTBUCH.md`
-   - `docs/UEBERGABE_GEMEINSAME_SITZUNG.md` in beiden Repos (Regeln, offene Punkte, Fallen; die Versionsnummern darin sind
-     älter als `main`)
+   - `docs/UEBERGABE_GEMEINSAME_SITZUNG.md` in beiden Repos (Stand 23.11., 18:05; Versionen, was fertig ist, was fehlt,
+     Entscheidungen, Fallen). Die Rezeptbuch-Datei ist die gemeinsame Seite (Arbeitsweise, Kern), die Mixarium-Datei die
+     Getränke-Seite.
+   - `Mein-Rezeptbuch/docs/BRIEFKASTEN_MIXARIUM.md` (neueste Runde **C**) und `Mein-Mixarium/docs/ABGLEICH_REZEPTBUCH.md`
+     (neueste Runde **6**)
    - `docs/FUNKTIONSLISTE.md` in beiden Repos (jede Funktion der alten App mit Ziel)
+   - `kern/README.md` (jeder Kern-Baustein mit einer Zeile; neu: `oberflaeche/hinweis.mjs`, `oberflaeche/warten.mjs`)
+   - `neu/README.md` und `getraenke/README.md` im Mixarium
 
    Maßgeblich ist, was auf `main` liegt.
 
@@ -78,21 +81,46 @@ der Windows-App für beide Apps freigeben kann.
 
 ## Auftrag, in dieser Reihenfolge
 
-A. **Bestand:** Welche Funktionen aus den beiden Funktionslisten fehlen in den neuen PWAs? Schreib die Liste je App in die
-   Übergabe und arbeite sie ab.
-B. **Zuerst, was man zum Prüfen braucht:** anlegen, alle Import-Wege (Text, Foto-Scan, Web ohne öffentliche Weiterleiter,
-   Datei), Sicherung, Tresor (auch die Stände der alten App), Suche mit Sinn-Suche und KI-Richter, Kochen/Mixen, Einkauf, Plan,
-   Ordner, Bilder (KI-Bild einzeln und für alle ohne Bild), Übersetzung (alle oder einzeln, mit Kostenhinweis, Sprache „wie das
-   Gerät“), Mikrofon aus Modul 21, Schlüssel für Anthropic, OpenAI und Mistral, Reinigung vor der KI.
+A. **Bestand:** Die Listen „was fehlt“ stehen je App in der Übergabe (Stand 18:05). Prüfe sie gegen die Funktionslisten,
+   ergänze, was fehlt, und arbeite sie ab.
+B. **Zuerst, was man zum Prüfen braucht** – schon gebaut und geprüft: ~~anlegen~~, ~~Text-Import~~, ~~Datei~~, ~~Sicherung~~,
+   ~~Tresor~~, ~~Sinn-Suche~~, ~~Kochen/Mixen~~, ~~Einkauf je Laden~~, ~~Plan~~, ~~Bilder-Ordner~~, ~~KI-Bild einzeln~~,
+   ~~OpenAI-Schlüssel~~, ~~Anthropic-Schlüssel (Mixarium)~~, ~~Ladebalken bei jeder Wartezeit~~, ~~Erklärtexte hinter „?“~~,
+   ~~Hinweis-Blasen~~. Offen, in dieser Reihenfolge:
+   1. Foto-Scan (einzeln/Stapel, Claude/Mistral) mit **Reinigung vor der KI** und „Datei prüfen“ (beide Apps)
+   2. Web-Import ohne öffentliche Weiterleiter (beide)
+   3. Schlüssel: **Mistral** (beide), **Anthropic im Rezeptbuch** (das Fenster des Mixariums übernehmen)
+   4. **Ordner-Ansicht** (beide; Daten sind da, Ansicht fehlt)
+   5. **Sprache „wie das Gerät“ mit Sprachmenü** (Rezeptbuch hat keins) und **Übersetzung** (alle oder einzeln, mit Kostenhinweis);
+      Mixarium-Oberfläche in den übrigen sechs Sprachen
+   6. **Mikrofon aus Modul 21** in jedem größeren Textfeld (jetzt nur `diktat.mjs`)
+   7. Tresor-Stände der alten App übernehmen · KI-Richter der Suche · Sammel-Weg „KI-Bilder für alle ohne Bild“ · Prüfung des
+      Bildauftrags auf KI-Anweisungen
+   8. Mixarium: „Bekannte Drinks entdecken“ (TheCocktailDB, Netz nur auf Knopfdruck) · Bewertung am Getränk außerhalb des Labors
 C. **Dann der Rest der Funktionslisten:** Nährwerte, Rechtschreibung, Wochenplan-KI, Kreativbuch, KI-Buch, Food-Zine, PDF-Buch,
-   Flipbook, Drucken, QR-Teilen, Notizbuch mit Kalender, Einheiten metrisch/US, Muttis-Ausgabe als PWA; im Mixarium das
-   Entsprechende samt Labor.
+   Flipbook, Drucken, QR-Teilen, Notizbuch mit Kalender, Einheiten metrisch/US, Handbuch/Hilfe, Barrierefreiheit-Schalter,
+   Muttis-Ausgabe als PWA; im Mixarium das Entsprechende (~~Labor~~ ist gebaut, auf Haiku 5.5).
 D. **Beide Apps angleichen:** gleiche Lage der Knöpfe, gleiche Einstellungen, gleiche Wörter. Die Mixarium-PWA von ihren
-   vorläufigen Teilen auf den Kern umhängen, wo es passt.
+   vorläufigen Teilen auf den Kern umhängen, wo es passt (Kategorien, Einkauf, Plan, Text-Import, Sinn-Suche, Tooltips und
+   Ladebalken hängen schon am Kern; offen: Oberfläche und Posten-Modell der Einkaufsliste). Verbliebene Erklär-Absätze
+   (`.ftext`) in Fenstern hinter „?“ prüfen.
 E. **Feinschliff:** jede Ansicht am Handy (390 px), am Tablet und am Monitor ansehen (Bildschirmfotos), hell und dunkel, ohne
    Netz. Was schief aussieht, richten.
 F. **Bau von APK und Windows-App vorbereiten, nicht starten:** Weg wählen (ein Werkzeug für beide Apps, Beispiele im Paket,
    App-Zeichen mit dunklem Grund und Goldring), Gerüst anlegen und aufschreiben, was Klaus tun muss, um den Bau zu starten.
+
+## Stand bei der Übergabe
+
+23.11.2026, 18:05 Uhr (Europe/Berlin), übergeben von der gemeinsamen Tag-Sitzung.
+
+| | Mein Rezeptbuch | Mein Mixarium |
+|---|---|---|
+| Kern | 0.17.0 | 0.17.0 (Pin `0b18345`) |
+| PWA `neu/` | 0.9.5 | 10.0.0-vor19 |
+| main | `0b18345` | `859c911` |
+| Proben | `npm test` 52 · `smoke_neu` 140 grün · 0 ROT | `npm test` 104 · smoke_neu_pwa 71 · smoke_neu_kategorien 78 · smoke_neu_labor 43, je 0 ROT |
+
+Nichts liegt halb fertig herum; alles Angefangene ist geprüft und gemergt.
 
 ## Morgen früh um 6:00 (die einzige Nachricht an Klaus in dieser Nacht)
 

@@ -1,65 +1,114 @@
-# Übergabe an die gemeinsame Sitzung (Rezeptbuch + Mixarium)
+# Übergabe der gemeinsamen Sitzung (Rezeptbuch + Mixarium)
 
-Stand 23.11.2026. Klaus legt die Rezeptbuch-Sitzung und die Mixarium-Sitzung zu **einer** zusammen, weil er sonst alles
-zweimal sagen muss. Diese Datei ist die Übergabe der Rezeptbuch-Seite. Die Mixarium-Seite schreibt ihre nach
-`Mein-Mixarium/docs/UEBERGABE_GEMEINSAME_SITZUNG.md`.
+Stand **23.11.2026, 18:05 Uhr** (Europe/Berlin). Die gemeinsame Sitzung (Tag) übergibt an die Nacht-Sitzung. Diese Datei ist
+die Rezeptbuch-Seite und gilt für beide Apps; die Mixarium-Seite steht in `Mein-Mixarium/docs/UEBERGABE_GEMEINSAME_SITZUNG.md`.
+Der Auftrag für die Nacht steht in `docs/NACHTAUFTRAG.md`.
 
-## Wie die gemeinsame Sitzung arbeitet
+## Versionen auf `main`
 
-- **Zwei Repos, ein Kern.** `Mein-Rezeptbuch` baut den Küchen-Kern (`kern/`, Pin `KERN.json`, geschrieben von
-  `node kern/kern-stand.mjs`). `Mein-Mixarium` übernimmt ihn byte-gleich per Pin (`KERN-PIN.json`) und ändert ihn nie von Hand.
-- **Klaus sagt etwas einmal.** Was beide Apps betrifft: erst im Kern bzw. im Rezeptbuch bauen, dann im Mixarium nachziehen
-  (oder umgekehrt), immer an einer App zur Zeit. Nicht blind übertragen: je Punkt prüfen, ob er in der anderen App sinnvoll ist.
-- **Immer gegen `origin/main` arbeiten**, in beiden Repos. Der GitHub-Default-Branch des Rezeptbuchs ist ein toter Decoy.
-- **Die alten Apps bleiben unverändert** als Referenz (`index.html`, `QC_*.html`, `build.py`, Service Worker, Manifest, `sbkim/`).
-  Gebaut wird daneben in `neu/`. Das Repo Muttis-Rezeptbuch wird nicht verändert.
-- **Selbst-Merge** eigener, getesteter PRs ist erlaubt (CLAUDE.md). Codex-Kommentare werden nicht geprüft („ist raus“).
-- **Keine Forschungseinträge** in diesen Repos (nur Kimhub). Schlüssel nie in Dateien oder im Chat.
-- **APK und Windows erst nach Klaus' Go.** Erst wird die PWA fertig, er prüft sie. Kein Store-Eintrag, kein Release ohne sein Wort.
-- Die beiden Briefkästen (`docs/BRIEFKASTEN_MIXARIUM.md` hier, `docs/ABGLEICH_REZEPTBUCH.md` im Mixarium) braucht die
-  gemeinsame Sitzung nicht mehr zu führen; sie liest sie einmal zum Einstieg.
+| | Rezeptbuch | Mixarium |
+|---|---|---|
+| Kern | **0.17.0** (gebaut hier, `KERN.json`) | **0.17.0** per Pin, Commit `0b18345` |
+| PWA (`neu/`) | **0.9.5** | **10.0.0-vor19** |
+| main-Commit | `0b18345` | `859c911` |
+| Alte App | unverändert | unverändert (md5 `49ce4320795972269057083e4c189f48`) |
 
-## Stand Rezeptbuch (main, PWA 0.9.0, Kern 0.10.0)
+Halb Fertiges gibt es nicht: alles, was diese Sitzung angefangen hat, ist geprüft und gemergt.
 
-Neue PWA unter `neu/` (ES-Module ohne Bauschritt), Ausgaben in `ausgaben/rezeptbuch` und `ausgaben/muttis`, Beispiele in
-`beispiele/` mit `KATALOG.json`. Proben: `npm test` (42 grün), `node tests/smoke_neu.mjs` (118 grün, echter Browser, kein Netz).
+## Wie gearbeitet wird
 
-Fertig: Start mit Suche und Fotokategorien · Rezept, Portionen, Kochansicht (Wecker, Wischen, Geräte) · Formular, Text-Import
-ohne KI, Spracheingabe (einfache Fassung) · Kategorien (umbenennen, Zeichen, ordnen, löschen, neu) · Einkaufsliste je Laden ·
-Wochenplan · Bilder-Ordner · Bildausschnitt · Sicherung Fassung 11 und Übernahme aus der alten App · Tresor · KI-Bild (OpenAI)
-und Gratis-Foto · Sinn-Suche (Modul 03/04 aus `sbkim/`, erst beim Einschalten) · Hell/Dunkel je Farbe · Schrift-Regler ·
-Bild-Vollbild · Winkel in der Namenszeile statt Knöpfen auf dem Bild · Offline (Service Worker).
+- **Zwei Repos, ein Kern.** Der Kern wird hier gebaut (`kern/`, `node kern/kern-stand.mjs` schreibt `KERN.json`, Fassung in
+  `kern/kern-stand.mjs` hochzählen, Zeile in `kern/README.md`). Das Mixarium holt ihn mit
+  `node tools/kern-nachziehen.mjs ../Mein-Rezeptbuch` und prüft mit `--pruefen`; dort nie von Hand ändern.
+- An einer App zur Zeit; je Punkt prüfen, ob er in der anderen sinnvoll ist. Immer gegen `origin/main`.
+- Jede neue Kern-Datei gehört in den Service Worker beider PWAs (`neu/sw.js`, Liste der Hülle) – sonst fehlt sie offline;
+  die Offline-Probe fängt es. Jede Änderung zählt die Fassung hoch: `neu/app.mjs` (FASSUNG), `neu/index.html` (`?v=`), `neu/sw.js`.
+- Selbst-Merge eigener, geprüfter PRs. Codex wird nicht geprüft. Keine Forschungseinträge. Schlüssel nie in Dateien oder Chat.
+- Briefkästen: `docs/BRIEFKASTEN_MIXARIUM.md` (hier, neueste Runde **C**) und `Mein-Mixarium/docs/ABGLEICH_REZEPTBUCH.md`
+  (neueste Runde **6**). Regel aus CLAUDE.md: vor jedem Bauschritt lesen, nach jeder Änderung, die die andere App betrifft,
+  ergänzen; höchstens zwei Runden je Kasten.
 
-Kern-Bausteine: `modell/` (rezept mit `sicht`, kategorien, suche, mengen, kochen, einkauf, plan, zustand) · `sicherung/` ·
-`speicher/` (speicher, uebernahme, tresor) · `import/text` · `ki/bild` · `suche/bedeutung` · `pruefung/paket` ·
-`oberflaeche/` (symbole, farben mit Ton, schrift, bild, geraete, diktat) · `ausgabe/`.
+## Kern: was es gibt (0.17.0)
 
-## Was Klaus gesagt hat und noch offen ist
+`modell/` rezept (`sicht` je Sprache), kategorien (`kategorienMit`, Familien-Namen, `katBild` für Sticker), suche, mengen
+(Achtel, Bar- und US-Einheiten), kochen, einkauf (`einkaufMit` je Ausgabe), plan (Woche, `ausAltemMenu`), zustand ·
+`sicherung/` (Fassung 11) · `speicher/` (speicher, uebernahme, tresor) · `import/text` (ohne KI) · `ki/bild` (dall-e-3, dann
+gpt-image-1; Pollinations; Auftrag je `art`) · `suche/bedeutung` (Modul 03/04 aus `sbkim/`, erst beim Einschalten) ·
+`pruefung/paket` · `ausgabe/` · `oberflaeche/` symbole, farben (Ton), schrift, bild, geraete, diktat (einfach),
+**hinweis** (Tooltips, 0.16), **warten** (Ladebalken, 0.17).
 
-1. **„Keine Funktion auslassen“** außer SBKIM/Mycel (eingebaut, nicht geladen, unsichtbar, später freischaltbar). Bestand und
-   Ziel je Funktion: `docs/FUNKTIONSLISTE.md`. Noch nicht in der neuen PWA: Ordner · Foto-Scan · Web-Import (ohne öffentliche
-   Weiterleiter) · „vom Teller“ · Übersetzung (alle/einzeln, mit Kostenhinweis, Sprache „wie das Gerät“) · Nährwerte ·
-   Rechtschreibung · Wochenplan-KI · Reinigung vor der KI · Kreativbuch, KI-Buch, Food-Zine, PDF-Buch, Flipbook · Drucken ·
-   QR-Teilen · Notizbuch mit Kalender · Einheiten metrisch/US · Schlüssel für Anthropic und Mistral · Muttis-Ausgabe als PWA.
-2. **Bewährte Bausteine übernehmen, nicht neu bauen.** Offen: Mikrofon aus Modul 21 (jetzt nur `diktat.mjs`) · KI-Richter der
-   Suche · Tresor-Stände der alten App übernehmen · Prüfung des Bildauftrags auf KI-Anweisungen · Sammel-Weg „KI-Bilder für
-   alle Rezepte ohne Bild / vorhandene ersetzen“ (Import-Reiter der alten App).
-3. **Nicht gemessen:** alles am Tablet · echter OpenAI-Aufruf · das echte Sprachmodell der Sinn-Suche (Größe, Dauer bei vielen
-   Rezepten) · die Live-Seite (github.io ist von der Sitzung aus nicht erreichbar).
-4. **Unklar, bitte Klaus fragen:** was er mit „In den Einstellungen, ich muss es immer wieder sagen“ meinte · ob ein Tipp aufs
-   Bild das Vollbild (jetzt so) oder die Bild-Werkzeuge öffnen soll · ob das Mixarium auf den Winkel in der Namenszeile geht.
-5. **Fragen an Klaus von früher:** Labor im Kern · Ablageort Beispielbuch · familyproject.de und „PWA-Toolpoint“ (welcher
-   Server, welcher Zugang) · `_CR`-Block im Kern · Sushi-Fehler auch in der alten App beheben?
-6. **Bilder:** 12 Beispiel-Rezepte ohne Bild und drei App-Zeichen; Aufträge für ChatGPT in `beispiele/AENDERUNGEN.md` und
-   `docs/vorschau/app-zeichen-auftraege.md`.
-7. **Vom Mixarium offen** (Briefkasten dort): Kategorien und Warengruppen je Ausgabe austauschbar · `getraenke/einheiten.mjs`
-   gegen `kern/modell/mengen.mjs` prüfen · Mixarium-PWA von ihren vorläufigen Teilen auf den Kern umhängen.
+Neu in dieser Sitzung: 0.11 Bildauftrag je Ausgabe, Bar-Geräte, englische Namen · 0.12 Kategorien/Einkauf je Ausgabe ·
+0.13 Familien-Namen für mitgebrachte Kennungen · 0.14/0.15 Sticker-Bild je Kategorie · 0.16 Hinweis-Blasen · 0.17 Ladebalken.
 
-## Fallen, die schon Zeit gekostet haben
+## Rezeptbuch-PWA 0.9.5: fertig und geprüft
 
-- Vor dem Commit die Probe wirklich grün sehen; ein `//`-Kommentar in einer Einzeiler-Funktion hat einmal die App zerlegt.
-- Der Session-Branch hängt nach einem Squash-Merge hinter `main`: neu von `origin/main` aufsetzen, den alten Remote-Stand mit
-  `git merge -s ours` einbinden, dann pushen (Force-Push ist gesperrt).
-- Der Service Worker umgeht `page.route`; Proben, die einen Baustein nachstellen, brauchen einen Kontext mit
-  `serviceWorkers: 'block'`.
-- `\b` kennt keine Umlaute („andünsten“ wird als „and“ gelesen).
+Start mit Suche und Foto-Kategorien (Sticker mit Mini-Foto aus der eigenen Kategorie, sonst Zeichen) · Rezept, Portionen,
+Kochansicht (Wecker, Wischen, Geräte) · Formular, Text-Import ohne KI, Spracheingabe (einfach) · Kategorien (umbenennen,
+Zeichen, ordnen, löschen, neu) · Einkaufsliste je Laden · Wochenplan · Bilder-Ordner (einziger Ort zum Löschen eines Bildes) ·
+Bildausschnitt · Tipp aufs Bild → Vollbild mit Knopf zum Bild-Blatt · Winkel in der Namenszeile, am Monitor neben dem Bild ·
+Sicherung Fassung 11, Übernahme aus der alten App · Tresor · KI-Bild (OpenAI) und Gratis-Foto · Sinn-Suche · Hell/Dunkel je
+Farbe · Schrift-Regler · Hinweis-Blasen (abschaltbar) · Erklärtexte hinter „?“ · Ladebalken bei jeder Wartezeit · offline.
+
+Proben (zuletzt gesehen): `npm test` **52** grün · `node tests/smoke_neu.mjs` **140 grün · 0 ROT** (dreimal hintereinander;
+ein früherer Lauf brach einmal in einem frühen Abschnitt ab und ließ sich nicht wiederholen – im Auge behalten).
+
+## Rezeptbuch: was fehlt (gemessen an `docs/FUNKTIONSLISTE.md`)
+
+Nach Wichtigkeit für Klaus' Prüfung:
+1. **Import-Wege:** Foto-Scan (einzeln/Stapel, Claude/Mistral, Reinigung vor der KI, „Datei prüfen“), Web-Import (ohne
+   öffentliche Weiterleiter), „vom Teller“.
+2. **Schlüssel für Anthropic und Mistral** (nur OpenAI ist da). Die Mixarium-PWA hat ein Anthropic-Fenster, das man übernehmen kann.
+3. **Ordner-Ansicht** (Daten in `Z.ordner` sind da und werden übernommen, es gibt keine Ansicht).
+4. **Übersetzung** (alle/einzeln, mit Kostenhinweis) und **Sprachmenü „wie das Gerät“** – die Oberfläche ist nur Deutsch.
+5. **Mikrofon aus Modul 21** statt `diktat.mjs`; KI-Richter der Suche; Tresor-Stände der alten App übernehmen; Sammel-Weg
+   „KI-Bilder für alle ohne Bild“; Prüfung des Bildauftrags auf KI-Anweisungen.
+6. Nährwerte · Rechtschreibung · Wochenplan-KI · Einheiten metrisch/US · Drucken · QR-Teilen · Notizbuch mit Kalender.
+7. Kreativbuch, KI-Buch, Food-Zine, PDF-Buch, Flipbook.
+8. Muttis-Ausgabe als PWA (`ausgaben/muttis` gibt es, eigene Einstiegsseite nicht).
+
+## Was Klaus in dieser Sitzung gesagt hat
+
+Erledigt: Tipp aufs Bild → Vollbild + Bild-Blatt · Winkel am Monitor neben dem Bild · Sticker mit Mini-Fotos aus der eigenen
+Kategorie, Name bleibt lesbar („Sushi bleibt Sushi“, ohne Bild ein Zeichen) · Erklärtexte hinter „?“ an der Stelle, die sie
+erklären, auch beim Schlüssel („bedienungsfreundlich, nicht ein Buch“) · kurze, einzeilige Meldungen · Tooltips der alten Apps
+übernommen · Ladebalken überall, wo Zeit vergeht („damit nie der Eindruck entsteht, die App ist abgestürzt“) · Mixarium: Labor
+auf Haiku 5.5, Kacheln dicht und in Wasserfarben, Status „Bewertung“.
+
+Gilt weiter: erst die PWAs fertig, Klaus prüft; **APK und Windows erst nach seinem Go**; kein Store-Eintrag, kein Release ohne
+sein Wort · keine Funktion auslassen außer SBKIM/Mycel (eingebaut, nicht geladen, unsichtbar) · bewährte Bausteine übernehmen.
+
+## Entscheidungen dieser Sitzung (mit Grund)
+
+- Ladebalken als **ein** Kern-Baustein (Balken oben + Zeile unten mit Sekundenzähler), ohne Klick-Sperre; unter 250 ms nichts,
+  weil ein Aufblitzen unruhiger ist als nichts.
+- Erklärtexte als `<details class="frag">` mit Blase, nicht als Absatz; kurze Zeile + „?“, wo sonst ein leerer Platz bliebe.
+- Hinweis-Blasen nehmen `title` und `aria-label` reiner Symbolknöpfe; kein zweiter Tooltip des Browsers.
+- Sticker: das Bild der Kategorie kommt aus ihren eigenen Rezepten; ohne Bild das Zeichen (kein fremdes Foto).
+
+## Nicht gemessen
+
+Tablet und Handy von Klaus · echte Aufrufe an OpenAI, Anthropic, Pollinations · das echte Sprachmodell der Sinn-Suche (120 MB,
+Dauer bei vielen Rezepten) · die Live-Seite (github.io ist aus der Sitzung nicht erreichbar).
+
+## Offene Fragen an Klaus
+
+Was er mit „In den Einstellungen, ich muss es immer wieder sagen“ meinte · familyproject.de und „PWA-Toolpoint“ (Server,
+Zugang) · ob die drei App-Zeichen und die 12 fehlenden Beispielbilder vorliegen (Aufträge: `beispiele/AENDERUNGEN.md`,
+`docs/vorschau/app-zeichen-auftraege.md`) · Labor auch im Rezeptbuch/Kern? · `_CR`-Block im Kern · Sushi-Fehler auch in der
+alten App beheben?
+
+## Fallen
+
+- **`//`-Kommentar in einem Einzeiler** zerlegt `app.mjs` (SyntaxError). In Einzeilern nur `/* */`. Nach jeder Änderung
+  `node --check neu/app.mjs`.
+- **Session-Branch nach Squash-Merge:** `git checkout -B <branch> origin/main`, vor dem Push `git fetch origin <branch>` und
+  `git merge -s ours FETCH_HEAD` (Force-Push gesperrt). Vorher prüfen, dass `git diff origin/main HEAD` nur die eigene Änderung zeigt.
+- **PR-Nummer aus der Antwort nehmen**, nicht raten: einmal wurde ein Merge mit der Nummer eines fremden PRs (#478) aufgerufen
+  (blieb folgenlos, der war schon gemergt).
+- **Service Worker umgeht `page.route`:** Proben, die etwas nachstellen, brauchen `serviceWorkers: 'block'`.
+- **Neue Kern-Datei fehlt im SW** → offline kaputt; die Offline-Probe fängt es.
+- **`\b` kennt keine Umlaute.**
+- **Proben auf Bedingungen warten lassen, nicht auf die Uhr:** `kiBild` versucht zwei Modelle nacheinander; eine Wartezeit von
+  fester Länge war zu kurz.
+- **Backticks in einer Commit-Nachricht in doppelten Anführungszeichen** führt die Shell aus; Nachricht per Heredoc übergeben.
+- **`.ftext`-Absätze** sind in den Fenstern noch häufig; neue Erklärtexte gehören hinter `frag()`.
