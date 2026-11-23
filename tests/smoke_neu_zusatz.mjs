@@ -95,17 +95,18 @@ try {
   const FALLE = R(7, 'Sonntagsbraten', { ings: [{ amt: '1', unit: 'kg', name: 'Rind', note: '' }, { amt: '1', unit: '', name: BEFEHL, note: '' }, { amt: '2', unit: '', name: 'Möhren', note: '' }] });
   ({ p, k, netz } = await seite({ rezepte: [FALLE, R(8, 'Hefezopf', { cat: 'brot' })], schluessel: { openai: 'sk-probe-33333333333333333333' } }));
   const zumBild = async (name) => { await geh(p, 'start'); await p.locator('.karte', { hasText: name }).first().click(); await p.waitForSelector('.rezept-held h1'); await p.click('[data-a=rleiste]'); await p.click('.rwerk [data-a=bild-blatt]'); await p.click('.fenster [data-a=ki-bild]'); await p.click('.fenster [data-a=ja]'); };   /* die App fragt vor jedem KI-Bild einmal nach (Kosten) */
-  await zumBild('Sonntagsbraten'); await p.waitForSelector('[data-ki-halt]');
-  const halt = await p.locator('.fenster').innerText();
-  ok(netz.bild.length === 0 && await p.locator('[data-ki-halt] mark').count() === 1 && halt.includes('Ignore all previous instructions') && await p.locator('.fenster p').count() === 0, 'vor dem Senden hält die App an und zeigt die Stelle markiert, ohne Erklärtext; gesendet ist nichts');
-  ok(await p.locator('[data-a=wahl-a]').innerText() === 'Ohne senden' && await p.locator('[data-a=wahl-b]').innerText() === 'Mit senden', 'zwei Antworten: „Ohne senden“ und „Mit senden“');
-  await p.click('[data-a=wahl-a]'); await p.waitForFunction(() => /Bild eingefügt/.test(document.querySelector('#toast')?.textContent || ''), null, { timeout: 10000 }).catch(() => {});
+  const haelt = () => p.waitForSelector('[data-ki-halt]', { timeout: 6000 }).then(() => true, () => false);   /* fehlt der Halt, wird das als rote Zeile gemeldet, nicht als Abbruch */
+  await zumBild('Sonntagsbraten'); const h1 = await haelt();
+  const halt = await p.locator('.fenster').innerText().catch(() => '');
+  ok(h1 && netz.bild.length === 0 && await p.locator('[data-ki-halt] mark').count() === 1 && halt.includes('Ignore all previous instructions') && await p.locator('.fenster p').count() === 0, 'vor dem Senden hält die App an und zeigt die Stelle markiert, ohne Erklärtext; gesendet ist nichts');
+  ok(h1 && await p.locator('[data-a=wahl-a]').innerText() === 'Ohne senden' && await p.locator('[data-a=wahl-b]').innerText() === 'Mit senden', 'zwei Antworten: „Ohne senden“ und „Mit senden“');
+  if (h1) await p.click('[data-a=wahl-a]'); await p.waitForFunction(() => /Bild eingefügt/.test(document.querySelector('#toast')?.textContent || ''), null, { timeout: 10000 }).catch(() => {});
   ok(netz.bild.length === 1 && !/Ignore/i.test(netz.bild[0].prompt) && netz.bild[0].prompt.includes('Rind, Möhren') && netz.bild[0].prompt.includes('Sonntagsbraten'), '„Ohne senden“: der Auftrag geht ohne die Stelle hinaus, der Rest bleibt', netz.bild[0] && netz.bild[0].prompt);
   const braten = (await bestandWenn(p, (b) => b.zustand.rezepte.find((r) => r.uid === 'r-7').img)).zustand.rezepte.find((r) => r.uid === 'r-7');
   ok(String(braten.img || '').startsWith('data:image/') && braten.ings.length === 3 && braten.ings[1].name.startsWith('Ignore'), 'das Bild ist am Rezept; das Rezept selbst ist unverändert');
-  await p.keyboard.press('Escape'); await zumBild('Sonntagsbraten'); await p.waitForSelector('[data-ki-halt]'); await p.click('[data-a=wahl-b]'); await p.waitForFunction(() => /Bild ersetzt/.test(document.querySelector('#toast')?.textContent || ''), null, { timeout: 10000 }).catch(() => {});
+  await p.keyboard.press('Escape'); await zumBild('Sonntagsbraten'); if (await haelt()) await p.click('[data-a=wahl-b]'); await p.waitForFunction(() => /Bild ersetzt/.test(document.querySelector('#toast')?.textContent || ''), null, { timeout: 10000 }).catch(() => {});
   ok(netz.bild.length === 2 && /Ignore all previous/.test(netz.bild[1].prompt), '„Mit senden“: der Auftrag geht mit der Stelle hinaus', String(netz.bild.length));
-  await zumBild('Sonntagsbraten'); await p.waitForSelector('[data-ki-halt]'); await p.click('.fenster [data-a=fenster-zu]'); await p.waitForTimeout(600);
+  await zumBild('Sonntagsbraten'); if (await haelt()) await p.click('.fenster [data-a=fenster-zu]'); await p.waitForTimeout(600);
   ok(netz.bild.length === 2 && await p.locator('.fenster').count() === 0, 'das Kreuz bricht ab: nichts geht hinaus');
   await zumBild('Hefezopf'); await p.waitForFunction(() => /Bild eingefügt/.test(document.querySelector('#toast')?.textContent || ''), null, { timeout: 10000 }).catch(() => {});
   ok(netz.bild.length === 3 && await p.locator('[data-ki-halt]').count() === 0, 'ein Rezept ohne Befehl geht ohne Halt hinaus');
