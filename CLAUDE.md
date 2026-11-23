@@ -1,5 +1,7 @@
 **🔬 Regel: Forschung nur in Kimhub (Klaus 2026-10-31: „einheitlich alles in Kimhub … in den einzelnen Repos soll keine Forschungseinträge sein“):** jeder Forschungseintrag (Sitzungs-Befunde, Messungen, Stunden-Auswertungen, Forschungsnotizen) kommt nach **Kimhub `forschung/messungen/`**; in diesem Repo werden keine Forschungseinträge geführt und keine Forschungsdateien angelegt. Öffentliche Forschungs**aufgaben** stehen in Sage-Protokol.
 
+**📬 Regel: Briefkasten vor jedem Bauschritt (Klaus 2026-11-23: „Brief lesen, bevor gebaut wird. Und dann Brief ergänzen, sobald etwas geändert wurde.“):** vor jedem Bauschritt an `neu/` oder `kern/` im Repo Mein-Mixarium auf `main` `docs/ABGLEICH_REZEPTBUCH.md` lesen und Neues prüfen (nicht blind übernehmen); nach jeder Änderung, die das Mixarium betrifft, `docs/BRIEFKASTEN_MIXARIUM.md` ergänzen. Im Kasten stehen höchstens zwei Runden. Codex-Kommentare werden nicht geprüft.
+
 # Projektregeln für Claude – Muttis Rezeptbuch
 
 ---

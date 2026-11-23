@@ -59,3 +59,15 @@ export function ordnerVonRezept(r, ordner) {
   const f = r && r.folder != null ? String(r.folder) : '';
   return f && (ordner || []).some((o) => String(o.id) === f) ? f : '';
 }
+
+/** Sicht eines Rezepts in einer Sprache: liegt r.translations[sprache] am Rezept, wird sie gezeigt, AUCH für Deutsch
+ *  (die alten Apps zeigten translations.de nie; Abgleich Mixarium Runde 3 Punkt 10). Das Rezept selbst bleibt unverändert.
+ *  Namen der Zutaten und Schritte werden nur ersetzt, wenn die Anzahl passt; sonst bliebe ein Text an der falschen Zeile. */
+export function sicht(r, sprache = 'de') {
+  const t = r && r.translations && typeof r.translations === 'object' ? r.translations[sprache] : null;
+  if (!t || typeof t !== 'object') return r;
+  const zn = Array.isArray(t.ingredients) ? t.ingredients : [], za = Array.isArray(t.amounts) ? t.amounts : [], st = Array.isArray(t.steps) ? t.steps : [], ings = r.ings || [], steps = r.steps || [];
+  return { ...r, name: (typeof t.name === 'string' && t.name.trim()) || r.name,
+    ings: zn.length === ings.length ? ings.map((z, i) => ({ ...z, name: typeof zn[i] === 'string' && zn[i] ? zn[i] : z.name, unit: za[i] && typeof za[i] === 'object' && za[i].unit ? za[i].unit : z.unit })) : ings,
+    steps: st.length === steps.length ? steps.map((x, i) => ({ ...x, txt: typeof st[i] === 'string' && st[i] ? st[i] : x.txt })) : steps };
+}

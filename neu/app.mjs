@@ -1,6 +1,6 @@
 // Mein Rezeptbuch – neue PWA (Ausgabe „rezeptbuch“ des Küchen-Kerns). Erste Fassung: Start, Rezept, Anlegen/Bearbeiten,
 // Kategorien, Suche, Sicherung ein/aus, Beispielbuch, Übernahme aus der alten App. Netz nur auf Knopfdruck.
-import { normalisiere, istInhalt, katVonRezept, neueUid, KAT_OHNE } from '../kern/modell/rezept.mjs';
+import { normalisiere, istInhalt, katVonRezept, neueUid, KAT_OHNE, sicht } from '../kern/modell/rezept.mjs';
 import { alleKategorien, beschriftung, anzahl, leereKategorien, KATEGORIEN_FEST, anlegen as katAnlegen, umbenennen as katUmbenennen, loeschen as katLoeschen, umsortieren as katUmsortieren } from '../kern/modell/kategorien.mjs';
 import { suche } from '../kern/modell/suche.mjs';
 import { skaliere } from '../kern/modell/mengen.mjs';
@@ -22,7 +22,7 @@ import { tresor } from '../kern/speicher/tresor.mjs';
 import { ladeBausteine, korpus as semKorpus, sucheBedeutung } from '../kern/suche/bedeutung.mjs';
 import { woche, planen, entplanen, ausAltemMenu, tagIso } from '../kern/modell/plan.mjs';
 
-const FASSUNG = '0.8.0';
+const FASSUNG = '0.9.0';
 const breit = () => matchMedia('(min-width:1000px)').matches;
 const $ = (id) => document.getElementById(id);
 const esc = (t) => String(t ?? '').replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
@@ -38,6 +38,7 @@ function ergaenze() { Z.einkauf = { ...LEER_EINKAUF(), ...(Z.einkauf || {}) }; i
 let schreibUhr = null;
 function sichern() { clearTimeout(schreibUhr); schreibUhr = setTimeout(() => lager.schreibe({ fassung: 1, zustand: Z, einstellungen: E }).catch(() => melde('Speichern ist fehlgeschlagen. Bitte eine Sicherung als Datei anlegen.')), 150); }
 const rezept = (uid) => Z.rezepte.find((r) => r.uid === uid);
+const zeig = (r) => (r ? sicht(r, 'de') : r);   // Anzeige: liegt eine Übersetzung in der App-Sprache am Rezept, gilt sie; bearbeitet wird das Original
 const katName = (c) => beschriftung(c, 'de', Z.kategorien);
 const katZeichen = (c) => { const e = Z.kategorien.namen?.[c.id]?.emoji || c.emoji || c.emojiAlt; /* Vorgabe: das Zeichen aus der alten App, frei änderbar */ return e ? `<span aria-hidden="true">${esc(e)}</span>` : ic(c.art === 'ohne' ? 'frage' : c.art === 'unbekannt' ? 'paket' : 'karte'); };
 
@@ -84,7 +85,7 @@ function kopfZeichnen() {
 const zahl = (v, sonst) => (Number.isFinite(+v) && v !== '' && v != null ? +v : sonst);   // 0 ist ein gültiger Wert (Lage oben/links)
 const ausschnitt = (r) => { const c = r.imgCrop; if (!c || (c.x === 50 && c.y === 50 && (c.scale || 1) === 1)) return ''; const x = zahl(c.x, 50), y = zahl(c.y, 50), z = Math.min(3, Math.max(1, zahl(c.scale, 1))); return `style="object-position:${x}% ${y}%;${z > 1 ? `transform:scale(${z});transform-origin:${x}% ${y}%` : ''}"`; };
 const bildOder = (r, gr = '') => (r.img ? `<img src="${esc(r.img)}" alt="" loading="lazy" ${ausschnitt(r)} ${gr}>` : ic('karte'));
-const karte = (r, c) => `<button class="karte" data-a="rezept" data-uid="${esc(r.uid)}"><span class="bild">${bildOder(r)}</span><span class="text"><strong>${esc(r.name)}</strong><small>${r.prepTime ? ic('uhr') + esc(r.prepTime) + ' Min · ' : ''}${esc(c ? katName(c) : '')}</small></span></button>`;
+const karte = (r0, c, r = zeig(r0)) => `<button class="karte" data-a="rezept" data-uid="${esc(r.uid)}"><span class="bild">${bildOder(r)}</span><span class="text"><strong>${esc(r.name)}</strong><small>${r.prepTime ? ic('uhr') + esc(r.prepTime) + ' Min · ' : ''}${esc(c ? katName(c) : '')}</small></span></button>`;
 
 function startHtml() {
   const heute = new Date().toLocaleDateString('de-DE', { weekday: 'long', day: 'numeric', month: 'long' });
@@ -153,12 +154,12 @@ async function semLauf(f) {
 
 /* ---------- Rezept ---------- */
 function rezeptHtml() {
-  const r = rezept(s.uid); if (!r) return `<div class="leer"><p>Dieses Rezept gibt es nicht mehr.</p><button class="knopf" data-a="geh" data-zu="start">Zur Startseite</button></div>`;
+  const r = zeig(rezept(s.uid)); if (!r) return `<div class="leer"><p>Dieses Rezept gibt es nicht mehr.</p><button class="knopf" data-a="geh" data-zu="start">Zur Startseite</button></div>`;
   const c = alleKategorien(Z.rezepte, Z.kategorien).find((x) => x.id === katVonRezept(r));
   const n = s.portion[r.uid] || r.servings, f = n / r.servings;
   const wk = (akt, i, t, kl = '') => `<button class="chip ${kl}" data-a="${akt}">${ic(i)}${t}</button>`;
   const winkel = (d) => `<svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="${d}"/></svg>`;
-  return `<div class="rezept-held" data-a="bild-blatt" role="button" tabindex="0" aria-label="${r.img ? 'Bild ansehen, anpassen oder ersetzen' : 'Bild einfügen'}">${r.img ? `<img src="${esc(r.img)}" alt="${esc(r.name)}" ${ausschnitt(r)}>` : ic('karte')}
+  return `<div class="rezept-held" data-a="${r.img ? 'bild-voll' : 'bild-blatt'}" role="button" tabindex="0" aria-label="${r.img ? 'Bild groß ansehen' : 'Bild einfügen'}">${r.img ? `<img src="${esc(r.img)}" alt="${esc(r.name)}" ${ausschnitt(r)}>` : ic('karte')}
     ${s.rleiste ? `<div class="rwerk">${wk('bearbeiten', 'stift', 'Bearbeiten')}${wk('kat-zuordnen', 'ordner', 'Kategorie')}${wk('bild-blatt', 'bild', 'Bild')}${wk('nurdies', 'voll', s.nurDies ? 'Alles zeigen' : 'Nur dieses Rezept', 'nurbreit')}${wk('loeschen', 'muell', 'Rezept löschen', 'rot')}</div>` : ''}
     <div class="verlauf"><div class="tzeile"><button class="wk-pf zur" data-a="zurueck" aria-label="Zurück">${winkel('M15 5l-7 7 7 7')}</button><h1>${esc(r.name)}</h1><button class="wk-pf" data-a="rleiste" aria-expanded="${s.rleiste}" aria-label="Werkzeuge für Rezept und Bild">${winkel(s.rleiste ? 'M5 9l7 7 7-7' : 'M5 15l7-7 7 7')}</button></div><div class="meta">${r.prepTime ? `<span>${ic('uhr')}${esc(r.prepTime)} Min</span>` : ''}<span>${ic('karte')}${esc(c ? katName(c) : '')}</span>${r.rating?.stars ? `<span>${ic('stern')}${r.rating.stars}</span>` : ''}</div></div></div>
    <div class="bogen"><div class="zweispalt"><div>
@@ -175,7 +176,7 @@ const geraeteVon = (r) => [...new Set(r.steps.flatMap((x) => erkenne(x.txt)))];
 const K = { i: 0, kopf: true, wach: null, uhr: null, rest: 0 };
 const zeitText = (sek) => `${Math.floor(sek / 60)}:${String(sek % 60).padStart(2, '0')}`;
 function kochHtml() {
-  const r = rezept(s.uid); if (!r || !r.steps.length) return '';
+  const r = zeig(rezept(s.uid)); if (!r || !r.steps.length) return '';
   const i = Math.min(K.i, r.steps.length - 1), x = r.steps[i], f = (s.portion[r.uid] || r.servings) / r.servings;
   const zs = zutatenFuerSchritt(r, i), gs = erkenne(x.txt), min = zeitImSchritt(x.txt);
   const balken = `<div class="k-balken" aria-hidden="true">${r.steps.map((_, n) => `<i class="${n < i ? 'an' : n === i ? 'jetzt' : ''}"></i>`).join('')}</div>`;
@@ -375,7 +376,7 @@ function schluesselFenster(danach = '') {
 /* ---------- Bild-Blatt: Tipp aufs Bild. Ansehen, anpassen, ersetzen, von der KI erzeugen lassen. Gelöscht wird im Bilder-Ordner. ---------- */
 function bildBlatt(uid) {
   const r = rezept(uid); if (!r) return;
-  fenster(`<h2>${esc(r.name)}</h2>${r.img ? `<img class="bb-bild" src="${esc(r.img)}" alt="${esc(r.name)}">` : '<p>Dieses Rezept hat noch kein Bild.</p>'}
+  fenster(`<h2>${esc(r.name)}</h2>${r.img ? `<img class="bb-bild" data-a="bild-voll" src="${esc(r.img)}" alt="${esc(r.name)}">` : '<p>Dieses Rezept hat noch kein Bild.</p>'}
    <div class="liste" style="margin-top:10px">${r.img ? zeile('zuschnitt', 'zuschnitt', 'Ausschnitt anpassen', 'verschieben und vergrößern') : ''}
    ${zeile('bild-dazu', 'kamera', r.img ? 'Bild ersetzen' : 'Bild einfügen', 'Foto aufnehmen oder Datei wählen', `data-uid="${esc(uid)}"`)}
    ${zeile('ki-bild', 'funken', 'Bild von der KI erzeugen', 'OpenAI, ' + KOSTEN_TEXT, `data-uid="${esc(uid)}"`)}
@@ -530,6 +531,8 @@ const A = {
   zuschnitt: () => zuschnittFenster(s.uid),
   rleiste: () => { s.rleiste = !s.rleiste; zeichne(); },
   'bild-blatt': () => bildBlatt(s.uid),
+  'bild-voll': () => { const r = zeig(rezept(s.uid)); if (!r?.img) return; fensterZu(); $('fensterort').innerHTML = `<div class="vollbild" data-a="voll-zu" role="dialog" aria-modal="true" aria-label="${esc(r.name)}"><img src="${esc(r.img)}" alt="${esc(r.name)}"><button class="voll-x" data-a="voll-zu" aria-label="Schließen">${ic('x')}</button><p>${esc(r.name)}</p></div>`; history.pushState({ ...(history.state || { ansicht: s.ansicht, uid: s.uid }), voll: true }, ''); },
+  'voll-zu': () => { if (document.querySelector('.vollbild')) { fensterZu(); if (history.state?.voll) history.back(); } },
   schluessel: () => schluesselFenster(),
   'schluessel-weg': () => { try { schlNamen().forEach((n) => localStorage.removeItem(n)); } catch { /* ohne */ } fensterZu(); zeichne(); melde('Schlüssel gelöscht'); },
   'ki-bild': (e) => { const uid = e.dataset.uid, r = rezept(uid); if (!openaiSchluessel()) { schluesselFenster(uid); return; }
@@ -608,7 +611,7 @@ let wischX = null;
 document.addEventListener('touchstart', (ev) => { wischX = ev.target.closest?.('.koch') && !ev.target.closest('button') ? ev.touches[0].clientX : null; }, { passive: true });
 document.addEventListener('touchend', (ev) => { if (wischX == null) return; const d = ev.changedTouches[0].clientX - wischX; wischX = null; if (Math.abs(d) > 60) A['k-schritt']({ dataset: { d: d < 0 ? 1 : -1 } }); }, { passive: true });
 matchMedia('(min-width:1000px)').addEventListener('change', () => zeichne());
-document.addEventListener('keydown', (ev) => { if (ev.key === 'Escape' && s.ansicht !== 'kochen') { if ($('fensterort').innerHTML) fensterZu(); else if (s.leisteAuf) { s.leisteAuf = false; leisteZeichnen(); } } });
+document.addEventListener('keydown', (ev) => { if (ev.key === 'Escape' && s.ansicht !== 'kochen') { if (document.querySelector('.vollbild')) A['voll-zu'](); else if ($('fensterort').innerHTML) fensterZu(); else if (s.leisteAuf) { s.leisteAuf = false; leisteZeichnen(); } } });
 $('datei-sicherung').addEventListener('change', async (ev) => { const d = ev.target.files[0]; ev.target.value = ''; if (!d) return; try { einfuegen(lies(await d.text())); } catch (f) { melde(f.message || 'Die Datei konnte nicht gelesen werden.'); } });
 $('datei-bild').addEventListener('change', async (ev) => { const d = ev.target.files[0]; ev.target.value = ''; if (!d) return; if (s.bildZiel) { const uid = s.bildZiel; s.bildZiel = null; try { const img = await bildAusDatei(d); Z.rezepte = Z.rezepte.map((r) => (r.uid === uid ? { ...r, img, imgCrop: { x: 50, y: 50, scale: 1 } } : r)); sichern(); zeichne(); melde('Bild eingefügt'); } catch { melde('Das Bild konnte nicht gelesen werden.'); } return; }
   if (!s.form) return; try { s.form.img = await bildAusDatei(d); zeichne(); } catch { melde('Das Bild konnte nicht gelesen werden.'); } });
