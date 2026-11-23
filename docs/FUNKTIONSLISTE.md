@@ -226,3 +226,14 @@ Klaus hat zu den zehn Punkten der Mixarium-Sitzung und zu Punkt 16 Ja gesagt. Br
 | Notizbuch mit Kalender und Erinnerungen (wie Private Akte) | kern, gepinnter Klon | Benachrichtigungen am Handy nötig |
 | Bedeutungssuche aus SBKIM lösen, Modell ins Paket, Grenze 120 Rezepte aufheben | kern | gemessen 23.11. |
 | Fehler „nur die Suche findet“ (`blank: true` mit Namen, Kennungen mit Leerzeichen oder Großschreibung) | kern | beim Laden und Import bereinigen; Probe: alles, was die Suche findet, steht auch in „Alle“ |
+
+## 15 · Beispiele, Löschen und Bilder-Ordner (Klaus 23.11.)
+
+| Funktion | Ziel | Hinweis |
+|---|---|---|
+| Eigene Kategorien kommen mit Name, Symbol, Umbenennung und Reihenfolge **in die Sicherung** (Block `kategorien`) | kern | Ursache des Sushi-Fehlers: die alte App speicherte sie nur im Browser |
+| Kategorien anlegen, umbenennen, löschen, zusammenlegen, verschieben, Rezepte von Hand zuordnen | kern | alle Funktionen der alten App bleiben |
+| Beispiel-Rezepte und -Bilder tragen eine Marke; **„Beispiele entfernen“** mit einem Klick, eigene Rezepte bleiben | kern | |
+| **Alle Rezepte löschen**, einzelne Rezepte löschen, jeweils mit Rückfrage und Rückgängig | kern | |
+| **Bilder-Ordner** in der Werkstatt: Vorschau klein/groß, mehrere anhaken, löschen, einfügen, Filter Rezeptbilder/Food-Zine/Beispiele, „Alle Bilder löschen“ | kern | ein Rezept ohne Bild behält seinen Text |
+| Food-Zine-Beispiele nur als vollständige Sätze (3 Seiten) | ausgabe | einzelne Seiten nicht |
