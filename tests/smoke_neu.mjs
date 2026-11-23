@@ -318,6 +318,12 @@ try {
     ok((await q.locator('#toast').innerText()).trim() === '' && await q.locator('.fenster').count() === 0, 'ohne Frage, ohne Meldung');
     ok(await q.locator('#start-rest .ueber h2').count() === 0 && await q.locator('.karte small').count() === 0 || !/Sushi|Suppen|Fisch/.test((await q.locator('.karte small').allInnerTexts()).join(' ')), 'ein Raster, keine Überschrift je Kategorie; auf den Karten steht die Kategorie nicht noch einmal');
     ok(await q.locator('.fotokat button').count() === 9, 'die Kategorien stehen als Fotos darüber (Alle und acht Kategorien)', String(await q.locator('.fotokat button').count()));
+    /* Klaus' Fund in der Vorschau: bei größerer Schrift liefen die Namen ineinander. Gemessen bei Schrift 130 % und zwei Breiten. */
+    for (const breite of [390, 700]) { await q.setViewportSize({ width: breite, height: 800 }); await q.evaluate(() => { document.documentElement.style.fontSize = '130%'; });
+      const lage = await q.locator('.fotokat button > span:last-child').evaluateAll((l) => l.map((e) => { const r = e.getBoundingClientRect(); return { l: r.left, r: r.right, h: r.height, z: parseFloat(getComputedStyle(e).lineHeight) || parseFloat(getComputedStyle(e).fontSize) * 1.2, t: e.innerText }; }));
+      const ueber = lage.slice(1).filter((x, i) => x.l < lage[i].r - 0.5).map((x) => x.t), mehrzeilig = lage.filter((x) => x.h > x.z * 1.6).map((x) => x.t);
+      ok(ueber.length === 0 && mehrzeilig.length === 0, `Kategorie-Namen bei ${breite} px und Schrift 130 %: keiner läuft in den nächsten, Name und Zahl stehen auf einer Zeile`, 'überlappt: ' + ueber.join(' | ') + ' · mehrzeilig: ' + mehrzeilig.join(' | ')); }
+    await q.evaluate(() => { document.documentElement.style.fontSize = ''; }); await q.setViewportSize({ width: 390, height: 800 });
     await q.click('#leiste .fl-griff'); ok((await q.locator('#leiste [data-zu=werkstatt]').innerText()).includes('Einstellungen'), 'der Bereich heißt „Einstellungen“');
     await q.click('#leiste [data-zu=werkstatt]'); await q.waitForSelector('.themen');
     ok(await q.locator('.themen .gruppe').count() === 6 && await q.locator('.themen .gruppe.auf').count() === 0 && await q.locator('.themen .zeile').count() === 0 && (await q.locator('.ueber h2').innerText()) === 'Einstellungen', 'Einstellungen: sechs Themen, alle eingeklappt, keine lange Liste');
