@@ -661,3 +661,17 @@ a.knopf{text-decoration:none}
 .recht-liste{list-style:none;margin:0 0 12px;padding:0;display:grid;gap:6px;max-height:50svh;overflow:auto}
 .recht-liste label{display:flex;gap:10px;align-items:flex-start;font-size:14px}
 .recht-liste s{color:var(--mut)}.recht-liste b{color:var(--ink)}
+
+/* ── Zusätze (neu/zusatz.mjs): KI-Richter, Sammel-Bilder, Wochenplan-Vorschlag ── */
+.ueber .chip{margin-left:8px;flex:none}
+.chip.ki small{font-weight:500;color:var(--mut);margin-left:4px}
+.chip.ok{color:var(--akz);border-color:var(--akz)}
+.chip.ok svg{width:14px;height:14px}
+#sinn-rest{margin-top:10px}
+#sinn-rest .gitter{margin-top:8px;opacity:.82}
+.fenster p.eine{margin:6px 0 12px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.fortschritt{height:6px;border-radius:3px;background:var(--fl2);overflow:hidden;margin:0 0 12px}
+.fortschritt i{display:block;height:100%;width:0;background:var(--akz);transition:width .3s ease}
+.plan-vorschlag .zeile{align-items:flex-start;cursor:default}
+.plan-vorschlag .zeile b{flex:none;width:3.2em;color:var(--akz)}
+.knopf:not(.gross) small{font-weight:500;opacity:.75;margin-left:6px;font-size:.82em}

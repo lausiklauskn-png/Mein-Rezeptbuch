@@ -38,9 +38,11 @@ const VORRAT = [
  "../kern/sicherung/sicherung.mjs",
  "../kern/speicher/speicher.mjs",
  "../kern/suche/bedeutung.mjs",
+ "../kern/suche/richter.mjs",
  "../sbkim/03_embedding.js",
  "../sbkim/04_match.js",
  "../kern/speicher/tresor.mjs",
+ "../kern/speicher/alt-tresor.mjs",
  "../kern/ki/bild.mjs",
  "../kern/speicher/uebernahme.mjs",
  "../kern/oberflaeche/sprache.mjs",
@@ -55,6 +57,7 @@ const VORRAT = [
  "../assets/pruefer-formate.js",
  "../assets/pruefer-mail.js",
  "../assets/pruefer-anhang.js",
+ "./zusatz.mjs",
  "./app.mjs"
 ];
 self.addEventListener('install', (e) => { e.waitUntil(caches.open(FASSUNG).then((c) => c.addAll(VORRAT)).then(() => self.skipWaiting())); });

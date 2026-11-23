@@ -22,6 +22,7 @@ import { kiBild, gratisBild, KOSTEN_TEXT } from '../kern/ki/bild.mjs';
 import { hinweiseEinrichten } from '../kern/oberflaeche/hinweis.mjs';
 import { wartenEinrichten, modellFortschritt, bytesMitAnteil } from '../kern/oberflaeche/warten.mjs';
 import { tresor } from '../kern/speicher/tresor.mjs';
+import { zusatz } from './zusatz.mjs';
 import { ladeBausteine, korpus as semKorpus, sucheBedeutung } from '../kern/suche/bedeutung.mjs';
 import { woche, planen, entplanen, ausAltemMenu, tagIso } from '../kern/modell/plan.mjs';
 import { text as spText, fuelle } from '../kern/oberflaeche/sprache.mjs';
@@ -121,9 +122,9 @@ function startRest() {
   if (!alle.length) return leerHtml();
   if (s.frage.trim()) {
     const tr = suche(Z.rezepte, s.frage, Z.kategorien);
-    const da = new Set(tr.map((r) => r.uid)), sinn = E.sinn && sem.fuer === s.frage.trim().toLowerCase() ? sem.ids.map(rezept).filter((r) => r && istInhalt(r) && !da.has(r.uid)) : [];
+    const sinn = sinnTreffer(tr);
     return `<div class="ueber"><h2>Treffer</h2><small>${tr.length} von ${alle.length}</small></div>` + (tr.length ? `<div class="gitter">${tr.map((r) => karte(r, katVon.get(katVonRezept(r)), true)).join('')}</div>` : sinn.length ? '' : `<div class="leer"><p>Nichts gefunden für „${esc(s.frage)}“.</p></div>`)
-      + (E.sinn ? `<p class="sinn-status" id="sinn-status" role="status">${esc(sem.status)}</p>` : '') + (sinn.length ? `<div class="ueber"><h2>Nach Bedeutung</h2><small>${sinn.length}</small></div><div class="gitter" id="sinn-treffer">${sinn.map((r) => karte(r, katVon.get(katVonRezept(r)), true)).join('')}</div>` : '');
+      + (E.sinn ? `<p class="sinn-status" id="sinn-status" role="status">${esc(sem.status)}</p>` : '') + ZU.sinnBlock(sinn, (r) => karte(r, katVon.get(katVonRezept(r)), true));
   }
   const erstesBild = (id) => katBild(Z.rezepte, Z.kategorien, id);
   h += `<div class="fotokat" role="group" aria-label="Kategorien">` + [{ id: 'alle', de: 'Alle' }, ...kats].map((c) => {
@@ -156,6 +157,8 @@ const beispielText = () => { const p = katalog?.pakete?.find((x) => x.id === aus
 
 /* ---------- Sinn-Suche: Modul 03 und 04 der bisherigen App, erst beim Einschalten geladen ---------- */
 const sem = { ids: [], fuer: '', status: '', uhr: null, laeuft: false, korpus: null, sig: '' };
+/* Treffer der Sinn-Suche zur jetzigen Frage, ohne die, die schon nach Wort gefunden sind. */
+function sinnTreffer(wort = suche(Z.rezepte, s.frage, Z.kategorien)) { const da = new Set(wort.map((r) => r.uid)); return E.sinn && sem.fuer === s.frage.trim().toLowerCase() ? sem.ids.map(rezept).filter((r) => r && istInhalt(r) && !da.has(r.uid)) : []; }
 const semStatus = (t) => { sem.status = t; const el = $('sinn-status'); if (el) el.textContent = t; };
 /* Ladebalken (Klaus 23.11.): das Sprachmodell (beim ersten Mal rund 120 MB) und das Einlesen der Rezepte zeigen ihren Stand. */
 const W = wartenEinrichten(document);
@@ -298,7 +301,7 @@ function planHtml() {
   return `<div class="w-kopf"><button class="rund" data-a="plan-woche" data-d="-7" aria-label="Vorige Woche">${ic('links')}</button><strong>Woche ${w.kw}<small>${von}${von.includes('.') ? '' : '.'} bis ${bis}</small></strong><button class="rund" data-a="plan-woche" data-d="7" aria-label="Nächste Woche">${ic('rechts')}</button></div>
    <div class="w-tage">${w.tage.map((t, i) => { const tag = tagIso(t), rz = (Z.plan[tag] || []).map(rezept).filter(Boolean);
      return `<div class="w-tag ${tag === heute ? 'heute' : ''}"><div class="d"><small>${WT[i]}</small><b>${t.getDate()}</b></div><div class="w-slots">${rz.map((r) => `<div class="w-slot"><button class="w-auf" data-a="rezept" data-uid="${esc(r.uid)}">${r.img ? `<img src="${esc(r.img)}" alt="" loading="lazy">` : `<span class="w-ohne">${ic('karte')}</span>`}<span>${esc(r.name)}${r.prepTime ? `<small>${esc(r.prepTime)} Min</small>` : ''}</span></button><button class="w-weg" data-a="plan-weg" data-tag="${tag}" data-uid="${esc(r.uid)}" aria-label="${esc(r.name)} aus dem Plan nehmen">${ic('x')}</button></div>`).join('')}<button class="w-leer ${rz.length ? 'mehr' : ''}" data-a="plan-waehlen" data-tag="${tag}">${ic('plus')}${rz.length ? 'noch eins' : 'Gericht planen'}</button></div></div>`; }).join('')}</div>
-   <div class="reihe" style="margin-top:14px"><button class="knopf ${anzahlW ? 'akz' : ''}" data-a="plan-einkauf" ${anzahlW ? '' : 'disabled'}>${ic('einkauf')}Einkaufsliste für die Woche</button><button class="knopf" data-a="plan-heute">Heute</button></div>`;
+   <div class="reihe" style="margin-top:14px"><button class="knopf ${anzahlW ? 'akz' : ''}" data-a="plan-einkauf" ${anzahlW ? '' : 'disabled'}>${ic('einkauf')}Einkaufsliste für die Woche</button><button class="knopf" data-a="plan-heute">Heute</button>${ZU.planKnopf()}</div>`;
 }
 function planWahlFenster(tag, uidFest) {
   if (uidFest) { const w = woche(new Date()), w2 = woche(new Date(Date.now() + 7 * 864e5));
@@ -351,7 +354,7 @@ function bilderHtml() {
   for (const u of [...B.wahl]) if (!gez.some((r) => r.uid === u)) B.wahl.delete(u);
   return `<div class="ueber"><h2 style="font-size:19px">Bilder</h2><small>${mit.length} Bilder · ${ohne.length} Rezepte ohne Bild</small></div>
    <div class="laeden">${[['alle', 'Alle'], ['eigene', 'Eigene'], ['beispiele', 'Beispiele']].map(([f, t]) => `<button class="chip" data-a="bilder-filter" data-f="${f}" aria-pressed="${B.filter === f}">${t}</button>`).join('')}<button class="chip" data-a="bilder-gross" aria-pressed="${B.gross}">${ic('voll')}${B.gross ? 'Groß' : 'Klein'}</button>${frag('Tippe Bilder an, um sie auszuwählen. „Löschen“ entfernt nur das Bild; das Rezept mit seinem Text bleibt.')}</div>
-   <div class="reihe" style="margin-bottom:10px"><button class="knopf rot" data-a="bilder-weg" ${B.wahl.size ? '' : 'disabled'}>${ic('muell')}Löschen (${B.wahl.size})</button><button class="knopf" data-a="bilder-alle-wahl">${B.wahl.size === gez.length && gez.length ? 'Auswahl aufheben' : 'Alle auswählen'}</button><button class="knopf rot" data-a="bilder-alle-weg" ${mit.length ? '' : 'disabled'}>Alle Bilder löschen</button></div>
+   <div class="reihe" style="margin-bottom:10px"><button class="knopf rot" data-a="bilder-weg" ${B.wahl.size ? '' : 'disabled'}>${ic('muell')}Löschen (${B.wahl.size})</button><button class="knopf" data-a="bilder-alle-wahl">${B.wahl.size === gez.length && gez.length ? 'Auswahl aufheben' : 'Alle auswählen'}</button><button class="knopf rot" data-a="bilder-alle-weg" ${mit.length ? '' : 'disabled'}>Alle Bilder löschen</button>${ZU.sammelKnopf()}</div>
    <div class="bildgitter ${B.gross ? 'gross' : ''}">${gez.map((r) => `<button class="bildkachel" data-a="bild-wahl" data-uid="${esc(r.uid)}" aria-pressed="${B.wahl.has(r.uid)}"><img src="${esc(r.img)}" alt="" loading="lazy"><span class="hk">${B.wahl.has(r.uid) ? ic('haken') : ''}</span><span class="bn">${esc(r.name)}</span></button>`).join('') || '<p class="quelle">Keine Bilder in dieser Auswahl.</p>'}</div>
    ${ohne.length ? `<div class="gruppe"><h3>Rezepte ohne Bild</h3><div class="liste">${ohne.map((r) => `<button class="zeile" data-a="bild-dazu" data-uid="${esc(r.uid)}">${ic('kamera')}<span>${esc(r.name)}<small>Foto einfügen</small></span></button>`).join('')}</div></div>` : ''}`;
 }
@@ -589,8 +592,9 @@ function bildBlatt(uid) {
 }
 async function bildErzeugen(uid, gratis) {
   const r = rezept(uid); if (!r) return; fensterZu();
+  const frei = await ZU.bildFreigabe(r, gratis); if (!frei) return;   /* steht im Auftrag ein Befehl an eine KI, entscheidet erst der Mensch */
   try {
-    const img = await W.mit(gratis ? 'Gratis-Foto wird erzeugt …' : 'KI-Bild wird erzeugt (etwa 20 s) …', async (w) => { const roh = gratis ? await gratisBild(r) : await kiBild(SK.openai, r); w.text('Bild wird gespeichert …'); return bildAusDatei(await (await fetch(roh)).blob()); }), vorher = Z.rezepte;
+    const img = await W.mit(gratis ? 'Gratis-Foto wird erzeugt …' : 'KI-Bild wird erzeugt (etwa 20 s) …', async (w) => { const roh = gratis ? await gratisBild(frei) : await kiBild(SK.openai, frei); w.text('Bild wird gespeichert …'); return bildAusDatei(await (await fetch(roh)).blob()); }), vorher = Z.rezepte;
     Z.rezepte = Z.rezepte.map((x) => (x.uid === uid ? { ...x, img, imgCrop: { x: 50, y: 50, scale: 1 } } : x)); sichern(); zeichne();
     melde(r.img ? 'Bild ersetzt' : 'Bild eingefügt', 'Rückgängig', () => { Z.rezepte = vorher; sichern(); zeichne(); });
   } catch (f) { melde(f.message || 'Es kam kein Bild zurück.'); }
@@ -816,6 +820,10 @@ const A = {
   'leiste-zu': () => { s.leisteAuf = false; leisteZeichnen(); },
   'nach-oben': () => { s.leisteAuf = false; leisteZeichnen(); scrollTo({ top: 0, behavior: 'smooth' }); },
 };
+/* Zusätze (neu/zusatz.mjs): KI-Richter der Suche, KI-Bilder für alle, Prüfung des Bildauftrags, alte Tresor-Stände, Wochenplan-Vorschlag. */
+const ZU = zusatz({ L, spr, esc, ic, A, s, SK, W, Z: () => Z, setzeZ: (z) => { Z = z; }, E: () => E, fenster, fensterZu, beiZu: (f) => { zuTun = f; }, melde, sichern, zeichne, rezept, istInhalt, schluesselFenster, bildAusDatei, tresorAuto, sinnTreffer,
+  zeichneStart: () => { if (s.ansicht === 'start' && $('start-rest')) $('start-rest').innerHTML = startRest(); }, katNamen: () => new Map(alleKategorien(Z.rezepte, Z.kategorien).map((c) => [c.id, katName(c)])), katVon: katVonRezept,
+  tr: () => tr, ausgabe: () => ausgabe, planTage: () => woche(s.planTag).tage });
 document.addEventListener('click', (ev) => {
   const e = ev.target.closest('[data-a]');
   if (s.leisteAuf && !ev.target.closest('#leiste')) { s.leisteAuf = false; leisteZeichnen(); }
@@ -827,7 +835,7 @@ document.addEventListener('submit', (ev) => { ev.preventDefault(); const f = ev.
   else if (f === 'web-holen') webHolen();
   else if (f === 'recht') { const r = rezept(s.uid), wahl = new FormData(ev.target).getAll('n').map(Number), e = s.recht; if (!r || !e) return; rezeptSetzen(rechtschreibungAnwenden(r, e.aenderungen.filter((_, i) => wahl.includes(i)))); s.recht = null; fensterZu(); zeichne(); melde(fuelle(L('{0} übernommen', '{0} applied'), wahl.length)); }
   else if (f === 'schluessel') { const a = ev.target.dataset.anbieter, k = $('schl-feld').value.trim(), danach = ev.target.dataset.danach;
-    (k ? S.setz(a, k) : S.weg(a)).then(() => { SK[a] = k; fensterZu(); zeichne(); melde(!k ? L('Schlüssel gelöscht', 'Key deleted') : formPasst(a, k) ? L('Schlüssel gespeichert', 'Key saved') : L('Gespeichert. Der Schlüssel sieht ungewohnt aus, bitte prüfen.', 'Saved. The key looks unusual, please check it.')); if (k && danach === 'scan') neuFenster('scan'); else if (k && danach === 'web') neuFenster('web'); else if (k && danach === 'rmenue') rezeptMenue(); else if (k && danach) A['ki-bild']({ dataset: { uid: danach } }); }).catch(() => melde(L('Der Schlüssel ließ sich nicht speichern.', 'The key could not be saved.'))); }
+    (k ? S.setz(a, k) : S.weg(a)).then(() => { SK[a] = k; fensterZu(); zeichne(); melde(!k ? L('Schlüssel gelöscht', 'Key deleted') : formPasst(a, k) ? L('Schlüssel gespeichert', 'Key saved') : L('Gespeichert. Der Schlüssel sieht ungewohnt aus, bitte prüfen.', 'Saved. The key looks unusual, please check it.')); if (k && danach === 'scan') neuFenster('scan'); else if (k && danach === 'web') neuFenster('web'); else if (k && danach === 'rmenue') rezeptMenue(); else if (k && A[danach]) A[danach]({ dataset: {} }); else if (k && danach) A['ki-bild']({ dataset: { uid: danach } }); }).catch(() => melde(L('Der Schlüssel ließ sich nicht speichern.', 'The key could not be saved.'))); }
   else if (f === 'tresor') { const n = String(new FormData(ev.target).get('name') || '').trim(); tr.ablegen(schreibe(Z), 'benannt', n).then(() => { tresorFenster(); melde('Stand im Tresor gesichert'); }).catch(() => melde('Der Tresor ließ sich nicht beschreiben.')); }
   else if (f === 'ek-eigen') { const t = String(new FormData(ev.target).get('t') || '').trim(); if (!t) return; Z.einkauf = { ...Z.einkauf, eigene: [...Z.einkauf.eigene, { id: Date.now().toString(36), text: t }] }; sichern(); zeichne(); document.querySelector('[data-form="ek-eigen"] input')?.focus(); }
   else if (f === 'ordner-neu-zu') { const n = String(new FormData(ev.target).get('n') || '').trim(), uid = ev.target.dataset.uid; if (!n || !uid) return; const a = ordAnlegen(Z.ordner, n); Z.ordner = a.ordner; A['ordner-setzen']({ dataset: { uid, oid: a.id } }); }
@@ -901,6 +909,7 @@ async function start() {
   if (geteilteAdresse) { s.web = { adresse: geteilteAdresse, text: '', stand: '', seitentext: '' }; neuFenster('web'); }
   if (geteiltesRezept) { try { const r = await ausTeilLink(geteiltesRezept); if (r && r.name) { s.form = { ...formAus(null), name: r.name, cat: alleKategorien(Z.rezepte, Z.kategorien).some((c) => c.id === r.cat) ? r.cat : '', servings: r.servings || 4, prepTime: r.prepTime ?? '', ings: (r.ings || []).map(zutatZeile).join('\n'), steps: (r.steps || []).map((x) => x.txt).join('\n\n'), flavors: r.flavors || [] }; geh('form'); melde(L('Geteiltes Rezept. Bitte prüfen.', 'Shared recipe. Please check.')); } } catch { melde(L('Der geteilte Link ließ sich nicht lesen', 'The shared link could not be read')); } }
   lager.dauerhaft();
+  ZU.altTresor().catch(() => {});   /* Tresor-Stände der bisherigen App, einmal */
   if ('serviceWorker' in navigator) navigator.serviceWorker.register('./sw.js').catch(() => {});   // Offline-Vorrat; ohne ihn läuft die App genauso, nur nicht ohne Netz
   fetch('../beispiele/KATALOG.json').then((a) => a.json()).then((k) => { katalog = k; if (s.ansicht === 'start' || s.ansicht === 'werkstatt') zeichne(); }).catch(() => {});
 }
