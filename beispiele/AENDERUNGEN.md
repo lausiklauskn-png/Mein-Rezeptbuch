@@ -6,7 +6,7 @@
 
 | Datei | Inhalt |
 |---|---|
-| `beispielbuch-mein-rezeptbuch.json` | 43 Rezepte für das öffentliche Beispielbuch (Essen und alkoholfreie Getränke) |
+| `beispielbuch-mein-rezeptbuch.json` | 42 Rezepte für das öffentliche Beispielbuch (Essen und alkoholfreie Getränke) |
 | `foodzine-beispiele.json` | 8 vollständige Food-Zine-Sätze mit je drei Seiten |
 | `getraenke-mit-alkohol-fuer-mixarium.json` | 8 Getränke mit Alkohol, für Mein Mixarium |
 
@@ -37,7 +37,6 @@
 
 - **Sushi Tempura**: Sushi Tempura: Portionen 1, ergibt aber 4 Rollen zu je 8 Stücken.
 - **Hühnerfrikassee mit Käse überbacken**: Hühnerfrikassee überbacken: stand unter „Vorspeisen“ – jetzt „Fleisch“.
-- **Stollen**: Stollen: Zutatenliste stimmt nicht (u. a. „750 g Würste“, „2 x Backpulver“, zweimal Rosinen), Schritte in falscher Reihenfolge, Portionen 1. Bitte Originalrezept nachreichen.
 - **Gnocchi-Brokkoli-Auflauf**: Gnocchi-Brokkoli-Auflauf: enthält Schinken, stand unter „Vegetarisch“ – jetzt „Fleisch“.
 - **Pizza-Toast**: Pizza-Toast: enthält Salami, stand unter „Vegetarisch“ – jetzt „Fingerfood“.
 - **Gemüsesuppe mit Fleisch**: Gemüsesuppe: Portionen 1 bei 1 l Flüssigkeit, vermutlich 2–4.
@@ -150,7 +149,7 @@ Ein hohes Glas mit drei sichtbaren Schichten: unten zerdrückte rote Erdbeeren, 
 | 21 | Ratatouille | vegi | fremd | Name: „Ratatouille Rezept - das einfache Original“ → „Ratatouille“; Zutaten sauber gegliedert (Mengen unverändert, Einheiten getrennt oder umgerechnet); Schritte in eigenen Worten neu; Bild: ersetzt werden (nur Link zu img.chefkoch-cdn.de) |
 | 22 | Bärlauchsuppe | vegi | fremd | Name: „Bärlauchsuppe ganz einfach“ → „Bärlauchsuppe“; Schritte in eigenen Worten neu; Bild: ersetzt werden (nur Link zu www.gaumenfreundin.de) |
 | 23 | Bratkartoffeln mit Spinat und Spiegelei | vegi | fremd | Name: „Bratkartoffen mit Spinat und Spiegelei“ → „Bratkartoffeln mit Spinat und Spiegelei“; Zutaten sauber gegliedert (Mengen unverändert, Einheiten getrennt oder umgerechnet); Schritte in eigenen Worten neu; Bild: ersetzt werden (nur Link zu img.chefkoch-cdn.de) |
-| 24 | Stollen | kuchen |  | Bild: 4070 KB → 461 KB; ⚠ OFFEN: Stollen: Zutatenliste stimmt nicht (u. a. „750 g Würste“, „2 x Backpulver“, zweimal Rosinen), Schritte in falscher Reihenfolge, Portionen 1. Bitte Originalrezept nachreichen. |
+| 24 | Stollen | kuchen |  | entfernt (Klaus 23.11.) |
 | 25 | Hähnchen-Wraps mit Dip-Sauce | fleisch |  | Bild: 3653 KB → 409 KB |
 | 26 | Omas cremiger Nudelsalat mit Fleischwurst und Erbsen | fleisch |  | Name: „Omas cremiger Nudelsalat mit Fleischwurst und Erbsen“ → „Omas cremiger Nudelsalat mit Fleischwurst und Erbsen“; Bild: 3773 KB → 432 KB |
 | 27 | Bolognese-Sauce mit frischem Gemüse | fleisch |  | Bild: 3877 KB → 468 KB |

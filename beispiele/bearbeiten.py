@@ -169,7 +169,6 @@ BILD_RAUS = {35: 'ersetzt werden (Datei „Eierragout-mit-Kartoffeln.jpg“, ver
  28: 'ersetzt werden (nur 650 × 974 Pixel, zu klein)'}
 ALKOHOL = {0, 4, 40, 41, 45, 47, 48, 50}
 OFFEN = {
- 24: 'Stollen: Zutatenliste stimmt nicht (u. a. „750 g Würste“, „2 x Backpulver“, zweimal Rosinen), Schritte in falscher Reihenfolge, Portionen 1. Bitte Originalrezept nachreichen.',
  37: 'Eierschecke: Schritte unvollständig (Boden, Quarkmasse, Backzeit fehlen), „Falscher Hefeteig“ ohne Zutaten. Bitte ergänzen.',
  38: 'Gemüsesuppe: Portionen 1 bei 1 l Flüssigkeit, vermutlich 2–4.',
  9:  'Sushi Tempura: Portionen 1, ergibt aber 4 Rollen zu je 8 Stücken.',
@@ -204,7 +203,7 @@ def einheit_trennen(z):
     if re.fullmatch(r'\d+\.\d+', a): a = a.replace('.', ',')
     return a, u
 
-RAUS = {37}  # Eierschecke: Klaus 23.11. „komplett rausnehmen“
+RAUS = {24, 37}  # Stollen und Eierschecke: Klaus 23.11. „rausnehmen“
 protokoll = []; buch = []; mix = []
 for n, r0 in enumerate(ALLE):
     if n in RAUS: protokoll.append((n, r0['name'], r0['cat'], False, r0.get('source',''), ['entfernt (Klaus 23.11.)'])); continue

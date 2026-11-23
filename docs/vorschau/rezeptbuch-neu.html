@@ -574,6 +574,54 @@ body::before{content:"";position:fixed;inset:0 0 auto;height:env(safe-area-inset
 .kb-buch .r img{width:100%;height:150px;object-fit:cover;border-radius:6px}
 .kb-buch .r h4{margin:0;font:600 19px/1.2 Georgia,"Times New Roman",serif}
 .kb-buch .r .zut{columns:2;font-size:12px;color:#5a4a3a}
+
+/* ── Feinschliff (23.11.): nur Lage und Deckkraft, nichts läuft dauerhaft ── */
+.app:not(.koch){background:radial-gradient(95% 42% at 0% 0%,color-mix(in srgb,var(--k1) 42%,transparent),transparent 62%),radial-gradient(80% 40% at 105% 32%,color-mix(in srgb,var(--k2) 55%,transparent),transparent 66%),radial-gradient(95% 45% at 35% 108%,color-mix(in srgb,var(--k1) 34%,transparent),transparent 62%),var(--a-bg)}
+.app:not([data-hell="dunkel"]){--a-schatten:0 1px 2px color-mix(in srgb,var(--a-akz) 9%,transparent),0 8px 22px color-mix(in srgb,var(--a-akz) 11%,transparent)}
+@keyframes auf{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:none}}
+@keyframes blatt{from{opacity:0;transform:translateY(36px)}to{opacity:1;transform:none}}
+@keyframes blende{from{opacity:0}to{opacity:1}}
+@keyframes heran{from{transform:scale(1.06)}to{transform:none}}
+@keyframes pop{0%{transform:scale(.5)}70%{transform:scale(1.15)}100%{transform:none}}
+@keyframes fuell{from{transform:scaleX(0)}to{transform:none}}
+.einzug :is(.a-karte,.a-held,.d-zeile,.e-gruppe,.w-tag,.w-spalte,.ws-gruppe,.a-fotokat button,.kb-stil,.pk,.pk-angebot,.gr-k,.a-schritte li){animation:auf .24s cubic-bezier(.2,.7,.2,1) backwards}
+.einzug :is(.a-karte,.d-zeile,.e-gruppe,.w-tag,.w-spalte,.ws-gruppe,.a-fotokat button,.kb-stil,.pk,.gr-k,.a-schritte li):nth-child(2){animation-delay:.03s}
+.einzug :is(.a-karte,.d-zeile,.e-gruppe,.w-tag,.w-spalte,.ws-gruppe,.a-fotokat button,.kb-stil,.pk,.gr-k,.a-schritte li):nth-child(3){animation-delay:.06s}
+.einzug :is(.a-karte,.d-zeile,.e-gruppe,.w-tag,.w-spalte,.ws-gruppe,.a-fotokat button,.kb-stil,.pk,.gr-k,.a-schritte li):nth-child(4){animation-delay:.09s}
+.einzug :is(.a-karte,.d-zeile,.e-gruppe,.w-tag,.w-spalte,.ws-gruppe,.a-fotokat button,.kb-stil,.pk,.gr-k,.a-schritte li):nth-child(5){animation-delay:.12s}
+.einzug :is(.a-karte,.d-zeile,.e-gruppe,.w-tag,.w-spalte,.ws-gruppe,.a-fotokat button,.kb-stil,.pk,.gr-k,.a-schritte li):nth-child(n+6){animation-delay:.15s}
+.einzug .a-blatt{animation:blatt .24s cubic-bezier(.2,.7,.2,1) backwards}
+.einzug .a-schleier{animation:blende .2s ease backwards}
+.einzug :is(.a-rezept-held,.d-held,.k-bild)>img{animation:heran .3s ease-out backwards}
+.a-knopf,.a-rund,.a-chip,.farbknopf,.fl-knoepfe button,.e-laeden button,.kb-stil{transition:transform .12s ease}
+.app :is(.a-knopf,.a-rund,.a-chip,.farbknopf,.e-laeden button,.kb-stil,.imp-kachel,.ws-foto):active{transform:scale(.96)}
+.a-karte img,.w-slot img,.ws-foto img,.pk img{transition:transform .25s ease}
+.a-karte:hover img,.pk:hover img{transform:scale(1.05)}
+.a-held{box-shadow:var(--a-schatten)}
+.a-held img{transition:transform .25s ease}
+.a-held:hover img{transform:scale(1.03)}
+.a-karte strong{display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;min-height:2.5em}
+.e-zeile.neu .e-box{animation:pop .22s ease backwards}
+.k-balken i{overflow:hidden;position:relative}
+.k-balken i.jetzt{background:rgba(255,255,255,.14)}
+.k-balken i.jetzt::after{content:"";position:absolute;inset:0;background:var(--a-akz);transform-origin:left;animation:fuell .25s ease-out backwards}
+.a-schritte li::before{background:var(--vl);color:var(--vl-schrift);border:1px solid var(--vl-rand)}
+.a-datum{display:block;font-size:11.5px;letter-spacing:.07em;text-transform:uppercase;color:var(--a-mut);margin-top:2px}
+/* Inhalt als Bogen über dem Foto */
+.a-bogen{position:relative;margin:-22px -14px 0;padding:6px 14px 0;background:var(--a-bg);border-radius:22px 22px 0 0}
+.app[data-fl="r"]:not(.desk) .a-bogen{margin-right:-24px;padding-right:24px}
+.app[data-fl="l"]:not(.desk) .a-bogen{margin-left:-24px;padding-left:24px}
+.a-rezept-held .verlauf{padding-bottom:36px}
+.held-anpassen{bottom:98px}
+.d-spalten{position:relative;margin-top:-22px;background:var(--a-bg);border-radius:22px 22px 0 0;padding-top:24px}
+.d-held .verlauf{padding-bottom:42px}
+/* Wochenplan am Monitor: das Foto trägt die Spalte */
+.w-spalte .w-slot{position:relative}
+.w-spalte .w-slot img{height:230px}
+.w-spalte .w-slot span{position:absolute;inset:auto 0 0 0;padding:34px 10px 10px;color:#fff;background:linear-gradient(to top,rgba(12,8,4,.85),transparent)}
+.w-spalte .w-slot span small{color:rgba(255,255,255,.85)}
+.w-spalte .w-leer{min-height:230px}
+@media (prefers-reduced-motion:reduce){.einzug *,.e-zeile.neu .e-box,.k-balken i.jetzt::after{animation:none!important}.a-knopf,.a-rund,.a-chip,.a-karte img,.a-held img,.w-slot img,.pk img{transition:none}}
 @media (prefers-reduced-motion:reduce){.fl-knoepfe,.a-werkzeuge{animation:none}.a-pfeil .ic{transition:none}}
 @media (prefers-reduced-motion:reduce){.f-panel{animation:none}.app>.a-kopf,.d-leiste{transition:none}}
 @media (prefers-reduced-motion:reduce){.k-schritt{animation:none}.a-karte{transition:none}}
@@ -696,6 +744,7 @@ body::before{content:"";position:fixed;inset:0 0 auto;height:env(safe-area-inset
  </section>
 
  <footer class="fuss">
+  <p><b>Feinschliff:</b> weicher Wasserfarben-Grund in der gewählten Palette, der Inhalt liegt als Bogen über dem Foto, Karten und Zeilen erscheinen kurz gestaffelt (unter 0,3 s, nur beim Öffnen einer Ansicht), Knöpfe geben beim Drücken nach, Fotos kommen beim Darüberfahren leicht näher, der Haken springt kurz auf, der Fortschritt in der Kochansicht füllt sich. Alles nur über Lage und Deckkraft; nichts läuft dauerhaft.</p>
   <p><b>Gestaltung:</b> Wasserfarben der Privaten Akte plus Hellbraun und Dunkelbraun, gewählt über die Farbscheibe, Schrift überall mindestens 4,5:1. Systemschrift, keine Webfonts. Bewegung nur über Lage und Deckkraft, 150 bis 250 ms, abgeschaltet bei „Bewegung reduzieren“.</p>
   <p><b>Fotos:</b> Ausschnitte aus <code>assets/kochbuch-beispiel-cover.jpg</code> und <code>-schritte.jpg</code> im Repo. Rezeptnamen außer der Bowl sind Beispiele zu diesen Ausschnitten.</p>
   <p><b>Funktionsliste:</b> <code>docs/FUNKTIONSLISTE.md</code> im Repo Mein-Rezeptbuch.</p>
@@ -783,21 +832,21 @@ const portion=()=>`<div class="a-portion"><span>Portionen</span><span class="st"
 const aktionen=()=>`<div class="a-aktionen"><button class="a-knopf akz" data-act="kochen">${ic('koch')}Kochen</button><button class="a-knopf">${ic('einkauf')}Einkaufen</button><button class="a-knopf" style="flex:0 0 46px;padding:0" aria-label="Planen">${ic('plan')}</button></div>`;
 
 const BAU={
- start:{phone:ed=>`${kopf(ed)}<div class="a-body"><p class="a-gruss">${ED[ed].gruss}</p><div class="a-suche">${ic('suche')}Rezept, Zutat oder Gefühl …<span class="mik" aria-label="Sprechen">${ic('mikro')}</span></div>${fotoKat()}
+ start:{phone:ed=>`${kopf(ed)}<div class="a-body"><p class="a-gruss">${ED[ed].gruss}<small class="a-datum">Montag, 23. November</small></p><div class="a-suche">${ic('suche')}Rezept, Zutat oder Gefühl …<span class="mik" aria-label="Sprechen">${ic('mikro')}</span></div>${fotoKat()}
    <div class="a-ueber"><h3>Weiterkochen</h3></div>${held(R[0])}<div class="a-ueber"><h3>Deine Rezepte</h3><small>${R.length} Rezepte</small></div><div class="a-gitter">${R.slice(1).map(karte).join('')}</div></div>${nav('buch')}`,
   desk:ed=>`${leiste(ed,'buch')}<div class="d-liste"><div class="a-body"><div class="a-suche">${ic('suche')}Suchen<span class="mik" aria-label="Sprechen">${ic('mikro')}</span></div>${chips()}<div class="a-ueber"><h3>Alle Rezepte</h3><small>${R.length}</small></div>${R.map((r,i)=>zeile(r,i===0)).join('')}</div></div>
    <div class="d-detail">${detail()}</div>`},
  rezept:{phone:ed=>`<div class="a-body"><div class="a-rezept-held"><img src="${BILD.bowl}" alt="Gochujang-Lachs-Bowl"><div class="oben"><button class="a-rund" aria-label="Zurück">${ic('zurueck')}</button><span style="display:flex;gap:8px"><button class="a-rund" aria-label="Original oder Übersetzung zeigen">${ic('link')}</button><button class="a-rund" aria-label="Bild im Vollbild">${ic('voll')}</button><button class="a-rund" aria-label="Lieblingsrezept">${ic('herz')}</button></span></div>
    <button class="held-anpassen" data-act="bild">${ic('zuschnitt')}Bild anpassen</button><div class="verlauf"><h1>Gochujang-Lachs-Bowl</h1><div class="a-meta"><span>${ic('uhr')}30 Min</span><span>${ic('karte')}Fisch</span><span>${ic('stern')}4,8</span></div></div></div>
-   ${aktionen()}${portion()}<h3 class="a-h">Zutaten</h3>${zutaten()}<h3 class="a-h">Geräte</h3>${grListe()}<h3 class="a-h">Zubereitung</h3>${schritte()}</div>${nav('buch')}`,
+   <div class="a-bogen">${aktionen()}${portion()}<h3 class="a-h">Zutaten</h3>${zutaten()}<h3 class="a-h">Geräte</h3>${grListe()}<h3 class="a-h">Zubereitung</h3>${schritte()}</div></div>${nav('buch')}`,
   desk:ed=>`${leiste(ed,'buch')}<div class="d-liste"><div class="a-body"><div class="a-suche">${ic('suche')}Suchen<span class="mik" aria-label="Sprechen">${ic('mikro')}</span></div><div class="a-ueber"><h3>Fisch</h3><small>4</small></div>${R.filter(r=>r.kat==='Fisch').map((r,i)=>zeile(r,i===0)).join('')}</div></div><div class="d-detail">${detail()}</div>`},
- kochen:{phone:ed=>{const s=S[ST.schritt];const balken=`<div class="k-balken">${S.map((_,i)=>`<i class="${i<=ST.schritt?'an':''}"></i>`).join('')}</div>`;
+ kochen:{phone:ed=>{const s=S[ST.schritt];const balken=`<div class="k-balken">${S.map((_,i)=>`<i class="${i<ST.schritt?'an':i===ST.schritt?'jetzt':''}"></i>`).join('')}</div>`;
    return `${ST.kKopf?`<div class="k-kopf"><button class="a-rund" aria-label="Kochansicht schließen">${ic('x')}</button><span class="titel">Gochujang-Lachs-Bowl</span><span class="k-wach"><i></i>bleibt an</span><button class="k-klapp" data-act="kkopf" aria-label="Kopf einklappen">${ic('auf')}</button></div>${balken}`:`<div class="k-kopf-zu">${balken}<button class="k-klapp" data-act="kkopf" aria-label="Kopf ausklappen">${ic('zu')}</button></div>`}
    <div class="k-inhalt k-schritt" data-k="${ST.schritt}"><div class="k-bild"><img src="${BILD[s.b]}" alt=""></div><span class="k-nr">Schritt ${ST.schritt+1} von ${S.length}</span><h2 class="k-titel">${s.t}</h2><p class="k-text">${s.x}</p>
    ${s.z.length?`<div class="k-zut">${s.z.map(i=>`<span><b>${menge(Z[i])}</b> ${Z[i].n}</span>`).join('')}</div>`:''}${s.w?`<button class="k-timer">${ic('timer')}Wecker ${s.w}</button>`:''}<p class="k-h">Geräte</p>${grKacheln(ST.schritt)}</div>
    <div class="k-fuss"><button data-act="k-" ${ST.schritt===0?'disabled':''}>${ic('links')}Zurück</button><button class="vor" data-act="k+" ${ST.schritt===S.length-1?'disabled':''}>Weiter${ic('rechts')}</button></div>`},
   desk:ed=>{const s=S[ST.schritt];const brauch=new Set(s.z);return `<div class="k-kopf"><button class="a-rund" aria-label="Kochansicht schließen">${ic('x')}</button><span class="titel">Gochujang-Lachs-Bowl · 2 Personen</span><span class="k-wach"><i></i>Bildschirm bleibt an</span></div>
-   <div class="k-balken">${S.map((_,i)=>`<i class="${i<=ST.schritt?'an':''}"></i>`).join('')}</div>
+   <div class="k-balken">${S.map((_,i)=>`<i class="${i<ST.schritt?'an':i===ST.schritt?'jetzt':''}"></i>`).join('')}</div>
    <div class="k-desk2"><div class="links k-schritt"><div class="k-bild"><img src="${BILD[s.b]}" alt=""></div><span class="k-nr">Schritt ${ST.schritt+1} von ${S.length}</span><h2 class="k-titel" style="font-size:34px">${s.t}</h2><p class="k-text" style="font-size:22px;max-width:46ch">${s.x}</p></div>
    <div class="k-seite"><h4>Für diesen Schritt</h4><ul>${Z.map((z,i)=>brauch.has(i)?`<li class="jetzt"><b>${menge(z)}</b>${z.n}</li>`:'').join('')||'<li class="spaeter">keine neuen Zutaten</li>'}</ul>${s.w?`<button class="k-timer">${ic('timer')}Wecker ${s.w}</button>`:''}<h4>Geräte</h4>${grKacheln(ST.schritt)}<h4>Danach</h4><ul>${(S[ST.schritt+1]?S[ST.schritt+1].z:[]).map(i=>`<li class="spaeter"><b>${menge(Z[i])}</b>${Z[i].n}</li>`).join('')||'<li class="spaeter">fertig</li>'}</ul></div></div>
    <div class="k-fuss" style="padding:14px 28px 10px"><button data-act="k-" ${ST.schritt===0?'disabled':''}>${ic('links')}Zurück</button><button class="vor" data-act="k+" ${ST.schritt===S.length-1?'disabled':''}>Weiter${ic('rechts')}</button></div><p class="k-hinweis">Tasten <span class="taste">←</span><span class="taste">→</span> blättern · <span class="taste">Esc</span> schließt · <span class="taste">F11</span> Vollbild</p>`}},
@@ -885,7 +934,7 @@ BAU.kreativ={phone:ed=>`${kopfTitel('Kreativbuch',ic('frage'))}<div class="a-bod
  <div class="kb-buch"><div class="l" style="background:${kbStilG()}"><img src="${BILD.bowl}" alt=""><small style="letter-spacing:.12em;text-transform:uppercase;font-size:11px;opacity:.9">${KB.find(x=>x[0]===ST.kbStil)[1]}</small><h3>Unsere Bowls und Ofengerichte</h3><small>${kbZahl()} Rezepte aus Mein Rezeptbuch</small></div>
  <div class="r"><img src="${BILD.bowl}" alt=""><h4>Gochujang-Lachs-Bowl</h4><p><i>${ST.kbStil==='rustikal'?'Das war die Bowl, die an jedem Freitagabend auf dem Tisch stand …':ST.kbStil==='nordisch'?'Lachs, Reis, Gurke. Klar und frisch.':ST.kbStil==='elegant'?'Glasierter Lachs auf Duftreis, begleitet von knackigem Pak Choi.':'Süß, scharf und frisch: Lachs in glänzender Gochujang-Glasur auf warmem Reis.'}</i></p><div class="zut">${Z.slice(5).map(z=>`${menge(z)} ${z.n}`).join('<br>')}</div></div></div></div></div>`};
 function kopfTitel(t,rechts){return `<header class="a-kopf"><span class="a-name" style="font-size:20px">${t}</span><button class="a-rund" aria-label="Aktion">${rechts}</button></header>`}
-function ekListe(){const fo=ST.folgen[ST.laden];const L=[...EK].sort((a,b)=>fo.indexOf(a.g)-fo.indexOf(b.g));return `<div class="e-laeden">${Object.keys(ST.folgen).map(l=>`<button class="${l===ST.laden?'an':''}" data-act="laden" data-l="${l}">${ic('markt')}${l}</button>`).join('')}<button>${ic('plus')}Laden</button>${frag('Eine Gruppe an der Überschrift lange drücken oder mit der Maus festhalten und an ihre Stelle ziehen. Die Reihenfolge gilt für diesen Laden.')}</div><div class="e-liste">`+L.map(g=>`<div class="e-gruppe" data-g="${g.g}"><h4>${ic('griff')}${g.g}</h4>${g.p.map(p=>`<button class="e-zeile ${ST.haken[p.id]?'ok':''}" data-act="ek" data-id="${p.id}"><span class="e-box">${ST.haken[p.id]?ic('haken'):''}</span><span class="was">${p.n}<small>${p.q}</small></span><b>${p.m}</b></button>`).join('')}</div>`).join('')+'</div>'}
+function ekListe(){const fo=ST.folgen[ST.laden];const L=[...EK].sort((a,b)=>fo.indexOf(a.g)-fo.indexOf(b.g));return `<div class="e-laeden">${Object.keys(ST.folgen).map(l=>`<button class="${l===ST.laden?'an':''}" data-act="laden" data-l="${l}">${ic('markt')}${l}</button>`).join('')}<button>${ic('plus')}Laden</button>${frag('Eine Gruppe an der Überschrift lange drücken oder mit der Maus festhalten und an ihre Stelle ziehen. Die Reihenfolge gilt für diesen Laden.')}</div><div class="e-liste">`+L.map(g=>`<div class="e-gruppe" data-g="${g.g}"><h4>${ic('griff')}${g.g}</h4>${g.p.map(p=>`<button class="e-zeile ${ST.haken[p.id]?'ok':''}${ST.neuHaken===p.id?' neu':''}" data-act="ek" data-id="${p.id}"><span class="e-box">${ST.haken[p.id]?ic('haken'):''}</span><span class="was">${p.n}<small>${p.q}</small></span><b>${p.m}</b></button>`).join('')}</div>`).join('')+'</div>'}
 function detail(){return `<div class="d-held"><img src="${BILD.bowl}" alt="Gochujang-Lachs-Bowl"><div class="oben"><button class="a-rund" data-act="nurdies" aria-label="${ST.nurDies?'Liste und Leiste wieder zeigen':'Nur dieses Rezept'}" title="${ST.nurDies?'Alles zeigen':'Nur dieses Rezept'}">${ic('seite')}</button><button class="a-rund" aria-label="Original oder Übersetzung zeigen">${ic('link')}</button><button class="a-rund" aria-label="Bearbeiten">${ic('stift')}</button><button class="a-rund" aria-label="Teilen">${ic('teilen')}</button><button class="a-rund" aria-label="Bild im Vollbild">${ic('voll')}</button></div><div class="verlauf"><h1>Gochujang-Lachs-Bowl</h1><div class="a-meta"><span>${ic('uhr')}30 Min</span><span>${ic('karte')}Fisch</span><span>${ic('stern')}4,8</span></div></div></div>
  <div class="d-spalten"><div>${aktionen()}${portion()}<h3 class="a-h">Zutaten</h3>${zutaten()}<h3 class="a-h">Geräte</h3>${grListe()}</div><div><h3 class="a-h">Zubereitung</h3>${schritte()}</div></div>`}
 
@@ -898,15 +947,17 @@ function malen(){
   const fest=el.dataset.festLeiste;const lage=el.dataset.festLage?JSON.parse(el.dataset.festLage):fest==='r'||fest==='offen'?{seite:'r',pos:64}:fest==='u-offen'?{seite:'u',pos:50}:ST.lage;
   CUR={i,lage,leiste:'griff',offen:fest==='offen'||fest==='u-offen'||ST.offenIn===i};
   const fn=ST.farben[ed],dk=!!FARBEN[fn].dunkel;
-  el.innerHTML=`<div class="app ${mo==='desk'?'desk':''} ${koch?'koch':''} ${ST.nurDies&&mo==='desk'&&(sc==='start'||sc==='rezept')?'nur-dies':''}" data-fl="${lage.seite}" data-ks="${ST.kSchrift}" data-ed="${ed}" data-hell="${dk?'dunkel':'hell'}" style="${farbVars(fn)}">${BAU[sc][mo](ed)}</div>`;
+  const html=`<div class="app ${mo==='desk'?'desk':''} ${koch?'koch':''} ${ST.nurDies&&mo==='desk'&&(sc==='start'||sc==='rezept')?'nur-dies':''}" data-fl="${lage.seite}" data-ks="${ST.kSchrift}" data-ed="${ed}" data-hell="${dk?'dunkel':'hell'}" style="${farbVars(fn)}">${BAU[sc][mo](ed)}</div>`;
+  if(el._html===html)return;el._html=html;el.innerHTML=html;
+  const key=sc+'|'+(sc==='neu'?(el.dataset.festImp||ST.imp):sc==='kochen'?ST.schritt:sc==='zine'?ST.zs:'');if(el._key!==key){el._key=key;el.firstElementChild.classList.add('einzug')}
   const s2=el.querySelector('.a-body');if(s2)s2.scrollTop=top;
  });
  document.querySelectorAll('[data-wahl]').forEach(w=>w.querySelectorAll('button').forEach(b=>b.setAttribute('aria-pressed',String(ST[w.dataset.wahl]===b.dataset.v))));
  document.querySelectorAll('[data-raster]').forEach(r=>{const alt=ST.stil;ST.stil=r.dataset.raster;r.innerHTML=Object.keys(ICONS[ST.stil]).map(k=>`<div>${ic(k)}${NAMEN[k]||k}</div>`).join('');ST.stil=alt});
  document.querySelector('[data-farbtafel]').innerHTML=Object.entries(FARBEN).map(([n,f])=>`<button class="ft" data-act="farbe-setzen" data-farbe="${n}" aria-pressed="${ST.farben[ST.ed]===n}"><span class="kp" style="background:linear-gradient(90deg,${f.k[0]},${f.k[1]} 55%,${f.k[2]});color:${f.schrift}"><i></i>${f.de}</span><span class="rumpf" style="${f.dunkel?'background:#17130f;color:#f4ece2':''}"><span class="punkte">${f.k.map(c=>`<span style="background:${c}"></span>`).join('')}<span style="background:${f.akz}"></span></span><span class="probe" style="background:${f.dunkel?`linear-gradient(120deg,color-mix(in srgb,${f.akz} 55%,#17130f),#1d1611)`:`linear-gradient(120deg,color-mix(in srgb,${f.k[0]} 60%,#fff),color-mix(in srgb,${f.k[2]} 60%,#fff))`};color:${f.dunkel?'#f4ece2':(f.ink||f.schrift)};border:1px solid color-mix(in srgb,${f.akz} 28%,transparent);border-radius:11px">Kochen</span><small style="${f.dunkel?'color:#b9ab9b':''}">Akzent ${f.dunkel?'auf Dunkel':'auf Weiß'} ${KONTRAST[n]}:1</small></span></button>`).join('');
  document.getElementById('farbname').textContent=FARBEN[ST.farben[ST.ed]].de;
- document.querySelectorAll('.app:not(.desk)>.a-body').forEach(b=>{let alt=b.scrollTop;b.addEventListener('scroll',()=>{const app=b.parentNode,y=b.scrollTop;if(y>alt+4&&y>50)app.classList.add('kopf-weg');else if(y<alt-4||y<20)app.classList.remove('kopf-weg');alt=y},{passive:true})});
- startschirm();skalieren();
+ document.querySelectorAll('.app:not(.desk)>.a-body').forEach(b=>{if(b._sl)return;b._sl=1;let alt=b.scrollTop;b.addEventListener('scroll',()=>{const app=b.parentNode,y=b.scrollTop;if(y>alt+4&&y>50)app.classList.add('kopf-weg');else if(y<alt-4||y<20)app.classList.remove('kopf-weg');alt=y},{passive:true})});
+ startschirm();skalieren();ST.neuHaken=null;
 }
 function farbMenue(knopf){zuFarbMenue();const fr=knopf.closest('[data-screen]');const ed=(fr&&fr.dataset.festEd)||ST.ed;
  const m=document.createElement('div');m.id='farbmenue';m.setAttribute('role','menu');
@@ -954,7 +1005,7 @@ document.addEventListener('click',e=>{
  if(t==='schmal'){ST.schmal=!ST.schmal;malen();return}
  if(t==='k+'&&ST.schritt<S.length-1)ST.schritt++;else if(t==='k-'&&ST.schritt>0)ST.schritt--;
  else if(t==='pers+'&&ST.pers<12)ST.pers++;else if(t==='pers-'&&ST.pers>1)ST.pers--;
- else if(t==='ek')ST.haken[a.dataset.id]=!ST.haken[a.dataset.id];
+ else if(t==='ek'){ST.haken[a.dataset.id]=!ST.haken[a.dataset.id];ST.neuHaken=a.dataset.id}
  else if(t==='kochen'){document.getElementById('kochen').scrollIntoView({behavior:matchMedia('(prefers-reduced-motion: reduce)').matches?'auto':'smooth'});return}
  else return;
  malen();
