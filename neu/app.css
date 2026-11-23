@@ -291,3 +291,72 @@ body:has(.koch) .fl{display:none}
  .k-seite .k-zut span{border-radius:10px}
  .k-fuss{padding:12px 28px 18px}
 }
+
+/* Einkaufsliste */
+.zahl{background:var(--akz);color:var(--akz-ink);font-size:10.5px;font-weight:700;min-width:18px;height:18px;border-radius:9px;display:inline-grid;place-items:center;padding:0 5px;margin-left:auto}
+.quellen,.laeden{display:flex;gap:6px;overflow-x:auto;scrollbar-width:none;margin:0 calc(-1 * var(--rand)) 10px;padding:0 var(--rand);align-items:center}
+.quellen::-webkit-scrollbar,.laeden::-webkit-scrollbar{display:none}
+.quelle-chip{display:inline-flex;align-items:center;gap:6px;padding:3px 4px 3px 4px;border-radius:999px;background:var(--fl);border:1px solid var(--line);font-size:12.5px;white-space:nowrap;flex:none}
+.quelle-chip img{width:26px;height:26px;border-radius:50%;object-fit:cover}
+.quelle-chip button{width:24px;height:24px;border-radius:50%;display:grid;place-items:center;color:var(--mut)}
+.quelle-chip button .ic{width:14px;height:14px}
+.laeden .chip{flex:none;font-weight:600}
+.laeden .chip .ic{width:15px;height:15px}
+.chip[aria-pressed="true"]{background:var(--vl);color:var(--vl-schrift);border-color:var(--vl-rand)}
+#ek-liste{max-width:720px}
+.ek-gruppe{background:var(--fl);border-radius:16px;box-shadow:var(--schatten);margin-bottom:10px;overflow:hidden}
+.ek-gruppe h3{display:flex;align-items:center;gap:6px;font-size:11.5px;letter-spacing:.06em;text-transform:uppercase;color:var(--mut);padding:7px 12px 2px;font-weight:600;touch-action:none;cursor:grab;user-select:none;-webkit-user-select:none}
+.ek-gruppe h3 .ic{width:15px;height:15px;opacity:.7}
+.ek-gruppe.zieht{position:relative;z-index:3;box-shadow:0 14px 30px rgba(0,0,0,.25);opacity:.95}
+.ek-gruppe.ziel-vor{box-shadow:0 -3px 0 0 var(--akz)}
+.ek-gruppe.ziel-nach{box-shadow:0 3px 0 0 var(--akz)}
+.ek-zeile{display:flex;align-items:center;gap:10px;padding:6px 12px;border-top:1px solid var(--line);width:100%;min-height:40px}
+.ek-zeile:first-of-type{border-top:0}
+.ek-box{width:21px;height:21px;border-radius:7px;border:2px solid var(--mut);display:grid;place-items:center;flex:none;color:#fff}
+.ek-box .ic{width:15px;height:15px}
+.ek-box .ic [opacity]{opacity:0}
+.ek-zeile.ok .ek-box{background:#2f6a4a;border-color:#2f6a4a}
+.ek-zeile .was{flex:1;min-width:0;font-size:14px;line-height:1.3}
+.ek-zeile .was small{display:block;color:var(--mut);font-size:12px}
+.ek-zeile.ok .was{color:var(--mut);text-decoration:line-through}
+.ek-zeile b{font-variant-numeric:tabular-nums;font-weight:650;font-size:14px;white-space:nowrap}
+
+/* Wochenplan */
+.w-kopf{display:flex;align-items:center;gap:8px;margin:2px 0 12px;max-width:720px}
+.w-kopf .rund{background:var(--fl);box-shadow:var(--schatten);color:var(--ink)}
+.w-kopf strong{flex:1;text-align:center;font-size:15px}
+.w-kopf strong small{display:block;font-weight:400;color:var(--mut);font-size:12.5px}
+.w-tage{max-width:720px}
+.w-tag{display:grid;grid-template-columns:40px 1fr;gap:10px;align-items:start;padding:6px 0;border-bottom:1px solid var(--line)}
+.w-tag .d{text-align:center;line-height:1.1;padding-top:6px}
+.w-tag .d small{display:block;font-size:11.5px;color:var(--mut);text-transform:uppercase;letter-spacing:.05em}
+.w-tag .d b{font-size:19px;font-variant-numeric:tabular-nums}
+.w-tag.heute .d b{color:var(--akz)}
+.w-slots{display:grid;gap:6px;min-width:0}
+.w-slot{display:flex;align-items:center;background:var(--fl);border-radius:14px;box-shadow:var(--schatten);min-width:0;overflow:hidden}
+.w-auf{display:flex;align-items:center;gap:10px;flex:1;min-width:0;padding:5px}
+.w-auf img,.w-ohne{width:40px;height:40px;border-radius:10px;object-fit:cover;flex:none;display:grid;place-items:center;background:var(--fl2);color:var(--akz)}
+.w-auf span{min-width:0;font-size:14px;font-weight:600;line-height:1.25}
+.w-auf span small{display:block;font-weight:400;color:var(--mut);font-size:12px}
+.w-weg{width:36px;height:36px;display:grid;place-items:center;color:var(--mut);flex:none}
+.w-weg .ic{width:15px;height:15px}
+.w-leer{display:flex;align-items:center;gap:8px;border:1.5px dashed var(--line);border-radius:12px;padding:6px 10px;color:var(--mut);font-size:13px;min-height:38px}
+.w-leer .ic{width:17px;height:17px}
+.tagwahl{display:flex;flex-wrap:wrap;gap:6px}
+.tagwahl .chip{min-height:36px;padding:0 12px}
+.wahl-liste .zeile img{width:34px;height:34px;border-radius:8px;object-fit:cover}
+@media(min-width:1000px){
+ .w-kopf,.w-tage{max-width:none}
+ .w-tage{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:10px}
+ .w-tag{display:flex;flex-direction:column;border:0;padding:0;gap:8px}
+ .w-tag .d{text-align:left;padding:0}
+ .w-tag .d b{display:block;font-size:22px}
+ .w-slot{flex-direction:column;align-items:stretch;position:relative}
+ .w-auf{flex-direction:column;align-items:stretch;padding:0;gap:0}
+ .w-auf img,.w-ohne{width:100%;height:150px;border-radius:0}
+ .w-auf span{padding:7px 10px 9px;font-size:13px}
+ .w-weg{position:absolute;top:6px;right:6px;width:28px;height:28px;border-radius:50%;background:rgba(255,255,255,.9);color:#241c15}
+ .w-leer{justify-content:center}
+}
+.quelle-chip .ic [opacity],.w-weg .ic [opacity],.w-leer .ic [opacity],.fl-zu .ic [opacity],.suche button .ic [opacity],.laeden .ic [opacity],.k-klapp .ic [opacity],.k-kopf .rund .ic [opacity]{opacity:0}
+.w-leer.mehr{border:0;min-height:26px;padding:0 6px;font-size:12px;justify-self:start}

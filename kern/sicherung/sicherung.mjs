@@ -42,12 +42,14 @@ export function lies(eingabe) {
     menu: Array.isArray(d.menu) ? d.menu : [],
     ordner: (Array.isArray(d.folders) ? d.folders : []).filter((o) => o && o.id != null).map((o) => ({ ...o, id: String(o.id), name: String(o.name || '') })),
     kategorien: liesKategorien(d.kategorien),
+    einkauf: d.einkauf && typeof d.einkauf === 'object' ? d.einkauf : null,
+    plan: d.plan && typeof d.plan === 'object' ? d.plan : null,
   };
 }
 
 /** Schreibt den Zustand als Sicherung der Fassung 11. */
 export function schreibe(zustand, { knoten = '', jetzt = new Date() } = {}) {
-  return { version: FASSUNG, exported: jetzt.toISOString(), knoten, recipes: zustand.rezepte.filter(istInhalt), menu: zustand.menu || [], folders: zustand.ordner || [], kategorien: zustand.kategorien || leereKategorien() };
+  return { version: FASSUNG, exported: jetzt.toISOString(), knoten, recipes: zustand.rezepte.filter(istInhalt), menu: zustand.menu || [], folders: zustand.ordner || [], kategorien: zustand.kategorien || leereKategorien(), einkauf: zustand.einkauf || null, plan: zustand.plan || null };
 }
 
 const namensSchluessel = (r) => String(r.name).trim().toLowerCase();
@@ -56,7 +58,7 @@ const namensSchluessel = (r) => String(r.name).trim().toLowerCase();
  *  Dubletten: an `uid`; trägt die Datei keine echte Kennung (alles vor Fassung 10), am Namen.
  *  Vorhandenes wird nie überschrieben: eigene Ordner, eigene Kategorien und eigene Namen gewinnen. */
 export function fuehreZusammen(zustand, eingang, weise = 'dazu') {
-  if (weise === 'ersetzen') return { zustand: { rezepte: eingang.rezepte, menu: eingang.menu, ordner: eingang.ordner, kategorien: eingang.kategorien }, neu: eingang.rezepte.length, doppelt: 0 };
+  if (weise === 'ersetzen') return { zustand: { ...zustand, rezepte: eingang.rezepte, menu: eingang.menu, ordner: eingang.ordner, kategorien: eingang.kategorien, ...(eingang.einkauf ? { einkauf: eingang.einkauf } : {}), ...(eingang.plan ? { plan: eingang.plan } : {}) }, neu: eingang.rezepte.length, doppelt: 0 };
   const z = { ...leererZustand(), ...zustand };
   const uids = new Set(z.rezepte.map((r) => r.uid)), namen = new Set(z.rezepte.filter(istInhalt).map(namensSchluessel));
   const dazu = []; let doppelt = 0;
@@ -73,7 +75,7 @@ export function fuehreZusammen(zustand, eingang, weise = 'dazu') {
   const k = z.kategorien || leereKategorien(), e = eingang.kategorien || leereKategorien();
   const eigIds = new Set(k.eigene.map((c) => c.id));
   const kategorien = { eigene: [...k.eigene, ...e.eigene.filter((c) => !eigIds.has(c.id))], namen: { ...e.namen, ...k.namen }, ausgeblendet: k.ausgeblendet, folge: k.folge.length ? k.folge : e.folge };
-  return { zustand: { rezepte: [...z.rezepte, ...dazu], menu: z.menu, ordner, kategorien }, neu: dazu.length, doppelt };
+  return { zustand: { ...z, rezepte: [...z.rezepte, ...dazu], menu: z.menu, ordner, kategorien }, neu: dazu.length, doppelt };   // Einkaufsliste und Wochenplan bleiben die eigenen
 }
 
 /** Was nach einem Import auffallen würde, bevor es jemand sucht: Rezepte ohne Kategorie, unbekannte Kennungen, fehlende Ordner. */

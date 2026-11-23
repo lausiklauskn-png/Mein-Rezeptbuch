@@ -87,12 +87,42 @@ try {
   { const kk = await browser.newContext({ viewport: { width: 1280, height: 800 } }); const q = await kk.newPage(); q.on('pageerror', (e) => fehler.push(e.message));
     await q.goto(URL0); await q.waitForSelector('.gruss'); await q.click('[data-a=beispiel]'); await q.waitForSelector('.md-detail h1', { timeout: 20000 });
     ok(await q.locator('.md-liste .karte').count() === 42 && await q.locator('.md-detail h1').count() === 1, 'Liste links, Rezept rechts');
-    ok(await q.locator('#leiste').isHidden() && await q.locator('.rail-n').count() === 3, 'Leiste steht links, kein Griff am Rand');
+    ok(await q.locator('#leiste').isHidden() && await q.locator('.rail-n').count() === 5, 'Leiste steht links, kein Griff am Rand');
     await q.locator('.md-liste').evaluate((e) => { e.scrollTop = 600; }); await q.locator('.md-liste .karte', { has: q.getByText('Ebi Tempura', { exact: true }) }).click();
     ok((await q.locator('.md-detail h1').innerText()) === 'Ebi Tempura' && await q.locator('.md-liste').evaluate((e) => e.scrollTop) > 300, 'Tipp links wechselt das Rezept rechts, die Liste bleibt an ihrer Stelle', (await q.locator('.md-detail h1').innerText()) + ' / ' + await q.locator('.md-liste').evaluate((e) => e.scrollTop));
     await q.click('[data-a=nurdies]'); ok(await q.locator('.md-liste').isHidden() && await q.locator('.kopf').isHidden(), '„Nur dieses Rezept“ blendet Liste und Leiste aus'); await q.click('[data-a=nurdies]'); ok(await q.locator('.md-liste').isVisible(), 'derselbe Knopf holt sie zurück');
     await q.click('[data-a=rail]'); await q.waitForTimeout(350); ok(await q.locator('.kopf.zu').count() === 1 && (await q.locator('.kopf').boundingBox()).width < 70, 'Leiste klappt auf Symbole zusammen');
     ok(await q.evaluate(() => document.documentElement.scrollWidth <= innerWidth), 'kein seitliches Verrutschen bei 1280 px'); await kk.close(); }
+
+  console.log('10 · Einkaufsliste und Wochenplan');
+  ({ p, k } = await seite()); await p.click('[data-a=beispiel]'); await p.waitForSelector('.karte', { timeout: 20000 });
+  const auf = async (name) => { await p.click('#leiste .fl-griff').catch(() => {}); await p.click('#leiste [data-zu=start]').catch(() => {}); await p.fill('#suchfeld', name); await p.locator('.karte').first().click(); await p.waitForSelector('.rezept-held h1'); };
+  await auf('Gebratener Reis'); await p.click('[data-a=auf-liste]'); await auf('Linsen-Curry'); await p.click('[data-a=portion][data-d="1"]'); await p.click('[data-a=auf-liste]');
+  await p.click('#leiste .fl-griff'); ok((await p.locator('#leiste [data-zu=einkauf] .zahl').innerText()) !== '', 'die Leiste zeigt die Zahl der offenen Posten'); await p.click('#leiste [data-zu=einkauf]'); await p.waitForSelector('.ek-gruppe');
+  const knob = p.locator('.ek-zeile', { has: p.getByText('Knoblauchzehe', { exact: false }) }).first(); const kt = await knob.innerText();
+  ok(/Gebratener Reis, Linsen-Curry|Linsen-Curry, Gebratener Reis/.test(kt), 'gleiche Zutat aus zwei Rezepten steht einmal, mit beiden Rezepten', kt.replace(/\n/g, ' / '));
+  const gruppen = async () => p.locator('.ek-gruppe').evaluateAll((g) => g.map((x) => x.dataset.g));
+  const vorG = await gruppen(); ok(vorG[0] === 'gemuese', 'Vorgabe: Gemüse zuerst', vorG.join(','));
+  const offen0 = +(await p.locator('.ueber small').innerText()).match(/\d+/)[0]; await knob.click(); const offen1 = +(await p.locator('.ueber small').innerText()).match(/\d+/)[0];
+  ok(offen1 === offen0 - 1 && await p.locator('.ek-zeile.ok').count() === 1, 'Abhaken zählt herunter und streicht durch');
+  await p.evaluate(() => scrollTo(0, 0)); const hb = await p.locator('.ek-gruppe').nth(1).locator('h3').boundingBox(), zweite = vorG[1], zb = await p.locator('.ek-gruppe').first().boundingBox();
+  await p.mouse.move(hb.x + 40, hb.y + 8); await p.mouse.down(); await p.waitForTimeout(400); await p.mouse.move(hb.x + 40, zb.y + 4, { steps: 8 }); await p.mouse.up();
+  const nachG = await gruppen(); ok(nachG[0] === zweite && nachG[1] === 'gemuese' && nachG.length === vorG.length, 'Gruppe ziehen: die zweite Gruppe steht jetzt oben', nachG.join(','));
+  await p.click('[data-a=ek-laden-neu]'); await p.fill('[data-form=laden] input', 'Wochenmarkt'); await p.click('[data-form=laden] button[type=submit]');
+  ok((await gruppen())[0] === zweite && await p.locator('.laeden [aria-pressed=true]').innerText() === 'Wochenmarkt', 'neuer Laden übernimmt die Reihenfolge und ist gewählt');
+  await p.locator('.laeden .chip', { hasText: 'Supermarkt' }).click(); await p.fill('[data-form=ek-eigen] input', 'Küchenrolle'); await p.keyboard.press('Enter');
+  ok(await p.locator('.ek-zeile', { hasText: 'Küchenrolle' }).count() === 1, 'eigener Posten steht auf der Liste');
+  await p.waitForTimeout(350); await p.reload(); await p.waitForSelector('.gruss'); await p.click('#leiste .fl-griff'); await p.click('#leiste [data-zu=einkauf]'); await p.waitForSelector('.ek-gruppe');
+  ok((await gruppen())[0] === zweite && await p.locator('.ek-zeile.ok').count() === 1 && await p.locator('.ek-zeile', { hasText: 'Küchenrolle' }).count() === 1, 'nach Neuladen: Reihenfolge, Haken und eigener Posten sind da');
+  await p.click('#leiste .fl-griff'); await p.click('#leiste [data-zu=plan]'); await p.waitForSelector('.w-tag');
+  ok(await p.locator('.w-tag').count() === 7 && await p.locator('.w-tag.heute').count() === 1, 'Wochenplan: sieben Tage, heute hervorgehoben');
+  await p.locator('.w-tag').nth(2).locator('[data-a=plan-waehlen]').click(); await p.locator('.wahl-liste .zeile', { hasText: 'Ratatouille' }).click();
+  ok((await p.locator('.w-tag').nth(2).locator('.w-slot').innerText()).includes('Ratatouille'), 'Gericht an einem Tag geplant');
+  await p.click('[data-a=plan-einkauf]'); await p.click('#leiste .fl-griff'); await p.click('#leiste [data-zu=einkauf]'); await p.waitForSelector('.ek-gruppe');
+  ok(await p.locator('.quelle-chip', { hasText: 'Ratatouille' }).count() === 1, '„Einkaufsliste für die Woche“ nimmt das geplante Gericht auf');
+  await p.click('[data-a=werkzeug]'); await p.click('.werkzeuge [data-zu=werkstatt]'); const [d2] = await Promise.all([p.waitForEvent('download'), p.click('[data-a=sichern]')]); const s2 = JSON.parse(await readFile(await d2.path(), 'utf8'));
+  ok(s2.einkauf?.posten?.length === 3 && Object.keys(s2.plan || {}).length === 1, 'Einkaufsliste und Wochenplan stehen in der Sicherung');
+  await k.close();
   ok(fehler.length === 0, 'keine Fehler in der Konsole, kein Netz nach draußen', fehler.join(' · '));
 } catch (e) { rot++; console.log('  ✗ ROT: Probe abgebrochen — ' + e.message.split('\n')[0]); }
 await browser.close(); srv.close();
