@@ -15,7 +15,9 @@ export const ANBIETER = {
 const eintrag = (a) => 'schluessel-' + a;
 
 /** lager: Kern-Speicher. altNamen: { anthropic: ['claudeKey9m'], … } – die Speicher-Namen der bisherigen App (nur lesen). */
-export function schluessel(lager, { altNamen = {}, alt = globalThis.localStorage } = {}) {
+/* Schon der Zugriff auf localStorage kann werfen (abgeschotteter Rahmen, gesperrter Speicher): dann gibt es keinen alten Schlüssel. */
+const alterSpeicher = () => { try { return globalThis.localStorage; } catch { return null; } };
+export function schluessel(lager, { altNamen = {}, alt = alterSpeicher() } = {}) {
   const ausAlt = (a) => { try { for (const n of altNamen[a] || []) { const v = alt && alt.getItem(n); if (v && String(v).trim()) return String(v).trim(); } } catch { /* kein Zugriff */ } return ''; };
   return {
     /** Der Schlüssel oder ''. */

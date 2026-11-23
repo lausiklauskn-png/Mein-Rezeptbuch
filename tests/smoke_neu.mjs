@@ -1,15 +1,17 @@
 // Probe der neuen PWA (neu/): echter Browser, gebaut wird nichts. Aufruf: node tests/smoke_neu.mjs
 import { createRequire } from 'node:module';
+import { mitThemen, themenAuf } from './neu-hilfe.mjs';
 const { chromium } = createRequire(import.meta.url)('playwright');   // global eingerichtet (require findet es, import nicht)
 import http from 'node:http'; import { readFile } from 'node:fs/promises'; import { extname, join } from 'node:path';
-const TYP = { '.html': 'text/html', '.mjs': 'text/javascript', '.js': 'text/javascript', '.css': 'text/css', '.json': 'application/json', '.png': 'image/png' };
+const WURZEL = process.cwd();
+const TYP = { '.html': 'text/html', '.mjs': 'text/javascript', '.js': 'text/javascript', '.css': 'text/css', '.json': 'application/json', '.png': 'image/png', '.jpg': 'image/jpeg' };
 const srv = http.createServer(async (q, a) => { let p = decodeURIComponent(q.url.split('?')[0]); if (p.endsWith('/')) p += 'index.html'; try { const d = await readFile(join(process.cwd(), p)); a.writeHead(200, { 'content-type': TYP[extname(p)] || 'application/octet-stream' }); a.end(d); } catch { a.writeHead(404); a.end(); } }).listen(0);
-const URL0 = `http://localhost:${srv.address().port}/neu/`;
+const URL0 = `http://localhost:${srv.address().port}/neu/?leer`;   /* ?leer: ohne die acht Startrezepte, die Proben stellen ihren Bestand selbst */
 let gruen = 0, rot = 0; const ok = (b, t, mehr = '') => { if (b) { gruen++; console.log('  ✓ ' + t); } else { rot++; console.log('  ✗ ROT: ' + t + (mehr ? ' — ' + mehr : '')); } };
 const browser = await chromium.launch(); const fehler = [];
-async function seite(vorher) { const k = await browser.newContext({ viewport: { width: 390, height: 800 }, acceptDownloads: true }); const p = await k.newPage(); p.on('pageerror', (e) => fehler.push(e.message)); p.on('console', (m) => m.type() === 'error' && fehler.push(m.text()));
+async function seite(vorher) { const k = await browser.newContext({ viewport: { width: 390, height: 800 }, acceptDownloads: true }); const p = mitThemen(await k.newPage()); p.on('pageerror', (e) => fehler.push(e.message)); p.on('console', (m) => m.type() === 'error' && fehler.push(m.text()));
   await p.route(/^https?:\/\/(?!localhost)/, (r) => { fehler.push('Netz nach draußen: ' + r.request().url()); r.abort(); });
-  if (vorher) { await p.goto(URL0 + 'app.css'); await p.evaluate(vorher); } await p.goto(URL0); await p.waitForSelector('.gruss'); return { p, k }; }
+  if (vorher) { await p.goto(URL0.replace('?leer', '') + 'app.css'); await p.evaluate(vorher); } await p.goto(URL0); await p.waitForSelector('.gruss'); return { p, k }; }
 try {
   console.log('1 · Leerer Start, Beispielbuch');
   let { p, k } = await seite();
@@ -84,7 +86,7 @@ try {
   await k.close();
 
   console.log('9 · Monitor: Leiste links, Liste, Rezept');
-  { const kk = await browser.newContext({ viewport: { width: 1280, height: 800 } }); const q = await kk.newPage(); q.on('pageerror', (e) => fehler.push(e.message));
+  { const kk = await browser.newContext({ viewport: { width: 1280, height: 800 } }); const q = mitThemen(await kk.newPage()); q.on('pageerror', (e) => fehler.push(e.message));
     await q.goto(URL0); await q.waitForSelector('.gruss'); await q.click('[data-a=beispiel]'); await q.waitForSelector('.md-detail h1', { timeout: 20000 });
     ok(await q.locator('.md-liste .karte').count() === 42 && await q.locator('.md-detail h1').count() === 1, 'Liste links, Rezept rechts');
     ok(await q.locator('#leiste').isHidden() && await q.locator('.rail-n').count() === 5, 'Leiste steht links, kein Griff am Rand');
@@ -259,11 +261,11 @@ try {
   ok(fill.length > 0 && fill.every((c) => hellig(c) > 150) && hellig(dunkle[0].split('|')[0]) < 60, 'im Dunkeln sind die Strichsymbole hell und der Grund dunkel', fill.join(' ') + ' · ' + dunkle[0]);
   await p.click('#kopf [data-a=farbe]'); await p.click('[data-a=ton][data-ton=hell]'); ok(await p.evaluate(() => document.documentElement.dataset.hell) === 'hell', 'zurück auf Hell');
   await k.close();
-  const kd = await browser.newContext({ viewport: { width: 390, height: 800 }, colorScheme: 'dark' }); const pd = await kd.newPage(); await pd.goto(URL0); await pd.waitForSelector('.gruss');
+  const kd = await browser.newContext({ viewport: { width: 390, height: 800 }, colorScheme: 'dark' }); const pd = mitThemen(await kd.newPage()); await pd.goto(URL0); await pd.waitForSelector('.gruss');
   ok(await pd.evaluate(() => document.documentElement.dataset.hell) === 'dunkel', 'ohne eigene Wahl folgt die App dem Gerät (dunkel)'); await kd.close();
 
   console.log('11d · Sinn-Suche: Modul 04 echt, Modul 03 (Sprachmodell) nachgestellt');
-  k = await browser.newContext({ viewport: { width: 390, height: 800 }, serviceWorkers: 'block' }); p = await k.newPage(); p.on('pageerror', (e) => fehler.push(e.message));   // ohne Service Worker, sonst greift die Nachstellung von Modul 03 nicht
+  k = await browser.newContext({ viewport: { width: 390, height: 800 }, serviceWorkers: 'block' }); p = mitThemen(await k.newPage()); p.on('pageerror', (e) => fehler.push(e.message));   // ohne Service Worker, sonst greift die Nachstellung von Modul 03 nicht
   await p.route(/^https?:\/\/(?!localhost)/, (r) => { fehler.push('Netz nach draußen: ' + r.request().url()); r.abort(); }); await p.goto(URL0); await p.waitForSelector('.gruss');
   const geladen = []; p.on('request', (q) => { if (q.url().includes('/sbkim/')) geladen.push(q.url().split('/sbkim/')[1].split('?')[0]); });
   // Nachgestelltes Modell: „eintopf“ liegt bei „Gulasch“; alles andere ist ein Buchstaben-Vektor. Modul 04 rechnet echt.
@@ -291,8 +293,8 @@ try {
   await p.locator('.karte').click(); await p.waitForSelector('.rezept-held h1'); ok((await p.locator('.zut').innerText()).includes('Rotwein') && (await p.locator('.schritte').innerText()).includes('Eingießen') && !(await p.locator('main').innerText()).includes('Red wine'), 'auch Zutaten und Schritte');
   await p.click('[data-a=rleiste]'); await p.click('[data-a=bearbeiten]'); ok(await p.inputValue('[name=name]') === 'Queen Charlotte', 'bearbeitet wird das Original');
   await k.close();
-  const { SYMBOLE } = await import('../kern/oberflaeche/symbole.mjs'); const zeichen = ['buch', 'koch', 'karte', 'plan', 'einkauf', 'funken'].map((n) => SYMBOLE[n]);
-  ok(new Set(zeichen).size === zeichen.length, 'Rezepte, Kochen, Kategorie, Planer, Einkauf und Werkstatt tragen sechs verschiedene Zeichen');
+  const { SYMBOLE } = await import('../kern/oberflaeche/symbole.mjs'); const zeichen = ['buch', 'koch', 'karte', 'plan', 'einkauf', 'einst', 'funken'].map((n) => SYMBOLE[n]);
+  ok(new Set(zeichen).size === zeichen.length, 'Rezepte, Kochen, Kategorie, Planer, Einkauf, Einstellungen (Zahnrad) und KI tragen verschiedene Zeichen');
 
   console.log('12 · Text-Import ohne KI, ohne Netz');
   ({ p, k } = await seite());
@@ -308,6 +310,31 @@ try {
   ok(await p.locator('.karte', { hasText: 'Kartoffelsuppe' }).count() === 1, 'ohne Netz neu geladen: die App startet und zeigt das Rezept');
   await p.locator('.karte').first().click(); await p.click('[data-a=kochen]'); ok(await p.locator('.koch').count() === 1, 'ohne Netz: Kochansicht geht'); await k.setOffline(false); fehler.length = vorOffline;   // nur die erwarteten Netzfehler der Offline-Strecke fallen weg
   await k.close();
+  console.log('13 · Erster Start mit Startrezepten; entfernen; die App bleibt danach leer');
+  { const ks = await browser.newContext({ viewport: { width: 390, height: 800 }, serviceWorkers: 'block' }), q = await ks.newPage(); /* ohne mitThemen: hier wird das Einklappen selbst gemessen */ q.on('pageerror', (e) => fehler.push(e.message));
+    await q.route(/^https?:\/\/(?!localhost)/, (r) => { fehler.push('Netz nach draußen: ' + r.request().url()); r.abort(); });
+    await q.goto(URL0.replace('?leer', '')); await q.waitForSelector('.karte', { timeout: 20000 });
+    ok(await q.locator('.gitter .karte').count() === 8 && await q.locator('.karte img').count() === 8 && await q.locator('.held img').count() === 1 && await q.locator('.leer').count() === 0, 'der erste Start zeigt acht Rezepte mit Bild und das große Bild, keine leere Seite');
+    ok((await q.locator('#toast').innerText()).trim() === '' && await q.locator('.fenster').count() === 0, 'ohne Frage, ohne Meldung');
+    ok(await q.locator('#start-rest .ueber h2').count() === 0 && await q.locator('.karte small').count() === 0 || !/Sushi|Suppen|Fisch/.test((await q.locator('.karte small').allInnerTexts()).join(' ')), 'ein Raster, keine Überschrift je Kategorie; auf den Karten steht die Kategorie nicht noch einmal');
+    ok(await q.locator('.fotokat button').count() === 9, 'die Kategorien stehen als Fotos darüber (Alle und acht Kategorien)', String(await q.locator('.fotokat button').count()));
+    await q.click('#leiste .fl-griff'); ok((await q.locator('#leiste [data-zu=werkstatt]').innerText()).includes('Einstellungen'), 'der Bereich heißt „Einstellungen“');
+    await q.click('#leiste [data-zu=werkstatt]'); await q.waitForSelector('.themen');
+    ok(await q.locator('.themen .gruppe').count() === 6 && await q.locator('.themen .gruppe.auf').count() === 0 && await q.locator('.themen .zeile').count() === 0 && (await q.locator('.ueber h2').innerText()) === 'Einstellungen', 'Einstellungen: sechs Themen, alle eingeklappt, keine lange Liste');
+    ok(await q.locator('.themen .frag').count() === 0 && await q.locator('main p:not(.quelle)').count() === 0, 'eingeklappt steht kein Erklärtext und kein „?“ da');
+    const feld = await q.locator('.gkopf .kfeld').first().evaluate((e) => { const c = document.createElement('canvas'); c.width = c.height = 1; const x = c.getContext('2d'); x.fillStyle = getComputedStyle(e).backgroundColor; x.fillRect(0, 0, 1, 1); return { m: [...x.getImageData(0, 0, 1, 1).data], b: e.offsetWidth }; });   /* über eine Leinwand: die Farbe kommt als color-mix und nicht als rgb() */
+    ok(Math.min(...feld.m.slice(0, 3)) > 190 && new Set(feld.m.slice(0, 3)).size > 1 && feld.b <= 40, 'die Zeichen stehen in dezenten Farbfeldern (Wasserfarbe: hell, nicht grau, nicht kräftig)', JSON.stringify(feld));
+    await q.click('[data-a=werk-auf][data-g=beispiele]'); ok(await q.locator('.gruppe.auf[data-g=beispiele] .zeile').count() === 2 && await q.locator('.themen .gruppe.auf').count() === 1, 'ein Tipp klappt ein Thema auf: Beispielbuch laden, Beispiele entfernen');
+    await q.click('[data-a=werk-auf][data-g=sichern]'); ok(await q.locator('.gruppe.auf[data-g=sichern] .gkopf-zeile .frag').count() === 1 && (await q.locator('.gruppe.auf[data-g=sichern] .gkopf-zeile').boundingBox()).height < 60, 'die Erklärung eines Themas steht hinter „?“ in seiner Kopfzeile, ohne eigene Zeile');
+    await q.click('[data-a=beispiele-weg]'); await q.click('.fenster [data-a=ja]');
+    const meld = await q.locator('#toast').evaluate((t) => ({ text: t.innerText.replace(/\s+/g, ' ').trim(), h: t.offsetHeight }));
+    ok(/^−8 Beispiele/.test(meld.text) && meld.h <= 34, 'die Meldung ist kurz und einzeilig: „−8 Beispiele · Rückgängig“', JSON.stringify(meld));
+    await q.goBack(); await q.waitForSelector('.gruss'); ok(await q.locator('.leer.einladung img').count() === 1 && await q.locator('.leer .knopf').count() === 2 && await q.locator('.leer .frag').count() === 0, 'leer: ein Bild, eine Zeile, zwei Knöpfe');
+    await q.waitForTimeout(400); await q.goto(URL0.replace('?leer', '')); await q.waitForSelector('.gruss'); ok(await q.locator('.karte').count() === 0, 'nach dem Entfernen kommen die Startrezepte nicht von selbst wieder');
+    await ks.close(); }
+  { const sw = await readFile(join(WURZEL, 'neu', 'sw.js'), 'utf8'), st = JSON.parse(await readFile(join(WURZEL, 'neu', 'start-rezepte.json'), 'utf8')), buch = JSON.parse(await readFile(join(WURZEL, 'beispiele', 'beispielbuch-mein-rezeptbuch.json'), 'utf8'));
+    ok(sw.includes('"./start-rezepte.json"') && st.recipes.length === 8 && st.recipes.every((r) => r.img && r.uid && buch.recipes.some((b) => b.uid === r.uid && b.name === r.name)), 'die Startrezepte liegen im Offline-Vorrat, haben Bilder und dieselbe Kennung wie im Beispielbuch (kein Doppel beim Laden)');
+    ok((await readFile(join(WURZEL, 'neu', 'start-rezepte.json'))).length < 900 * 1024, 'die Datei bleibt unter 900 KB'); }
   ok(fehler.length === 0, 'keine Fehler in der Konsole, kein Netz nach draußen', fehler.join(' · '));
 } catch (e) { rot++; console.log('  ✗ ROT: Probe abgebrochen — ' + e.message.split('\n')[0]); }
 await browser.close(); srv.close();
