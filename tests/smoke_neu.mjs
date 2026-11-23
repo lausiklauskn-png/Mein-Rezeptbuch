@@ -157,7 +157,12 @@ try {
   ok(true, 'Bild einfügen bei einem Rezept ohne Bild');
   await p.click('[data-a=bilder-alle-weg]'); await p.click('[data-a=ja]'); ok(await p.locator('.bildkachel').count() === 0, '„Alle Bilder löschen“ mit Rückfrage'); await p.click('[data-a=toast-tun]');
   await p.click('#leiste .fl-griff'); await p.click('#leiste [data-zu=start]'); await p.fill('#suchfeld', ''); await p.locator('.fotokat button').first().click(); ok(await p.locator('.karte').count() === 42, 'alle 42 Rezepte sind noch da');
-  await p.fill('#suchfeld', 'Dragon'); await p.locator('.karte').first().click(); await p.click('.rezept-held'); await p.click('[data-a=zuschnitt]'); await p.locator('[data-a=zs-lage]', { hasText: 'Oben' }).click();
+  await p.fill('#suchfeld', 'Dragon'); await p.locator('.karte').first().click(); await p.click('.rezept-held');
+  const vb = await p.locator('.vollbild').evaluate((e) => { const r = e.getBoundingClientRect(), i = e.querySelector('img'); return [Math.round(r.width), Math.round(r.height), innerWidth, innerHeight, getComputedStyle(i).objectFit].join(','); });
+  ok(vb === '390,800,390,800,contain', 'Tipp aufs Bild: Vollbild so groß wie das Fenster, ganzes Bild', vb);
+  await p.keyboard.press('Escape'); ok(await p.locator('.vollbild').count() === 0 && await p.locator('.rezept-held h1').count() === 1, 'Esc schließt das Vollbild, das Rezept steht noch da');
+  await p.click('.rezept-held'); await p.goBack(); ok(await p.locator('.vollbild').count() === 0 && (await p.locator('.rezept-held h1').innerText()).includes('Dragon'), 'die Zurück-Taste schließt das Vollbild und bleibt im Rezept');
+  if (!(await p.locator('.rwerk').count())) await p.click('[data-a=rleiste]'); await p.click('.rwerk [data-a=bild-blatt]'); await p.click('[data-a=zuschnitt]'); await p.locator('[data-a=zs-lage]', { hasText: 'Oben' }).click();
   await p.locator('#zs-zoom').evaluate((e) => { e.value = 200; e.dispatchEvent(new Event('input', { bubbles: true })); }); await p.click('[data-a=zs-ok]');
   const stil = await p.locator('.rezept-held > img').getAttribute('style'); ok(/object-position:50% 0%/.test(stil) && /scale\(2\)/.test(stil), 'Bildausschnitt: Lage oben und Zoom 2 sind am Kopfbild', stil);
   await p.waitForTimeout(350); await p.reload(); await p.waitForSelector('.gruss'); await p.fill('#suchfeld', 'Dragon'); ok(/scale\(2\)/.test(await p.locator('.karte img').first().getAttribute('style') || ''), 'der Ausschnitt gilt auch auf der Karte und nach dem Neuladen');
@@ -234,6 +239,16 @@ try {
   await p.fill('#suchfeld', 'gulasch'); await p.waitForTimeout(900); ok(await p.locator('.karte').count() >= 1 && await p.locator('#sinn-treffer .karte', { hasText: 'Szegediner' }).count() === 0, 'ein Worttreffer steht nicht doppelt unter „Nach Bedeutung“');
   await p.click('[data-a=sinn]'); ok(await p.locator('[data-a=sinn][aria-pressed=true]').count() === 0 && await p.locator('#sinn-status').count() === 0, 'ausschalten: Schalter aus, Statuszeile weg');
   await k.close();
+
+  console.log('11e · Übersetzung am Rezept, ein Zeichen je Bedeutung');
+  ({ p, k } = await seite());
+  await p.evaluate(async () => { const d = await new Promise((g) => { const q = indexedDB.open('KuechenKern-rezeptbuch'); q.onsuccess = () => g(q.result); }); const z = { fassung: 1, einstellungen: {}, zustand: { rezepte: [{ uid: 'u1', name: 'Queen Charlotte', cat: 'suppen', servings: 1, ings: [{ name: 'Red wine', amt: '2', unit: 'oz' }], steps: [{ txt: 'Pour.' }], translations: { de: { name: 'Königin Charlotte', ingredients: ['Rotwein'], steps: ['Eingießen.'] } } }], menu: [], ordner: [], kategorien: { eigene: [], namen: {}, ausgeblendet: [], folge: [] } } }; await new Promise((g) => { const t = d.transaction('zustand', 'readwrite'); t.objectStore('zustand').put(z, 'alles'); t.oncomplete = g; }); });
+  await p.reload(); await p.waitForSelector('.karte'); ok((await p.locator('.karte').innerText()).includes('Königin Charlotte'), 'liegt translations.de am Rezept, zeigt die Karte Deutsch');
+  await p.locator('.karte').click(); await p.waitForSelector('.rezept-held h1'); ok((await p.locator('.zut').innerText()).includes('Rotwein') && (await p.locator('.schritte').innerText()).includes('Eingießen') && !(await p.locator('main').innerText()).includes('Red wine'), 'auch Zutaten und Schritte');
+  await p.click('[data-a=rleiste]'); await p.click('[data-a=bearbeiten]'); ok(await p.inputValue('[name=name]') === 'Queen Charlotte', 'bearbeitet wird das Original');
+  await k.close();
+  const { SYMBOLE } = await import('../kern/oberflaeche/symbole.mjs'); const zeichen = ['buch', 'koch', 'karte', 'plan', 'einkauf', 'funken'].map((n) => SYMBOLE[n]);
+  ok(new Set(zeichen).size === zeichen.length, 'Rezepte, Kochen, Kategorie, Planer, Einkauf und Werkstatt tragen sechs verschiedene Zeichen');
 
   console.log('12 · Text-Import ohne KI, ohne Netz');
   ({ p, k } = await seite());
