@@ -153,7 +153,8 @@ try {
   ok(netz.claude.length === 1 && paText.includes('Rindergulasch') && paText.includes('Linsensuppe') && !paText.includes('Zwiebeln') && !paText.includes('schmoren'), 'hinaus gehen nur die Namen (und Kategorien), keine Zutaten, keine Schritte');
   const vz = await p.locator('#plan-vorschlag .zeile').allInnerTexts();
   ok(vz.length === 3 && /Mo/.test(vz[0]) && vz[0].includes('Rindergulasch') && /Mi/.test(vz[1]) && vz[1].includes('Linsensuppe') && /So/.test(vz[2]) && vz[2].includes('Apfelkuchen') && vz[2].includes('Rindergulasch'), 'das Fenster zeigt den Vorschlag je Tag; im Plan steht noch nichts', vz.join(' | ').replace(/\n/g, ' '));
-  ok(Object.keys((await bestand(p)).zustand.plan || {}).length === 0, 'vor „Übernehmen“ ist der Plan unverändert');
+  await p.waitForTimeout(500);   /* gespeichert wird verzögert: erst nach dieser Frist wäre ein vorschnelles Übernehmen im Speicher zu sehen */
+  ok(Object.keys((await bestand(p)).zustand.plan || {}).length === 0 && await p.locator('#plan-vorschlag').count() === 1, 'vor „Übernehmen“ ist der Plan unverändert');
   await p.click('[data-a=plan-ki-ja]'); await p.waitForFunction(() => /\+4 im Plan/.test(document.querySelector('#toast')?.textContent || ''), null, { timeout: 5000 }).catch(() => {});
   await p.waitForTimeout(400); const plan = (await bestand(p)).zustand.plan || {}, tage = Object.keys(plan).sort();
   ok(tage.length === 3 && plan[tage[0]].join() === 'r-1' && plan[tage[2]].join() === 'r-3,r-1' && new Date(tage[0] + 'T12:00:00').getDay() === 1, '„Übernehmen“ trägt den Vorschlag in die gezeigte Woche ein (Montag bis Sonntag)', JSON.stringify(plan));
