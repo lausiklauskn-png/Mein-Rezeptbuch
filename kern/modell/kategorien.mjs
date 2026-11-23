@@ -15,7 +15,7 @@ export const leereKategorien = () => ({ eigene: [], namen: {}, ausgeblendet: [],
 export function anzahl(rezepte, id) { return rezepte.filter((r) => istInhalt(r) && katVonRezept(r) === id).length; }
 
 /** Alle Kategorien in Anzeige-Reihenfolge. Jede Kennung genau einmal. Ausgeblendet wird nur, was leer ist. */
-export function alleKategorien(rezepte, kat = leereKategorien(), fest = KATEGORIEN_FEST) {
+export function alleKategorien(rezepte, kat = leereKategorien(), fest = KATEGORIEN_FEST, familie = []) {
   const aus = new Set((kat.ausgeblendet || []).map(String).filter((id) => anzahl(rezepte, id) === 0));
   const liste = [], gesehen = new Set();
   const nimm = (c) => { const id = String(c.id); if (!id || gesehen.has(id) || aus.has(id)) return; gesehen.add(id); liste.push({ ...c, id }); };
@@ -26,7 +26,9 @@ export function alleKategorien(rezepte, kat = leereKategorien(), fest = KATEGORI
     if (!istInhalt(r)) continue;
     const id = katVonRezept(r);
     if (id === KAT_OHNE) { ohne++; continue; }
-    if (!gesehen.has(id)) nimm({ id, de: id, symbol: 'paket', art: 'unbekannt' });   // nie einen Namen raten
+    if (gesehen.has(id)) continue;
+    const bekannt = familie.find((c) => c.id === id);   // mitgebracht aus einer Schwester-App: deren Name, nie die rohe Kennung
+    nimm(bekannt ? { ...bekannt, art: 'fremd' } : { id, de: id, symbol: 'paket', art: 'unbekannt' });   // nie einen Namen raten
   }
   if (ohne > 0) nimm({ id: KAT_OHNE, ...OHNE_NAME, symbol: 'frage', art: 'ohne' });
   const folge = (kat.folge || []).map(String);
@@ -45,8 +47,8 @@ export function beschriftung(c, sprache = 'de', kat = leereKategorien()) {
 export function symbol(c, kat = leereKategorien()) { return kat.namen?.[c.id]?.symbol || c.symbol || 'karte'; }
 
 /** Gruppen für „Alle“: jede Kategorie mit ihren Rezepten, leere fallen weg. Jedes Rezept mit Namen steht in genau einer Gruppe. */
-export function gruppiere(rezepte, kat = leereKategorien(), fest = KATEGORIEN_FEST) {
-  return alleKategorien(rezepte, kat, fest).map((c) => ({ kategorie: c, rezepte: rezepte.filter((r) => istInhalt(r) && katVonRezept(r) === c.id) })).filter((g) => g.rezepte.length);
+export function gruppiere(rezepte, kat = leereKategorien(), fest = KATEGORIEN_FEST, familie = []) {
+  return alleKategorien(rezepte, kat, fest, familie).map((c) => ({ kategorie: c, rezepte: rezepte.filter((r) => istInhalt(r) && katVonRezept(r) === c.id) })).filter((g) => g.rezepte.length);
 }
 
 export function anlegen(kat, name, symbolName = 'karte') {
@@ -71,22 +73,24 @@ export function loeschen(rezepte, kat, id, ziel, festListe = KATEGORIEN_FEST) {
   return { rezepte: neu, kat: { ...kat, eigene, namen, ausgeblendet: fest ? [...new Set([...(kat.ausgeblendet || []), id])] : (kat.ausgeblendet || []), folge: (kat.folge || []).filter((x) => String(x) !== String(id)) }, verschoben: betroffen.length };
 }
 /** Reihenfolge: die ganze Liste wird neu geschrieben, nie nur ergänzt. */
-export function umsortieren(rezepte, kat, id, vorId, fest = KATEGORIEN_FEST) {
-  const ids = alleKategorien(rezepte, kat, fest).map((c) => c.id).filter((x) => x !== id);
+export function umsortieren(rezepte, kat, id, vorId, fest = KATEGORIEN_FEST, familie = []) {
+  const ids = alleKategorien(rezepte, kat, fest, familie).map((c) => c.id).filter((x) => x !== id);
   const i = vorId == null ? ids.length : ids.indexOf(vorId);
   ids.splice(i < 0 ? ids.length : i, 0, id);
   return { ...kat, folge: ids };
 }
 
 /** Dieselben Werkzeuge mit den festen Kategorien einer anderen Ausgabe (Mixarium: Getränke statt Essen).
- *  Ohne diesen Weg gilt überall die Liste des Rezeptbuchs. Zustand, Namen, Reihenfolge und Löschen arbeiten gleich. */
-export function kategorienMit(fest) {
+ *  Ohne diesen Weg gilt überall die Liste des Rezeptbuchs. Zustand, Namen, Reihenfolge und Löschen arbeiten gleich.
+ *  familie: Wörterbuch der Schwester-Apps (meist KATEGORIEN_FEST des Rezeptbuchs); eine mitgebrachte Kennung, die dort
+ *  steht, trägt deren Namen (art 'fremd'). Die Familie macht keine Reiter auf, sie benennt nur. */
+export function kategorienMit(fest, { familie = [] } = {}) {
   return {
     FEST: fest,
-    alleKategorien: (rezepte, kat) => alleKategorien(rezepte, kat, fest),
-    gruppiere: (rezepte, kat) => gruppiere(rezepte, kat, fest),
+    alleKategorien: (rezepte, kat) => alleKategorien(rezepte, kat, fest, familie),
+    gruppiere: (rezepte, kat) => gruppiere(rezepte, kat, fest, familie),
     loeschen: (rezepte, kat, id, ziel) => loeschen(rezepte, kat, id, ziel, fest),
-    umsortieren: (rezepte, kat, id, vorId) => umsortieren(rezepte, kat, id, vorId, fest),
+    umsortieren: (rezepte, kat, id, vorId) => umsortieren(rezepte, kat, id, vorId, fest, familie),
     beschriftung, symbol, anlegen, umbenennen, anzahl,
   };
 }

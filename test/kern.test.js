@@ -236,7 +236,7 @@ test('Farben, Ton und Schrift-Regler tragen englische Namen', () => {
 });
 
 // ---- Kern 0.12: Kategorien, Warengruppen und Einheiten je Ausgabe (Wunsch aus dem Mixarium) ----
-import { kategorienMit } from '../kern/modell/kategorien.mjs';
+import { kategorienMit, KATEGORIEN_FEST } from '../kern/modell/kategorien.mjs';
 import { einkaufMit } from '../kern/modell/einkauf.mjs';
 import { skaliere } from '../kern/modell/mengen.mjs';
 test('Kategorien je Ausgabe: eigene feste Liste; ohne Angabe bleibt es das Rezeptbuch', () => {
@@ -265,4 +265,14 @@ test('Einkauf je Ausgabe: eigene Warengruppen und Einheiten (oz, cl); ohne Angab
 test('Mengen: Achtel-Brüche und die zwei Rechenfehler der alten Mixarium-App', () => {
   assert.equal(skaliere('⅜', 2), '¾'); assert.equal(skaliere('1 ⅞', 2), '3 ¾'); assert.equal(skaliere('10,5', 2), '21'); assert.equal(skaliere('1 ½', 2), '3');
   assert.equal(zahlAus('⅝'), 0.625); assert.equal(zahlAus('2 ⅞'), 2.875);
+});
+test('Kategorien je Ausgabe: eine mitgebrachte Kennung trägt ihren Familien-Namen, nie die rohe Kennung', () => {
+  const FEST = [{ id: 'mock', symbol: 'glas', de: 'Mocktails', en: 'Mocktails' }];
+  const K = kategorienMit(FEST, { familie: KATEGORIEN_FEST });
+  const rz = [{ uid: 'a', name: 'Bruschetta', cat: 'vorsp' }, { uid: 'b', name: 'X', cat: 'gibtsnicht' }];
+  const l = K.alleKategorien(rz, leereKategorien()), v = l.find((c) => c.id === 'vorsp'), u = l.find((c) => c.id === 'gibtsnicht');
+  assert.equal(v.art, 'fremd'); assert.equal(beschriftung(v, 'de'), 'Vorspeisen'); assert.equal(beschriftung(v, 'en'), 'Starters');
+  assert.equal(u.art, 'unbekannt'); assert.equal(beschriftung(u, 'de'), 'gibtsnicht', 'eine unbekannte Kennung wird nicht erfunden');
+  assert.ok(!l.some((c) => c.id === 'suppe'), 'die Familie macht keine Reiter auf, sie benennt nur');
+  assert.equal(K.loeschen(rz, leereKategorien(), 'vorsp', '').kat.ausgeblendet.length, 0, 'eine fremde Kategorie wird nicht ausgeblendet, sie verschwindet mit ihren Rezepten');
 });
