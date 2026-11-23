@@ -90,7 +90,7 @@ try {
     ok(await q.locator('#leiste').isHidden() && await q.locator('.rail-n').count() === 5, 'Leiste steht links, kein Griff am Rand');
     await q.locator('.md-liste').evaluate((e) => { e.scrollTop = 600; }); await q.locator('.md-liste .karte', { has: q.getByText('Ebi Tempura', { exact: true }) }).click();
     ok((await q.locator('.md-detail h1').innerText()) === 'Ebi Tempura' && await q.locator('.md-liste').evaluate((e) => e.scrollTop) > 300, 'Tipp links wechselt das Rezept rechts, die Liste bleibt an ihrer Stelle', (await q.locator('.md-detail h1').innerText()) + ' / ' + await q.locator('.md-liste').evaluate((e) => e.scrollTop));
-    ok(await q.locator('.rezept-held [data-a]').count() === 0, 'auf dem Bild liegt kein Knopf'); await q.click('[data-a=rleiste]');
+    ok(await q.locator('.rezept-held .rund').count() === 0 && await q.locator('.rezept-held .wk-pf:visible').count() === 1, 'auf dem Bild liegt nur der kleine Pfeil in der Namenszeile'); await q.click('[data-a=rleiste]');
     await q.click('[data-a=nurdies]'); ok(await q.locator('.md-liste').isHidden() && await q.locator('.kopf').isHidden(), '„Nur dieses Rezept“ blendet Liste und Leiste aus'); await q.click('[data-a=nurdies]'); ok(await q.locator('.md-liste').isVisible(), 'derselbe Knopf holt sie zurück');
     await q.click('[data-a=rail]'); await q.waitForTimeout(350); ok(await q.locator('.kopf.zu').count() === 1 && (await q.locator('.kopf').boundingBox()).width < 70, 'Leiste klappt auf Symbole zusammen');
     ok(await q.evaluate(() => document.documentElement.scrollWidth <= innerWidth), 'kein seitliches Verrutschen bei 1280 px'); await kk.close(); }
@@ -167,8 +167,9 @@ try {
   ({ p, k } = await seite());
   await p.click('[data-a=beispiel]'); await p.waitForSelector('.karte', { timeout: 20000 });
   await p.fill('#suchfeld', 'Ratatouille'); await p.locator('.karte').first().click(); await p.waitForSelector('.rezept-held h1');
-  ok(await p.locator('.rezept-held button').count() === 0 && await p.locator('.rwerk').count() === 0, 'Rezept: kein Knopf auf dem Bild, die Werkzeugleiste ist eingeklappt');
-  await p.click('[data-a=rleiste]'); ok(await p.locator('.rwerk .chip:visible').count() >= 4, 'Leiste aufgeklappt: Bearbeiten, Kategorie, Bild, Rezept löschen'); await p.click('[data-a=rleiste]');
+  const hoehe = () => p.locator('.rezept-held').evaluate((e) => e.getBoundingClientRect().height + ':' + e.getBoundingClientRect().top); const h0 = await hoehe();
+  ok(await p.locator('.rezept-held .rund').count() === 0 && await p.locator('.rwerk').count() === 0 && await p.locator('.rleiste').count() === 0, 'Rezept: kein runder Knopf auf dem Bild, keine eigene Zeile, Werkzeuge eingeklappt');
+  await p.click('[data-a=rleiste]'); ok(await p.locator('.rwerk .chip:visible').count() >= 4, 'Pfeil klappt auf: Bearbeiten, Kategorie, Bild, Rezept löschen'); ok(await hoehe() === h0, 'das Aufklappen verschiebt nichts', h0 + ' → ' + await hoehe()); await p.click('[data-a=rleiste]');
   await p.click('.rezept-held'); ok(await p.locator('.fenster [data-a=ki-bild]').count() === 1 && await p.locator('.fenster [data-a=gratis-bild]').count() === 1 && await p.locator('.fenster [data-a=bild-dazu]').count() === 1, 'Tipp aufs Bild öffnet das Bild-Blatt: einfügen, KI-Bild, Gratis-Foto');
   ok(!(await p.locator('.fenster').innerText()).match(/Bild löschen/), 'im Bild-Blatt steht kein „Bild löschen“');
   await p.click('.fenster [data-a=ki-bild]'); ok(await p.locator('#schl-openai').count() === 1, 'ohne Schlüssel fragt die App zuerst nach dem Schlüssel');

@@ -20,7 +20,7 @@ import { kiBild, gratisBild, KOSTEN_TEXT } from '../kern/ki/bild.mjs';
 import { tresor } from '../kern/speicher/tresor.mjs';
 import { woche, planen, entplanen, ausAltemMenu, tagIso } from '../kern/modell/plan.mjs';
 
-const FASSUNG = '0.6.0';
+const FASSUNG = '0.6.1';
 const breit = () => matchMedia('(min-width:1000px)').matches;
 const $ = (id) => document.getElementById(id);
 const esc = (t) => String(t ?? '').replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
@@ -131,10 +131,10 @@ function rezeptHtml() {
   const c = alleKategorien(Z.rezepte, Z.kategorien).find((x) => x.id === katVonRezept(r));
   const n = s.portion[r.uid] || r.servings, f = n / r.servings;
   const wk = (akt, i, t, kl = '') => `<button class="chip ${kl}" data-a="${akt}">${ic(i)}${t}</button>`;
-  return `<div class="rleiste"><button class="rund" data-a="zurueck" aria-label="Zurück">${ic('zurueck')}</button><button class="rund" data-a="rleiste" aria-expanded="${s.rleiste}" aria-label="Werkzeuge für dieses Rezept">${ic(s.rleiste ? 'hoch' : 'menu')}</button></div>
-   ${s.rleiste ? `<div class="rwerk">${wk('bearbeiten', 'stift', 'Bearbeiten')}${wk('kat-zuordnen', 'ordner', 'Kategorie')}${wk('bild-blatt', 'bild', 'Bild')}${wk('nurdies', 'voll', s.nurDies ? 'Alles zeigen' : 'Nur dieses Rezept', 'nurbreit')}${wk('loeschen', 'muell', 'Rezept löschen', 'rot')}</div>` : ''}
-   <div class="rezept-held" data-a="bild-blatt" role="button" tabindex="0" aria-label="${r.img ? 'Bild ansehen, anpassen oder ersetzen' : 'Bild einfügen'}">${r.img ? `<img src="${esc(r.img)}" alt="${esc(r.name)}" ${ausschnitt(r)}>` : ic('karte')}
-    <div class="verlauf"><h1>${esc(r.name)}</h1><div class="meta">${r.prepTime ? `<span>${ic('uhr')}${esc(r.prepTime)} Min</span>` : ''}<span>${ic('karte')}${esc(c ? katName(c) : '')}</span>${r.rating?.stars ? `<span>${ic('stern')}${r.rating.stars}</span>` : ''}</div></div></div>
+  const winkel = (d) => `<svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="${d}"/></svg>`;
+  return `<div class="rezept-held" data-a="bild-blatt" role="button" tabindex="0" aria-label="${r.img ? 'Bild ansehen, anpassen oder ersetzen' : 'Bild einfügen'}">${r.img ? `<img src="${esc(r.img)}" alt="${esc(r.name)}" ${ausschnitt(r)}>` : ic('karte')}
+    ${s.rleiste ? `<div class="rwerk">${wk('bearbeiten', 'stift', 'Bearbeiten')}${wk('kat-zuordnen', 'ordner', 'Kategorie')}${wk('bild-blatt', 'bild', 'Bild')}${wk('nurdies', 'voll', s.nurDies ? 'Alles zeigen' : 'Nur dieses Rezept', 'nurbreit')}${wk('loeschen', 'muell', 'Rezept löschen', 'rot')}</div>` : ''}
+    <div class="verlauf"><div class="tzeile"><button class="wk-pf zur" data-a="zurueck" aria-label="Zurück">${winkel('M15 5l-7 7 7 7')}</button><h1>${esc(r.name)}</h1><button class="wk-pf" data-a="rleiste" aria-expanded="${s.rleiste}" aria-label="Werkzeuge für Rezept und Bild">${winkel(s.rleiste ? 'M5 9l7 7 7-7' : 'M5 15l7-7 7 7')}</button></div><div class="meta">${r.prepTime ? `<span>${ic('uhr')}${esc(r.prepTime)} Min</span>` : ''}<span>${ic('karte')}${esc(c ? katName(c) : '')}</span>${r.rating?.stars ? `<span>${ic('stern')}${r.rating.stars}</span>` : ''}</div></div></div>
    <div class="bogen"><div class="zweispalt"><div>
     ${r.steps.length ? `<div class="reihe"><button class="knopf akz" data-a="kochen" style="flex:1.3">${ic('koch')}Kochen</button><button class="knopf" data-a="auf-liste" style="flex:1">${ic('einkauf')}Einkaufen</button><button class="knopf" data-a="planen" aria-label="In den Wochenplan">${ic('plan')}</button></div>` : `<div class="reihe"><button class="knopf" data-a="auf-liste">${ic('einkauf')}Einkaufen</button><button class="knopf" data-a="planen">${ic('plan')}Planen</button></div>`}
     <div class="portion"><span>Portionen</span><span class="st"><button data-a="portion" data-d="-1" aria-label="Weniger">${ic('minus')}</button><b id="portionen">${n}</b><button data-a="portion" data-d="1" aria-label="Mehr">${ic('plus')}</button></span></div>
