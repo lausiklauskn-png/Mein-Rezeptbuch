@@ -197,4 +197,8 @@ export default {
   // teilen/qr.mjs
   'Die QR-Stufe „{0}“ gibt es nicht (L, M, Q oder H).': 'Уровня QR «{0}» не существует (L, M, Q или H).',
   'Das ist zu viel für einen QR-Code: {0} Bytes, höchstens {1} passen hinein (Stufe {2}).': 'Это слишком много для QR-кода: {0} байт, помещается не больше {1} (уровень {2}).',
+  '„Vom Teller“ braucht ein Foto.': 'Для «С тарелки» нужна фотография.',
+  'Claude sieht sich das Gericht an …': 'Claude рассматривает блюдо …',
+  'Auf dem Foto ist kein Gericht zu erkennen.': 'На фотографии не удаётся распознать блюдо.',
+  'Hinaus geht: die Suchfrage und von {0} Treffern Name, Kategorie und Zutaten an Anthropic (Claude).': 'К отправке: поисковый запрос и по {0} результатам — название, категория и ингредиенты в Anthropic (Claude).',
 };

@@ -1,10 +1,11 @@
 # Gegenprobe zu tests/smoke_neu_zusatz.mjs: je Fall eine Sabotage in einer Wegwerf-Kopie; die Probe muss ROT werden,
 # und die rote Zeile muss den Namen der Zusicherung tragen. Aufruf: python3 -u tests/gegenprobe_neu_zusatz.py   (NUR_FALL=a,b · NUR_ANKER=1)
 import subprocess, shutil, os, tempfile, sys
-F=[('alter-stand-doppelt', "    if (schon.has(s.alt)) continue;", "", 'kern/speicher/alt-tresor.mjs', 'kein alter Stand doppelt'),
+# Zwei Riegel decken einander (Merker in den Einstellungen + alte Kennung im Tresor): die Sabotage nimmt beide.
+F=[('alter-stand-doppelt', "    if (schon.has(s.alt)) continue;", "", 'kern/speicher/alt-tresor.mjs', 'kein alter Stand doppelt', "E.altTresor = true; sichern();", "sichern();", 'neu/zusatz.mjs'),
    ('alte-zeit-verloren', "await tr.ablegen(s.sicherung, s.art, s.name, { ts: s.ts, alt: s.alt });", "await tr.ablegen(s.sicherung, s.art, s.name, { alt: s.alt });", 'kern/speicher/alt-tresor.mjs', 'mit ihrem Namen, ihrer alten Zeit'),
    ('alte-bilder-fehlen', "(!r.img && r.id != null && b[r.id] ? { ...r, img: b[r.id] } : r)", "(r)", 'kern/speicher/alt-tresor.mjs', 'das Bild hängt wieder an seinem Rezept'),
-   ('alte-db-angelegt', "      a.onupgradeneeded = () => { neu = true; try { a.transaction.abort(); } catch { /* schon zu */ } };", "      a.onupgradeneeded = () => { neu = true; };", 'kern/speicher/alt-tresor.mjs', 'wird ihre Datenbank nicht angelegt', "    if (idb.databases) { const alle = await idb.databases(); if (!alle.some((x) => x.name === ort.db)) return []; }\n", ""),
+   ('alte-db-angelegt', "      a.onupgradeneeded = () => { neu = true; try { a.transaction.abort(); } catch { /* schon zu */ } };", "      a.onupgradeneeded = () => { neu = true; };", 'kern/speicher/alt-tresor.mjs', 'wird ihre Datenbank nicht angelegt', "    if (idb.databases) { const alle = await idb.databases(); if (!alle.some((x) => x.name === ort.db)) return []; }\n", "", 'kern/speicher/alt-tresor.mjs'),
    ('richter-ohne-schluessel', "    if (!SK.anthropic) { app.schluesselFenster('anthropic', 'richter'); return; }", "", 'neu/zusatz.mjs', 'ohne Anthropic-Schlüssel kommt das Schlüssel-Fenster'),
    ('richter-sendet-falle', "if ((await pruefe(k.text)).length) urteile.push({ uid: k.uid, passt: null, warum: '', ausgeschlossen: 'ki-anweisung' }); else zumRichter.push(k);", "zumRichter.push(k);", 'kern/suche/richter.mjs', 'das Rezept mit dem Befehl an eine KI geht nicht hinaus'),
    ('richter-sendet-schritte', "zut && 'Zutaten: ' + kurz(zut, 300)]", "zut && 'Zutaten: ' + kurz(zut, 300), (r.steps || []).map((x) => x.txt).join(' ')]", 'kern/suche/richter.mjs', 'Schritte gehen nie hinaus'),
@@ -21,12 +22,13 @@ F=[('alter-stand-doppelt', "    if (schon.has(s.alt)) continue;", "", 'kern/spei
    ('plan-falsche-woche', "const tage = app.planTage(), ab = tagIso(tage[0]),", "const tage = app.planTage(), ab = tagIso(tage[1]),", 'neu/zusatz.mjs', 'trägt den Vorschlag in die gezeigte Woche ein')]
 nur=os.environ.get('NUR_FALL'); nur=nur.split(',') if nur else None; gefangen=0; durch=0; tot=0
 def anker(fall):
-    name,a,b,f,erwartet=fall[:5]; paare=[(a,b)]+([(fall[5],fall[6])] if len(fall)>5 else []); return name,f,erwartet,paare
+    name,a,b,f,erwartet=fall[:5]; paare=[(a,b,f)]+([(fall[5],fall[6],fall[7])] if len(fall)>5 else []); return name,f,erwartet,paare
 if os.environ.get('NUR_ANKER'):
     for fall in F:
-        name,f,erwartet,paare=anker(fall); s=open(f,encoding='utf-8').read()
-        for a,_ in paare:
-            if s.count(a)!=1: print('==',name,'TOTER ANKER',s.count(a)); tot+=1
+        name,f,erwartet,paare=anker(fall)
+        for a,_,pf in paare:
+            n=open(pf,encoding='utf-8').read().count(a)
+            if n!=1: print('==',name,'TOTER ANKER',n); tot+=1
     print('%d Fälle, %d tote Anker' % (len(F),tot)); sys.exit(1 if tot else 0)
 for fall in F:
     name,f,erwartet,paare=anker(fall)
@@ -34,10 +36,8 @@ for fall in F:
     W=tempfile.mkdtemp(prefix='rb-gz-')
     for d in ['neu','kern','icons','ausgaben','assets','sbkim']: shutil.copytree(d,W+'/'+d)
     os.makedirs(W+'/beispiele'); shutil.copy('beispiele/KATALOG.json', W+'/beispiele/KATALOG.json')
-    s=open(W+'/'+f,encoding='utf-8').read()
-    if any(s.count(a)!=1 for a,_ in paare): print('==',name,'TOTER ANKER'); tot+=1; shutil.rmtree(W); continue
-    for a,b in paare: s=s.replace(a,b)
-    open(W+'/'+f,'w',encoding='utf-8').write(s)
+    if any(open(W+'/'+pf,encoding='utf-8').read().count(a)!=1 for a,_,pf in paare): print('==',name,'TOTER ANKER'); tot+=1; shutil.rmtree(W); continue
+    for a,b,pf in paare: s=open(W+'/'+pf,encoding='utf-8').read(); open(W+'/'+pf,'w',encoding='utf-8').write(s.replace(a,b))
     try: r=subprocess.run(['node','tests/smoke_neu_zusatz.mjs'],env={**os.environ,'WURZEL':W},capture_output=True,text=True,timeout=420); aus=r.stdout
     except subprocess.TimeoutExpired as e: aus=(e.stdout or b'').decode() if isinstance(e.stdout,bytes) else (e.stdout or ''); aus+='\n  ✗ ROT: GESTOLPERT (Zeit)'
     rote=[l.strip() for l in aus.splitlines() if 'ROT:' in l]

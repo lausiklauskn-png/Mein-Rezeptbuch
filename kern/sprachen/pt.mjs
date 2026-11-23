@@ -197,4 +197,8 @@ export default {
   // teilen/qr.mjs
   'Die QR-Stufe „{0}“ gibt es nicht (L, M, Q oder H).': 'O nível QR «{0}» não existe (L, M, Q ou H).',
   'Das ist zu viel für einen QR-Code: {0} Bytes, höchstens {1} passen hinein (Stufe {2}).': 'É demasiado para um código QR: {0} bytes, cabem no máximo {1} (nível {2}).',
+  '„Vom Teller“ braucht ein Foto.': '«Do prato» precisa de uma fotografia.',
+  'Claude sieht sich das Gericht an …': 'O Claude está a ver o prato …',
+  'Auf dem Foto ist kein Gericht zu erkennen.': 'Não se reconhece nenhum prato na fotografia.',
+  'Hinaus geht: die Suchfrage und von {0} Treffern Name, Kategorie und Zutaten an Anthropic (Claude).': 'Envio: a pesquisa e, de {0} resultados, nome, categoria e ingredientes para a Anthropic (Claude).',
 };

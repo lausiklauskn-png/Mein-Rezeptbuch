@@ -72,10 +72,10 @@ try {
   ok(vor.length === 4 && await p.locator('[data-a=richter]').count() === 1, 'unter „Nach Bedeutung“ steht ein kleiner Knopf „KI prüft“', vor.join(' | '));
   const rt = (await p.locator('[data-a=richter]').innerText()).replace(/\s+/g, ' '), rh = await hinweis(p, '[data-a=richter]');
   ok(/KI prüft/.test(rt) && /Anthropic · 4/.test(rt) && rh.includes('Suchfrage') && rh.includes('4 Treffern') && rh.includes('Anthropic'), 'im Knopf steht, an wen und wie viel; der Hinweis sagt, was hinausgeht', rt + ' | ' + rh);
-  await p.click('[data-a=richter]'); await p.waitForSelector('[data-form=schluessel]');
-  ok(netz.claude.length === 0 && (await p.locator('.fenster h2').innerText()).includes('Anthropic'), 'ohne Anthropic-Schlüssel kommt das Schlüssel-Fenster, nichts geht hinaus');
+  await p.click('[data-a=richter]'); await p.waitForSelector('[data-form=schluessel]', { timeout: 6000 }).catch(() => {});
+  ok(netz.claude.length === 0 && await p.locator('[data-form=schluessel]').count() === 1 && (await p.locator('.fenster h2').innerText()).includes('Anthropic'), 'ohne Anthropic-Schlüssel kommt das Schlüssel-Fenster, nichts geht hinaus');
   netz.claudeAntwort = () => ({ urteile: [{ nr: 1, passt: false, warum: 'kein Eintopf' }, { nr: 2, passt: true, warum: 'Suppe aus einem Topf' }, { nr: 3, passt: true, warum: 'geschmort' }] });
-  await p.fill('#schl-feld', 'sk-ant-probe-222222222222222222'); await p.click('[data-form=schluessel] button[type=submit]');
+  if (await p.locator('#schl-feld').count()) { await p.fill('#schl-feld', 'sk-ant-probe-222222222222222222'); await p.click('[data-form=schluessel] button[type=submit]'); }
   await p.waitForSelector('#richter-fertig', { timeout: 10000 }).catch(() => {});
   ok(netz.claude.length === 1, 'nach dem Speichern des Schlüssels läuft die Prüfung von selbst weiter: ein Aufruf an Claude', String(netz.claude.length));
   const auftrag = netz.claude[0] ? netz.claude[0].messages[0].content.map((b) => b.text || '').join('\n') : '';
@@ -117,9 +117,9 @@ try {
   const zuBildern = async () => { await geh(p, 'werkstatt'); await p.locator('[data-zu=bilder]').click(); await p.waitForSelector('.bildgitter'); };
   await zuBildern();
   ok((await p.locator('[data-a=sammel-bilder]').innerText()).replace(/\s+/g, ' ').trim() === 'KI-Bilder · 3', 'bei den Bildern steht „KI-Bilder · 3“ (so viele Rezepte haben kein Bild)', await p.locator('[data-a=sammel-bilder]').innerText().catch(() => 'fehlt'));
-  await p.click('[data-a=sammel-bilder]'); await p.waitForSelector('[data-form=schluessel]');
-  ok(netz.bild.length === 0 && (await p.locator('.fenster h2').innerText()).includes('OpenAI'), 'ohne OpenAI-Schlüssel kommt das Schlüssel-Fenster');
-  await p.fill('#schl-feld', 'sk-probe-44444444444444444444'); await p.click('[data-form=schluessel] button[type=submit]'); await p.waitForSelector('#sammel-kosten');
+  await p.click('[data-a=sammel-bilder]'); await p.waitForSelector('[data-form=schluessel]', { timeout: 6000 }).catch(() => {});
+  ok(netz.bild.length === 0 && await p.locator('[data-form=schluessel]').count() === 1 && (await p.locator('.fenster h2').innerText()).includes('OpenAI'), 'ohne OpenAI-Schlüssel kommt das Schlüssel-Fenster');
+  if (await p.locator('#schl-feld').count()) { await p.fill('#schl-feld', 'sk-probe-44444444444444444444'); await p.click('[data-form=schluessel] button[type=submit]'); } await p.waitForSelector('#sammel-kosten', { timeout: 6000 }).catch(() => {});
   ok((await p.locator('#sammel-kosten').innerText()).trim() === '3 Bilder · etwa 0,12 $ · OpenAI' && netz.bild.length === 0 && await p.locator('.fenster p').count() === 1, 'ein Fenster nennt vor dem Start Anzahl, Kosten und Empfänger in einer Zeile; gesendet ist noch nichts', await p.locator('#sammel-kosten').innerText());
   netz.bildWarte = 700; await p.click('[data-a=sammel-start]'); await p.waitForSelector('#sammel-stand');
   await p.waitForFunction(() => /1 von 3/.test(document.querySelector('#sammel-stand')?.textContent || ''), null, { timeout: 5000 }).catch(() => {});

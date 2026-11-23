@@ -197,4 +197,8 @@ export default {
   // teilen/qr.mjs
   'Die QR-Stufe „{0}“ gibt es nicht (L, M, Q oder H).': '不存在 QR 级别“{0}”（L、M、Q 或 H）。',
   'Das ist zu viel für einen QR-Code: {0} Bytes, höchstens {1} passen hinein (Stufe {2}).': '内容太多，QR 码放不下：{0} 字节，最多可放 {1} 字节（级别 {2}）。',
+  '„Vom Teller“ braucht ein Foto.': '“从菜品识别”需要一张照片。',
+  'Claude sieht sich das Gericht an …': 'Claude 正在查看这道菜 …',
+  'Auf dem Foto ist kein Gericht zu erkennen.': '照片中没有可识别的菜品。',
+  'Hinaus geht: die Suchfrage und von {0} Treffern Name, Kategorie und Zutaten an Anthropic (Claude).': '将发送：搜索词以及 {0} 条结果的名称、分类和食材，发送给 Anthropic (Claude)。',
 };
