@@ -150,8 +150,8 @@ Auftrag: Brief `docs/BRIEF_SITZUNG_2026-11-23_REZEPTBUCH-KUECHEN-KERN.md` im Rep
 
 | Funktion | Ziel | Stufe | Im Kern / Probe |
 |---|---|---|---|
-| SBKIM-Module 00–08, 15–18, 23 (`sbkim/`), Briefkästen, Spore, `status.json` | **nicht Store** | – | bleibt in der alten Web-App |
-| Mycel / Rendezvous-Panel, Gerätename | **nicht Store** | – | bleibt in der alten Web-App |
+| SBKIM-Module 00–08, 15–18, 23 (`sbkim/`), Briefkästen, Spore, `status.json` | **eingebaut, nicht geladen, unsichtbar** | – | kein Netzverkehr; später von Hand freischaltbar (eigenes Kochnetzwerk, Klaus 23.11.) |
+| Mycel / Rendezvous-Panel, Gerätename | **eingebaut, nicht geladen, unsichtbar** | – | wie SBKIM |
 | KI-Richter-Prüfliste (`04_match.js`) | **nicht Store** | – | an SBKIM gebunden |
 | `test/sbkim.test.js` | **nicht Store** | – | läuft weiter für die alte App |
 
@@ -205,3 +205,24 @@ Beide Ausgaben liegen unter derselben Herkunft `lausiklauskn-png.github.io`: jed
 | neu 14 | Bild anpassen | Bildausschnitt (heute `openCrop`): ziehen, Zoom, Höhe, Lagen, Vorschau Karte/Kopf/Liste; anderes Bild per Kamera, Datei, KI, Gratis, Food-Zine |
 | neu 15 | Food-Zine | drei Seiten, Auftrag ohne Schlüssel kopieren, Bild einsetzen oder mit Schlüssel erzeugen, Stil, Galerie |
 | Regel | **keine Funktion auslassen** außer SBKIM und Mycel | gilt für die ganze Liste oben |
+
+## 14 · Abgleich mit dem Mixarium und dritte Runde (Klaus 23.11.)
+
+Klaus hat zu den zehn Punkten der Mixarium-Sitzung und zu Punkt 16 Ja gesagt. Brief dazu: `docs/BRIEF_2026-11-23_REZEPTBUCH-AN-MIXARIUM.md`.
+
+| Baustein | Ziel | Hinweis |
+|---|---|---|
+| Verlaufs-Knöpfe (Wasserfarbe statt Vollton), Maße 36/34/28/30, Kochansicht 46 | kern | |
+| Leiste: Griff 12 × 64, Knöpfe 34 px, Fach ≤ 180 px, 24 px Rand auf der Griff-Seite | kern | |
+| Kopf: eingeklappt Name, +, Pfeil; ausgeklappt Suche, Farbe, Sprache, Notizen, Einstellungen | kern | |
+| Sprache folgt dem Gerät, kein Kürzel; Inhalte nur mit KI (eigener Schlüssel), ganze Sammlung oder einzelnes Rezept, keine Zusatzzeile; Weltkugel am Rezept; Einheiten metrisch/US | kern | |
+| Kochansicht: Foto, Schritt, Zutaten, Wecker, gezeichnete Geräte; Kopf klappt auf Fortschrittslinie | kern | Geräte aus dem Schritttext erkannt, von Hand ergänzbar; Geräteliste erweiterbar je Ausgabe |
+| Schriftgröße der Kochansicht in den Einstellungen | kern | |
+| „Nur dieses Rezept“ am Monitor | kern | |
+| Beispiel-Paket: Web-App auf Tippen, APK und Windows im Paket | kern | |
+| Kreativbuch (Punkt 16): 8 Stile, Kosten vorab, mit Schlüssel oder Auftrag kopieren, Blätterbuch, PDF, HTML, Rezeptbild, eigenes Buch aus Bildern, Projekte | ausgabe, Gerüst im kern | Stile als erweiterbare Liste |
+| Erklärtexte hinter „?“ | kern | |
+| Spracheingabe in allen größeren Textfeldern | kern | Android: nativer Baustein wie Familienakte (`ProSpeech`); Windows offen |
+| Notizbuch mit Kalender und Erinnerungen (wie Private Akte) | kern, gepinnter Klon | Benachrichtigungen am Handy nötig |
+| Bedeutungssuche aus SBKIM lösen, Modell ins Paket, Grenze 120 Rezepte aufheben | kern | gemessen 23.11. |
+| Fehler „nur die Suche findet“ (`blank: true` mit Namen, Kennungen mit Leerzeichen oder Großschreibung) | kern | beim Laden und Import bereinigen; Probe: alles, was die Suche findet, steht auch in „Alle“ |
