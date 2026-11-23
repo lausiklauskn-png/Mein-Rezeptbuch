@@ -15,6 +15,10 @@ export function speicher(dbName) {
   return {
     async lies() { const d = await hol(); return new Promise((gut, schlecht) => { const a = d.transaction(LADEN).objectStore(LADEN).get(SCHLUESSEL); a.onsuccess = () => gut(a.result || null); a.onerror = () => schlecht(a.error); }); },
     async schreibe(zustand) { const d = await hol(); return new Promise((gut, schlecht) => { const t = d.transaction(LADEN, 'readwrite'); t.objectStore(LADEN).put(zustand, SCHLUESSEL); t.oncomplete = () => gut(); t.onerror = () => schlecht(t.error); t.onabort = () => schlecht(t.error); }); },
+    /** Weitere Einträge neben dem Zustand (Tresor): frei wählbarer Schlüssel. */
+    async hol(k) { const d = await hol(); return new Promise((gut, schlecht) => { const a = d.transaction(LADEN).objectStore(LADEN).get(k); a.onsuccess = () => gut(a.result ?? null); a.onerror = () => schlecht(a.error); }); },
+    async setz(k, wert) { const d = await hol(); return new Promise((gut, schlecht) => { const t = d.transaction(LADEN, 'readwrite'); t.objectStore(LADEN).put(wert, k); t.oncomplete = () => gut(); t.onerror = () => schlecht(t.error); t.onabort = () => schlecht(t.error); }); },
+    async weg(k) { const d = await hol(); return new Promise((gut, schlecht) => { const t = d.transaction(LADEN, 'readwrite'); t.objectStore(LADEN).delete(k); t.oncomplete = () => gut(); t.onerror = () => schlecht(t.error); }); },
     /** Bittet den Browser, die Daten nicht von selbst zu löschen. */
     async dauerhaft() { try { return !!(await navigator.storage?.persist?.()); } catch { return false; } },
   };

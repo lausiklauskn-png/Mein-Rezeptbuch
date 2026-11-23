@@ -176,3 +176,26 @@ test('Text-Import ohne Überschriften: Zutatenzeilen oben, Absätze unten, als u
   assert.deepEqual(zutatAusZeile('- 400-500 g Hähnchenbrust'), { amt: '400-500', unit: 'g', name: 'Hähnchenbrust', note: '' });
   assert.deepEqual(zutatAusZeile('etwas Petersilie'), { amt: '', unit: '', name: 'etwas Petersilie', note: '' });
 });
+
+import { kiBild, gratisBild, bildAuftrag } from '../kern/ki/bild.mjs';
+import { tresor, MAX_AUTO } from '../kern/speicher/tresor.mjs';
+test('KI-Bild: zweites Modell bei 400, b64 wird data:-URL, 401 mit Klartext, kein response_format', async () => {
+  const rufe = []; const ant = (ok, status, body) => ({ ok, status, json: async () => body });
+  const hol = async (url, opt) => { const b = JSON.parse(opt.body); rufe.push(b); return b.model === 'dall-e-3' ? ant(false, 400, { error: { message: 'Unknown parameter' } }) : ant(true, 200, { data: [{ b64_json: 'QUJD' }] }); };
+  const r = { name: 'Gulasch', ings: [{ name: 'Rind' }], steps: [{ txt: 'Schmoren.' }] };
+  assert.equal(await kiBild('sk-x', r, { hol }), 'data:image/png;base64,QUJD');
+  assert.deepEqual(rufe.map((b) => b.model), ['dall-e-3', 'gpt-image-1']); assert.ok(rufe.every((b) => !('response_format' in b)));
+  assert.ok(bildAuftrag(r).includes('"Gulasch"') && bildAuftrag(r).includes('Rind'));
+  await assert.rejects(kiBild('sk-x', r, { hol: async () => ant(false, 401, {}) }), /Schlüssel wurde abgelehnt/);
+  await assert.rejects(kiBild('', r), /Kein OpenAI-Schlüssel/);
+  await assert.rejects(gratisBild(r, { hol: async () => ({ ok: false, status: 502 }) }), /antwortet nicht/);
+});
+test('Tresor: höchstens fünf automatische, die älteste fällt heraus; benannte bleiben; holen und löschen', async () => {
+  const m = new Map(); const lager = { hol: async (k) => m.get(k) ?? null, setz: async (k, v) => { m.set(k, v); }, weg: async (k) => { m.delete(k); } };
+  const t = tresor(lager); const b = await t.ablegen({ recipes: [1, 2] }, 'benannt', 'Vor dem Umbau');
+  for (let i = 0; i < MAX_AUTO + 2; i++) await t.ablegen({ recipes: [i] }, 'auto');
+  const l = await t.liste(); assert.equal(l.filter((x) => x.art === 'auto').length, MAX_AUTO); assert.equal(l.filter((x) => x.art === 'benannt').length, 1);
+  assert.equal(m.size, 1 + MAX_AUTO + 1, 'herausgefallene Sicherungen sind auch aus dem Speicher weg');
+  assert.deepEqual((await t.hol(b)).recipes, [1, 2]); assert.equal(l.find((x) => x.id === b).name, 'Vor dem Umbau');
+  await t.loeschen(b); assert.equal(await t.hol(b), null); assert.equal((await t.liste()).length, MAX_AUTO);
+});

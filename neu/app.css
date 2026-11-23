@@ -417,3 +417,19 @@ body:has(.koch) .fl{display:none}
 .imp-tabs button[aria-selected="true"]{color:var(--akz);border-bottom-color:var(--akz);font-weight:600}
 .imp-p{display:grid;gap:8px;justify-items:start}
 .imp-p .mitmik{width:100%}
+
+/* Rezept: Leiste über dem Bild, einklappbar. Auf dem Bild liegt kein Knopf mehr; ein Tipp aufs Bild öffnet das Bild-Blatt. */
+.rleiste{display:flex;justify-content:space-between;align-items:center;gap:8px;padding:0 0 8px}
+.rwerk{display:flex;flex-wrap:wrap;gap:6px;padding:0 0 10px;animation:auf .18s ease-out}
+.rwerk .chip{min-height:32px;cursor:pointer;white-space:nowrap}.rwerk .chip .ic{width:16px;height:16px}.rwerk .chip.rot{color:#a3321f}
+.rezept-held{margin-top:0;cursor:pointer}
+.rezept-held:focus-visible{outline:3px solid var(--akz);outline-offset:-3px}
+.bb-bild{display:block;width:100%;max-height:56svh;object-fit:contain;border-radius:12px;background:var(--fl2)}
+.tr-liste .zeile{cursor:default;flex-wrap:wrap}.tr-liste .chip{cursor:pointer;flex:none}
+@media(min-width:700px){
+ /* breiter Schirm: das ganze Bild zeigen statt eines Streifens. Wer einen Ausschnitt gewählt hat, behält ihn. */
+ .rezept-held,.md-detail .rezept-held,body[data-fl] .md-detail .rezept-held{height:min(58vh,520px)}
+ .rezept-held>img:not([style]){object-fit:contain}
+}
+@media(min-width:1000px){.md-detail .rleiste{padding:10px 16px 8px}.md-detail .rwerk{padding:0 16px 10px}.md-detail .rleiste [data-a="zurueck"]{visibility:hidden}}
+@media print{.rleiste,.rwerk{display:none!important}}

@@ -1,11 +1,12 @@
 {
- "fassung": "0.6.0",
+ "fassung": "0.7.0",
  "inhalt": "Ausgaben-Schalter, Rezeptmodell, Kategorien, Suche, Sicherung, Übernahme, Speicher, Mengen, Symbole, Farben, Bild, Kochansicht (Zutaten je Schritt, Zeit, Geräte), Einkaufsliste, Wochenplan, Text-Import, Spracheingabe",
  "dateien": {
   "kern/README.md": "8938e53516c1044b6b9fcc57bceaf8275c2159ac749d0f9c5720f26ccc37bd40",
   "kern/ausgabe/ausgabe.mjs": "56d01a3a8b5855af233956c5ecf83d66df138ddc0896cede65a74192fd626ecf",
   "kern/import/text.mjs": "98c3dcbba951e4d802467e42a52ecc5d3b60499723a05b9b5b578b23a80b88b2",
-  "kern/kern-stand.mjs": "98d133ae888d483d4bd11ee09cd7f57f7542f77eb3424d088a2add6cb5437e6c",
+  "kern/kern-stand.mjs": "c908efd8242ed88fde48b763b0d741bae0aa72b01dc4c79dd147d6cfd250a393",
+  "kern/ki/bild.mjs": "d1a93a5d4131546f6ed33f07eb9d4ff73f27b22e13c85414fea743da393dc930",
   "kern/modell/einkauf.mjs": "16bc08dfef9f5d06afdc3db86bb3b52598bfbff7d7cf735c42a1463bfece32e6",
   "kern/modell/kategorien-fest.mjs": "d7d5acf5934bb92898d04ef299f69638a33fb482586c2491555e5299733e010f",
   "kern/modell/kategorien.mjs": "d8e21e52305ee8dab245dbb73cebb6166d61ddce76e550432cceaa1fb4ef7dab",
@@ -22,7 +23,8 @@
   "kern/oberflaeche/geraete.mjs": "2c677c48d81643da62e7ad2bd047028e36605c3123f4622060dd59eb144582a1",
   "kern/oberflaeche/symbole.mjs": "98bca7a15e44b18248abdaf8460a38fb59e5e8134bf7cfc6ab52e94d27bdb943",
   "kern/sicherung/sicherung.mjs": "d26f08cab10b9d7802e93219186a6cdc0a93847124259e2eb74870937a63a249",
-  "kern/speicher/speicher.mjs": "bcee2bb579de1d40f48b73aca31cc4ffad675aee2c4b8eaeae1daa8289b39ade",
+  "kern/speicher/speicher.mjs": "f4933d93cd2c945480c0e2dc9335c40b3ff21440bc62a8e706fa1ff74e8e6010",
+  "kern/speicher/tresor.mjs": "ed09f9ec00b5813051e1161dbd7ad7864112ca02a3996ca07c7b9b25e5910d01",
   "kern/speicher/uebernahme.mjs": "04f10f5e951e5bf6956294985a75ec3440271af3befa87a9e3467de95855185a"
  }
 }
