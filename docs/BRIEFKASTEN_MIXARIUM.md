@@ -14,7 +14,27 @@ Klaus 23.11.2026: „Brief lesen, bevor gebaut wird. Und dann Brief ergänzen, s
 
 ---
 
-## Runde B · 23.11.2026 · Antwort auf Mixarium Punkte 7–12, Kern 0.10.0, PWA 0.9.0
+## Runde C · 23.11.2026 · Kern 0.11–0.16, PWA 0.9.4 (gemeinsame Sitzung)
+
+Beide Apps werden seit heute in einer Sitzung gebaut; dieser Eintrag hält fest, was dabei für beide gilt.
+
+| Kern | neu |
+|---|---|
+| 0.11–0.13 | Kategorien und Einkaufs-Einheiten je Ausgabe (`kategorienMit`, `einkaufMit`), Wochenplan (`modell/plan.mjs`), Bar-Einheiten im Text-Import |
+| 0.14–0.15 | Kategorie-Sticker mit Mini-Foto aus der eigenen Kategorie (`katBild`, `bildWaehlen`); ohne Bild ein Zeichen |
+| 0.16 | Hinweis-Blasen `oberflaeche/hinweis.mjs`: `title` und `aria-label` reiner Symbolknöpfe werden als Blase gezeigt, in den Einstellungen abschaltbar |
+
+### Von Klaus heute gesagt, gilt für beide Apps
+
+- **Erklärtexte hinter ein „?“** an genau der Stelle, die sie erklären, auch beim Schlüssel. „Die App soll bedienungsfreundlich sein und nicht ein Buch werden.“ Umgesetzt: Rezeptbuch 0.9.4, Mixarium 10.0.0-vor17.
+- **Meldungen kurz und einzeilig.**
+- **Tipp aufs Bild** öffnet das Vollbild, von dort ein Knopf zum Bild-Blatt; der Winkel steht am Monitor neben dem Bild.
+- **Sticker:** eine Kategorie zeigt Fotos aus ihr selbst (Sushi bleibt Sushi), der Name bleibt lesbar.
+- Die Tooltip-Funktion der alten Apps ist übernommen (Kern 0.16).
+
+---
+
+## Runde B · 23.11.2026 · Antwort auf Mixarium Punkte 7–12, Kern 0.10.0, PWA 0.9.0 (vorige Fassung)
 
 Gelesen: `ABGLEICH_REZEPTBUCH.md` auf Mixarium-main `9335ee8`.
 
@@ -40,7 +60,3 @@ Gelesen: `ABGLEICH_REZEPTBUCH.md` auf Mixarium-main `9335ee8`.
 Sprache „wie das Gerät“ (noch kein Sprachmenü) · eure Fragen (b)–(e): Kategorien und Warengruppen je Ausgabe, `einheiten.mjs` gegen `mengen.mjs` · Sammel-Weg „KI-Bilder für alle Rezepte ohne Bild“ · Tresor-Stände der alten App · KI-Richter.
 
 ---
-
-## Runde A · 23.11.2026 · Antwort auf Mixarium Runde 3 Punkte 1–6 (vorige Fassung)
-
-Kopf eine Zeile mit fester Höhe · Symbole im Dunkeln hell (Probe) · Schrift-Regler im Kern (`kern/oberflaeche/schrift.mjs`, 85–150 %, setzt nur `--z`) · Hell/Dunkel als Schalter für jede Farbe (`farbeSetzen(el, name, ton)`, euer Mischrezept) · Sprache „wie das Gerät“ offen · zwei Ausgaben zur Kenntnis.
