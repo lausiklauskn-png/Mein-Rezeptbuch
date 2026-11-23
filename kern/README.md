@@ -39,15 +39,15 @@ Das Alkohol-Paket aus `beispiele/` ist im Katalog nur für `mixarium-voll` freig
 | Datei | Aufgabe |
 |---|---|
 | `modell/rezept.mjs` | `normalisiere()` bringt jedes Rezept einmal in Form: `blank` nur ohne Namen, Kategorie getrimmt, `fld_…` zieht in `folder`, feste `uid`. `istInhalt()` ist die eine Frage, die Suche, „Alle“, Kategorien und Zähler stellen. |
-| `modell/kategorien.mjs` | `alleKategorien()`: feste, eigene, unbekannte und „Ohne Kategorie“, jede Kennung einmal. Anlegen, umbenennen, löschen mit Ziel, umsortieren. |
+| `modell/kategorien.mjs` | `alleKategorien()`: feste, eigene, unbekannte und „Ohne Kategorie“, jede Kennung einmal. Anlegen, umbenennen, löschen mit Ziel, umsortieren. Eine andere Ausgabe bringt ihre festen Kategorien mit: `kategorienMit(FEST)` (Vorgabe: die Liste des Rezeptbuchs). |
 | `modell/kategorien-fest.mjs` | die 18 festen Kategorien in 8 Sprachen, aus der alten App übernommen |
 | `modell/suche.mjs` | Wortsuche, auch über den Kategorienamen |
 | `sicherung/sicherung.mjs` | liest Fassung 9/10 der alten Apps, schreibt Fassung 11 mit Block `kategorien`; Zusammenführen an `uid` |
-| `modell/mengen.mjs` | Mengen für andere Portionen umrechnen (Brüche, Bereiche) |
+| `modell/mengen.mjs` | Mengen für andere Portionen umrechnen (Brüche bis Achtel, Bereiche; „10,5“ bleibt 10,5, „1 ½“ ist 1,5) |
 | `modell/kochen.mjs` | Kochansicht: Zutaten eines Schritts und Zeitangabe, aus dem Schritttext, ohne KI |
 | `oberflaeche/geraete.mjs` | gezeichnete Gerätschaften (de/en), erkannt aus dem Text, erweiterbar je Ausgabe (`erweitern()`, eigenes Raster mit `vb`). „Shaker“/„schütteln“ ist kein Küchenmixer; Bar-Geräte bringt die Ausgabe mit. |
 | `ki/bild.mjs` | KI-Bild (OpenAI) und Gratis-Foto; Auftrag je Ausgabe: `art: 'essen'` (Vorgabe) oder `'getraenk'`, oder ganz eigener `auftrag`. Kosten-Hinweis de/en (`KOSTEN`). |
-| `modell/einkauf.mjs`, `modell/warengruppen.mjs` | Einkaufsliste: zusammenzählen (Einzahl/Mehrzahl, Einheiten), Warengruppen aus der alten App, Reihenfolge je Laden |
+| `modell/einkauf.mjs`, `modell/warengruppen.mjs` | Einkaufsliste: zusammenzählen (Einzahl/Mehrzahl, Einheiten), Warengruppen aus der alten App, Reihenfolge je Laden. Eigene Warengruppen und Einheiten je Ausgabe: `einkaufMit({ gruppen, einheiten })`. |
 | `modell/plan.mjs` | Wochenplan: Woche Mo–So mit Kalenderwoche, planen, altes Menü übernehmen |
 | `import/text.mjs` | Rezept aus eingefügtem Text ohne KI (Überschriften, Mengen, Einheiten, Portionen, Zeit) |
 | `oberflaeche/diktat.mjs` | Spracheingabe für Textfelder (Web Speech im Browser) |
@@ -55,7 +55,7 @@ Das Alkohol-Paket aus `beispiele/` ist im Katalog nur für `mixarium-voll` freig
 | `oberflaeche/` | Symbole (Phosphor Duotone, nur die genutzten), Farbpaletten mit `farbName`/`tonName` (de/en), Schrift-Regler (`schriftRegler(wert, sprache)`), Bild aus Datei verkleinern |
 | `speicher/uebernahme.mjs` | liest den alten localStorage nur mit der Endung der eigenen Ausgabe, löscht nichts |
 
-Probe: `node --test test/kern.test.js` (23 Fälle). Wächter für den Sushi-Fehler: **alles, was die Suche findet, steht in genau einer Gruppe von „Alle“**.
+Probe: `node --test test/kern.test.js` (26 Fälle). Wächter für den Sushi-Fehler: **alles, was die Suche findet, steht in genau einer Gruppe von „Alle“**.
 
 ## Pin (`KERN.json`)
 

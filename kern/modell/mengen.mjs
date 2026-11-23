@@ -1,5 +1,5 @@
 // Küchen-Kern · Mengen umrechnen (Portionen). Rechnet jede Zahl in einer Mengenangabe um und lässt den Rest stehen.
-const BRUCH = { '½': 0.5, '¼': 0.25, '¾': 0.75, '⅓': 1 / 3, '⅔': 2 / 3, '⅛': 0.125 };
+const BRUCH = { '½': 0.5, '¼': 0.25, '¾': 0.75, '⅓': 1 / 3, '⅔': 2 / 3, '⅛': 0.125, '⅜': 0.375, '⅝': 0.625, '⅞': 0.875 };
 const SCHOEN = [[0.25, '¼'], [0.5, '½'], [0.75, '¾'], [1 / 3, '⅓'], [2 / 3, '⅔']];
 
 export function zahlText(v) {
@@ -14,7 +14,7 @@ export function zahlText(v) {
 export function skaliere(menge, faktor) {
   const s = String(menge ?? '');
   if (!s || Math.abs(faktor - 1) < 1e-9) return s;
-  return s.replace(/(\d+)\s+(\d+)\/(\d+)|(\d+)\/(\d+)|(\d+(?:[.,]\d+)?)(?:\s*([½¼¾⅓⅔⅛]))?|([½¼¾⅓⅔⅛])/g, (m, g1, g2, g3, b1, b2, z, zb, nurB) => {
+  return s.replace(/(\d+)\s+(\d+)\/(\d+)|(\d+)\/(\d+)|(\d+(?:[.,]\d+)?)(?:\s*([½¼¾⅓⅔⅛⅜⅝⅞]))?|([½¼¾⅓⅔⅛⅜⅝⅞])/g, (m, g1, g2, g3, b1, b2, z, zb, nurB) => {
     let v;
     if (g1) v = +g1 + +g2 / +g3; else if (b1) v = +b1 / +b2; else if (z) v = parseFloat(z.replace(',', '.')) + (zb ? BRUCH[zb] : 0); else v = BRUCH[nurB];
     return zahlText(v * faktor);

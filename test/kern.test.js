@@ -234,3 +234,35 @@ test('Farben, Ton und Schrift-Regler tragen englische Namen', () => {
   assert.equal(tonName('geraet', 'en'), 'Same as device'); assert.equal(tonName('dunkel'), KT.dunkel);
   assert.ok(sRegler(100, 'en').includes('aria-label="Text size in percent"') && sRegler(100).includes('aria-label="Schriftgröße in Prozent"'));
 });
+
+// ---- Kern 0.12: Kategorien, Warengruppen und Einheiten je Ausgabe (Wunsch aus dem Mixarium) ----
+import { kategorienMit } from '../kern/modell/kategorien.mjs';
+import { einkaufMit } from '../kern/modell/einkauf.mjs';
+import { skaliere } from '../kern/modell/mengen.mjs';
+test('Kategorien je Ausgabe: eigene feste Liste; ohne Angabe bleibt es das Rezeptbuch', () => {
+  const FEST = [{ id: 'mock', symbol: 'glas', de: 'Mocktails', en: 'Mocktails' }, { id: 'limo', symbol: 'glas', de: 'Limonaden', en: 'Lemonades' }];
+  const K = kategorienMit(FEST), rz = [{ uid: 'a', name: 'Virgin Mojito', cat: 'mock' }, { uid: 'b', name: 'Suppe', cat: 'suppe' }];
+  const ids = K.alleKategorien(rz, leereKategorien()).map((c) => c.id);
+  assert.deepEqual(ids, ['mock', 'limo', 'suppe'], 'die festen kommen aus der Ausgabe; eine fremde Kennung bleibt sichtbar');
+  assert.equal(K.alleKategorien(rz, leereKategorien()).find((c) => c.id === 'suppe').art, 'unbekannt', 'im Mixarium ist „suppe“ fremd');
+  assert.equal(alleKategorien(rz).find((c) => c.id === 'suppe').art, 'fest', 'im Rezeptbuch ist „suppe“ fest');
+  assert.ok(alleKategorien(rz).some((c) => c.id === 'vorsp') && !K.alleKategorien(rz).some((c) => c.id === 'vorsp'), 'Vorgabe bleibt die Rezeptbuch-Liste');
+  const l = K.loeschen(rz, leereKategorien(), 'limo', null); assert.deepEqual(l.kat.ausgeblendet, ['limo'], 'eine feste Kategorie der AUSGABE wird ausgeblendet, nicht gelöscht');
+  assert.deepEqual(K.umsortieren(rz, leereKategorien(), 'limo', 'mock').folge, ['limo', 'mock', 'suppe']);
+  assert.deepEqual(K.gruppiere(rz).map((g) => g.kategorie.id), ['mock', 'suppe']);
+  assert.equal(K.FEST, FEST);
+});
+test('Einkauf je Ausgabe: eigene Warengruppen und Einheiten (oz, cl); ohne Angabe wie bisher', () => {
+  const GR = [{ id: 'saft', de: 'Säfte', worte: [' saft', 'saft '] }, { id: 'sirup', de: 'Sirup', worte: ['sirup'] }, { id: 'sonstiges', de: 'Sonstiges', worte: [] }];
+  const E_ = einkaufMit({ gruppen: GR, einheiten: { oz: ['ml', 30] } });
+  const r = { name: 'Limo', servings: 1, ings: [{ name: 'Orangensaft', amt: '4', unit: 'cl' }, { name: 'Orangensaft', amt: '1', unit: 'oz' }, { name: 'Grenadine-Sirup', amt: '1 ½', unit: 'cl' }] };
+  const l = E_.einkaufsliste([{ rezept: r, portionen: 2 }]);
+  assert.equal(l.find((x) => x.name === 'Orangensaft').menge, '140 ml', '4 cl + 1 oz (30 ml), doppelt');
+  assert.equal(l.find((x) => x.name === 'Orangensaft').gruppe, 'saft'); assert.equal(E_.warengruppe('Grenadine-Sirup'), 'sirup');
+  assert.deepEqual(E_.gruppenFolge(['sirup']), ['sirup', 'saft', 'sonstiges']); assert.deepEqual(E_.gruppeVerschieben([], 'sonstiges', 'saft'), ['sonstiges', 'saft', 'sirup']);
+  assert.equal(warengruppe('Orangensaft') !== 'saft', true, 'Vorgabe bleibt die Rezeptbuch-Liste'); assert.equal(einkaufsliste([{ rezept: r, portionen: 1 }]).find((x) => x.name === 'Orangensaft').menge, '40 ml + 1 oz', 'ohne Angabe kennt der Kern oz nicht und zählt nichts falsch zusammen');
+});
+test('Mengen: Achtel-Brüche und die zwei Rechenfehler der alten Mixarium-App', () => {
+  assert.equal(skaliere('⅜', 2), '¾'); assert.equal(skaliere('1 ⅞', 2), '3 ¾'); assert.equal(skaliere('10,5', 2), '21'); assert.equal(skaliere('1 ½', 2), '3');
+  assert.equal(zahlAus('⅝'), 0.625); assert.equal(zahlAus('2 ⅞'), 2.875);
+});

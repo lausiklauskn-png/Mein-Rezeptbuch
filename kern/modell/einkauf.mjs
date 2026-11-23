@@ -4,20 +4,20 @@ import { skaliere } from './mengen.mjs';
 
 const falten = (s) => String(s || '').toLowerCase().trim();
 const EINHEIT = { tl: ['tl', 1], teelöffel: ['tl', 1], el: ['tl', 3], esslöffel: ['tl', 3], ml: ['ml', 1], cl: ['ml', 10], dl: ['ml', 100], l: ['ml', 1000], liter: ['ml', 1000], g: ['g', 1], gramm: ['g', 1], kg: ['g', 1000] };
-const BRUCH = { '½': 0.5, '¼': 0.25, '¾': 0.75, '⅓': 1 / 3, '⅔': 2 / 3, '⅛': 0.125 };
+const BRUCH = { '½': 0.5, '¼': 0.25, '¾': 0.75, '⅓': 1 / 3, '⅔': 2 / 3, '⅛': 0.125, '⅜': 0.375, '⅝': 0.625, '⅞': 0.875 };
 
 /** Zahl aus einer Mengenangabe: '1 ½' → 1.5, '400-500' → 500 (lieber zu viel als zu wenig), 'etwas' → null */
 export function zahlAus(menge) {
   const s = String(menge ?? '').trim(); if (!s) return null;
   const teil = (t) => { let v = 0, gefunden = false;
-    for (const m of t.matchAll(/(\d+)\/(\d+)|(\d+(?:[.,]\d+)?)|([½¼¾⅓⅔⅛])/g)) { gefunden = true; v += m[1] ? +m[1] / +m[2] : m[3] ? parseFloat(m[3].replace(',', '.')) : BRUCH[m[4]]; }
+    for (const m of t.matchAll(/(\d+)\/(\d+)|(\d+(?:[.,]\d+)?)|([½¼¾⅓⅔⅛⅜⅝⅞])/g)) { gefunden = true; v += m[1] ? +m[1] / +m[2] : m[3] ? parseFloat(m[3].replace(',', '.')) : BRUCH[m[4]]; }
     return gefunden ? v : null; };
   const bereich = s.split(/\s*(?:–|-|bis)\s*/).map(teil).filter((x) => x != null);
   return bereich.length ? Math.max(...bereich) : null;
 }
-export function warengruppe(name) {
+export function warengruppe(name, gruppen = WARENGRUPPEN) {
   const n = ' ' + falten(name) + ' ';
-  for (const g of WARENGRUPPEN) if (g.worte.some((w) => n.includes(w))) return g.id;
+  for (const g of gruppen) if (g.worte.some((w) => n.includes(w))) return g.id;
   return 'sonstiges';
 }
 function schoen(basis, v) {
@@ -33,18 +33,19 @@ export function stamm(name) { const k = falten(name).replace(/\s*\([^)]*\)\s*$/,
 
 /** posten: [{rezept, portionen}] → [{schluessel, name, menge, gruppe, aus: [Rezeptnamen]}], sortiert nach Name.
  *  Gleiche Zutat (gleicher Name) wird zusammengezählt; verschiedene Einheiten stehen mit „+“ nebeneinander. */
-export function einkaufsliste(posten) {
+export function einkaufsliste(posten, { gruppen = WARENGRUPPEN, einheiten = {} } = {}) {
+  const tabelle = { ...EINHEIT, ...einheiten };
   const map = new Map();
   for (const { rezept: r, portionen } of posten) {
     const f = (portionen || r.servings) / (r.servings || 1);
     for (const z of r.ings || []) {
       const k = stamm(z.name); if (!k) continue;
-      let e = map.get(k); if (!e) { e = { schluessel: k, name: z.name, basen: new Map(), ohne: false, aus: [], gruppe: warengruppe(z.name) }; map.set(k, e); }
+      let e = map.get(k); if (!e) { e = { schluessel: k, name: z.name, basen: new Map(), ohne: false, aus: [], gruppe: warengruppe(z.name, gruppen) }; map.set(k, e); }
       if (!e.aus.includes(r.name)) e.aus.push(r.name);
       if (z.name.length > e.name.length) e.name = z.name;   // „Knoblauchzehen“ statt „Knoblauchzehe“
       const n = zahlAus(skaliere(z.amt, f));
       if (n == null) { e.ohne = true; continue; }
-      const u = EINHEIT[falten(z.unit)] || [z.unit || '', 1];
+      const u = tabelle[falten(z.unit)] || [z.unit || '', 1];
       e.basen.set(u[0], (e.basen.get(u[0]) || 0) + n * u[1]);
     }
   }
@@ -52,12 +53,25 @@ export function einkaufsliste(posten) {
     menge: [...e.basen].map(([b, v]) => { const [w, u] = schoen(b, v); return (zahlDe(w) + ' ' + u).trim(); }).join(' + ') })).sort((a, b) => a.name.localeCompare(b.name, 'de'));
 }
 /** Gruppen in der Reihenfolge eines Ladens (folge: Kennungen); fehlende Gruppen hinten in der Vorgabe-Reihenfolge. */
-export function gruppenFolge(folge = []) {
-  const alle = WARENGRUPPEN.map((g) => g.id), vorn = folge.filter((id) => alle.includes(id));
+export function gruppenFolge(folge = [], gruppen = WARENGRUPPEN) {
+  const alle = gruppen.map((g) => g.id), vorn = folge.filter((id) => alle.includes(id));
   return [...vorn, ...alle.filter((id) => !vorn.includes(id))];
 }
-export function gruppeVerschieben(folge, id, vorId) {
-  const ids = gruppenFolge(folge).filter((x) => x !== id), i = vorId == null ? ids.length : ids.indexOf(vorId);
+export function gruppeVerschieben(folge, id, vorId, gruppen = WARENGRUPPEN) {
+  const ids = gruppenFolge(folge, gruppen).filter((x) => x !== id), i = vorId == null ? ids.length : ids.indexOf(vorId);
   ids.splice(i < 0 ? ids.length : i, 0, id); return ids;
 }
 export { WARENGRUPPEN };
+
+/** Einkaufsliste mit den Warengruppen und Einheiten einer anderen Ausgabe (Mixarium: Säfte, Sirup …; oz, cl).
+ *  einheiten: { kennung: [basis, faktor] } ergänzt die Tabelle des Kerns, z. B. { oz: ['ml', 29.5735] }. */
+export function einkaufMit({ gruppen = WARENGRUPPEN, einheiten = {} } = {}) {
+  return {
+    GRUPPEN: gruppen,
+    einkaufsliste: (posten) => einkaufsliste(posten, { gruppen, einheiten }),
+    warengruppe: (name) => warengruppe(name, gruppen),
+    gruppenFolge: (folge) => gruppenFolge(folge, gruppen),
+    gruppeVerschieben: (folge, id, vorId) => gruppeVerschieben(folge, id, vorId, gruppen),
+    zahlAus, stamm,
+  };
+}
