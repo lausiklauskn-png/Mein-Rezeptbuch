@@ -290,3 +290,12 @@ test('Sticker-Bild je Kategorie: gewähltes Rezeptbild, sonst das erste mit Bild
   k = bildWaehlen(k, 'mock', null); assert.equal(k.namen.mock, undefined, 'zurück auf Vorgabe räumt auf');
   assert.equal(katBild(rz, umbenennen(bildWaehlen(k, 'mock', 'c'), 'mock', 'Neu'), 'mock')?.uid, 'c', 'Umbenennen lässt das Bild stehen');
 });
+test('Text-Import: Bar- und US-Einheiten (oz, fl oz, Barlöffel, Dash, Schuss, Beutel, cup) – Wunsch aus dem Mixarium', () => {
+  const f = (l) => { const z = zutatAusZeile(l); return [z.amt, z.unit, z.name].join('|'); };
+  assert.equal(f('2 oz Rotwein'), '2|oz|Rotwein'); assert.equal(f('1 ½ oz Rum'), '1 ½|oz|Rum'); assert.equal(f('3/4 oz Kahlúa'), '3/4|oz|Kahlúa');
+  assert.equal(f('2 fl oz Saft'), '2|fl oz|Saft'); assert.equal(f('1 Barlöffel Zucker'), '1|Barlöffel|Zucker');
+  assert.equal(f('2 Dashes Angostura'), '2|Dashes|Angostura'); assert.equal(f('1 Dash Angostura'), '1|Dash|Angostura');
+  assert.equal(f('1 Schuss Sahne'), '1|Schuss|Sahne'); assert.equal(f('2 Beutel schwarzer Tee'), '2|Beutel|schwarzer Tee'); assert.equal(f('2 cups Mehl'), '2|cups|Mehl');
+  assert.equal(f('4 cl weißer Rum'), '4|cl|weißer Rum'); assert.equal(f('200 g Gin-Gurken'), '200|g|Gin-Gurken', '„g“ vor „Gin“ bleibt Gramm');
+  assert.equal(f('2 Ozeanfische'), '2||Ozeanfische', '„oz“ nur als ganzes Wort'); assert.equal(f('20 Dolden Holunderblüten'), '20|Dolden|Holunderblüten');
+});
