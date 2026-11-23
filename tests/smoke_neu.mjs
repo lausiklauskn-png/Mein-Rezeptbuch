@@ -215,6 +215,26 @@ try {
   const kd = await browser.newContext({ viewport: { width: 390, height: 800 }, colorScheme: 'dark' }); const pd = await kd.newPage(); await pd.goto(URL0); await pd.waitForSelector('.gruss');
   ok(await pd.evaluate(() => document.documentElement.dataset.hell) === 'dunkel', 'ohne eigene Wahl folgt die App dem Gerät (dunkel)'); await kd.close();
 
+  console.log('11d · Sinn-Suche: Modul 04 echt, Modul 03 (Sprachmodell) nachgestellt');
+  k = await browser.newContext({ viewport: { width: 390, height: 800 }, serviceWorkers: 'block' }); p = await k.newPage(); p.on('pageerror', (e) => fehler.push(e.message));   // ohne Service Worker, sonst greift die Nachstellung von Modul 03 nicht
+  await p.route(/^https?:\/\/(?!localhost)/, (r) => { fehler.push('Netz nach draußen: ' + r.request().url()); r.abort(); }); await p.goto(URL0); await p.waitForSelector('.gruss');
+  const geladen = []; p.on('request', (q) => { if (q.url().includes('/sbkim/')) geladen.push(q.url().split('/sbkim/')[1].split('?')[0]); });
+  // Nachgestelltes Modell: „eintopf“ liegt bei „Gulasch“; alles andere ist ein Buchstaben-Vektor. Modul 04 rechnet echt.
+  await p.route('**/sbkim/03_embedding.js', (r) => r.fulfill({ contentType: 'text/javascript', body: `(function(){const v=(t)=>{const a=new Float32Array(384);const s=/eintopf/i.test(t)||/gulasch/i.test(t)?'gulasch':String(t).toLowerCase();for(const c of s)a[c.charCodeAt(0)%384]+=1;let n=0;for(const x of a)n+=x*x;n=Math.sqrt(n)||1;return a.map((x)=>x/n)};window.SbkimEmbedding={init:async()=>{},isReady:()=>true,embedQuery:async(t)=>v(t),embedPassage:async(t)=>v(t),embedQueryBatch:async(a)=>a.map(v),embedPassageBatch:async(a)=>a.map(v)};})();` }));
+  await p.click('[data-a=beispiel]'); await p.waitForSelector('.karte', { timeout: 20000 });
+  ok(geladen.length === 0 && await p.evaluate(() => !window.SbkimMatch && !window.SbkimEmbedding), 'ohne Sinn-Suche wird kein SBKIM-Baustein ausgeführt');
+  await p.fill('#suchfeld', 'eintopf'); const ohne = await p.locator('.karte').count();
+  await p.click('[data-a=sinn]'); ok((await p.locator('.fenster').innerText()).includes('120 MB'), 'vor dem Einschalten steht, was geladen wird'); await p.click('[data-a=ja]');
+  await p.waitForSelector('#sinn-treffer .karte', { timeout: 15000 });
+  const sinnNamen = await p.locator('#sinn-treffer .karte').allInnerTexts();
+  ok(ohne === 0 && sinnNamen.some((t) => /Gulasch/.test(t)), 'die Wortsuche findet „eintopf“ nicht, die Sinn-Suche findet das Gulasch', `${ohne} · ${sinnNamen.map((t) => t.split('\n')[0]).join(' | ')}`);
+  ok([...new Set(geladen)].sort().join(',') === '03_embedding.js,04_match.js', 'geladen sind genau Modul 03 und 04, kein Siegel, kein Widget, keine Spore', [...new Set(geladen)].join(','));
+  ok(await p.evaluate(() => !window.SbkimSiegel && !window.SbkimSpore && !window.SbkimWidget && !document.querySelector('[id^=sbkim],[class^=sbkim]')), 'nichts von SBKIM ist zu sehen');
+  ok(await p.evaluate(() => document.activeElement?.id !== 'x') && (await p.inputValue('#suchfeld')) === 'eintopf', 'das Suchfeld behält die Eingabe');
+  await p.fill('#suchfeld', 'gulasch'); await p.waitForTimeout(900); ok(await p.locator('.karte').count() >= 1 && await p.locator('#sinn-treffer .karte', { hasText: 'Szegediner' }).count() === 0, 'ein Worttreffer steht nicht doppelt unter „Nach Bedeutung“');
+  await p.click('[data-a=sinn]'); ok(await p.locator('[data-a=sinn][aria-pressed=true]').count() === 0 && await p.locator('#sinn-status').count() === 0, 'ausschalten: Schalter aus, Statuszeile weg');
+  await k.close();
+
   console.log('12 · Text-Import ohne KI, ohne Netz');
   ({ p, k } = await seite());
   await p.click('[data-a=neu]'); await p.click('[data-a=neu-tab][data-t=text]');
