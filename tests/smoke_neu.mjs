@@ -16,7 +16,7 @@ try {
   console.log('1 · Leerer Start, Beispielbuch');
   let { p, k } = await seite();
   ok(await p.locator('.leer').count() === 1, 'leeres Buch zeigt die Begrüßung mit drei Wegen');
-  ok((await p.locator('header.kopf button').evaluateAll((l) => l.map((b) => b.dataset.a).join(' '))) === 'aktualisieren installieren zur-suche farbe neu', 'Kopf am Handy: Versionsnummer (aktualisieren), Installieren, Suche, Farbpalette und das Plus; kein Pfeil zum Aufklappen');
+  ok((await p.locator('header.kopf button').evaluateAll((l) => l.map((b) => b.dataset.a).join(' '))) === 'aktualisieren installieren zur-suche farbe notiz neu', 'Kopf am Handy: Versionsnummer (aktualisieren), Installieren, Suche, Farbpalette, Notizbuch und das Plus; kein Pfeil zum Aufklappen');
   await p.click('[data-a=beispiel]'); await p.waitForSelector('.karte', { timeout: 20000 });
   const karten = await p.locator('.karte').count(); ok(karten === 42, 'Beispielbuch: 42 Rezepte als Karten', String(karten));
   const kats = await p.locator('.fotokat button').allInnerTexts();
@@ -89,7 +89,7 @@ try {
   { const kk = await browser.newContext({ locale: 'de-DE', viewport: { width: 1280, height: 800 } }); const q = mitThemen(await kk.newPage()); q.on('pageerror', (e) => fehler.push(e.message));
     await q.goto(URL0); await q.waitForSelector('.gruss'); await q.click('[data-a=beispiel]'); await q.waitForSelector('.md-detail h1', { timeout: 20000 });
     ok(await q.locator('.md-liste .karte').count() === 42 && await q.locator('.md-detail h1').count() === 1, 'Liste links, Rezept rechts');
-    ok(await q.locator('#leiste').isHidden() && await q.locator('.rail-n').count() === 5, 'Leiste steht links, kein Griff am Rand');
+    ok(await q.locator('#leiste').isHidden() && await q.locator('.rail-n').count() === 6, 'Leiste steht links, kein Griff am Rand (fünf Bereiche und das Notizbuch)');
     await q.locator('.md-liste').evaluate((e) => { e.scrollTop = 600; }); await q.locator('.md-liste .karte', { has: q.getByText('Ebi Tempura', { exact: true }) }).click();
     ok((await q.locator('.md-detail h1').innerText()) === 'Ebi Tempura' && await q.locator('.md-liste').evaluate((e) => e.scrollTop) > 300, 'Tipp links wechselt das Rezept rechts, die Liste bleibt an ihrer Stelle', (await q.locator('.md-detail h1').innerText()) + ' / ' + await q.locator('.md-liste').evaluate((e) => e.scrollTop));
     ok(await q.locator('.rezept-held .rund').count() === 0 && await q.locator('.rezept-held .wk-pf:visible').count() === 1, 'es gibt nur den kleinen Pfeil in der Namenszeile');
