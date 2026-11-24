@@ -6,6 +6,23 @@ Der Auftrag für die Nacht steht in `docs/NACHTAUFTRAG.md`.
 
 ## Nacht 23./24.11. (Nacht-Sitzung, laufend nachgeführt)
 
+### Stand am Morgen 24.11.2026, 04:30 (Ende der Nacht-Sitzung)
+
+| | Mein Rezeptbuch | Mein Mixarium |
+|---|---|---|
+| auf `main` | PWA **0.14.3**, Kern **0.22.2** | PWA **10.0.0-vor24**, Kern **0.22.2** (Pin `211b8c9`) |
+| Proben am Schluss-Stand | `npm test` 335 · smoke_neu 164 · menue 26 · scan 85 · web 35 · ordner 35 · sprache 77 · zusatz 85 · kern_buch 68 · kern_sprachen 18 | `npm test` 175 · pwa 94 · kategorien 78 · labor 43 · web 28 · scan 56 · ordner 50 · menue 50 · sprachen 88 · zusatz 41 |
+| Paket-Probe (APK/Windows, nichts gebaut) | 203 grün · 0 ROT (beide Apps zusammen, ohne Electron) | ebenso |
+
+**Fehlt noch (Rezeptbuch):** Food-Zine, Kreativbuch, KI-Buch, Notizbuch mit Kalender · Wochenplaner ohne Gänge/Ziehen · Wischen zwischen Bildschirmen · Installieren-Knopf im Kopf und Update-Hinweis · Bilder mehrerer Dateien auf einmal zuordnen. Zeile für Zeile: `docs/FUNKTIONSLISTE.md` (in der Nacht gegen den Code geprüft).
+
+**Fehlt noch (Mixarium):** Buch, „Vom Glas“ (Foto eines fertigen Getränks), Handbuch · Bildausschnitt mit Zoom und Ziehen · Notizen je Zutat/Schritt · Herkunft wird nicht gestempelt · Installieren-Knopf. Zeile für Zeile: `docs/FUNKTIONSLISTE.md`.
+
+**Suchfeld (Klaus 24.11.):** in beiden Apps zuerst Wortsuche; nach Bedeutung nur, wenn die Wortsuche nichts findet; der Bedeutungs-Index rechnet ein bearbeitetes Rezept/Getränk neu.
+
+**Achtung, veraltet:** die Abschnitte weiter unten („Stand 18:05“) nennen noch Fassungen und Lücken vom Abend; maßgeblich ist diese Tabelle und die Funktionsliste.
+
+
 Auftrag: `docs/NACHTAUFTRAG.md`. Hier steht, was in der Nacht auf `main` gekommen ist; der Rest der Datei ist der Stand von 18:05.
 
 | Fassung | Was | Proben |
