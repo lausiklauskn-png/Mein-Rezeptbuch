@@ -530,4 +530,12 @@ export default {
   'Buch gespeichert · {0}': '书已保存 · {0}',
   'Hilfe': '帮助',
   'Handbuch': '使用手册',
+  'Bewertung: {0} von 5': '评分：{0}/5',
+  '1 Stern': '1 星',
+  '{0} Sterne': '{0} 星',
+  '+1 Bild übernommen': '已带入 1 张图片',
+  '+{0} Bilder übernommen': '已带入 {0} 张图片',
+  'Auf der Liste steht nichts Offenes': '清单上没有待购项目',
+  'In dieser Woche ist nichts geplant': '本周没有计划',
+  'Wochenplan': '周计划',
 };

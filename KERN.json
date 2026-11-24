@@ -1,5 +1,5 @@
 {
- "fassung": "0.22.1",
+ "fassung": "0.22.2",
  "inhalt": "Ausgaben-Schalter, Rezeptmodell, Kategorien, Suche, Sicherung, Übernahme, Speicher, Mengen, Symbole, Farben, Bild, Kochansicht (Zutaten je Schritt, Zeit, Geräte), Einkaufsliste, Wochenplan, Text-Import, Spracheingabe, Bildauftrag je Ausgabe, englische Namen für Farben, Töne, Geräte und Schrift-Regler, Kategorien und Einkauf je Ausgabe (kategorienMit mit Familien-Namen, einkaufMit), Sticker-Bild je Kategorie (katBild), Text-Import mit Bar- und US-Einheiten, Hinweis-Blasen (Tooltips), Ladebalken für alle Wartezeiten, Sprache der Oberfläche (acht Sprachen, Tabellen), KI-Schlüssel (Anthropic, OpenAI, Mistral), Claude-Aufruf, Mistral OCR, Reinigung vor der KI, Foto-Scan, Datei prüfen, Web-Import ohne Weiterleiter, Ordner",
  "dateien": {
   "kern/README.md": "c83cf1d0bd91ec6a402bca2daa5455a3a6a0a92b54bb3179c446ded00d51a022",
@@ -9,7 +9,7 @@
   "kern/import/scan.mjs": "ee3ee428a7af8fa1965cb8f7f244da078cc2a1c78ccd655fb70482f4fa384c61",
   "kern/import/text.mjs": "261a6fb5f36b8d8e27816c2396a6453df13b47e6b0f1a88c870bc989bfb141e0",
   "kern/import/web.mjs": "44ba458cb87934b492d8b2a3dd3208a44327042a42466c36353c7781760ce87d",
-  "kern/kern-stand.mjs": "2c2570e8e62db366136d5fb4405f1e891329bf4d858a48aa058b2fac649f6c9e",
+  "kern/kern-stand.mjs": "4da8025e4342f7cc6f29270ab2b050c446aec60ae79745bd16aa4d527734e0a3",
   "kern/ki/bild.mjs": "71cae5968164e4d2c34c959f1e27fecf7437aa5920eb4be2b256aea8e9f716e5",
   "kern/ki/claude.mjs": "15aa25bf1ef63985982de2ef607eb4a6be36ab822e1ddee0b6c86545cc1a427c",
   "kern/ki/helfer.mjs": "956a92eef85d4dcae29fdc02341689b644ea5bba6f361350a5c2fae4e81ada78",
@@ -40,7 +40,7 @@
   "kern/pruefung/datei.mjs": "3b80ca3587e323a4d4853cfb4a6029cc52c310ccce81b3427ca0635b4bc073a2",
   "kern/pruefung/paket.mjs": "07aafc7db36b5fc553c044a72a0a9ac2668a0343b1308092c22f3339506d8b11",
   "kern/sicherung/sicherung.mjs": "d26f08cab10b9d7802e93219186a6cdc0a93847124259e2eb74870937a63a249",
-  "kern/speicher/alt-tresor.mjs": "5ef5475cf577525ec92a6bce8816d907824305e35b6bf075872f0bceec94cc60",
+  "kern/speicher/alt-tresor.mjs": "87bc0a244bb4e701a1eb54c4c32896c214ee773abe500ba47435cb9b922ebe6b",
   "kern/speicher/speicher.mjs": "f4933d93cd2c945480c0e2dc9335c40b3ff21440bc62a8e706fa1ff74e8e6010",
   "kern/speicher/tresor.mjs": "074861e8864664053b7931017ea9eb63117eb1d07b75298334d458a9d699dfab",
   "kern/speicher/uebernahme.mjs": "04f10f5e951e5bf6956294985a75ec3440271af3befa87a9e3467de95855185a",

@@ -2,7 +2,7 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { tresor, MAX_AUTO, MAX_BENANNT } from '../kern/speicher/tresor.mjs';
-import { ausAltemTresor, leseAltenTresor, alteStaendeInTresor } from '../kern/speicher/alt-tresor.mjs';
+import { ausAltemTresor, leseAltenTresor, alteStaendeInTresor, alteBilder, bilderAnhaengen, leseAlteWerte } from '../kern/speicher/alt-tresor.mjs';
 import { lies } from '../kern/sicherung/sicherung.mjs';
 
 const lagerNeu = () => { const m = new Map(); return { m, hol: async (k) => m.get(k) ?? null, setz: async (k, v) => { m.set(k, v); }, weg: async (k) => { m.delete(k); } }; };
@@ -56,4 +56,22 @@ test('in den neuen Tresor: mit Name und alter Zeit, nie doppelt, und ein alter S
   assert.deepEqual(await alteStaendeInTresor(voll, alt), { dazu: 1, ausgelassen: 1 });
   l = await voll.liste(); assert.equal(l.filter((x) => x.art === 'benannt').length, MAX_BENANNT); assert.ok(l.filter((x) => x.art === 'benannt').every((x) => x.name.startsWith('Neu ')), 'kein neuer Stand wurde verdrängt');
   assert.ok(MAX_AUTO > 0 && (await t.hol(eigen)).recipes[0] === 1);
+});
+
+test('die Bilder der alten App liegen in ihrer Datenbank: gelesen wird die Karte Nummer → Bild und die Kopie der Rezepte', async () => {
+  const idb = idbMit({ MeinRzBackup1: { mrz9m_imgs: JSON.stringify({ 1: 'data:image/jpeg;base64,QUJD', 2: 'kein Bild' }), mrz9m: JSON.stringify([SUPPE, KUCHEN]) } });
+  const a = await alteBilder('MeinRzBackup1', '9m', idb);
+  assert.equal(a.bilder[1], 'data:image/jpeg;base64,QUJD'); assert.equal(JSON.parse(a.rezepteText).length, 2);
+  assert.deepEqual(await alteBilder('MeinRzBackup1', '9', idb), { bilder: {}, rezepteText: '' }, 'eine andere Ausgabe (Endung 9) liest die Bilder der Endung 9m nicht');
+  const leer = idbMit({ Andere: {} }); assert.deepEqual(await alteBilder('MeinRzBackup1', '9m', leer), { bilder: {}, rezepteText: '' }); assert.deepEqual(leer.angelegt, [], 'die fehlende Datenbank wird nicht angelegt');
+  assert.deepEqual(await leseAlteWerte('MeinRzBackup1', ['gibtsnicht'], idb), { gibtsnicht: null });
+});
+test('Bilder kommen an ihr Rezept (an der alten Nummer); ein vorhandenes Bild bleibt, Unsinn wird nicht eingesetzt, eine Prüfung kann einzelne ausnehmen', () => {
+  const rezepte = [{ id: 1, uid: 'a', name: 'Suppe' }, { id: 2, uid: 'b', name: 'Kuchen', img: 'data:image/png;base64,EIGEN' }, { id: 3, uid: 'c', name: 'Brot' }, { id: 4, uid: 'd', name: 'Neu' }];
+  const bilder = { 1: 'data:image/jpeg;base64,EINS', 2: 'data:image/jpeg;base64,ZWEI', 3: 'javascript:alert(1)', 4: 'data:image/jpeg;base64,VIER' };
+  const e = bilderAnhaengen(rezepte, bilder, (r) => r.uid !== 'd');
+  assert.equal(e.dazu, 1); assert.equal(e.rezepte[0].img, 'data:image/jpeg;base64,EINS');
+  assert.equal(e.rezepte[1].img, 'data:image/png;base64,EIGEN', 'ein eigenes Bild wird nie überschrieben');
+  assert.equal(e.rezepte[2].img, undefined, 'was kein Bild ist, wird nicht eingesetzt'); assert.equal(e.rezepte[3].img, undefined, 'ausgenommen durch die Prüfung');
+  assert.equal(rezepte[0].img, undefined, 'die Eingabe bleibt unverändert');
 });

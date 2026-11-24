@@ -5,7 +5,7 @@ import subprocess, shutil, os, tempfile, sys
 F=[('alter-stand-doppelt', "    if (schon.has(s.alt)) continue;", "", 'kern/speicher/alt-tresor.mjs', 'kein alter Stand doppelt', "E.altTresor = true; sichern();", "sichern();", 'neu/zusatz.mjs'),
    ('alte-zeit-verloren', "await tr.ablegen(s.sicherung, s.art, s.name, { ts: s.ts, alt: s.alt });", "await tr.ablegen(s.sicherung, s.art, s.name, { alt: s.alt });", 'kern/speicher/alt-tresor.mjs', 'mit ihrem Namen, ihrer alten Zeit'),
    ('alte-bilder-fehlen', "(!r.img && r.id != null && b[r.id] ? { ...r, img: b[r.id] } : r)", "(r)", 'kern/speicher/alt-tresor.mjs', 'das Bild hängt wieder an seinem Rezept'),
-   ('alte-db-angelegt', "      a.onupgradeneeded = () => { neu = true; try { a.transaction.abort(); } catch { /* schon zu */ } };", "      a.onupgradeneeded = () => { neu = true; };", 'kern/speicher/alt-tresor.mjs', 'wird ihre Datenbank nicht angelegt', "    if (idb.databases) { const alle = await idb.databases(); if (!alle.some((x) => x.name === ort.db)) return []; }\n", "", 'kern/speicher/alt-tresor.mjs'),
+   ('alte-db-angelegt', "    a.onupgradeneeded = () => { neu = true; try { a.transaction.abort(); } catch { /* schon zu */ } };", "    a.onupgradeneeded = () => { neu = true; };", 'kern/speicher/alt-tresor.mjs', 'wird ihre Datenbank nicht angelegt', "  if (idb.databases) { const alle = await idb.databases(); if (!alle.some((x) => x.name === db)) return null; }\n", "", 'kern/speicher/alt-tresor.mjs'),
    ('richter-ohne-schluessel', "    if (!SK.anthropic) { app.schluesselFenster('anthropic', 'richter'); return; }", "", 'neu/zusatz.mjs', 'ohne Anthropic-Schlüssel kommt das Schlüssel-Fenster'),
    ('richter-sendet-falle', "if ((await pruefe(k.text)).length) urteile.push({ uid: k.uid, passt: null, warum: '', ausgeschlossen: 'ki-anweisung' }); else zumRichter.push(k);", "zumRichter.push(k);", 'kern/suche/richter.mjs', 'das Rezept mit dem Befehl an eine KI geht nicht hinaus'),
    ('richter-sendet-schritte', "zut && 'Zutaten: ' + kurz(zut, 300)]", "zut && 'Zutaten: ' + kurz(zut, 300), (r.steps || []).map((x) => x.txt).join(' ')]", 'kern/suche/richter.mjs', 'Schritte gehen nie hinaus'),
@@ -32,9 +32,15 @@ F=[('alter-stand-doppelt', "    if (schon.has(s.alt)) continue;", "", 'kern/spei
    ('meldung-knopf-raus', ".toast button{flex:none}", "", 'neu/app.css', 'liegt „Rückgängig“ ganz in der Meldung', ".toast span{min-width:0;overflow:hidden;text-overflow:ellipsis}", "", 'neu/app.css'),
    ('muttis-nimmt-rezeptbuch', "(/^[a-z-]+$/.test(andere) ? fetch(", "(false ? fetch(", 'neu/app.mjs', 'neu/muttis.html öffnet „Muttis Rezeptbuch“'),
    ('handbuch-offen', "`<details><summary>${ic(i)}<span>${esc(titel)}</span></summary>", "`<details open><summary>${ic(i)}<span>${esc(titel)}</span></summary>", 'neu/zusatz.mjs', 'alle eingeklappt'),
+   ('uebernahme-ohne-bilder', "Z = { rezepte: bilderAnhaengen(alt.rezepte, ab.bilder).rezepte, menu: alt.menu,", "Z = { rezepte: alt.rezepte, menu: alt.menu,", 'neu/app.mjs', 'erste Übernahme: die drei Rezepte der alten App sind da, jedes mit seinem Bild'),
+   ('nachtrag-ohne-pruefung', "return !!a && (a.uid === r.uid || a.name === r.name); });", "return true; });", 'neu/app.mjs', 'ein Rezept mit anderem Namen unter derselben Nummer bekommt kein fremdes Bild'),
+   ('schritt-notiz-verloren', "filter((t) => t.trim()), alt ? alt.steps : []),", "filter((t) => t.trim()), []),", 'neu/app.mjs', 'nur der Name geändert: die Notizen an den Schritten bleiben'),
+   ('notiz-am-platz-statt-text', "const a = rest.find((y) => y.frei && String(y.x.txt).trim() === txt.trim());", "const a = null;", 'neu/app.mjs', 'die Notiz wandert mit ihrem Schritt'),
+   ('stern-nimmt-nicht-zurueck', "stars: n === alt ? 0 : n } } : x)); sichern(); zeichne(); },", "stars: n } } : x)); sichern(); zeichne(); },", 'neu/app.mjs', 'derselbe Stern noch einmal nimmt die Bewertung zurück'),
+   ('druck-mit-abgehaktem', "liste.filter((y) => y.gruppe === gid && !E_.haken[y.schluessel])) aus.push(", "liste.filter((y) => y.gruppe === gid)) aus.push(", 'neu/app.mjs', 'was abgehakt ist, steht nicht mehr im Druck'),
    ('plan-falsche-woche', "const tage = app.planTage(), ab = tagIso(tage[0]),", "const tage = app.planTage(), ab = tagIso(tage[1]),", 'neu/zusatz.mjs', 'trägt den Vorschlag in die gezeigte Woche ein')]
 # Jeder Fall fährt nur seinen Abschnitt der Probe (NUR_TEIL); die Probe als Ganzes läuft vorher einmal ohne Sabotage.
-TEILE={'alter':'1','alte':'1','richter':'2','bild':'3','sammel':'4','plan':'5','buch':'6','teller':'7','kontrast':'8','meldung':'8','handbuch':'8','muttis':'9'}
+TEILE={'alter':'1','alte':'1','richter':'2','bild':'3','sammel':'4','plan':'5','buch':'6','teller':'7','kontrast':'8','meldung':'8','handbuch':'8','muttis':'9','uebernahme':'10','nachtrag':'10','schritt':'10','notiz':'10','stern':'11','druck':'11'}
 def teil(name): return TEILE[name.split('-')[0]]
 nur=os.environ.get('NUR_FALL'); nur=nur.split(',') if nur else None; gefangen=0; durch=0; tot=0
 def anker(fall):

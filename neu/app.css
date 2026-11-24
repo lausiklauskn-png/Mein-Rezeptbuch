@@ -701,3 +701,11 @@ a.knopf{text-decoration:none}
 :root[data-kontrast] .kfeld{border:1.5px solid currentColor}
 :root[data-kontrast] :is(.zeile small,.karte small,.quelle,small){opacity:1}
 :root[data-kontrast] :is(.knopf,.chip,.feld,.zeile,.karte){border-color:var(--line)}
+/* Bewertung: fünf Sterne in der Meta-Zeile, zum Antippen */
+.meta .sterne{display:inline-flex;align-items:center;gap:0}
+.meta .sterne button{width:24px;height:26px;display:grid;place-items:center;color:inherit;opacity:.45;cursor:pointer}
+.meta .sterne button.an{opacity:1;color:#f2b632}
+.meta .sterne .ic{width:16px;height:16px}
+.meta .sterne button.an .ic [opacity]{opacity:.55}
+.chip.nur-symbol{padding:0;width:32px;min-height:32px;justify-content:center;flex:none}
+.ueber .chip.nur-symbol{margin-left:8px}

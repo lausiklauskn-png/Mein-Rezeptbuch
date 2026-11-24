@@ -9,7 +9,7 @@ import { wochenplanVorschlag, vorschlagInPlan, wasGehtHinaus } from '../kern/ki/
 import { fuelle, gebiet } from '../kern/oberflaeche/sprache.mjs';
 import { tagIso } from '../kern/modell/plan.mjs';
 import { buchInhalt, buchPdf, buchBlaettern, buchGroesse, buchGroesseText } from '../kern/ausgabe/buch.mjs';
-import { drucke } from '../kern/ausgabe/druck.mjs';
+import { drucke, druckListe } from '../kern/ausgabe/druck.mjs';
 import { handbuch } from './handbuch.mjs';
 
 /** app: { L, spr, esc, ic, A, s, SK, W, Z(), setzeZ(z), E(), fenster, fensterZu, beiZu(f), melde, sichern, zeichne, zeichneStart, rezept(uid),
@@ -170,5 +170,16 @@ export function zusatz(app) {
   A.handbuch = () => fenster(`<h2>${L('Handbuch', 'Manual')}</h2><div class="handbuch" id="handbuch">${handbuch(L).map(([i, titel, abs]) => `<details><summary>${ic(i)}<span>${esc(titel)}</span></summary>${abs.map((a) => `<p>${esc(a)}</p>`).join('')}</details>`).join('')}</div>
     <div class="reihe"><button class="knopf" data-a="fenster-zu">${L('Schließen', 'Close')}</button></div>`);
 
-  return { sinnBlock, sammelKnopf, bildFreigabe, altTresor, planKnopf, buchThema, hilfeThema, wahl, stellenHtml };
+  /* ── Einkaufsliste und Wochenplan drucken (kern/ausgabe/druck.mjs, druckListe): ein kleiner Knopf, kein neues Fenster. ── */
+  const druckKnopf = (a) => `<button class="chip nur-symbol" data-a="${a}" aria-label="${esc(L('Drucken', 'Print'))}" title="${esc(L('Drucken', 'Print'))}">${ic('drucken')}</button>`;
+  const liste = (titel, zeilen) => drucke(druckListe(titel, zeilen, { sprache: spr(), fuss: app.ausgabe().titel }), { sprache: spr() }).catch((f) => melde(f.message));
+  A['ek-drucken'] = () => { const z = app.einkaufZeilen(); if (!z.length) { melde(L('Auf der Liste steht nichts Offenes', 'Nothing open on the list')); return; } liste(L('Einkaufsliste', 'Shopping list'), z); };
+  A['plan-drucken'] = () => {
+    const plan = app.Z().plan || {}, z = [];
+    for (const t of app.planTage()) { const g = t.toLocaleDateString(gebiet(spr()), { weekday: 'long', day: 'numeric', month: 'long' }); for (const uid of plan[tagIso(t)] || []) { const x = app.rezept(uid); if (x) z.push({ text: x.name, gruppe: g }); } }
+    if (!z.length) { melde(L('In dieser Woche ist nichts geplant', 'Nothing is planned for this week')); return; }
+    liste(L('Wochenplan', 'Week plan'), z);
+  };
+
+  return { sinnBlock, sammelKnopf, bildFreigabe, altTresor, planKnopf, buchThema, hilfeThema, druckKnopf, wahl, stellenHtml };
 }
