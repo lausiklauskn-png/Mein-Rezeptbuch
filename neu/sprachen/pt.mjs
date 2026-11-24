@@ -530,4 +530,12 @@ export default {
   'Buch gespeichert · {0}': 'Livro guardado · {0}',
   'Hilfe': 'Ajuda',
   'Handbuch': 'Manual',
+  'Bewertung: {0} von 5': 'Avaliação: {0} de 5',
+  '1 Stern': '1 estrela',
+  '{0} Sterne': '{0} estrelas',
+  '+1 Bild übernommen': '+1 imagem recuperada',
+  '+{0} Bilder übernommen': '+{0} imagens recuperadas',
+  'Auf der Liste steht nichts Offenes': 'Não há nada por comprar na lista',
+  'In dieser Woche ist nichts geplant': 'Não há nada planeado para esta semana',
+  'Wochenplan': 'Plano semanal',
 };

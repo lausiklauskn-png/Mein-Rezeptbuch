@@ -530,4 +530,12 @@ export default {
   'Buch gespeichert · {0}': 'Книга сохранена · {0}',
   'Hilfe': 'Справка',
   'Handbuch': 'Руководство',
+  'Bewertung: {0} von 5': 'Оценка: {0} из 5',
+  '1 Stern': '1 звезда',
+  '{0} Sterne': 'Звёзд: {0}',
+  '+1 Bild übernommen': '+1 изображение перенесено',
+  '+{0} Bilder übernommen': 'Перенесено изображений: {0}',
+  'Auf der Liste steht nichts Offenes': 'В списке не осталось покупок',
+  'In dieser Woche ist nichts geplant': 'На эту неделю ничего не запланировано',
+  'Wochenplan': 'План на неделю',
 };

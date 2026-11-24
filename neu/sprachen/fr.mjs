@@ -533,4 +533,12 @@ export default {
   'Buch gespeichert · {0}': 'Livre enregistré · {0}',
   'Hilfe': 'Aide',
   'Handbuch': 'Manuel',
+  'Bewertung: {0} von 5': 'Note : {0} sur 5',
+  '1 Stern': '1 étoile',
+  '{0} Sterne': '{0} étoiles',
+  '+1 Bild übernommen': '+1 image reprise',
+  '+{0} Bilder übernommen': '+{0} images reprises',
+  'Auf der Liste steht nichts Offenes': 'Rien à acheter sur la liste',
+  'In dieser Woche ist nichts geplant': 'Rien de prévu cette semaine',
+  'Wochenplan': 'Menu de la semaine',
 };

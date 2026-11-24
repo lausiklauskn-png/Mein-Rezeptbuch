@@ -8,6 +8,7 @@ import { skaliere } from '../kern/modell/mengen.mjs';
 import { leererZustand } from '../kern/modell/zustand.mjs';
 import { lies, schreibe, fuehreZusammen, hinweise } from '../kern/sicherung/sicherung.mjs';
 import { ausAltemSpeicher } from '../kern/speicher/uebernahme.mjs';
+import { alteBilder, bilderAnhaengen } from '../kern/speicher/alt-tresor.mjs';
 import { speicher } from '../kern/speicher/speicher.mjs';
 import { symbol as ic } from '../kern/oberflaeche/symbole.mjs';
 import { FARBEN, TOENE, TOENE_EN, farbeSetzen, istDunkel } from '../kern/oberflaeche/farben.mjs';
@@ -37,7 +38,7 @@ import { druckRezept, drucke } from '../kern/ausgabe/druck.mjs';
 import { teilLink, ausTeilLink, qrSvg, passtInQr } from '../kern/teilen/qr.mjs';
 import { rezeptIn } from '../kern/modell/einheiten.mjs';
 
-const FASSUNG = '0.14.1';
+const FASSUNG = '0.14.2';
 const breit = () => matchMedia('(min-width:1000px)').matches;
 const $ = (id) => document.getElementById(id);
 const esc = (t) => String(t ?? '').replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
@@ -214,6 +215,11 @@ async function semLauf(f) {
 /* Einheiten: '' = wie notiert, sonst 'metrisch' oder 'us' (Kern modell/einheiten.mjs). Umgerechnet wird nur die Anzeige. */
 const inEinheit = (r) => (r && (E.einheiten === 'us' || E.einheiten === 'metrisch') ? rezeptIn(r, E.einheiten, { sprache: spr() }) : r);
 const einhName = () => ({ us: 'US', metrisch: L('metrisch', 'metric') }[E.einheiten] || L('wie notiert', 'as written'));
+/* Bewertung am Rezept: fünf Sterne zum Antippen; derselbe Stern noch einmal nimmt die Bewertung zurück. */
+function sterneHtml(r) {
+  const n = Math.round(Number(r.rating?.stars) || 0);
+  return `<span class="sterne" role="group" aria-label="${fuelle(L('Bewertung: {0} von 5', 'Rating: {0} of 5'), n)}">${[1, 2, 3, 4, 5].map((i) => `<button data-a="stern" data-n="${i}" class="${i <= n ? 'an' : ''}" aria-pressed="${i === n}" aria-label="${i === 1 ? L('1 Stern', '1 star') : fuelle(L('{0} Sterne', '{0} stars'), i)}">${ic('stern')}</button>`).join('')}</span>`;
+}
 function rezeptHtml() {
   const roh = rezept(s.uid), r = inEinheit(zeig(roh)); if (!r) return `<div class="leer"><p>${L('Dieses Rezept gibt es nicht mehr.', 'This recipe no longer exists.')}</p><button class="knopf" data-a="geh" data-zu="start">${L('Zur Startseite', 'To the start page')}</button></div>`;
   const c = alleKategorien(Z.rezepte, Z.kategorien).find((x) => x.id === katVonRezept(r));
@@ -224,7 +230,7 @@ function rezeptHtml() {
   const wk = (akt, i, t, kl = '') => `<button class="chip ${kl}" data-a="${akt}" aria-label="${esc(t)}" title="${esc(t)}">${ic(i)}<span class="wk-t">${esc(t)}</span></button>`;   /* am Handy nur das Symbol (Klaus 23.11.: „kein Button-Kino“), am Monitor neben dem Bild mit Wort */
   const winkel = (d) => `<svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="${d}"/></svg>`;
   return `<div class="rezept-held" data-a="held" role="button" tabindex="0" aria-label="${r.img ? L('Bild groß ansehen', 'View picture large') : L('Bild einfügen', 'Add picture')}">${r.img ? `<img src="${esc(r.img)}" alt="${esc(r.name)}" ${ausschnitt(r)}>` : ic('karte')}
-    <div class="verlauf"><div class="tzeile">${s.rleiste ? `<div class="rwerk">${wk('bearbeiten', 'stift', L('Bearbeiten', 'Edit'))}${wk('kat-zuordnen', 'karte', L('Kategorie', 'Category'))}${wk('ordner-zuordnen', 'ordner', L('Ordner', 'Folder'))}${wk('bild-blatt', 'bild', L('Bild', 'Picture'))}${wk('nurdies', 'voll', s.nurDies ? L('Alles zeigen', 'Show everything') : L('Nur dieses Rezept', 'Only this recipe'), 'nurbreit')}${wk('rmenue', 'mehr', L('Mehr: Drucken, Teilen, Nährwerte …', 'More: print, share, nutrition …'))}${wk('loeschen', 'muell', L('Rezept löschen', 'Delete recipe'), 'rot')}</div>` : ''}<button class="wk-pf zur" data-a="zurueck" aria-label="${L('Zurück', 'Back')}">${winkel('M15 5l-7 7 7 7')}</button><h1>${esc(r.name)}</h1><button class="wk-pf" data-a="rleiste" aria-expanded="${s.rleiste}" aria-label="${L('Werkzeuge für Rezept und Bild', 'Tools for recipe and picture')}">${winkel(s.rleiste ? 'M5 9l7 7 7-7' : 'M5 15l7-7 7 7')}</button></div><div class="meta">${r.prepTime ? `<span>${ic('uhr')}${esc(minText(r.prepTime))}</span>` : ''}<span>${ic('karte')}${esc(c ? katName(c) : '')}</span>${ordnerVonRezept(r, Z.ordner) ? `<span class="im-ordner">${ic('ordner')}${esc(ordTitel(findeOrdner(Z.ordner, r.folder)))}</span>` : ''}${r.rating?.stars ? `<span>${ic('stern')}${r.rating.stars}</span>` : ''}${uebUm}</div></div></div>
+    <div class="verlauf"><div class="tzeile">${s.rleiste ? `<div class="rwerk">${wk('bearbeiten', 'stift', L('Bearbeiten', 'Edit'))}${wk('kat-zuordnen', 'karte', L('Kategorie', 'Category'))}${wk('ordner-zuordnen', 'ordner', L('Ordner', 'Folder'))}${wk('bild-blatt', 'bild', L('Bild', 'Picture'))}${wk('nurdies', 'voll', s.nurDies ? L('Alles zeigen', 'Show everything') : L('Nur dieses Rezept', 'Only this recipe'), 'nurbreit')}${wk('rmenue', 'mehr', L('Mehr: Drucken, Teilen, Nährwerte …', 'More: print, share, nutrition …'))}${wk('loeschen', 'muell', L('Rezept löschen', 'Delete recipe'), 'rot')}</div>` : ''}<button class="wk-pf zur" data-a="zurueck" aria-label="${L('Zurück', 'Back')}">${winkel('M15 5l-7 7 7 7')}</button><h1>${esc(r.name)}</h1><button class="wk-pf" data-a="rleiste" aria-expanded="${s.rleiste}" aria-label="${L('Werkzeuge für Rezept und Bild', 'Tools for recipe and picture')}">${winkel(s.rleiste ? 'M5 9l7 7 7-7' : 'M5 15l7-7 7 7')}</button></div><div class="meta">${r.prepTime ? `<span>${ic('uhr')}${esc(minText(r.prepTime))}</span>` : ''}<span>${ic('karte')}${esc(c ? katName(c) : '')}</span>${ordnerVonRezept(r, Z.ordner) ? `<span class="im-ordner">${ic('ordner')}${esc(ordTitel(findeOrdner(Z.ordner, r.folder)))}</span>` : ''}${sterneHtml(roh)}${uebUm}</div></div></div>
    <div class="bogen"><div class="zweispalt"><div>
     ${r.steps.length ? `<div class="reihe"><button class="knopf akz" data-a="kochen" style="flex:1.3">${ic('koch')}${L('Kochen', 'Cook')}</button><button class="knopf" data-a="auf-liste" style="flex:1">${ic('einkauf')}${L('Einkaufen', 'Shop')}</button><button class="knopf" data-a="planen" aria-label="${L('In den Wochenplan', 'Into the week plan')}">${ic('plan')}</button></div>` : `<div class="reihe"><button class="knopf" data-a="auf-liste">${ic('einkauf')}${L('Einkaufen', 'Shop')}</button><button class="knopf" data-a="planen">${ic('plan')}${L('Planen', 'Plan')}</button></div>`}
     <div class="portion"><span>${L('Portionen', 'Servings')}</span><span class="st"><button data-a="portion" data-d="-1" aria-label="${L('Weniger', 'Fewer')}">${ic('minus')}</button><b id="portionen">${n}</b><button data-a="portion" data-d="1" aria-label="${L('Mehr', 'More')}">${ic('plus')}</button></span></div>
@@ -362,9 +368,17 @@ function piep() { try { const c = new (window.AudioContext || window.webkitAudio
 /* ---------- Einkaufsliste ---------- */
 const ekPosten = () => Z.einkauf.posten.map((p) => ({ rezept: rezept(p.uid), portionen: p.portionen })).filter((p) => p.rezept);
 const ekOffen = () => { const l = einkaufsliste(ekPosten()); return l.filter((x) => !Z.einkauf.haken[x.schluessel]).length + Z.einkauf.eigene.filter((x) => !Z.einkauf.haken['eig:' + x.id]).length; };
+/* Die offenen Posten der Einkaufsliste in der Reihenfolge des gewählten Ladens, für den Druck: [{ text, menge, gruppe }]. */
+function einkaufDruckZeilen() {
+  const E_ = Z.einkauf, liste = einkaufsliste(ekPosten()), aus = [];
+  for (const gid of gruppenFolge(E_.laeden[E_.laden])) { const g = jeSprache(WARENGRUPPEN.find((x) => x.id === gid));
+    for (const x of liste.filter((y) => y.gruppe === gid && !E_.haken[y.schluessel])) aus.push({ text: x.name, menge: x.menge, gruppe: g });
+    if (gid === 'sonstiges') for (const x of E_.eigene.filter((y) => !E_.haken['eig:' + y.id])) aus.push({ text: x.text, menge: '', gruppe: g }); }
+  return aus;
+}
 function einkaufHtml() {
   const E_ = Z.einkauf, posten = ekPosten(), liste = einkaufsliste(posten), folge = gruppenFolge(E_.laeden[E_.laden]);
-  let h = `<div class="ueber"><h2 style="font-size:19px">${L('Einkaufsliste', 'Shopping list')}</h2><small>${fuelle(L('{0} offen', '{0} open'), ekOffen())}</small></div>`;
+  let h = `<div class="ueber"><h2 style="font-size:19px">${L('Einkaufsliste', 'Shopping list')}</h2><small>${fuelle(L('{0} offen', '{0} open'), ekOffen())}</small>${posten.length || E_.eigene.length ? ZU.druckKnopf('ek-drucken') : ''}</div>`;
   if (!posten.length && !E_.eigene.length) return h + `<div class="leer"><div class="reihe"><button class="knopf" data-a="geh" data-zu="start">${ic('buch')}${L('Zu den Rezepten', 'To the recipes')}</button><button class="knopf" data-a="geh" data-zu="plan">${ic('plan')}${L('Zum Wochenplan', 'To the week plan')}</button></div></div>` + ekEigenForm();
   h += `<div class="quellen">${posten.map((p) => `<span class="quelle-chip">${p.rezept.img ? `<img src="${esc(p.rezept.img)}" alt="">` : ''}${esc(p.rezept.name)} · ${p.portionen}<button data-a="ek-rezept-weg" data-uid="${esc(p.rezept.uid)}" aria-label="${esc(fuelle(L('{0} von der Liste nehmen', 'Take {0} off the list'), p.rezept.name))}">${ic('x')}</button></span>`).join('')}</div>
    <div class="laeden">${Object.keys(E_.laeden).map((l) => `<button class="chip" data-a="ek-laden" data-l="${esc(l)}" aria-pressed="${l === E_.laden}">${ic('markt')}${esc(ladenName(l))}</button>`).join('')}<button class="chip" data-a="ek-laden-neu">${ic('plus')}${L('Laden', 'Shop')}</button>${frag(L('Jeder Laden merkt sich seine eigene Reihenfolge der Gruppen. Eine Gruppe an der Überschrift lange drücken oder mit der Maus festhalten und an ihre Stelle ziehen.', 'Each shop keeps its own order of groups. Long-press a group at its heading, or hold it with the mouse, and drag it into place.'))}</div><div id="ek-liste">`;
@@ -393,7 +407,7 @@ function planHtml() {
   return `<div class="w-kopf"><button class="rund" data-a="plan-woche" data-d="-7" aria-label="${L('Vorige Woche', 'Previous week')}">${ic('links')}</button><strong>${fuelle(L('Woche {0}', 'Week {0}'), w.kw)}<small>${esc(spanne)}</small></strong><button class="rund" data-a="plan-woche" data-d="7" aria-label="${L('Nächste Woche', 'Next week')}">${ic('rechts')}</button></div>
    <div class="w-tage">${w.tage.map((t, i) => { const tag = tagIso(t), rz = (Z.plan[tag] || []).map(rezept).filter(Boolean);
      return `<div class="w-tag ${tag === heute ? 'heute' : ''}"><div class="d"><small>${esc(wtName(t, i))}</small><b>${t.getDate()}</b></div><div class="w-slots">${rz.map((r) => `<div class="w-slot"><button class="w-auf" data-a="rezept" data-uid="${esc(r.uid)}">${r.img ? `<img src="${esc(r.img)}" alt="" loading="lazy">` : `<span class="w-ohne">${ic('karte')}</span>`}<span>${esc(r.name)}${r.prepTime ? `<small>${esc(minText(r.prepTime))}</small>` : ''}</span></button><button class="w-weg" data-a="plan-weg" data-tag="${tag}" data-uid="${esc(r.uid)}" aria-label="${esc(fuelle(L('{0} aus dem Plan nehmen', 'Remove {0} from the plan'), r.name))}">${ic('x')}</button></div>`).join('')}<button class="w-leer ${rz.length ? 'mehr' : ''}" data-a="plan-waehlen" data-tag="${tag}">${ic('plus')}${rz.length ? L('noch eins', 'one more') : L('Gericht planen', 'Plan a dish')}</button></div></div>`; }).join('')}</div>
-   <div class="reihe" style="margin-top:14px"><button class="knopf ${anzahlW ? 'akz' : ''}" data-a="plan-einkauf" ${anzahlW ? '' : 'disabled'}>${ic('einkauf')}${L('Einkaufsliste für die Woche', 'Shopping list for the week')}</button><button class="knopf" data-a="plan-heute">${L('Heute', 'Today')}</button>${ZU.planKnopf()}</div>`;
+   <div class="reihe" style="margin-top:14px"><button class="knopf ${anzahlW ? 'akz' : ''}" data-a="plan-einkauf" ${anzahlW ? '' : 'disabled'}>${ic('einkauf')}${L('Einkaufsliste für die Woche', 'Shopping list for the week')}</button><button class="knopf" data-a="plan-heute">${L('Heute', 'Today')}</button>${anzahlW ? ZU.druckKnopf('plan-drucken') : ''}${ZU.planKnopf()}</div>`;
 }
 function planWahlFenster(tag, uidFest) {
   if (uidFest) { const w = woche(new Date()), w2 = woche(new Date(Date.now() + 7 * 864e5));
@@ -609,6 +623,14 @@ function formAus(r) {
     ings: (r?.ings || []).map(zutatZeile).join('\n'), steps: (r?.steps || []).map((x) => x.txt).join('\n\n') };
 }
 function formLesen(form) { const d = new FormData(form); for (const k of ['name', 'cat', 'servings', 'prepTime', 'ings', 'steps']) s.form[k] = d.get(k); if (d.has('folder')) s.form.folder = d.get('folder'); return d; }
+/* Das Formular kennt nur den Text der Schritte. Was ein Schritt sonst trägt (seine Notiz), bleibt: zuerst am gleichen Text;
+   bleiben danach gleich viele alte und neue Schritte übrig, der Reihe nach (ein umgeschriebener Schritt behält seine Notiz). */
+function schritteMitNotiz(texte, alte) {
+  const rest = (alte || []).map((x) => ({ x, frei: true }));
+  const aus = texte.map((txt) => { const a = rest.find((y) => y.frei && String(y.x.txt).trim() === txt.trim()); if (a) a.frei = false; return a ? { ...a.x, txt } : null; });
+  const offen = rest.filter((y) => y.frei), paaren = aus.filter((x) => !x).length === offen.length; let j = 0;
+  return aus.map((x, i) => x || (paaren ? { ...offen[j++].x, txt: texte[i] } : { txt: texte[i] }));
+}
 function formSpeichern(form) {
   const d = formLesen(form), f = s.form;
   if (!String(f.name).trim()) { melde(L('Bitte einen Namen eintragen.', 'Please enter a name.')); return; }
@@ -620,7 +642,7 @@ function formSpeichern(form) {
   const alt = f.uid ? rezept(f.uid) : null, vor = alt ? formAus(alt) : null, zeilen = (t) => String(t ?? '').replace(/\r\n?/g, '\n');
   const textBlieb = !!vor && ['name', 'ings', 'steps'].every((k) => zeilen(vor[k]) === zeilen(f[k]));   /* nur Kategorie, Portionen, Zeit oder Foto geändert: eine Übersetzung bleibt */
   const neu = ohneAlteUebersetzung(alt, normalisiere({ ...(alt || { id: Z.rezepte.reduce((m, r) => Math.max(m, +r.id || 0), 0) + 1, uid: neueUid(), created: new Date().toISOString() }), name: f.name, cat, ...(findeOrdner(Z.ordner, f.folder) || f.folder === '' ? { folder: f.folder || '' } : {}), servings: f.servings, prepTime: f.prepTime === '' ? undefined : +f.prepTime, img: f.img,
-    ings: String(f.ings).split('\n').filter((t) => t.trim()).map(zutatAusZeile), steps: String(f.steps).split(/\n\s*\n|\n/).filter((t) => t.trim()).map((txt) => ({ txt })), modified: new Date().toISOString() }), textBlieb);
+    ings: String(f.ings).split('\n').filter((t) => t.trim()).map(zutatAusZeile), steps: schritteMitNotiz(String(f.steps).split(/\n\s*\n|\n/).filter((t) => t.trim()), alt ? alt.steps : []), modified: new Date().toISOString() }), textBlieb);
   delete neu.beispiel; if (f.neu && f.flavors?.length) neu.flavors = f.flavors; if (f.neu && f.source) neu.source = f.source; if (f.kiEntfernt?.length) vermerken(neu, f.kiEntfernt, 'scan');   /* was vor der KI herausgenommen wurde, steht am Rezept */
   Z.rezepte = alt ? Z.rezepte.map((r) => (r.uid === alt.uid ? neu : r)) : [...Z.rezepte, neu];
   sichern(); s.form = null; melde(L('Gespeichert', 'Saved')); geh('rezept', { uid: neu.uid }, true);
@@ -899,6 +921,7 @@ const A = {
   'scan-kamera': () => { s.tellerWahl = false; $('datei-kamera').click(); },
   'scan-datei': () => { s.tellerWahl = false; $('datei-scan').click(); },
   'scan-teller': () => { s.tellerWahl = true; $('datei-kamera').click(); },
+  stern: (e) => { const r0 = rezept(s.uid); if (!r0) return; const n = +e.dataset.n, alt = Math.round(Number(r0.rating?.stars) || 0); Z.rezepte = Z.rezepte.map((x) => (x.uid === r0.uid ? { ...x, rating: { ...(x.rating || {}), stars: n === alt ? 0 : n } } : x)); sichern(); zeichne(); },
   kontrast: () => { E.kontrast = !E.kontrast; farbeSetzen(document.documentElement, E.farbe, E.ton, { kontrast: E.kontrast }); sichern(); zeichne(); },
   'scan-anbieter': (e) => { E.scan = { ...E.scan, anbieter: e.dataset.w }; s.scanMehr = true; sichern(); neuFenster('scan'); },
   'scan-stufe': (e) => { E.scan = { ...E.scan, stufe: e.dataset.w }; s.scanMehr = true; sichern(); neuFenster('scan'); },
@@ -945,7 +968,7 @@ const A = {
 /* Zusätze (neu/zusatz.mjs): KI-Richter der Suche, KI-Bilder für alle, Prüfung des Bildauftrags, alte Tresor-Stände, Wochenplan-Vorschlag, Buch, Handbuch. */
 const ZU = zusatz({ L, spr, esc, ic, A, s, SK, W, Z: () => Z, setzeZ: (z) => { Z = z; }, E: () => E, fenster, fensterZu, beiZu: (f) => { zuTun = f; }, melde, sichern, zeichne, rezept, istInhalt, schluesselFenster, bildAusDatei, tresorAuto, sinnTreffer,
   zeichneStart: () => { if (s.ansicht === 'start' && $('start-rest')) $('start-rest').innerHTML = startRest(); }, katNamen: () => new Map(alleKategorien(Z.rezepte, Z.kategorien).map((c) => [c.id, katName(c)])), katVon: katVonRezept,
-  tr: () => tr, ausgabe: () => ausgabe, planTage: () => woche(s.planTag).tage });
+  tr: () => tr, ausgabe: () => ausgabe, planTage: () => woche(s.planTag).tage, einkaufZeilen: einkaufDruckZeilen });
 document.addEventListener('click', (ev) => {
   const e = ev.target.closest('[data-a]');
   if (s.leisteAuf && !ev.target.closest('#leiste')) { s.leisteAuf = false; leisteZeichnen(); }
@@ -1008,17 +1031,29 @@ addEventListener('beforeinstallprompt', (ev) => { ev.preventDefault(); installFr
 addEventListener('appinstalled', () => { installFrage = null; if (s.ansicht === 'werkstatt') zeichne(); });
 
 /* ---------- Start ---------- */
+/* Was die alte App im Gerät hat: Rezepte (localStorage, sonst die Kopie in ihrer Datenbank) und Bilder (nur in der Datenbank). Nur lesen. */
+async function altesLesen() {
+  const e = ausgabe.speicher.endung, ab = await alteBilder(ausgabe.speicher.indexedDb, e).catch(() => ({ bilder: {}, rezepteText: '' }));
+  let alt = null; try { const leer = localStorage.getItem('mrz' + e) == null; alt = ausAltemSpeicher(leer && ab.rezepteText ? { getItem: (k) => (k === 'mrz' + e ? ab.rezepteText : localStorage.getItem(k)) } : localStorage, e); } catch { /* kein Zugriff */ }
+  return { alt, bilder: ab.bilder };
+}
+/* Einmal: wer vor Fassung 0.14.2 übernommen hat, bekam die Rezepte ohne Bilder. Nachgetragen wird nur, wo Nummer und Name (oder Kennung) noch zum alten Rezept passen. */
+async function altBilderNachtragen() {
+  if (E.altBilder) return; const { alt, bilder } = await altesLesen(); if (!alt || !alt.rezepte.length) return;
+  const von = new Map(alt.rezepte.map((r) => [String(r.id), r])), e = bilderAnhaengen(Z.rezepte, bilder, (r) => { const a = von.get(String(r.id)); return !!a && (a.uid === r.uid || a.name === r.name); });
+  E.altBilder = true; if (e.dazu) { Z.rezepte = e.rezepte; zeichne(); setTimeout(() => melde(e.dazu === 1 ? L('+1 Bild übernommen', '+1 picture taken over') : fuelle(L('+{0} Bilder übernommen', '+{0} pictures taken over'), e.dazu)), 600); } sichern();
+}
 async function start() {
   const andere = document.documentElement.dataset.ausgabe || '';   /* eine Einstiegsseite kann eine andere Ausgabe nennen (neu/muttis.html) */
   ausgabe = await (await (/^[a-z-]+$/.test(andere) ? fetch('../ausgaben/' + andere + '/ausgabe.json') : fetch('../ausgaben/rezeptbuch/ausgabe.json'))).json();
   lager = speicher('KuechenKern-' + ausgabe.name); tr = tresor(lager);
   { const e = ausgabe.speicher.endung; S = schluesselLager(lager, { altNamen: { anthropic: ['claudeKey' + e], openai: ['openaiImgKey' + e, 'openaiKey' + e], mistral: ['mistralKey' + e] } }); await schlLaden(); }
   const da = await lager.lies().catch(() => null);
-  if (da?.zustand) { Z = { ...leererZustand(), ...da.zustand, rezepte: (da.zustand.rezepte || []).map(normalisiere) }; E = { ...E, ...(da.einstellungen || {}) }; }
+  if (da?.zustand) { Z = { ...leererZustand(), ...da.zustand, rezepte: (da.zustand.rezepte || []).map(normalisiere) }; E = { ...E, ...(da.einstellungen || {}) }; altBilderNachtragen().catch(() => {}); }
   else {
     E.farbe = FARBEN[ausgabe.farbe] ? ausgabe.farbe : 'braun';
-    let alt = null; try { alt = ausAltemSpeicher(localStorage, ausgabe.speicher.endung); } catch { /* kein Zugriff */ }
-    if (alt && alt.rezepte.length) { Z = { rezepte: alt.rezepte, menu: alt.menu, ordner: alt.ordner, kategorien: alt.kategorien }; if (sprKennt(alt.sprache)) E.sprache = alt.sprache; /* dort eigens gewählt */ await lager.schreibe({ fassung: 1, zustand: Z, einstellungen: E }); setTimeout(() => melde(fuelle(L('{0} Rezepte übernommen', '{0} recipes taken over'), alt.rezepte.length)), 300); }
+    const ab = await altesLesen(), alt = ab.alt;
+    if (alt && alt.rezepte.length) { Z = { rezepte: bilderAnhaengen(alt.rezepte, ab.bilder).rezepte, menu: alt.menu, ordner: alt.ordner, kategorien: alt.kategorien }; E.altBilder = true;   /* die Bilder liegen in der Datenbank der alten App, nicht im localStorage */ if (sprKennt(alt.sprache)) E.sprache = alt.sprache; /* dort eigens gewählt */ await lager.schreibe({ fassung: 1, zustand: Z, einstellungen: E }); setTimeout(() => melde(fuelle(L('{0} Rezepte übernommen', '{0} recipes taken over'), alt.rezepte.length)), 300); }
     else if (!new URLSearchParams(location.search).has('leer')) await startRezepte();   /* …/neu/?leer beginnt ohne Startrezepte (für Proben und für alle, die leer anfangen wollen) */
   }
   ergaenze(); E.scan = { anbieter: 'anthropic', stufe: 'schnell', ...(E.scan || {}) };
