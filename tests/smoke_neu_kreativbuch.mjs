@@ -1,6 +1,9 @@
 // Probe im echten Browser: Kreativbuch (neu/kreativbuch.mjs, kern/ausgabe/kreativbuch.mjs) – Zeile in den Einstellungen, Fenster ohne
 // Erklärtext, Auswahl und Stil, Auftrag kopieren (ohne Schlüssel), Antwort einsetzen, mit Schlüssel (gestelltes Anthropic): Kosten vorab,
 // Lauf, Abbrechen, Prüfung des Auftrags, Ausgaben (Blättern, HTML, PDF) samt Rezeptbild, 390 px, Sprache, Handbuch.
+// Teil 2: Aus Bildern (echte Bilddateien und ein PDF, im Browser erzeugt; Verkleinerung gemessen; Grenzen; Reihenfolge; Ausgaben), ein Bild als
+// Rezeptbild (mit Rückgängig), Projekte (speichern → neu laden → öffnen → ersetzen → Datei → löschen → rückgängig → Datei laden; nicht in der Sicherung).
+// Der PDF-Teil braucht pdf.js aus einem Klon von Workflow PDF: WFPDF_KLON=<Pfad>.
 // Aufruf: node tests/smoke_neu_kreativbuch.mjs   (NUR_TEIL=3,4 fährt nur diese Abschnitte; WURZEL=<Kopie> prüft eine Kopie, für die Gegenprobe)
 // Die Erwartungen (Aufträge, Kosten, Stile) kommen aus dem Kern NEBEN dieser Datei, nicht aus WURZEL: eine Sabotage in der Kopie verschiebt sie nicht mit.
 import { createRequire } from 'node:module';
@@ -8,10 +11,12 @@ import { mitThemen } from './neu-hilfe.mjs';
 import { KB_STILE, KB_STIL_VORGABE, KB_FELDER, kbSammelAuftrag, kbKosten, kbStilName } from '../kern/ausgabe/kreativbuch.mjs';
 import frApp from '../neu/sprachen/fr.mjs';
 const { chromium } = createRequire(import.meta.url)('playwright');
-import http from 'node:http'; import { readFile } from 'node:fs/promises'; import { extname, join } from 'node:path';
+import { EB_MAX, EB_KANTE, EB_KLEIN, EB_DATEI_MAX } from '../kern/ausgabe/eigenbuch.mjs';
+import http from 'node:http'; import { readFile } from 'node:fs/promises'; import { existsSync } from 'node:fs'; import { extname, join, resolve } from 'node:path';
 const WURZEL = process.env.WURZEL || process.cwd();
+const KLON = [process.env.WFPDF_KLON, resolve('..', 'Workflow-PDF')].filter(Boolean).find((x) => existsSync(join(x, 'vendor', 'pdfjs', 'pdf.min.js'))) || '';
 const TYP = { '.html': 'text/html', '.mjs': 'text/javascript', '.js': 'text/javascript', '.css': 'text/css', '.json': 'application/json', '.png': 'image/png', '.jpg': 'image/jpeg' };
-const srv = http.createServer(async (q, a) => { let p = decodeURIComponent(q.url.split('?')[0]); if (p.endsWith('/')) p += 'index.html'; try { const d = await readFile(join(WURZEL, p)); a.writeHead(200, { 'content-type': TYP[extname(p)] || 'application/octet-stream' }); a.end(d); } catch { a.writeHead(404); a.end(); } }).listen(0);
+const srv = http.createServer(async (q, a) => { let p = decodeURIComponent(q.url.split('?')[0]), basis = WURZEL; if (p.startsWith('/Workflow-PDF/') && KLON) { basis = KLON; p = p.slice('/Workflow-PDF'.length); } if (p.endsWith('/')) p += 'index.html'; try { const d = await readFile(join(basis, p)); a.writeHead(200, { 'content-type': TYP[extname(p)] || 'application/octet-stream' }); a.end(d); } catch { a.writeHead(404); a.end(); } }).listen(0);
 const HERKUNFT = `http://localhost:${srv.address().port}`, ORT = HERKUNFT + '/neu/', URL0 = ORT + '?leer';
 let gruen = 0, rot = 0; const ok = (b, t, mehr = '') => { if (b) { gruen++; console.log('  ✓ ' + t); } else { rot++; console.log('  ✗ ROT: ' + t + (mehr ? ' — ' + mehr : '')); } };
 const browser = await chromium.launch(); const fehler = [];
@@ -225,6 +230,173 @@ try {
   await geh(p, 'werkstatt'); await p.locator('.gruppe[data-g=hilfe] [data-a=handbuch]').click(); await p.waitForSelector('#handbuch');
   const absatz = await p.locator('#handbuch details', { hasText: 'Drucken und Buch' }).evaluate((d) => [...d.querySelectorAll('p')].map((x) => x.textContent).join(' | '));
   ok(/Kreativbuch/.test(absatz) && /acht Stilen/.test(absatz) && /Auftrag in einen Chat/.test(absatz), 'das Handbuch erklärt das Kreativbuch unter „Drucken und Buch“', absatz.slice(0, 120));
+  ok(/Aus Bildern/.test(absatz) && /30 Bilder/.test(absatz) && /15 MB/.test(absatz) && /Projekte/.test(absatz) && /\.kreativbuch/.test(absatz) && /Sicherung stehen Projekte nicht/.test(absatz), 'das Handbuch nennt „Aus Bildern“ mit seinen Grenzen und die Projekte', absatz.slice(-200));
+  await k.close();
+  }
+  /* ── Teil 2 ── echte Dateien, im Browser erzeugt: ein großes Querformat-Foto (Rauschen, JPEG), ein Hochformat-PNG mit durchsichtiger Ecke, ein PDF mit zwei Seiten. */
+  const bildDatei = (p, b, h, typ, durchsicht = false) => p.evaluate(async ([b, h, typ, durchsicht]) => {
+    const c = document.createElement('canvas'); c.width = b; c.height = h; const x = c.getContext('2d'), d = x.createImageData(b, h);
+    for (let i = 0; i < d.data.length; i += 4) { d.data[i] = Math.random() * 255; d.data[i + 1] = 120; d.data[i + 2] = Math.random() * 255; d.data[i + 3] = durchsicht && (i / 4) % b < b / 4 && i / 4 / b < h / 4 ? 0 : 255; }
+    x.putImageData(d, 0, 0); const u = new Uint8Array(await (await new Promise((r) => c.toBlob(r, typ, 0.92))).arrayBuffer());
+    let t = ''; for (let i = 0; i < u.length; i += 0x8000) t += String.fromCharCode.apply(null, u.subarray(i, i + 0x8000)); return btoa(t);
+  }, [b, h, typ, durchsicht]).then((b64) => Buffer.from(b64, 'base64'));
+  const pdfDatei = (p, seiten) => p.evaluate(async (seiten) => {
+    if (!window.PDFLib) await new Promise((ja, nein) => { const s = document.createElement('script'); s.src = '/Workflow-PDF/vendor/pdf-lib.min.js'; s.onload = ja; s.onerror = nein; document.head.appendChild(s); });
+    const { PDFDocument, StandardFonts, rgb } = window.PDFLib, doc = await PDFDocument.create(), f = await doc.embedFont(StandardFonts.Helvetica);
+    for (let i = 0; i < seiten; i++) doc.addPage([595, 842]).drawText('Seite ' + (i + 1), { x: 60, y: 760, size: 40, font: f, color: rgb(0, 0, 0) });
+    const u = await doc.save(); let t = ''; for (let i = 0; i < u.length; i += 0x8000) t += String.fromCharCode.apply(null, u.subarray(i, i + 0x8000)); return btoa(t);
+  }, seiten).then((b64) => Buffer.from(b64, 'base64'));
+  /* Maße eines eingebetteten Bildes und die Farbe seines ersten Bildpunkts. */
+  const masse = (p, src) => p.evaluate(async (src) => { const b = await createImageBitmap(await (await fetch(src)).blob()), c = document.createElement('canvas'); c.width = b.width; c.height = b.height; const x = c.getContext('2d'); x.drawImage(b, 0, 0); return [b.width, b.height, [...x.getImageData(1, 1, 1, 1).data.slice(0, 3)]]; }, src);
+  const ebAuf = async (p) => { await zumKb(p); await p.click('[data-a=eb-auf]'); await p.waitForSelector('#eb-gitter'); };
+  const kacheln = (p) => p.locator('#eb-gitter .eb-kachel[data-i]').evaluateAll((l) => l.map((k) => ({ name: k.querySelector('img').getAttribute('alt'), src: k.querySelector('img').getAttribute('src') })));
+  const waehle = async (p, dateien) => { const [fc] = await Promise.all([p.waitForEvent('filechooser'), p.click('[data-a=eb-dazu]')]); await fc.setFiles(dateien); };
+  const lagerHol = (p, schluessel) => p.evaluate((k) => new Promise((ja) => { const a = indexedDB.open('KuechenKern-rezeptbuch'); a.onsuccess = () => { const q = a.result.transaction('zustand').objectStore('zustand').get(k); q.onsuccess = () => { a.result.close(); ja(q.result ?? null); }; }; }), schluessel);
+  const lauf = (p) => p.evaluate(() => { const f = document.querySelector('.fenster'), kn = [...f.querySelectorAll('.knopf,.rund,.kbp-auf')].map((b) => ({ t: b.innerText.replace(/\s+/g, ' ').trim() || b.getAttribute('aria-label'), h: b.getBoundingClientRect().height, r: b.getBoundingClientRect().right })); return { quer: f.scrollWidth - f.clientWidth, seite: document.documentElement.scrollWidth - innerWidth, hoch: kn.filter((x) => x.h > 46).map((x) => x.t), raus: kn.filter((x) => x.r > innerWidth + 0.5).map((x) => x.t) }; });
+
+  if (will(9)) {
+  console.log('9 · Aus Bildern: echte Dateien, im Gerät verkleinert, Grenzen, Reihenfolge, Ausgaben; nichts geht hinaus');
+  ({ p, k, netz } = await seite());
+  await zumKb(p);
+  const mehr = await p.locator('.kb-mehr .knopf').evaluateAll((l) => l.map((b) => ({ t: b.innerText.trim(), h: b.getBoundingClientRect().height })));
+  ok(mehr.length === 2 && mehr[0].t === 'Aus Bildern' && mehr[1].t === 'Projekte' && mehr.every((x) => x.h <= 40), 'im Kreativbuch stehen „Aus Bildern“ und „Projekte“, jeder Knopf in einer Zeile', JSON.stringify(mehr));
+  await p.click('[data-a=eb-auf]'); await p.waitForSelector('#eb-gitter');
+  ok(await p.locator('.fenster p').count() === 0 && (await p.locator('#eb-stand').innerText()).trim() === `0 / ${EB_MAX}` && await p.locator('[data-a=eb-dazu]').count() === 1, 'das Fenster: kein Erklärtext, oben „0 / 30“, ein Feld zum Hinzufügen', await p.locator('#eb-stand').innerText());
+  ok(/15 MB/.test(await hinweis(p.locator('[data-a=eb-dazu]'))), 'der Hinweis am Feld nennt die Grenze je Datei', await hinweis(p.locator('[data-a=eb-dazu]')));
+  const quer = await bildDatei(p, 3000, 2000, 'image/jpeg'), hoch = await bildDatei(p, 600, 900, 'image/png', true);
+  await waehle(p, [{ name: 'Quer.jpg', mimeType: 'image/jpeg', buffer: quer }, { name: 'Hoch.png', mimeType: 'image/png', buffer: hoch }, { name: 'Riesig.jpg', mimeType: 'image/jpeg', buffer: Buffer.alloc(EB_DATEI_MAX + 1) }, { name: 'notiz.txt', mimeType: 'text/plain', buffer: Buffer.from('hallo') }]);
+  ok(await wennToast(p, '\\+2 Bilder · 1 über 15 MB · 1 nicht lesbar'), 'zwei Bilder kommen hinein; die Meldung nennt die zu große und die unlesbare Datei', await toast(p));
+  await p.waitForFunction(() => document.querySelectorAll('#eb-gitter .eb-kachel[data-i]').length === 2, null, { timeout: 8000 }).catch(() => {});
+  let kl = await kacheln(p);
+  ok(kl.map((x) => x.name).join() === 'Quer.jpg,Hoch.png' && (await p.locator('#eb-stand').innerText()).trim() === `2 / ${EB_MAX}`, 'die Bilder stehen in der gewählten Reihenfolge; oben „2 / 30“', JSON.stringify(kl.map((x) => x.name)));
+  const kq = kl[0] ? await masse(p, kl[0].src) : [0, 0], kh = kl[1] ? await masse(p, kl[1].src) : [0, 0, [0, 0, 0]];
+  ok(kl.every((x) => /^data:image\/jpeg;base64,/.test(x.src)) && Math.max(kq[0], kq[1]) === EB_KLEIN && Math.max(kh[0], kh[1]) === EB_KLEIN && kq[0] > kq[1] && kh[1] > kh[0], `die Vorschau ist verkleinert: lange Kante ${EB_KLEIN} px, JPEG, Seitenverhältnis bleibt`, JSON.stringify([kq.slice(0, 2), kh.slice(0, 2)]));
+  ok(kh[2].every((v) => v > 240), 'Durchsichtiges wird weiß, nicht schwarz', JSON.stringify(kh[2]));
+  await p.click('[data-a=eb-blaettern]'); await p.waitForSelector('#kb-rahmen');
+  const buch = await p.locator('#kb-rahmen').evaluate((f) => ({ sb: f.getAttribute('sandbox'), html: f.srcdoc }));
+  const gross = [...buch.html.matchAll(/<div class="eb-bild"><img src="([^"]+)"/g)].map((m) => m[1]);
+  const gq = gross[0] ? await masse(p, gross[0]) : [0, 0], gh = gross[1] ? await masse(p, gross[1]) : [0, 0];
+  ok(buch.sb === 'allow-scripts' && gross.length === 2 && Math.max(gq[0], gq[1]) === EB_KANTE && Math.max(gh[0], gh[1]) === Math.max(600, 900) && Math.round(gq[0] / gq[1] * 100) === 150, `im Buch: das große Foto auf ${EB_KANTE} px verkleinert, das kleine bleibt, wie es ist (nichts wird hochgerechnet)`, JSON.stringify([gq.slice(0, 2), gh.slice(0, 2)]));
+  const fr = p.frames().find((f) => f !== p.mainFrame());
+  const zaehler = fr ? await fr.waitForFunction(() => document.getElementById('zaehler')?.textContent || '', null, { timeout: 5000 }).then((h) => h.jsonValue(), () => '') : '';
+  ok(zaehler === 'Seite 1 von 3', 'Blättern: Deckblatt und je Bild eine Seite', zaehler);
+  await p.click('.kb-vorschau [data-a=eb-auf]'); await p.waitForSelector('#eb-gitter');
+  await p.click('#eb-gitter .eb-kachel[data-i="0"]'); await p.waitForSelector('#eb-werk', { timeout: 5000 }).catch(() => {});
+  ok(await p.locator('#eb-gitter .eb-kachel[data-i="0"][aria-pressed=true]').count() === 1 && await p.locator('#eb-werk .rund').count() === 4, 'antippen wählt ein Bild; darunter: vor, zurück, als Rezeptbild, entfernen');
+  const l390 = await lauf(p);
+  ok(l390.quer <= 0 && l390.seite <= 0 && !l390.raus.length && !l390.hoch.length, 'am Handy (390 px) läuft im Bilder-Fenster nichts quer', JSON.stringify(l390));
+  await p.click('[data-a=eb-rechts]');
+  kl = await kacheln(p);
+  ok(kl.map((x) => x.name).join() === 'Hoch.png,Quer.jpg' && await p.locator('#eb-gitter .eb-kachel[data-i="1"][aria-pressed=true]').count() === 1, '„Nach hinten“ verschiebt das gewählte Bild, es bleibt gewählt', kl.map((x) => x.name).join());
+  await p.click('[data-a=eb-weg]');
+  ok((await kacheln(p)).map((x) => x.name).join() === 'Hoch.png' && await wennToast(p, 'Bild entfernt'), '„Entfernen“ nimmt das gewählte Bild heraus');
+  await p.click('#toast [data-a=toast-tun]').catch(() => {}); await p.waitForTimeout(150);
+  ok((await kacheln(p)).map((x) => x.name).join() === 'Hoch.png,Quer.jpg', '„Rückgängig“ holt es an seine Stelle zurück', (await kacheln(p)).map((x) => x.name).join());
+  if (KLON) {
+    await waehle(p, [{ name: 'Heft.pdf', mimeType: 'application/pdf', buffer: await pdfDatei(p, 2) }]);
+    ok(await wennToast(p, '\\+2 Bilder'), 'ein PDF mit zwei Seiten bringt zwei Bilder', await toast(p));
+    await p.waitForFunction(() => document.querySelectorAll('#eb-gitter .eb-kachel[data-i]').length === 4, null, { timeout: 8000 }).catch(() => {});
+    kl = await kacheln(p); const ks = kl[2] ? await masse(p, kl[2].src) : [0, 0];
+    ok(kl.slice(2).map((x) => x.name).join() === 'Heft S. 1,Heft S. 2' && ks[1] === EB_KLEIN && ks[0] < ks[1], 'je PDF-Seite ein Bild mit Name und Seitenzahl, im Hochformat verkleinert', JSON.stringify([kl.map((x) => x.name), ks.slice(0, 2)]));
+  } else ok(false, 'der PDF-Teil braucht pdf.js aus dem Klon von Workflow PDF', 'WFPDF_KLON setzen');
+  const viele = Array.from({ length: EB_MAX }, (_, i) => ({ name: `F${i}.png`, mimeType: 'image/png', buffer: hoch }));
+  await waehle(p, viele);
+  const vorhanden = KLON ? 4 : 2;
+  ok(await wennToast(p, `\\+${EB_MAX - vorhanden} Bilder · ${vorhanden} ohne Platz \\(höchstens ${EB_MAX}\\)`), 'mehr als 30 Bilder: aufgefüllt bis 30, der Rest wird gezählt', await toast(p));
+  await p.waitForFunction((n) => document.querySelectorAll('#eb-gitter .eb-kachel[data-i]').length === n, EB_MAX, { timeout: 15000 }).catch(() => {});
+  ok(await p.locator('#eb-gitter .eb-kachel[data-i]').count() === EB_MAX && await p.locator('[data-a=eb-dazu]').count() === 0 && (await p.locator('#eb-stand').innerText()).trim() === `${EB_MAX} / ${EB_MAX}`, 'bei 30 verschwindet das Feld zum Hinzufügen');
+  const [dl] = await Promise.all([p.waitForEvent('download', { timeout: 15000 }), p.click('[data-a=eb-html]')]);
+  const html = await readFile(await dl.path(), 'utf8');
+  ok(/\.html$/.test(dl.suggestedFilename()) && (html.match(/<script>/g) || []).length === 1 && (html.match(/class="eb-bild"/g) || []).length === EB_MAX && /Content-Security-Policy/.test(html), 'HTML: eine eigenständige Datei mit allen 30 Bildern und genau einem Skript', dl.suggestedFilename());
+  await p.evaluate(() => { window.__gedruckt = 0; window.__druck = ''; const alt = HTMLIFrameElement.prototype.__lookupGetter__('contentWindow'); Object.defineProperty(HTMLIFrameElement.prototype, 'contentWindow', { get() { const w = alt.call(this); if (w && this.hasAttribute('data-kern-druck')) { window.__druck = this.srcdoc; w.print = () => { window.__gedruckt++; }; } return w; } }); });
+  await p.click('[data-a=eb-pdf]'); await p.waitForFunction(() => window.__gedruckt === 1, null, { timeout: 15000 }).catch(() => {});
+  const druck = await p.evaluate(() => window.__druck);
+  ok(await p.evaluate(() => window.__gedruckt) === 1 && !druck.includes('<script') && (druck.match(/class="eb-bild"/g) || []).length === EB_MAX, 'PDF geht an den Druck des Browsers, ohne Skript, je Bild eine Seite');
+  ok(netz.ki.length === 0, 'aus „Aus Bildern“ geht nichts an eine KI');
+  await k.close();
+  }
+
+  if (will(10)) {
+  console.log('10 · Ein Bild als Rezeptbild, mit Rückgängig');
+  ({ p, k, netz } = await seite());
+  await ebAuf(p);
+  await waehle(p, [{ name: 'Zopf.jpg', mimeType: 'image/jpeg', buffer: await bildDatei(p, 2400, 1800, 'image/jpeg') }]); await wennToast(p, '\\+1 Bild');
+  await p.waitForSelector('#eb-gitter .eb-kachel[data-i="0"]'); await p.click('#eb-gitter .eb-kachel[data-i="0"]'); await p.click('[data-a=eb-rezeptbild]');
+  await p.waitForSelector('#eb-rezept', { timeout: 5000 }).catch(() => {});
+  const wahl = await p.locator('#eb-rezept option').allInnerTexts();
+  ok(wahl.join() === 'Braten,Hefezopf,Rindergulasch' && await p.locator('.fenster p').count() === 0, 'eine Auswahl aller Rezepte nach Namen, kein Erklärtext', wahl.join());
+  await p.selectOption('#eb-rezept', 'r-2'); await p.click('[data-a=eb-rezeptbild-los]');
+  ok(await wennToast(p, 'Rezeptbild · Hefezopf'), 'die Meldung nennt das Rezept', await toast(p));
+  let b = await bestandWenn(p, (x) => x.zustand.rezepte.find((r) => r.uid === 'r-2')?.img), r2 = b.zustand.rezepte.find((r) => r.uid === 'r-2');
+  const m = r2?.img ? await masse(p, r2.img) : [0, 0];
+  ok(/^data:image\/jpeg;base64,/.test(r2?.img || '') && Math.max(m[0], m[1]) === EB_KANTE && JSON.stringify(r2.imgCrop) === JSON.stringify({ x: 50, y: 50, scale: 1 }), `das Rezept trägt das Buch-Bild (${EB_KANTE} px), der Ausschnitt steht auf der Mitte`, JSON.stringify([m.slice(0, 2), r2?.imgCrop]));
+  ok(b.zustand.rezepte.find((r) => r.uid === 'r-1').img === FOTO, 'die anderen Rezepte bleiben, wie sie waren');
+  await p.click('#toast [data-a=toast-tun]').catch(() => {});
+  b = await bestandWenn(p, (x) => !x.zustand.rezepte.find((r) => r.uid === 'r-2')?.img);
+  ok(!b.zustand.rezepte.find((r) => r.uid === 'r-2').img, '„Rückgängig“ nimmt das Rezeptbild wieder weg');
+  ok(netz.ki.length === 0, 'das Rezeptbild sendet nichts');
+  await k.close();
+  }
+
+  if (will(11)) {
+  console.log('11 · Projekte: speichern, neu laden, öffnen, ersetzen, Datei, löschen mit Rückgängig, Datei laden; nicht in der Sicherung');
+  const texte = Object.fromEntries(BESTAND().map((r) => [r.uid, { nordisch: TEXTE(r.name) }]));
+  ({ p, k, netz } = await seite({ einstellungen: { kreativ: { stil: 'nordisch', texte } } }));
+  await ebAuf(p);
+  const foto = await bildDatei(p, 1800, 1200, 'image/jpeg');
+  await waehle(p, [{ name: 'Fest.jpg', mimeType: 'image/jpeg', buffer: foto }]); await wennToast(p, '\\+1 Bild');
+  await p.click('.fenster [data-a=kb-auf]'); await p.waitForSelector('#kb-stile');
+  ok((await p.locator('[data-a=eb-auf]').innerText()).trim() === 'Aus Bildern · 1', 'im Kreativbuch steht, wie viele eigene Bilder da sind', await p.locator('[data-a=eb-auf]').innerText());
+  await p.click('[data-a=kbp-auf]'); await p.waitForSelector('#kbp-name');
+  ok(await p.locator('.fenster p').count() === 0 && /^Kreativbuch \d/.test(await p.inputValue('#kbp-name')) && await p.locator('.kbp-zeile').count() === 0, 'das Fenster: kein Erklärtext, ein Name ist vorgeschlagen, noch kein Projekt', await p.inputValue('#kbp-name'));
+  const l390 = await lauf(p);
+  ok(l390.quer <= 0 && l390.seite <= 0 && !l390.raus.length && !l390.hoch.length, 'am Handy (390 px) läuft im Projekte-Fenster nichts quer', JSON.stringify(l390));
+  await p.fill('#kbp-name', 'Sommerfest'); await p.click('[data-a=kbp-speichern]');
+  ok(await wennToast(p, 'Gespeichert · Sommerfest'), 'speichern meldet den Namen', await toast(p));
+  await p.waitForSelector('.kbp-zeile', { timeout: 5000 }).catch(() => {});
+  const zeile = (await p.locator('.kbp-zeile').first().innerText().catch(() => '')).replace(/\s+/g, ' ');
+  ok(/Sommerfest/.test(zeile) && /1 Bild · 3 Texte/.test(zeile), 'die Zeile nennt Name, Datum, Bilder und Texte', zeile);
+  const liste = await lagerHol(p, 'kreativ-projekte'), id = liste?.[0]?.id, ab = id ? await lagerHol(p, 'kreativ-projekt:' + id) : null;
+  ok(liste?.length === 1 && ab && ab.bilder.length === 1 && ab.stil === 'nordisch' && Object.keys(ab.texte).length === 3 && /^data:image\/jpeg/.test(ab.bilder[0].gross), 'im Speicher des Geräts: eine Liste und ein Eintrag mit Bildern, Stil und Texten', JSON.stringify(liste));
+  const zustandRoh = JSON.stringify(await bestand(p));
+  ok(!zustandRoh.includes(ab?.bilder?.[0]?.gross?.slice(30, 90) || 'x') && !zustandRoh.includes('Sommerfest'), 'die Bilder liegen neben dem Bestand, nicht in ihm (der Bestand wird bei jeder Änderung neu geschrieben)');
+  const [sich] = await Promise.all([p.waitForEvent('download', { timeout: 15000 }), (async () => { await p.keyboard.press('Escape'); await geh(p, 'werkstatt'); await p.locator('[data-a=sichern]').first().click(); })()]);
+  const sichText = await readFile(await sich.path(), 'utf8');
+  ok(!sichText.includes('Sommerfest') && !sichText.includes('kreativ'), 'Projekte stehen nicht in der Sicherung', sich.suggestedFilename());
+  await p.reload(); await p.waitForSelector('.gruss');
+  await zumKb(p);
+  ok((await p.locator('[data-a=eb-auf]').innerText()).trim() === 'Aus Bildern', 'nach dem Neuladen sind die Bilder erst mit dem Projekt wieder da');
+  await p.click('#kb-stile [data-stil=elegant]'); await p.waitForSelector('#kb-stile [data-stil=elegant][aria-checked=true]', { timeout: 5000 }).catch(() => {});
+  await p.click('[data-a=kbp-auf]'); await p.waitForSelector('.kbp-zeile');
+  await p.click('.kbp-zeile [data-a=kbp-oeffnen]');
+  ok(await wennToast(p, 'Geöffnet · Sommerfest'), 'öffnen meldet den Namen', await toast(p));
+  await p.waitForSelector('#kb-stile', { timeout: 5000 }).catch(() => {});
+  ok(await p.locator('#kb-stile [data-stil=nordisch]').getAttribute('aria-checked') === 'true' && (await p.locator('[data-a=eb-auf]').innerText()).trim() === 'Aus Bildern · 1' && (await p.locator('#kb-stand').innerText()).trim() === '3 von 3 mit Text', 'geöffnet: Stil, Texte und Bilder des Projekts sind wieder da', (await p.locator('#kb-stand').innerText()));
+  await p.click('[data-a=kbp-auf]'); await p.waitForSelector('#kbp-name');
+  ok(await p.inputValue('#kbp-name') === 'Sommerfest', 'der Name des geöffneten Projekts steht im Feld');
+  await p.click('[data-a=kbp-speichern]');
+  ok(await wennToast(p, 'Ersetzt · Sommerfest') && (await lagerHol(p, 'kreativ-projekte'))?.length === 1, 'unter demselben Namen ersetzt speichern das Projekt, statt ein zweites anzulegen', await toast(p));
+  await p.waitForSelector('.kbp-zeile');
+  const [dl] = await Promise.all([p.waitForEvent('download', { timeout: 15000 }), p.click('.kbp-zeile [data-a=kbp-datei]')]);
+  const datei = await readFile(await dl.path(), 'utf8'), d = JSON.parse(datei);
+  ok(dl.suggestedFilename() === 'Sommerfest.kreativbuch' && d.v === 1 && d.images.length === 1 && d.images[0].exportUrl && d.kreativ.name === 'Sommerfest' && d.kreativ.stil === 'nordisch', 'als Datei: das Format der alten App (v:1, images) mit Name, Stil und Texten', dl.suggestedFilename());
+  await p.click('.kbp-zeile [data-a=kbp-weg]');
+  ok(await wennToast(p, '„Sommerfest“ gelöscht') && await p.locator('.kbp-zeile').count() === 0, 'löschen nimmt das Projekt aus der Liste und sagt es', await toast(p));
+  ok((await lagerHol(p, 'kreativ-projekte'))?.length === 0 && await lagerHol(p, 'kreativ-projekt:' + id) === null, 'gelöscht ist es auch im Speicher des Geräts');
+  await p.click('#toast [data-a=toast-tun]').catch(() => {}); await p.waitForSelector('.kbp-zeile', { timeout: 5000 }).catch(() => {});
+  const zurueck = await lagerHol(p, 'kreativ-projekt:' + id);
+  ok(await p.locator('.kbp-zeile').count() === 1 && zurueck?.bilder?.length === 1 && zurueck.name === 'Sommerfest', '„Rückgängig“ legt es mit Bildern und Kennung zurück');
+  const alt = JSON.stringify({ v: 1, images: [{ name: 'a.jpg', thumbUrl: d.images[0].thumbUrl, exportUrl: d.images[0].exportUrl }, { name: 'b.pdf', thumbUrl: d.images[0].thumbUrl, exportUrl: null, isPdf: true }] });
+  for (const [name, inhalt, soll] of [['Sommerfest.kreativbuch', datei, 'Sommerfest'], ['mein-kreativbuch.kreativbuch', alt, 'mein-kreativbuch']]) {
+    const [fc] = await Promise.all([p.waitForEvent('filechooser'), p.click('[data-a=kbp-laden]')]); await fc.setFiles({ name, mimeType: 'application/json', buffer: Buffer.from(inhalt) });
+    ok(await wennToast(p, '\\+1 Projekt · ' + soll), `Datei laden: ${name} kommt als Projekt dazu`, await toast(p));
+  }
+  await p.waitForFunction(() => document.querySelectorAll('.kbp-zeile').length === 3, null, { timeout: 5000 }).catch(() => {});
+  const zeilen = (await p.locator('.kbp-zeile').allInnerTexts()).map((t) => t.replace(/\s+/g, ' '));
+  ok(zeilen.length === 3 && zeilen.some((t) => /mein-kreativbuch.*1 Bild/.test(t)), 'eine Datei der alten App kommt mit ihren Bildern (ohne den PDF-Platzhalter)', zeilen.join(' | '));
+  const [fc] = await Promise.all([p.waitForEvent('filechooser'), p.click('[data-a=kbp-laden]')]); await fc.setFiles({ name: 'falsch.kreativbuch', mimeType: 'application/json', buffer: Buffer.from('{"recipes":[]}') });
+  ok(await wennToast(p, 'kein Kreativbuch'), 'eine fremde Datei wird gesagt, nicht eingelesen', await toast(p));
+  ok(netz.ki.length === 0, 'Projekte senden nichts');
   await k.close();
   }
   ok(fehler.length === 0, 'keine Fehler in der Konsole, kein Aufruf nach draußen außer den gestellten', fehler.slice(0, 3).join(' · '));
