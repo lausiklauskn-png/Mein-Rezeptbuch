@@ -483,7 +483,7 @@ export default {
   'In den Einstellungen unter „Buch“ wird aus allen Rezepten oder aus einer Kategorie ein Buch: als PDF zum Drucken oder als Datei zum Blättern und Weitergeben.': 'В настройках, в разделе «Книга», из всех рецептов или из одной категории получается книга: в виде PDF для печати или в виде файла, который можно листать и передавать другим.',
   'Ohne Netz und als App': 'Без сети и как приложение',
   'Nach dem ersten Öffnen läuft die App ohne Netz. Netz brauchen nur die KI-Funktionen, der Web-Import und das erste Laden des Sprachmodells.': 'После первого открытия приложение работает без сети. Сеть нужна только функциям ИИ, импорту с сайта и первой загрузке языковой модели.',
-  '„Als App installieren“ in den Einstellungen legt sie auf den Startbildschirm, wenn dein Browser das anbietet.': '«Установить как приложение» в настройках помещает его на главный экран, если браузер это предлагает.',
+  'Der Knopf mit dem Pfeil oben installiert die App auf dem Startbildschirm; danach verschwindet er. Ein Tipp auf die Versionsnummer oben holt die neueste Fassung.': 'Кнопка со стрелкой вверху устанавливает приложение на главный экран; после этого она исчезает. Касание номера версии вверху загружает последнюю версию.',
   'Von der KI geprüft': 'Проверено ИИ',
   '{0} passen': 'Подходят: {0}',
   'KI prüft': 'Проверить с ИИ',

@@ -483,7 +483,7 @@ export default {
   'In den Einstellungen unter „Buch“ wird aus allen Rezepten oder aus einer Kategorie ein Buch: als PDF zum Drucken oder als Datei zum Blättern und Weitergeben.': '在设置的“书”中，可以把全部食谱或某个分类做成一本书：可打印的 PDF，或可翻页、可转发的文件。',
   'Ohne Netz und als App': '离线使用与安装为应用',
   'Nach dem ersten Öffnen läuft die App ohne Netz. Netz brauchen nur die KI-Funktionen, der Web-Import und das erste Laden des Sprachmodells.': '首次打开之后，应用无需联网即可使用。只有 AI 功能、网页导入和首次加载语言模型需要联网。',
-  '„Als App installieren“ in den Einstellungen legt sie auf den Startbildschirm, wenn dein Browser das anbietet.': '设置中的“安装为应用”会把它添加到主屏幕（如果浏览器支持）。',
+  'Der Knopf mit dem Pfeil oben installiert die App auf dem Startbildschirm; danach verschwindet er. Ein Tipp auf die Versionsnummer oben holt die neueste Fassung.': '顶部带箭头的按钮会把应用安装到主屏幕；安装后它就消失。点一下顶部的版本号即可获取最新版本。',
   'Von der KI geprüft': '已由 AI 检查',
   '{0} passen': '{0} 个相符',
   'KI prüft': 'AI 检查',

@@ -59,6 +59,6 @@ export const handbuch = (L) => [
   ]],
   ['laden', L('Ohne Netz und als App', 'Offline and as an app'), [
     L('Nach dem ersten Öffnen läuft die App ohne Netz. Netz brauchen nur die KI-Funktionen, der Web-Import und das erste Laden des Sprachmodells.', 'After the first opening the app runs offline. Only the AI functions, the web import and the first download of the language model need the network.'),
-    L('„Als App installieren“ in den Einstellungen legt sie auf den Startbildschirm, wenn dein Browser das anbietet.', '“Install as an app” in the settings puts it on the home screen if your browser offers that.'),
+    L('Der Knopf mit dem Pfeil oben installiert die App auf dem Startbildschirm; danach verschwindet er. Ein Tipp auf die Versionsnummer oben holt die neueste Fassung.', 'The arrow button at the top installs the app on the home screen; after that it disappears. A tap on the version number at the top fetches the latest version.'),
   ]],
 ];

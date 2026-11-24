@@ -485,7 +485,7 @@ export default {
   'In den Einstellungen unter „Buch“ wird aus allen Rezepten oder aus einer Kategorie ein Buch: als PDF zum Drucken oder als Datei zum Blättern und Weitergeben.': 'Dans les réglages, sous « Livre », toutes les recettes ou une catégorie deviennent un livre : en PDF à imprimer ou en fichier à feuilleter et à transmettre.',
   'Ohne Netz und als App': 'Hors ligne et comme app',
   'Nach dem ersten Öffnen läuft die App ohne Netz. Netz brauchen nur die KI-Funktionen, der Web-Import und das erste Laden des Sprachmodells.': 'Après la première ouverture, l’app fonctionne hors ligne. Le réseau n’est nécessaire que pour les fonctions IA, l’import web et le premier chargement du modèle de langue.',
-  '„Als App installieren“ in den Einstellungen legt sie auf den Startbildschirm, wenn dein Browser das anbietet.': '« Installer comme app », dans les réglages, la place sur l’écran d’accueil si votre navigateur le propose.',
+  'Der Knopf mit dem Pfeil oben installiert die App auf dem Startbildschirm; danach verschwindet er. Ein Tipp auf die Versionsnummer oben holt die neueste Fassung.': 'Le bouton avec la flèche en haut installe l’app sur l’écran d’accueil ; ensuite il disparaît. Un toucher sur le numéro de version en haut récupère la dernière version.',
   /* neu/zusatz.mjs */
   'Von der KI geprüft': 'Vérifié par l’IA',
   '{0} passen': '{0} conviennent',
