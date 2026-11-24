@@ -182,7 +182,7 @@ try {
   ({ p, k } = await seite({ rezepte: BUCH, ordner: [{ id: 'o-leer', name: 'Leerer Ordner' }] }));
   await geh(p, 'werkstatt');
   const bz = await p.locator('.gruppe[data-g=buch] .zeile').allInnerTexts();
-  ok(bz.length === 2 && /Als PDF drucken/.test(bz[0]) && /Zum Blättern/.test(bz[1]), 'in den Einstellungen steht das Thema „Buch“ mit zwei Zeilen: als PDF drucken, zum Blättern', bz.join(' | ').replace(/\n/g, ' '));
+  ok(bz.length === 3 && /Als PDF drucken/.test(bz[0]) && /Zum Blättern/.test(bz[1]), 'in den Einstellungen steht das Thema „Buch“ mit den Zeilen: als PDF drucken, zum Blättern (dahinter das Kreativbuch, smoke_neu_kreativbuch)', bz.join(' | ').replace(/\n/g, ' '));
   await p.locator('.gruppe[data-g=buch] .zeile[data-art=blaettern]').click(); await p.waitForSelector('#buch-wahl');
   const wahlen = await p.locator('#buch-wahl option').allInnerTexts();
   ok(await p.inputValue('#buch-titel') === 'Mein Rezeptbuch' && wahlen[0] === 'Alle Rezepte · 4' && wahlen.some((t) => /Kuchen.* · 2/.test(t)) && wahlen.includes('Leerer Ordner') && await p.locator('#buch-bilder').isChecked() && await p.locator('.fenster p').count() === 0, 'das Fenster fragt Titel, Auswahl (mit Zahlen) und „mit Bildern“, ohne Erklärtext', wahlen.join(' | '));

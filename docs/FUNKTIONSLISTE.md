@@ -127,7 +127,7 @@ Auftrag: Brief `docs/BRIEF_SITZUNG_2026-11-23_REZEPTBUCH-KUECHEN-KERN.md` im Rep
 | Rezept teilen (QR-Code + Web Share) | kern | 11 | da · smoke_neu_menue, kern-qr |
 | PDF-Buch (PDF BOOK EXPORT, Cover-Helfer) | ausgabe | 12 | da · smoke_neu_zusatz, smoke_kern_buch, kern-buch · über den Druck des Browsers |
 | Flipbook-Export | ausgabe | 12 | da · smoke_kern_buch, smoke_neu_zusatz · „Buch zum Blättern“ als HTML-Datei |
-| KI-Kreativbuch (Blätterbuch, Stil-System, Seiten 1–3, Kosten-Hinweis `kbCostOv`) | ausgabe | 12 | fehlt |
+| KI-Kreativbuch (Blätterbuch, Stil-System, Seiten 1–3, Kosten-Hinweis `kbCostOv`) | ausgabe | 12 | da · smoke_neu_kreativbuch, kern-kreativbuch · Einstellungen → Buch → Kreativbuch; Texte von Claude je Rezept (sechs Felder der alten App), acht Stile, je Rezept bis zu drei Seiten, Kosten vorab, Lauf abbrechbar |
 | Eigenes Kreativbuch aus Bildern | ausgabe | 12 | fehlt |
 | KI-Buch (`aiBookOv`, `kbkResize`) | ausgabe | 12 | fehlt |
 | Food-Zine (Galerie, Prompt-Generator, Bild+Text in Zwischenablage) | ausgabe | 12 | da (0.14.6) · drei Seiten, Auftrag kopieren (mit und ohne Foto), Bild einsetzen oder mit OpenAI-Schlüssel erzeugen, Stil, Galerie (smoke_neu_zine) |
@@ -224,7 +224,7 @@ Klaus hat zu den zehn Punkten der Mixarium-Sitzung und zu Punkt 16 Ja gesagt. Br
 | Schriftgröße der Kochansicht in den Einstellungen | kern | | da · smoke_neu · ein Regler für die ganze App, auch beim Kochen |
 | „Nur dieses Rezept“ am Monitor | kern | | da · smoke_neu |
 | Beispiel-Paket: Web-App auf Tippen, APK und Windows im Paket | kern | | teils · Web-App auf Tippen da (smoke_neu); APK und Windows sind nicht gebaut (erst nach Klaus’ Go) |
-| Kreativbuch (Punkt 16): 8 Stile, Kosten vorab, mit Schlüssel oder Auftrag kopieren, Blätterbuch, PDF, HTML, Rezeptbild, eigenes Buch aus Bildern, Projekte | ausgabe, Gerüst im kern | Stile als erweiterbare Liste | fehlt |
+| Kreativbuch (Punkt 16): 8 Stile, Kosten vorab, mit Schlüssel oder Auftrag kopieren, Blätterbuch, PDF, HTML, Rezeptbild, eigenes Buch aus Bildern, Projekte | ausgabe, Gerüst im kern | Stile als erweiterbare Liste | teils · 8 Stile (`kbStilDazu` erweitert), Kosten vorab, mit Anthropic-Schlüssel oder Auftrag kopieren und Antwort einsetzen, Blättern in der App, PDF, HTML, Rezeptbild auf der ersten Seite (smoke_neu_kreativbuch); „eine Seite als Rezeptbild“, eigenes Buch aus Bildern und Projekte fehlen |
 | Erklärtexte hinter „?“ | kern | | da · smoke_neu |
 | Spracheingabe in allen größeren Textfeldern | kern | Android: nativer Baustein wie Familienakte (`ProSpeech`); Windows offen | teils · Mikrofon an Suche, Formular, Text-Import und Einkauf (kern-diktat prüft die Textlogik; im Browser ist kein Diktat gefahren); der native Android-Baustein fehlt |
 | Notizbuch mit Kalender und Erinnerungen (wie Private Akte) | kern, gepinnter Klon | Benachrichtigungen am Handy nötig | fehlt |
