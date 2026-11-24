@@ -27,6 +27,7 @@ const VORRAT = [
  "../kern/ausgabe/buch.mjs",
  "../kern/ausgabe/zine.mjs",
  "../kern/ausgabe/kreativbuch.mjs",
+ "../kern/ausgabe/eigenbuch.mjs",
  "../kern/teilen/qr.mjs",
  "../kern/modell/mengen.mjs",
  "../kern/modell/plan.mjs",

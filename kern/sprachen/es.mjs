@@ -242,4 +242,8 @@ export default {
   'Gesundheit': 'Salud',
   'Ökologie und Saison': 'Ecología y temporada',
   'Guten Appetit!': '¡Buen provecho!',
+  'Die Datei ist kein Kreativbuch.': 'El archivo no es un libro creativo.',
+  'Kreativbuch': 'Libro creativo',
+  '1 Bild': '1 imagen',
+  '{0} Bilder': '{0} imágenes',
 };

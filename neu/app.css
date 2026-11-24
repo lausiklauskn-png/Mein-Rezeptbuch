@@ -735,6 +735,27 @@ a.knopf{text-decoration:none}
 .kb-punkt{width:14px;height:14px;border-radius:50%;flex:none;box-shadow:inset 0 0 0 1px rgba(0,0,0,.12)}
 .kb-wege .knopf small{font-size:11px;font-weight:500;opacity:.8;white-space:nowrap}
 .kb-wege,.kb-fertig{margin-bottom:10px}
+.kb-mehr{margin-bottom:10px}
+.eb-gitter{display:grid;grid-template-columns:repeat(auto-fill,minmax(72px,1fr));gap:8px;margin:10px 0}
+.eb-kachel{aspect-ratio:1;padding:0;border-radius:10px;overflow:hidden;background:var(--fl2);border:2px solid transparent;display:grid;place-items:center;cursor:pointer}
+.eb-kachel img{width:100%;height:100%;object-fit:cover;display:block;pointer-events:none}
+.eb-kachel[aria-pressed=true]{border-color:var(--akz);box-shadow:0 0 0 2px color-mix(in srgb,var(--akz) 30%,transparent)}
+.eb-dazu{border:2px dashed var(--line);color:var(--mut)}
+.eb-dazu .ic{width:26px;height:26px}
+.eb-werk{gap:7px;margin-bottom:10px}
+.fenster .eb-werk .rund{background:var(--fl);border:1px solid var(--line);color:var(--ink)}
+.fenster .eb-werk .rund.rot{color:#b3261e}
+.eb-vorschau{display:block;max-width:100%;max-height:180px;margin:0 auto 10px;border-radius:10px}
+.kbp-neu{flex-wrap:nowrap;margin-bottom:10px}
+.kbp-neu .feld{flex:1;min-width:0}
+.kbp-neu .knopf{flex:none}
+.kbp-liste{display:grid;gap:6px;margin-bottom:10px;max-height:46vh;overflow-y:auto}
+.kbp-zeile{display:flex;align-items:center;gap:7px}
+.kbp-auf{flex:1;min-width:0;text-align:left;display:grid;padding:7px 10px;border-radius:10px;background:var(--fl2);border:1px solid var(--line);color:var(--ink)}
+.kbp-auf b,.kbp-auf small{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.kbp-auf small{font-size:12px;color:var(--mut)}
+.fenster .kbp-zeile .rund{flex:none;background:var(--fl);border:1px solid var(--line);color:var(--ink)}
+.fenster .kbp-zeile .rund.rot{color:#b3261e}
 .kb-vorschau{position:fixed;inset:0;z-index:60;background:#14110e;animation:auf .18s ease-out}
 .kb-vorschau iframe{width:100%;height:100%;border:0;display:block;background:#ece6dd}
 .kb-vorschau .voll-x{background:rgba(0,0,0,.45)}

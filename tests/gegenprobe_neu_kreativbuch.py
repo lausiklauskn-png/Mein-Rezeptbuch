@@ -1,8 +1,8 @@
 # Gegenprobe zu tests/smoke_neu_kreativbuch.mjs: je Fall eine Sabotage in einer Wegwerf-Kopie; die Probe muss ROT werden,
-# und die rote Zeile muss den Namen der Zusicherung tragen. Aufruf: python3 -u tests/gegenprobe_neu_kreativbuch.py   (NUR_FALL=a,b · NUR_ANKER=1)
+# und die rote Zeile muss den Namen der Zusicherung tragen. Aufruf: python3 -u tests/gegenprobe_neu_kreativbuch.py   (NUR_FALL=a,b · NUR_ANKER=1; der PDF-Fall braucht WFPDF_KLON wie die Probe)
 # Die Probe nimmt ihre Erwartungen aus dem Kern NEBEN sich (dem echten Baum); eine Sabotage im Kern der Kopie verschiebt sie nicht mit.
 import subprocess, shutil, os, tempfile, sys
-U='neu/kreativbuch.mjs'; K='kern/ausgabe/kreativbuch.mjs'
+U='neu/kreativbuch.mjs'; K='kern/ausgabe/kreativbuch.mjs'; E='kern/ausgabe/eigenbuch.mjs'; BI='kern/oberflaeche/bild.mjs'
 F=[('fenster-mit-erklaertext', '     <select class="feld" id="kb-wahl"', '     <p>Hier wird aus deinen Rezepten ein Buch.</p><select class="feld" id="kb-wahl"', U, 'kein Erklärtext auf dem Fenster'),
    ('fenster-knopf-ohne-kosten', " · ${esc(ko.preis)}</small>", "</small>", U, 'im Knopf steht kurz, was an wen geht und was es kostet'),
    ('fenster-zeile-fehlt', "ZU.buchThema(zeile, '#b07a4a', KB.zeile(zeile))", "ZU.buchThema(zeile, '#b07a4a')", 'neu/app.mjs', 'im Thema „Buch“ steht die Zeile „Kreativbuch“'),
@@ -29,11 +29,37 @@ F=[('fenster-mit-erklaertext', '     <select class="feld" id="kb-wahl"', '     <
    ('ausgabe-pdf-mit-skript', "return blatt(k.kopf, sp, DRUCK_RICHTLINIE, '', k.stil, k.rumpf.join('\\n'));", "return blatt(k.kopf, sp, DRUCK_RICHTLINIE, '', k.stil, [...k.rumpf, ...blaetterLeiste(sp)].join('\\n'));", K, 'PDF geht an den Druck des Browsers, ohne Skript'),
    ('ausgabe-texte-fehlen', "kasten('oeko', 'Ökologie und Saison', 'Ecology and season', x.eco)", "''", K, 'HTML speichert eine eigenständige Datei mit allen Texten'),
    ('sprache-zeile-deutsch', "zeile('kreativ', 'funken', L('Kreativbuch', 'Creative book')", "zeile('kreativ', 'funken', 'Kreativbuch'", U, 'auf Französisch kommt die Zeile aus der Tabelle'),
-   ('handbuch-fehlt', "    L('„Kreativbuch“ unter „Buch“:", "    ('„Kreativbuch“ unter „Buch“:", 'neu/handbuch.mjs', 'das Handbuch erklärt das Kreativbuch')]
+   ('handbuch-fehlt', "    L('„Kreativbuch“ unter „Buch“:", "    ('„Kreativbuch“ unter „Buch“:", 'neu/handbuch.mjs', 'das Handbuch erklärt das Kreativbuch'),
+   ('handbuch-bilder-fehlt', "    L('Im Kreativbuch macht „Aus Bildern“", "    ('Im Kreativbuch macht „Aus Bildern“", 'neu/handbuch.mjs', 'das Handbuch nennt „Aus Bildern“'),
+   # Teil 2: Aus Bildern, Rezeptbild, Projekte
+   ('eb-knopf-fehlt', "${L('Aus Bildern', 'From pictures')}${bilder.length ? ` · ${bilder.length}` : ''}</button>", "${bilder.length ? ` · ${bilder.length}` : ''}</button>", U, 'im Kreativbuch stehen „Aus Bildern“ und „Projekte“'),
+   ('eb-zu-gross-still', "zuGross: (dateien || []).filter((d) => d.size > max)", "zuGross: []", E, 'die Meldung nennt die zu große'),
+   ('eb-vorschau-gross', "const [gross, klein] = await bildGroessen(d, [EB_KANTE, EB_KLEIN], EB_GUETE); neue.push", "const [gross, klein] = await bildGroessen(d, [EB_KANTE, EB_KANTE], EB_GUETE); neue.push", U, 'die Vorschau ist verkleinert'),
+   ('eb-buch-unverkleinert', "const f = Math.min(1, k / Math.max(bmp.width, bmp.height)), c = document.createElement('canvas');", "const f = 1, c = document.createElement('canvas');", BI, 'das große Foto auf 1600 px verkleinert'),
+   ('eb-schwarz', "g.fillStyle = '#fff'; g.fillRect(0, 0, c.width, c.height); ", "", BI, 'Durchsichtiges wird weiß'),
+   ('eb-grenze-feld', "${n < EB_MAX ? `<button class=\"eb-kachel eb-dazu\"", "${n < 999 ? `<button class=\"eb-kachel eb-dazu\"", U, 'bei 30 verschwindet das Feld'),
+   ('eb-schieben-falsch', "bilder = ebVerschiebe(bilder, gew, z); gew = z;", "bilder = ebVerschiebe(bilder, gew, z);", U, '„Nach hinten“ verschiebt'),
+   ('eb-weg-ohne-zurueck', "() => { bilder = vorher; if ($('eb-gitter')) ebFenster(); }", "() => {}", U, '„Rückgängig“ holt es'),
+   ('eb-pdf-eine-seite', "for (let i = 1; i <= pdf.numPages && aus.length < frei; i++)", "for (let i = 1; i <= 1 && aus.length < frei; i++)", U, 'ein PDF mit zwei Seiten bringt zwei Bilder'),
+   ('eb-druck-mit-skript', "EB_STIL}`, e.rumpf.join('\\n'));", "EB_STIL}`, [...e.rumpf, ...blaetterLeiste(sprache)].join('\\n'));", E, 'PDF geht an den Druck des Browsers, ohne Skript, je Bild'),
+   ('eb-rahmen-zugriff', 'From pictures\'))}" sandbox="allow-scripts"></iframe>', 'From pictures\'))}" sandbox="allow-scripts allow-same-origin"></iframe>', U, 'im Buch: das große Foto'),
+   ('rb-falsches-rezept', "(x.uid === uid ? { ...x, img: b.gross", "(x.uid !== uid ? { ...x, img: b.gross", U, 'die anderen Rezepte bleiben'),
+   ('rb-vorschau-statt-bild', "{ ...x, img: b.gross, imgCrop", "{ ...x, img: b.klein, imgCrop", U, 'das Rezept trägt das Buch-Bild'),
+   ('rb-ohne-zurueck', "rezepte: vorher }); sichern(); app.zeichne(); });", "rezepte: app.Z().rezepte }); sichern(); app.zeichne(); });", U, '„Rückgängig“ nimmt das Rezeptbild'),
+   ('kbp-speichern-ohne-bilder', "eigen: k.eigen, texte, bilder })", "eigen: k.eigen, texte, bilder: [] })", U, 'im Speicher des Geräts: eine Liste und ein Eintrag'),
+   ('kbp-ersetzen-neu', "id: projOffen.id && name === projOffen.name ? projOffen.id : ''", "id: ''", U, 'unter demselben Namen ersetzt'),
+   ('kbp-oeffnen-ohne-stil', "k.stil = p.stil; ", "", U, 'geöffnet: Stil, Texte und Bilder'),
+   ('kbp-oeffnen-ohne-bilder', "bilder = p.bilder; gew = -1;", "gew = -1;", U, 'geöffnet: Stil, Texte und Bilder'),
+   ('kbp-loeschen-nur-liste', "await lager.weg(eintrag(id)); await lager.setz(LISTE", "await lager.setz(LISTE", E, 'gelöscht ist es auch im Speicher'),
+   ('kbp-zurueck-fehlt', "async () => { await PJ().ablegen(p); kbpFrisch(); }", "async () => { kbpFrisch(); }", U, '„Rückgängig“ legt es'),
+   ('kbp-datei-anderes-format', "JSON.stringify({ v: 1, images:", "JSON.stringify({ v: 2, images:", E, 'als Datei: das Format der alten App'),
+   ('kbp-alte-datei-pdf', ".filter((b) => b && !b.isPdf)", ".filter((b) => b)", E, 'eine Datei der alten App kommt mit ihren Bildern'),
+   ('kbp-fremde-datei', "(!Array.isArray(d.images) && !d.kreativ)", "(false)", E, 'eine fremde Datei wird gesagt'),
+   ('kbp-390-quer', ".kbp-neu{flex-wrap:nowrap;", ".kbp-neu{flex-wrap:nowrap;min-width:600px;", 'neu/app.css', 'am Handy (390 px) läuft im Projekte-Fenster')]
 # Benannte Grenze: für „die Auswahl wird gespeichert“ steht kein Fall. Die Auswahl liegt in den Einstellungen (E), und jedes spätere
 # sichern() der App schreibt sie mit; ein fehlendes sichern() an dieser einen Stelle kann die Probe nicht von seinem Dasein unterscheiden.
 # Jeder Fall fährt nur seinen Abschnitt der Probe (NUR_TEIL); die Probe als Ganzes läuft vorher einmal ohne Sabotage.
-TEILE={'fenster':'1','stil':'2','kopieren':'3','einsetzen':'3','erzeugen':'4','kosten':'4','lauf':'4','abbrechen':'5','pruefung':'6','ausgabe':'7','sprache':'8','handbuch':'8'}
+TEILE={'fenster':'1','stil':'2','kopieren':'3','einsetzen':'3','erzeugen':'4','kosten':'4','lauf':'4','abbrechen':'5','pruefung':'6','ausgabe':'7','sprache':'8','handbuch':'8','eb':'9','rb':'10','kbp':'11'}
 def teil(name): return TEILE[name.split('-')[0]]
 nur=os.environ.get('NUR_FALL'); nur=nur.split(',') if nur else None; gefangen=0; durch=0; tot=0
 if os.environ.get('NUR_ANKER'):
