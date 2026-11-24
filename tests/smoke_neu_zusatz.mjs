@@ -255,7 +255,7 @@ try {
   console.log('9 · Muttis-Ausgabe: eigene Einstiegsseite, eigener Speicher');
   ({ p, k } = await seite({ rezepte: [R(1, 'Rindergulasch')] }));
   await p.goto(ORT + 'muttis.html?leer'); await p.waitForSelector('.gruss');
-  ok(await p.title() === 'Muttis Rezeptbuch' && (await p.locator('#kopf .name').innerText()).trim() === 'Muttis Rezeptbuch' && await p.locator('.karte').count() === 0 && await p.evaluate(() => location.pathname.endsWith('/neu/muttis.html') && location.search === ''), 'neu/muttis.html öffnet „Muttis Rezeptbuch“, leer und unter eigener Adresse', await p.title());
+  ok(await p.title() === 'Muttis Rezeptbuch' && await p.evaluate(() => { const n = document.querySelector('#kopf .name').cloneNode(true); n.querySelector('.ver')?.remove(); return n.textContent.trim(); }) === 'Muttis Rezeptbuch' && await p.locator('.karte').count() === 0 && await p.evaluate(() => location.pathname.endsWith('/neu/muttis.html') && location.search === ''), 'neu/muttis.html öffnet „Muttis Rezeptbuch“, leer und unter eigener Adresse', await p.title());
   const dbs = await p.evaluate(async () => (await indexedDB.databases()).map((d) => d.name).sort());
   ok(dbs.includes('KuechenKern-muttis') && dbs.includes('KuechenKern-rezeptbuch') && (await bestand(p)).zustand.rezepte.length === 1, 'sie hat ihren eigenen Speicher; das Rezeptbuch daneben ist unberührt', dbs.join(', '));
   await geh(p, 'werkstatt'); ok(/^Muttis Rezeptbuch \d/.test((await p.locator('#fassung').innerText()).trim()), 'auch die Fassungszeile nennt die Ausgabe');
@@ -329,6 +329,37 @@ try {
   await p.click('[data-a=rleiste]'); await p.click('.rwerk [data-a=bearbeiten]'); await p.waitForSelector('[data-form=rezept]'); await p.fill('[name=name]', 'Kartoffelgulasch'); await p.click('[data-form=rezept] button[type=submit]'); await p.waitForSelector('.rezept-held h1');
   await geh(p, 'start'); await p.fill('#suchfeld', 'eintopf'); await p.waitForFunction(() => document.querySelectorAll('#sinn-treffer .karte').length === 2, null, { timeout: 15000 }).catch(() => {});
   ok((await nachBedeutung()).sort().join('|') === 'Kartoffelgulasch|Rindergulasch', 'ein Rezept wird bearbeitet (gleiche Kennung, neuer Inhalt): der Bedeutungs-Index rechnet es neu und findet es', (await nachBedeutung()).join('|'));
+  await k.close();
+  }
+  if (will(13)) {
+  console.log('13 · Kopfleiste: Installieren (weg nach der Installation) und Versionsnummer zum Aktualisieren');
+  ({ p, k } = await seite({ rezepte: [R(1, 'Rindergulasch')] }));
+  const fassung = (await readFile(join(WURZEL, 'neu/app.mjs'), 'utf8')).match(/const FASSUNG = '([^']+)'/)[1];
+  ok(await p.locator('#kopf [data-a=installieren]').count() === 1 && (await p.locator('#kopf .ver').innerText()).trim() === fassung, 'im Browser stehen oben der Knopf „Installieren“ und die Versionsnummer', fassung);
+  for (const breite of [320, 390]) { await p.setViewportSize({ width: breite, height: 800 }); await p.waitForTimeout(200);
+    const lage = await p.evaluate(() => { const k = document.getElementById('kopf').getBoundingClientRect(), b = [...document.querySelectorAll('#kopf button')].map((e) => e.getBoundingClientRect()); return { quer: document.documentElement.scrollWidth - innerWidth, raus: b.filter((r) => r.right > innerWidth + 0.5 || r.width < 20).length, hoch: Math.round(k.height) }; });
+    ok(lage.quer <= 0 && lage.raus === 0 && lage.hoch <= 64, `bei ${breite} px passt alles in die Kopfleiste, nichts läuft quer`, JSON.stringify(lage)); }
+  await p.click('#kopf [data-a=installieren]'); await p.waitForTimeout(300);
+  ok(/App installieren/.test(await toast(p)), 'ohne Angebot des Browsers sagt der Knopf in einer Zeile, wo man installiert', await toast(p));
+  await p.evaluate(() => { window.__gefragt = 0; const ev = new Event('beforeinstallprompt'); ev.prompt = async () => { window.__gefragt++; }; ev.userChoice = Promise.resolve({ outcome: 'accepted' }); dispatchEvent(ev); });
+  await p.click('#kopf [data-a=installieren]'); await p.waitForTimeout(300);
+  ok(await p.evaluate(() => window.__gefragt) === 1 && await p.locator('#kopf [data-a=installieren]').count() === 0 && (await p.locator('#kopf .ver').count()) === 1, 'mit Angebot zeigt der Knopf das Fenster des Browsers; nach „Installieren“ ist er weg, die Versionsnummer bleibt');
+  await k.close();
+  ({ p, k } = await seite({ rezepte: [R(1, 'Rindergulasch')] })); await p.evaluate(() => dispatchEvent(new Event('appinstalled'))); await p.waitForTimeout(200);
+  ok(await p.locator('#kopf [data-a=installieren]').count() === 0, 'über das Browser-Menü installiert: der Knopf geht auch weg');
+  await k.close();
+  ({ p, k } = await seite({ rezepte: [R(1, 'Rindergulasch')], vorher: (q) => q.addInitScript(() => { const alt = matchMedia.bind(window); window.matchMedia = (m) => (/display-mode: standalone/.test(m) ? { matches: true, media: m, addEventListener() {}, removeEventListener() {} } : alt(m)); }) }));
+  ok(await p.locator('#kopf [data-a=installieren]').count() === 0 && await p.locator('#kopf .ver').count() === 1, 'läuft die Seite als App, steht kein Knopf „Installieren“ da');
+  /* Aktualisieren: der Speicher dieser App wird geleert, der fremde bleibt; danach lädt die Seite neu. Ohne Netz bleibt alles. */
+  await p.evaluate(async () => { await (await caches.open('rezeptbuch-neu-alt')).put('x', new Response('a')); await (await caches.open('mixarium-neu-x')).put('x', new Response('b')); window.__noch = 1; });
+  await p.route('**/neu/sw.js', (r) => r.abort());
+  await p.click('#kopf .ver'); await p.waitForFunction(() => /Ohne Netz/.test(document.querySelector('#toast')?.textContent || ''), null, { timeout: 8000 }).catch(() => {});
+  ok(/Ohne Netz – die App bleibt, wie sie ist/.test(await toast(p)) && await p.evaluate(async () => window.__noch === 1 && (await caches.keys()).includes('rezeptbuch-neu-alt')), 'ohne Netz: eine kurze Meldung, nichts wird gelöscht, die Seite bleibt', await toast(p));
+  await p.unroute('**/neu/sw.js');
+  await Promise.all([p.waitForNavigation({ timeout: 15000 }).catch(() => null), p.click('#kopf .ver')]); await p.waitForSelector('.gruss');
+  const nach = await p.evaluate(async () => ({ noch: window.__noch, keys: await caches.keys() }));
+  ok(nach.noch === undefined && !nach.keys.includes('rezeptbuch-neu-alt') && nach.keys.includes('mixarium-neu-x'), 'mit Netz: ein Tipp auf die Versionsnummer leert den Speicher dieser App (nicht den der anderen) und lädt neu', JSON.stringify(nach));
+  ok((await bestand(p)).zustand.rezepte.length === 1, 'die Rezepte bleiben dabei erhalten');
   await k.close();
   }
   ok(fehler.length === 0, 'keine Fehler in der Konsole, kein Aufruf nach draußen außer den gestellten', fehler.slice(0, 3).join(' · '));

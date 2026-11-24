@@ -541,4 +541,10 @@ export default {
   'Wochenplan': 'Piano settimanale',
   'Nach Wort nichts gefunden · {0} nach Bedeutung': 'Nulla per parola · {0} per significato',
   'Auch nach Bedeutung nichts gefunden': 'Nulla neanche per significato',
+  'Tippen: App aktualisieren': 'Tocca: aggiorna l’app',
+  'Fassung {0} – tippen zum Aktualisieren': 'Versione {0} – tocca per aggiornare',
+  'Teilen → „Zum Home-Bildschirm“': 'Condividi → «Aggiungi a schermata Home»',
+  'Browser-Menü ⋮ → „App installieren“': 'Menu del browser ⋮ → «Installa app»',
+  'Neueste Fassung wird geholt …': 'Recupero dell’ultima versione …',
+  'Ohne Netz – die App bleibt, wie sie ist': 'Offline – l’app resta com’è',
 };

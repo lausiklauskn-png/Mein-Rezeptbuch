@@ -16,7 +16,7 @@ try {
   console.log('1 · Leerer Start, Beispielbuch');
   let { p, k } = await seite();
   ok(await p.locator('.leer').count() === 1, 'leeres Buch zeigt die Begrüßung mit drei Wegen');
-  ok((await p.locator('header.kopf button').evaluateAll((l) => l.map((b) => b.dataset.a).join(' '))) === 'zur-suche farbe neu', 'Kopf am Handy: Suche, Farbpalette und das Plus; kein Pfeil zum Aufklappen');
+  ok((await p.locator('header.kopf button').evaluateAll((l) => l.map((b) => b.dataset.a).join(' '))) === 'aktualisieren installieren zur-suche farbe neu', 'Kopf am Handy: Versionsnummer (aktualisieren), Installieren, Suche, Farbpalette und das Plus; kein Pfeil zum Aufklappen');
   await p.click('[data-a=beispiel]'); await p.waitForSelector('.karte', { timeout: 20000 });
   const karten = await p.locator('.karte').count(); ok(karten === 42, 'Beispielbuch: 42 Rezepte als Karten', String(karten));
   const kats = await p.locator('.fotokat button').allInnerTexts();

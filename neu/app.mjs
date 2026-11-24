@@ -21,6 +21,7 @@ import { rezeptAusText, zutatAusZeile, zutatZeile } from '../kern/import/text.mj
 import { diktat, diktatAus, diktatMoeglich } from '../kern/oberflaeche/diktat.mjs';
 import { kiBild, gratisBild, KOSTEN } from '../kern/ki/bild.mjs';
 import { hinweiseEinrichten } from '../kern/oberflaeche/hinweis.mjs';
+import { installation, istApple, aktualisieren } from '../kern/oberflaeche/app-pflege.mjs';
 import { wartenEinrichten, modellFortschritt, bytesMitAnteil } from '../kern/oberflaeche/warten.mjs';
 import { tresor } from '../kern/speicher/tresor.mjs';
 import { zusatz } from './zusatz.mjs';
@@ -38,7 +39,7 @@ import { druckRezept, drucke } from '../kern/ausgabe/druck.mjs';
 import { teilLink, ausTeilLink, qrSvg, passtInQr } from '../kern/teilen/qr.mjs';
 import { rezeptIn } from '../kern/modell/einheiten.mjs';
 
-const FASSUNG = '0.14.3';
+const FASSUNG = '0.14.4';
 const breit = () => matchMedia('(min-width:1000px)').matches;
 const $ = (id) => document.getElementById(id);
 const esc = (t) => String(t ?? '').replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
@@ -109,19 +110,23 @@ addEventListener('popstate', (e) => { const st = e.state || { ansicht: 'start' }
 
 const mik = (feld) => (diktatMoeglich() ? `<button type="button" class="mik" data-a="diktat" data-feld="${feld}" aria-label="${L('Sprechen statt tippen', 'Speak instead of typing')}" aria-pressed="false">${ic('mikro')}</button>` : '');
 /* ---------- Kopf ---------- */
+const INST = installation(() => { if ($('kopf') && ausgabe) kopfZeichnen(); if (s.ansicht === 'werkstatt' && ausgabe) zeichne(); });
+/* Klaus 24.11.: oben ein Knopf „Installieren“, weg nach der Installation; die Versionsnummer oben holt beim Tippen die neueste Fassung. */
+const kopfInstall = () => (INST.zeigen() ? `<button class="rund" data-a="installieren" aria-label="${L('Als App installieren', 'Install as an app')}" title="${L('Als App installieren', 'Install as an app')}">${ic('laden')}</button>` : '');
+const kopfFassung = () => `<button class="ver" data-a="aktualisieren" title="${L('Tippen: App aktualisieren', 'Tap: update the app')}" aria-label="${fuelle(L('Fassung {0} – tippen zum Aktualisieren', 'Version {0} – tap to update'), FASSUNG)}">${FASSUNG}</button>`;
 function kopfZeichnen() {
   const k = $('kopf');
   k.classList.toggle('zu', !!E.railZu);
   if (breit()) {
     const n = (zu, i, t) => `<button class="rail-n" data-a="geh" data-zu="${zu}" ${(zu === 'start' ? ['start', 'rezept', 'kochen'].includes(s.ansicht) : s.ansicht === zu) ? 'aria-current="page"' : ''} title="${t}">${ic(i)}<span class="t">${t}</span></button>`;
-    k.innerHTML = `<div class="rail-oben"><img class="logo" src="../icons/icon-book-192.png?v=1" alt="" width="30" height="30"><span class="name t">${esc(ausgabe.titel)}</span><button class="rail-klapp" data-a="rail" aria-label="${E.railZu ? L('Leiste ausklappen', 'Expand bar') : L('Leiste einklappen', 'Collapse bar')}">${ic(E.railZu ? 'rechts' : 'links')}</button></div>
+    k.innerHTML = `<div class="rail-oben"><img class="logo" src="${esc(seitenZeichen())}" alt="" width="30" height="30"><span class="name t">${esc(ausgabe.titel)}${kopfFassung()}</span>${kopfInstall()}<button class="rail-klapp" data-a="rail" aria-label="${E.railZu ? L('Leiste ausklappen', 'Expand bar') : L('Leiste einklappen', 'Collapse bar')}">${ic(E.railZu ? 'rechts' : 'links')}</button></div>
      <button class="knopf akz rail-neu" data-a="neu" aria-label="${L('Neues Rezept', 'New recipe')}">${ic('plus')}<span class="t">${L('Neues Rezept', 'New recipe')}</span></button>${n('start', 'buch', L('Rezepte', 'Recipes'))}${n('plan', 'plan', L('Planer', 'Planner'))}${n('einkauf', 'einkauf', L('Einkauf', 'Shopping')).replace('</button>', (ekOffen() ? `<span class="zahl">${ekOffen()}</span>` : '') + '</button>')}${n('werkstatt', 'einst', L('Einstellungen', 'Settings'))}
      <button class="rail-n" data-a="farbe" title="${L('Farbe', 'Colour')}"><span class="farbknopf"></span><span class="t">${L('Farbe', 'Colour')}</span></button>`;
     return;
   }
   /* Klaus 23.11.: am schmalen Schirm bleiben oben Suche, Farbpalette und das Plus; Schrift, Hell/Dunkel, Sichern und die Einstellungen
      stehen in der fliegenden Leiste. Kein Pfeil mehr, nichts zum Aufklappen. */
-  k.innerHTML = `<img class="logo" src="../icons/icon-book-192.png?v=1" alt="" width="30" height="30"><span class="name">${esc(ausgabe.titel)}</span><button class="rund" data-a="zur-suche" aria-label="${L('Suchen', 'Search')}" title="${L('Suchen', 'Search')}">${ic('suche')}</button><button class="farbknopf" data-a="farbe" aria-label="${L('Farbpalette', 'Colour palette')}" title="${L('Farbe', 'Colour')}"></button><button class="rund akz" data-a="neu" aria-label="${L('Neues Rezept', 'New recipe')}" title="${L('Neues Rezept', 'New recipe')}">${ic('plus')}</button>`;
+  k.innerHTML = `<img class="logo" src="${esc(seitenZeichen())}" alt="" width="30" height="30"><span class="name">${esc(ausgabe.titel)}${kopfFassung()}</span>${kopfInstall()}<button class="rund" data-a="zur-suche" aria-label="${L('Suchen', 'Search')}" title="${L('Suchen', 'Search')}">${ic('suche')}</button><button class="farbknopf" data-a="farbe" aria-label="${L('Farbpalette', 'Colour palette')}" title="${L('Farbe', 'Colour')}"></button><button class="rund akz" data-a="neu" aria-label="${L('Neues Rezept', 'New recipe')}" title="${L('Neues Rezept', 'New recipe')}">${ic('plus')}</button>`;
 }
 
 /* ---------- Start ---------- */
@@ -224,6 +229,8 @@ function sterneHtml(r) {
   const n = Math.round(Number(r.rating?.stars) || 0);
   return `<span class="sterne" role="group" aria-label="${fuelle(L('Bewertung: {0} von 5', 'Rating: {0} of 5'), n)}">${[1, 2, 3, 4, 5].map((i) => `<button data-a="stern" data-n="${i}" class="${i <= n ? 'an' : ''}" aria-pressed="${i === n}" aria-label="${i === 1 ? L('1 Stern', '1 star') : fuelle(L('{0} Sterne', '{0} stars'), i)}">${ic('stern')}</button>`).join('')}</span>`;
 }
+/* Das Zeichen dieser Seite (index.html: das neue, muttis.html: ihr eigenes) – aus dem <link rel=icon> der Seite, nicht fest verdrahtet. */
+const seitenZeichen = () => document.querySelector('link[rel=icon]')?.getAttribute('href') || '../icons/rezeptbuch-neu-192.png?v=1';
 function rezeptHtml() {
   const roh = rezept(s.uid), r = inEinheit(zeig(roh)); if (!r) return `<div class="leer"><p>${L('Dieses Rezept gibt es nicht mehr.', 'This recipe no longer exists.')}</p><button class="knopf" data-a="geh" data-zu="start">${L('Zur Startseite', 'To the start page')}</button></div>`;
   const c = alleKategorien(Z.rezepte, Z.kategorien).find((x) => x.id === katVonRezept(r));
@@ -667,7 +674,7 @@ function werkstattHtml() {
     ['ordnung', 'karte', WF.gelb, L('Ordnung', 'Order'), '',
       zeile('geh', 'karte', L('Kategorien', 'Categories'), '', 'data-zu="kategorien"') + zeile('geh', 'ordner', L('Ordner', 'Folders'), String(Z.ordner.length), 'data-zu="ordner"') + zeile('geh', 'bild', L('Bilder', 'Pictures'), String(bilder), 'data-zu="bilder"')],
     ['aussehen', 'auge', WF.blau, L('Darstellung', 'Appearance'), '',
-      zeile('sprache', 'welt', L('Sprache', 'Language'), E.sprache ? sprachName(E.sprache) : L('wie das Gerät', 'same as device')) + zeile('farbe', 'auge', L('Farbe, hell und dunkel', 'Colour, light and dark'), farbName(E.farbe) + ' · ' + Lk(TOENE[E.ton] || '', TOENE_EN[E.ton] || '')) + zeile('schrift', 'stift', L('Schriftgröße', 'Text size'), schriftWert(E.schrift) + ' %') + zeile('kontrast', 'kontrast', L('Hoher Kontrast', 'High contrast'), E.kontrast ? L('an', 'on') : L('aus', 'off'), `aria-pressed="${!!E.kontrast}"`) + zeile('einheiten', 'waage', L('Einheiten', 'Units'), einhName()) + zeile('hinweise', 'frage', L('Hinweis-Blasen', 'Tooltips'), E.hinweiseAus ? L('aus', 'off') : L('an', 'on'), `aria-pressed="${!E.hinweiseAus}"`) + (installFrage ? zeile('installieren', 'laden', L('Als App installieren', 'Install as an app')) : '')],
+      zeile('sprache', 'welt', L('Sprache', 'Language'), E.sprache ? sprachName(E.sprache) : L('wie das Gerät', 'same as device')) + zeile('farbe', 'auge', L('Farbe, hell und dunkel', 'Colour, light and dark'), farbName(E.farbe) + ' · ' + Lk(TOENE[E.ton] || '', TOENE_EN[E.ton] || '')) + zeile('schrift', 'stift', L('Schriftgröße', 'Text size'), schriftWert(E.schrift) + ' %') + zeile('kontrast', 'kontrast', L('Hoher Kontrast', 'High contrast'), E.kontrast ? L('an', 'on') : L('aus', 'off'), `aria-pressed="${!!E.kontrast}"`) + zeile('einheiten', 'waage', L('Einheiten', 'Units'), einhName()) + zeile('hinweise', 'frage', L('Hinweis-Blasen', 'Tooltips'), E.hinweiseAus ? L('aus', 'off') : L('an', 'on'), `aria-pressed="${!E.hinweiseAus}"`) + (INST.zeigen() ? zeile('installieren', 'laden', L('Als App installieren', 'Install as an app')) : '')],
     ['beispiele', 'paket', WF.petrol, L('Beispiele', 'Examples'), '',
       zeile('beispiel', 'paket', L('Beispielbuch laden', 'Load example book'), beispielText()) + (b ? zeile('beispiele-weg', 'muell', L('Beispiele entfernen', 'Remove examples'), String(b)) : '')],
     ZU.buchThema(zeile, '#b07a4a'), ZU.hilfeThema(zeile, '#7d8794'),
@@ -840,7 +847,8 @@ const A = {
     s.form = { ...formAus(null), name: r.name, servings: r.servings || 4, prepTime: r.prepTime ?? '', ings: r.ings.map(zutatZeile).join('\n'), steps: r.steps.map((x) => x.txt).join('\n\n') }; geh('form');
     melde(r.sicher ? fuelle(L('{0} Zutaten und {1} Schritte erkannt. Bitte prüfen.', '{0} ingredients and {1} steps found. Please check.'), r.ings.length, r.steps.length) : L('Ohne Überschriften aufgeteilt. Bitte Zutaten und Schritte prüfen.', 'Split without headings. Please check ingredients and steps.')); },
   diktat: (e) => { const f = document.querySelector(e.dataset.feld); if (!f) return; diktat(f, spr(), (an) => { e.setAttribute('aria-pressed', String(an)); }, { beiFehler: (satz) => melde(satz) }); f.focus(); },   /* Kern 0.20: schreibt an der Schreibmarke, kennt „Komma“, „Punkt“, „neue Zeile“; Fehler (kein Mikrofon, keine Erlaubnis) werden gesagt */
-  installieren: async () => { const p = installFrage; if (!p) return; installFrage = null; p.prompt(); await p.userChoice.catch(() => null); zeichne(); },
+  installieren: async () => { if (INST.kannFragen()) await INST.fragen(); else melde(istApple() ? L('Teilen → „Zum Home-Bildschirm“', 'Share → “Add to Home Screen”') : L('Browser-Menü ⋮ → „App installieren“', 'Browser menu ⋮ → “Install app”')); kopfZeichnen(); if (s.ansicht === 'werkstatt') zeichne(); },
+  aktualisieren: async () => { melde(L('Neueste Fassung wird geholt …', 'Fetching the latest version …')); const e = await aktualisieren({ cachePrefix: 'rezeptbuch-neu-', probe: './sw.js' }); if (e === 'offline') melde(L('Ohne Netz – die App bleibt, wie sie ist', 'Offline – the app stays as it is')); else location.reload(); },
   bearbeiten: () => { s.form = formAus(rezept(s.uid)); geh('form'); },
   loeschen: () => { const r = rezept(s.uid); if (!r) return; const vorher = Z.rezepte; Z.rezepte = Z.rezepte.filter((x) => x.uid !== r.uid); sichern(); geh('start', { uid: null }, true); melde(fuelle(L('„{0}“ gelöscht', '“{0}” deleted'), r.name), L('Rückgängig', 'Undo'), () => { Z.rezepte = vorher; sichern(); zeichne(true); }); },
   kochen: () => { K.i = 0; K.kopf = true; geh('kochen', { uid: s.uid }); wachAn(); },
@@ -1030,9 +1038,7 @@ $('datei-bild').addEventListener('change', async (ev) => { const d = ev.target.f
 for (const id of ['datei-scan', 'datei-kamera']) $(id).addEventListener('change', (ev) => { const d = [...ev.target.files]; ev.target.value = ''; if (d.length) scanGewaehlt(d); });
 let altY = 0; addEventListener('scroll', () => { if (breit()) return; const y = scrollY; $('kopf').classList.toggle('weg', y > altY + 4 && y > 80 ? true : y < altY - 4 || y < 40 ? false : $('kopf').classList.contains('weg')); altY = y; }, { passive: true });
 
-let installFrage = null;
-addEventListener('beforeinstallprompt', (ev) => { ev.preventDefault(); installFrage = ev; if (s.ansicht === 'werkstatt') zeichne(); });
-addEventListener('appinstalled', () => { installFrage = null; if (s.ansicht === 'werkstatt') zeichne(); });
+
 
 /* ---------- Start ---------- */
 /* Was die alte App im Gerät hat: Rezepte (localStorage, sonst die Kopie in ihrer Datenbank) und Bilder (nur in der Datenbank). Nur lesen. */
