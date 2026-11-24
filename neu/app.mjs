@@ -27,6 +27,7 @@ import { tresor } from '../kern/speicher/tresor.mjs';
 import { zusatz } from './zusatz.mjs';
 import { zine } from './zine.mjs';
 import { kreativbuch } from './kreativbuch.mjs';
+import { notizbuch } from './notizbuch.mjs';
 import { ladeBausteine, korpus as semKorpus, sucheBedeutung, passage as semPassage } from '../kern/suche/bedeutung.mjs';
 import { woche, planen, entplanen, ausAltemMenu, tagIso } from '../kern/modell/plan.mjs';
 import { text as spText, fuelle, sprache as sprWahl, kennt as sprKennt, sprachName, SPRACHEN, gebiet, ladeTabelle } from '../kern/oberflaeche/sprache.mjs';
@@ -102,6 +103,7 @@ let toastTun = null;
 function geh(ansicht, extra = {}, ersetzen = false) {
   diktatAus();
   Object.assign(s, { ansicht, leisteAuf: false, rleiste: false, ...extra });   /* jede Ansicht beginnt mit eingeklappten Werkzeugen */
+  if (ansicht === 'form' && s.ausNotiz && s.form?.neu) { s.form.notiz = s.ausNotiz; s.ausNotiz = null; }   /* aus dem Notizbuch (Foto lesen, Vom Teller): die Notiz reist mit */
   if (ansicht === 'kochen') { $('toast').innerHTML = ''; toastTun = null; }   // nichts über den Knöpfen der Kochansicht
   const st = { ansicht, uid: s.uid };
   if (ersetzen) history.replaceState(st, ''); else history.pushState(st, '');
@@ -122,13 +124,13 @@ function kopfZeichnen() {
   if (breit()) {
     const n = (zu, i, t) => `<button class="rail-n" data-a="geh" data-zu="${zu}" ${(zu === 'start' ? ['start', 'rezept', 'kochen'].includes(s.ansicht) : s.ansicht === zu) ? 'aria-current="page"' : ''} title="${t}">${ic(i)}<span class="t">${t}</span></button>`;
     k.innerHTML = `<div class="rail-oben"><img class="logo" src="${esc(seitenZeichen())}" alt="" width="30" height="30"><span class="name t">${esc(ausgabe.titel)}${kopfFassung()}</span>${kopfInstall()}<button class="rail-klapp" data-a="rail" aria-label="${E.railZu ? L('Leiste ausklappen', 'Expand bar') : L('Leiste einklappen', 'Collapse bar')}">${ic(E.railZu ? 'rechts' : 'links')}</button></div>
-     <button class="knopf akz rail-neu" data-a="neu" aria-label="${L('Neues Rezept', 'New recipe')}">${ic('plus')}<span class="t">${L('Neues Rezept', 'New recipe')}</span></button>${n('start', 'buch', L('Rezepte', 'Recipes'))}${n('plan', 'plan', L('Planer', 'Planner'))}${n('einkauf', 'einkauf', L('Einkauf', 'Shopping')).replace('</button>', (ekOffen() ? `<span class="zahl">${ekOffen()}</span>` : '') + '</button>')}${n('werkstatt', 'einst', L('Einstellungen', 'Settings'))}
+     <button class="knopf akz rail-neu" data-a="neu" aria-label="${L('Neues Rezept', 'New recipe')}">${ic('plus')}<span class="t">${L('Neues Rezept', 'New recipe')}</span></button>${NB.kopfKnopf(true)}${n('start', 'buch', L('Rezepte', 'Recipes'))}${n('plan', 'plan', L('Planer', 'Planner'))}${n('einkauf', 'einkauf', L('Einkauf', 'Shopping')).replace('</button>', (ekOffen() ? `<span class="zahl">${ekOffen()}</span>` : '') + '</button>')}${n('werkstatt', 'einst', L('Einstellungen', 'Settings'))}
      <button class="rail-n" data-a="farbe" title="${L('Farbe', 'Colour')}"><span class="farbknopf"></span><span class="t">${L('Farbe', 'Colour')}</span></button>`;
     return;
   }
   /* Klaus 23.11.: am schmalen Schirm bleiben oben Suche, Farbpalette und das Plus; Schrift, Hell/Dunkel, Sichern und die Einstellungen
      stehen in der fliegenden Leiste. Kein Pfeil mehr, nichts zum Aufklappen. */
-  k.innerHTML = `<img class="logo" src="${esc(seitenZeichen())}" alt="" width="30" height="30"><span class="name">${esc(ausgabe.titel)}${kopfFassung()}</span>${kopfInstall()}<button class="rund" data-a="zur-suche" aria-label="${L('Suchen', 'Search')}" title="${L('Suchen', 'Search')}">${ic('suche')}</button><button class="farbknopf" data-a="farbe" aria-label="${L('Farbpalette', 'Colour palette')}" title="${L('Farbe', 'Colour')}"></button><button class="rund akz" data-a="neu" aria-label="${L('Neues Rezept', 'New recipe')}" title="${L('Neues Rezept', 'New recipe')}">${ic('plus')}</button>`;
+  k.innerHTML = `<img class="logo" src="${esc(seitenZeichen())}" alt="" width="30" height="30"><span class="name">${esc(ausgabe.titel)}${kopfFassung()}</span>${kopfInstall()}<button class="rund" data-a="zur-suche" aria-label="${L('Suchen', 'Search')}" title="${L('Suchen', 'Search')}">${ic('suche')}</button><button class="farbknopf" data-a="farbe" aria-label="${L('Farbpalette', 'Colour palette')}" title="${L('Farbe', 'Colour')}"></button>${NB.kopfKnopf()}<button class="rund akz" data-a="neu" aria-label="${L('Neues Rezept', 'New recipe')}" title="${L('Neues Rezept', 'New recipe')}">${ic('plus')}</button>`;
 }
 
 /* ---------- Start ---------- */
@@ -659,7 +661,7 @@ function formSpeichern(form) {
     ings: String(f.ings).split('\n').filter((t) => t.trim()).map(zutatAusZeile), steps: schritteMitNotiz(String(f.steps).split(/\n\s*\n|\n/).filter((t) => t.trim()), alt ? alt.steps : []), modified: new Date().toISOString() }), textBlieb);
   delete neu.beispiel; if (f.neu && f.flavors?.length) neu.flavors = f.flavors; if (f.neu && f.source) neu.source = f.source; if (f.kiEntfernt?.length) vermerken(neu, f.kiEntfernt, 'scan');   /* was vor der KI herausgenommen wurde, steht am Rezept */
   Z.rezepte = alt ? Z.rezepte.map((r) => (r.uid === alt.uid ? neu : r)) : [...Z.rezepte, neu];
-  sichern(); s.form = null; melde(L('Gespeichert', 'Saved')); geh('rezept', { uid: neu.uid }, true);
+  sichern(); s.form = null; if (!(f.notiz && NB.uebernommen(f.notiz, neu.uid))) melde(L('Gespeichert', 'Saved')); geh('rezept', { uid: neu.uid }, true);
 
 }
 
@@ -858,7 +860,7 @@ const A = {
   sinn: () => { if (E.sinn) { E.sinn = false; sem.ids = []; sem.fuer = ''; sichern(); zeichne(); melde(L('Sinn-Suche aus', 'Meaning search off')); return; }
     frage(L('Sinn-Suche einschalten?', 'Turn on meaning search?'), L('Sie findet Rezepte auch nach Bedeutung, zum Beispiel „etwas Süßes“ oder „Eintopf“. Dafür lädt die App einmalig ein Sprachmodell aus dem Netz (etwa 120 MB). Danach rechnet sie im Gerät; deine Rezepte gehen nirgendwohin.', 'It also finds recipes by meaning, for example “something sweet” or “stew”. For this the app downloads a language model once (about 120 MB). After that it works on the device; your recipes go nowhere.'), L('Einschalten', 'Turn on'), () => { E.sinn = true; sem.status = ''; sichern(); zeichne(); if (s.frage.trim()) semPlanen(); else semBereit().then(() => melde(L('Sinn-Suche bereit', 'Meaning search ready'))).catch(() => melde(L('Die Sinn-Suche ließ sich nicht laden.', 'The meaning search could not be loaded.'))); }, false); },
   'suche-leer': () => { s.frage = ''; zeichne(); $('suchfeld')?.focus(); },
-  neu: () => neuFenster(),
+  neu: () => { s.ausNotiz = null; neuFenster(); },
   'neu-tab': (e) => { diktatAus(); neuFenster(e.dataset.t); },
   'werk-auf': (e) => { const g = e.dataset.g; if (s.werkAuf.has(g)) s.werkAuf.delete(g); else s.werkAuf.add(g); zeichne(); },
   'neu-form': () => { fensterZu(); s.form = formAus(null); geh('form'); },
@@ -1005,6 +1007,9 @@ const ZU = zusatz({ L, spr, esc, ic, A, s, SK, W, Z: () => Z, setzeZ: (z) => { Z
 /* Food-Zine (neu/zine.mjs): drei Magazin-Seiten am Rezept, Galerie im Bilder-Ordner, Beispiel-Sätze. */
 const ZI = zine({ L, spr, esc, ic, A, s, SK, W, Z: () => Z, setzeZ: (z) => { Z = z; }, E: () => E, fenster, fensterZu, melde, sichern, zeichne, rezept, zeig, schluesselFenster, bildAusDatei, fehlerText, tresorAuto,
   wahl: ZU.wahl, stellenHtml: ZU.stellenHtml, katalog: () => katalog, ausgabe: () => ausgabe });
+/* Notizbuch (neu/notizbuch.mjs): unterwegs Foto oder Notiz festhalten; später lesen, vorschlagen, planen, in den Kalender. Knopf im Kopf. */
+const NB = notizbuch({ L, spr, esc, ic, A, s, W, SK, Z: () => Z, setzeZ: (z) => { Z = z; }, E: () => E, fenster, fensterZu, melde, sichern, zeichne, kopfZeichnen: () => { kopfZeichnen(); leisteZeichnen(); }, rezept, istInhalt, geh,
+  geb, mik, bildAusDatei, schluesselFenster, befehlFrage, scanGewaehlt, scanKats, formAus, titel: () => ausgabe?.titel || '' });
 /* Kreativbuch (neu/kreativbuch.mjs): aus den Rezepten ein gestaltetes Buch, Texte von Claude im gewählten Stil; Einstellungen → Buch. */
 const KB = kreativbuch({ L, spr, esc, ic, A, W, SK, Z: () => Z, setzeZ: (z) => { Z = z; }, E: () => E, lager: () => lager, fenster, fensterZu, beiZu: (f) => { zuTun = f; }, melde, sichern, zeichne, zeig, istInhalt, schluesselFenster,
   katNamen: () => new Map(alleKategorien(Z.rezepte, Z.kategorien).map((c) => [c.id, katName(c)])), katVon: katVonRezept, wahl: ZU.wahl, stellenHtml: ZU.stellenHtml, ausgabe: () => ausgabe });
@@ -1105,6 +1110,7 @@ async function start() {
   zeichne(true);
   if (geteilteAdresse) { s.web = { adresse: geteilteAdresse, text: '', stand: '', seitentext: '' }; neuFenster('web'); }
   if (geteiltesRezept) { try { const r = await ausTeilLink(geteiltesRezept); if (r && r.name) { s.form = { ...formAus(null), name: r.name, cat: alleKategorien(Z.rezepte, Z.kategorien).some((c) => c.id === r.cat) ? r.cat : '', servings: r.servings || 4, prepTime: r.prepTime ?? '', ings: (r.ings || []).map(zutatZeile).join('\n'), steps: (r.steps || []).map((x) => x.txt).join('\n\n'), flavors: r.flavors || [] }; geh('form'); melde(L('Geteiltes Rezept. Bitte prüfen.', 'Shared recipe. Please check.')); } } catch { melde(L('Der geteilte Link ließ sich nicht lesen', 'The shared link could not be read')); } }
+  NB.beimStart();   /* heute fällige Notizen: eine Meldung beim Öffnen */
   lager.dauerhaft();
   ZU.altTresor().catch(() => {});   /* Tresor-Stände der bisherigen App, einmal */
   if ('serviceWorker' in navigator) navigator.serviceWorker.register('./sw.js').catch(() => {});   // Offline-Vorrat; ohne ihn läuft die App genauso, nur nicht ohne Netz

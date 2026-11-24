@@ -246,4 +246,8 @@ export default {
   'Kreativbuch': 'Творческая книга',
   '1 Bild': '1 картинка',
   '{0} Bilder': 'Картинок: {0}',
+  'Die Notiz hat keinen Text.': 'В заметке нет текста.',
+  'Zu dieser Notiz fiel Claude kein Rezept ein.': 'Claude не придумал рецепт для этой заметки.',
+  'Foto-Notiz ({0})': 'Фотозаметка ({0})',
+  'Foto-Notiz': 'Фотозаметка',
 };
