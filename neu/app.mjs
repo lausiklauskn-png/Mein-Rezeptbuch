@@ -41,7 +41,7 @@ import { druckRezept, drucke } from '../kern/ausgabe/druck.mjs';
 import { teilLink, ausTeilLink, qrSvg, passtInQr } from '../kern/teilen/qr.mjs';
 import { rezeptIn } from '../kern/modell/einheiten.mjs';
 
-const FASSUNG = '0.14.8';
+const FASSUNG = '0.14.9';
 const breit = () => matchMedia('(min-width:1000px)').matches;
 const $ = (id) => document.getElementById(id);
 const esc = (t) => String(t ?? '').replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
@@ -766,6 +766,21 @@ function einfuegen(eingang, beispiel = false) {
   melde((m.neu === 1 ? L('+1 Rezept', '+1 recipe') : fuelle(L('+{0} Rezepte', '+{0} recipes'), m.neu)) + (m.doppelt ? ' · ' + fuelle(L('{0} schon da', '{0} already there'), m.doppelt) : '') + (h.ohneKategorie ? ' · ' + fuelle(L('{0} ohne Kategorie', '{0} without category'), h.ohneKategorie) : ''), m.neu ? L('Rückgängig', 'Undo') : '', () => { Z = vorher; sichern(); zeichne(true); });
   geh('start', {}, s.ansicht === 'start');
 }
+/* Klaus 24.11.: nach dem Wählen einer Datei die Wahl „Hinzufügen“ (wie bisher, vorne) oder „Ersetzen“. Beispielpakete fragen nicht. */
+let dateiEingang = null;
+function dateiFrage(eingang) {
+  dateiEingang = eingang; const n = eingang.rezepte.length;
+  fenster(`<h2>${L('Datei einlesen', 'Read a file')}</h2><p id="datei-inhalt">${n === 1 ? L('1 Rezept in der Datei', '1 recipe in the file') : fuelle(L('{0} Rezepte in der Datei', '{0} recipes in the file'), n)}</p><div class="reihe"><button class="knopf akz" data-a="datei-dazu">${L('Hinzufügen', 'Add')}</button><button class="knopf" data-a="datei-ersetzen">${L('Ersetzen', 'Replace')}</button><button class="knopf" data-a="fenster-zu">${L('Abbrechen', 'Cancel')}</button></div>`);
+  zuTun = () => { dateiEingang = null; };
+}
+/* Ersetzen (Datei und „Zurückholen“ im Tresor, ein Weg): der jetzige Stand kommt vorher in den Tresor; die Datei ersetzt Rezepte, Ordner,
+   Kategorien und Wochenplan, Einkauf und Plan nur, wenn sie welche trägt (fuehreZusammen 'ersetzen' des Kerns). Einstellungen und Schlüssel bleiben. */
+async function ersetze(eingang, text) {
+  await tresorAuto(); const vorher = Z, h = hinweise(eingang);
+  Z = fuehreZusammen(Z, eingang, 'ersetzen').zustand; if (!eingang.plan && eingang.menu.length) Z.plan = null;   // alter Wochenplan ohne Plan: ergaenze baut ihn aus dem Menü
+  ergaenze(); s.frage = ''; s.kat = 'alle'; sichern(); geh('start', { uid: null }, true);
+  melde(fuelle(text, Z.rezepte.filter(istInhalt).length) + (h.ohneKategorie ? ' · ' + fuelle(L('{0} ohne Kategorie', '{0} without category'), h.ohneKategorie) : ''), L('Rückgängig', 'Undo'), () => { Z = vorher; sichern(); geh('start', { uid: null }, true); });
+}
 async function beispielLaden() {
   const p = katalog?.pakete?.find((x) => x.id === ausgabe.beispiele[0]); if (!p) { melde(L('Beispielbuch nicht erreichbar', 'Example book not reachable')); return; }
   try {
@@ -952,7 +967,7 @@ const A = {
     frage(L('Bild von der KI erzeugen?', 'Create picture with AI?'), fuelle(L('Der Name, die ersten Zutaten und Schritte von „{0}“ gehen an OpenAI. Kosten: {1}.', 'The name, the first ingredients and steps of “{0}” go to OpenAI. Cost: {1}.'), r.name, kostenBild()) + (r.img ? ' ' + L('Das vorhandene Bild wird ersetzt.', 'The existing picture will be replaced.') : ''), L('Erzeugen', 'Create'), () => bildErzeugen(uid, false), false); },
   'gratis-bild': (e) => { const uid = e.dataset.uid, r = rezept(uid); frage(L('Gratis-Foto erzeugen?', 'Create free photo?'), fuelle(L('Der Name „{0}“ geht an den Dienst Pollinations. Kein Schlüssel, keine Kosten.', 'The name “{0}” goes to the Pollinations service. No key, no cost.'), r.name) + (r.img ? ' ' + L('Das vorhandene Bild wird ersetzt.', 'The existing picture will be replaced.') : ''), L('Erzeugen', 'Create'), () => bildErzeugen(uid, true), false); },
   tresor: () => tresorFenster(),
-  'tresor-holen': (e) => frage(L('Diesen Stand zurückholen?', 'Restore this state?'), L('Das Buch wird durch diesen Stand ersetzt. Der jetzige Stand kommt vorher automatisch in den Tresor.', 'The book is replaced by this state. The current state goes into the vault automatically first.'), L('Zurückholen', 'Restore'), async () => { const sich = await tr.hol(e.dataset.id); if (!sich) { melde(L('Dieser Stand ist nicht mehr da.', 'This state is gone.')); return; } await tresorAuto(); Z = fuehreZusammen({ ...leererZustand(), kategorien: leereKategorien() }, lies(JSON.stringify(sich))).zustand; ergaenze(); s.frage = ''; s.kat = 'alle'; sichern(); geh('start', { uid: null }, true); melde(fuelle(L('Zurückgeholt: {0} Rezepte', 'Restored: {0} recipes'), Z.rezepte.filter(istInhalt).length)); }, false),
+  'tresor-holen': (e) => frage(L('Diesen Stand zurückholen?', 'Restore this state?'), L('Das Buch wird durch diesen Stand ersetzt. Der jetzige Stand kommt vorher automatisch in den Tresor.', 'The book is replaced by this state. The current state goes into the vault automatically first.'), L('Zurückholen', 'Restore'), async () => { const sich = await tr.hol(e.dataset.id); if (!sich) { melde(L('Dieser Stand ist nicht mehr da.', 'This state is gone.')); return; } await ersetze(lies(JSON.stringify(sich)), L('Zurückgeholt: {0} Rezepte', 'Restored: {0} recipes')); }, false),
   'tresor-datei': async (e) => { const sich = await tr.hol(e.dataset.id); if (sich) { herunterladen(`${ausgabe.name}-tresor-${e.dataset.id.slice(2, 12)}.json`, JSON.stringify(sich)); melde(L('Als Datei gespeichert', 'Saved as a file')); } },
   'tresor-weg': async (e) => { await tr.loeschen(e.dataset.id); tresorFenster(); },
   'zs-lage': (e) => { const [x, y] = e.dataset.l.split(','); zs.x = +x; zs.y = +y; zsZeigen(); },
@@ -968,6 +983,8 @@ const A = {
   'bild-weg': () => { formLesen(document.querySelector('[data-form=rezept]')); s.form.img = ''; zeichne(); },
   sichern: () => { const d = new Date(); herunterladen(`${ausgabe.name}-${d.toISOString().slice(0, 10)}.json`, JSON.stringify(schreibe(Z))); melde(L('Sicherung gespeichert', 'Backup saved')); },
   einlesen: () => { fensterZu(); $('datei-sicherung').click(); },
+  'datei-dazu': () => { const e = dateiEingang; fensterZu(); if (e) einfuegen(e); },
+  'datei-ersetzen': () => { const e = dateiEingang; fensterZu(); if (!e) return; if (!e.rezepte.length) { melde(L('Keine Rezepte in der Datei, nichts ersetzt', 'No recipes in the file, nothing replaced')); return; } ersetze(e, L('Ersetzt: {0} Rezepte', 'Replaced: {0} recipes')); },
   beispiel: () => beispielLaden(),
   'beispiele-weg': () => { const n = Z.rezepte.filter((r) => r.beispiel).length; frage(L('Beispiele entfernen?', 'Remove examples?'), fuelle(L('{0} Beispiel-Rezepte werden entfernt. Deine eigenen Rezepte bleiben.', '{0} example recipes will be removed. Your own recipes stay.'), n), L('Entfernen', 'Remove'), () => { tresorAuto(); const vorher = Z.rezepte; Z.rezepte = Z.rezepte.filter((r) => !r.beispiel); sichern(); zeichne(); melde(fuelle(L('−{0} Beispiele', '−{0} examples'), n), L('Rückgängig', 'Undo'), () => { Z.rezepte = vorher; sichern(); zeichne(); }); }); },
   'alles-weg': () => { const n = Z.rezepte.filter(istInhalt).length; frage(L('Alle Rezepte löschen?', 'Delete all recipes?'), fuelle(L('{0} Rezepte werden gelöscht. Der jetzige Stand kommt vorher in den Tresor.', '{0} recipes will be deleted. The current state goes into the vault first.'), n), L('Alle löschen', 'Delete all'), () => { tresorAuto(); const vorher = Z; Z = { ...leererZustand(), kategorien: leereKategorien() }; ergaenze(); E.zuletzt = null; sichern(); geh('start', {}, true); melde(L('Alle Rezepte gelöscht', 'All recipes deleted'), L('Rückgängig', 'Undo'), () => { Z = vorher; sichern(); zeichne(true); }); }); },
@@ -1042,7 +1059,7 @@ document.addEventListener('touchstart', (ev) => { wischX = ev.target.closest?.('
 document.addEventListener('touchend', (ev) => { if (wischX == null) return; const d = ev.changedTouches[0].clientX - wischX; wischX = null; if (Math.abs(d) > 60) A['k-schritt']({ dataset: { d: d < 0 ? 1 : -1 } }); }, { passive: true });
 matchMedia('(min-width:1000px)').addEventListener('change', () => zeichne());
 document.addEventListener('keydown', (ev) => { if (ev.key === 'Escape' && s.ansicht !== 'kochen') { if (document.querySelector('.vollbild')) A['voll-zu'](); else if ($('fensterort').innerHTML) fensterZu(); else if (s.leisteAuf) { s.leisteAuf = false; leisteZeichnen(); } } });
-$('datei-sicherung').addEventListener('change', async (ev) => { const d = ev.target.files[0]; ev.target.value = ''; if (!d) return; try { einfuegen(lies(await W.mit(L('Datei wird eingelesen …', 'Reading the file …'), () => d.text()))); } catch (f) { melde(fehlerText(f, L('Die Datei konnte nicht gelesen werden.', 'The file could not be read.'))); } });
+$('datei-sicherung').addEventListener('change', async (ev) => { const d = ev.target.files[0]; ev.target.value = ''; if (!d) return; try { dateiFrage(lies(await W.mit(L('Datei wird eingelesen …', 'Reading the file …'), () => d.text()))); } catch (f) { melde(fehlerText(f, L('Die Datei konnte nicht gelesen werden.', 'The file could not be read.'))); } });
 $('datei-bild').addEventListener('change', async (ev) => { const d = ev.target.files[0]; ev.target.value = ''; if (!d) return; if (s.bildZiel) { const uid = s.bildZiel; s.bildZiel = null; try { const img = await W.mit(L('Foto wird aufbereitet …', 'Preparing the photo …'), () => bildAusDatei(d)); Z.rezepte = Z.rezepte.map((r) => (r.uid === uid ? { ...r, img, imgCrop: { x: 50, y: 50, scale: 1 } } : r)); sichern(); zeichne(); melde(L('Bild eingefügt', 'Picture added')); } catch { melde(L('Das Bild konnte nicht gelesen werden.', 'The picture could not be read.')); } return; }
   if (!s.form) return; try { s.form.img = await W.mit(L('Foto wird aufbereitet …', 'Preparing the photo …'), () => bildAusDatei(d)); zeichne(); } catch { melde(L('Das Bild konnte nicht gelesen werden.', 'The picture could not be read.')); } });
 for (const id of ['datei-scan', 'datei-kamera']) $(id).addEventListener('change', (ev) => { const d = [...ev.target.files]; ev.target.value = ''; if (d.length) scanGewaehlt(d); });

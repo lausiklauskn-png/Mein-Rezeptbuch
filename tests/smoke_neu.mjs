@@ -52,7 +52,7 @@ try {
   const datei = JSON.parse(await readFile(pfad, 'utf8')); ok(datei.version === 11 && datei.recipes.length === 43 && datei.kategorien.eigene.length === 2, 'Sicherung: Fassung 11, 43 Rezepte, 2 eigene Kategorien');
   await p.click('[data-a=beispiele-weg]'); await p.click('[data-a=ja]'); await p.click('#leiste .fl-griff'); await p.click('#leiste [data-zu=start]'); await p.waitForSelector('.karte');
   ok(await p.locator('.karte').count() === 1, 'Beispiele entfernt, das eigene Rezept bleibt');
-  await p.setInputFiles('#datei-sicherung', pfad); await p.waitForFunction(() => document.querySelectorAll('.karte').length === 43);
+  await p.setInputFiles('#datei-sicherung', pfad); await p.click('[data-a=datei-dazu]'); await p.waitForFunction(() => document.querySelectorAll('.karte').length === 43);
   ok(true, 'Sicherung eingelesen: wieder 43, das eigene nicht doppelt'); ok((await p.locator('.fotokat button').allInnerTexts()).some((t) => /^Sushi\s+7$/.test(t.trim())), 'Sushi heißt nach dem Einlesen wieder Sushi');
   await k.close();
 
