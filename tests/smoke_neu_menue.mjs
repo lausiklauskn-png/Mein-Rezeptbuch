@@ -29,7 +29,7 @@ try {
   ok(await p.locator('.rwerk [data-a=rmenue]').count() === 1 && (await hinweis(p, '.rwerk [data-a=rmenue]')).includes('Drucken'), 'hinter dem Winkel steht „Mehr“ als kleines Symbol mit Hinweis');
   await p.click('.rwerk [data-a=rmenue]'); await p.waitForSelector('#rmenue');
   const zeilen = await p.locator('#rmenue .zeile').evaluateAll((l) => l.map((b) => b.dataset.a));
-  ok(zeilen.join(' ') === 'drucken qr einheiten naehrwerte rechtschreibung uebersetzen' && (await p.locator('.fenster h2').innerText()).trim() === 'Kartofelsuppe' && await p.locator('.fenster p').count() === 0, 'sechs Zeilen unter dem Namen des Rezepts, kein Erklärtext', zeilen.join(' '));
+  ok(zeilen.join(' ') === 'drucken qr einheiten zine naehrwerte rechtschreibung uebersetzen' && (await p.locator('.fenster h2').innerText()).trim() === 'Kartofelsuppe' && await p.locator('.fenster p').count() === 0, 'sieben Zeilen unter dem Namen des Rezepts, kein Erklärtext', zeilen.join(' '));
   const kiz = await p.locator('#rmenue [data-a=naehrwerte]').evaluate((b) => ({ klein: b.querySelector('small').innerText, marke: b.querySelector('.ki-marke')?.innerText, titel: b.title }));
   ok(/^Anthropic · Name, Portionen und Zutaten$/.test(kiz.klein) && kiz.marke === 'KI' && kiz.titel.includes('an Anthropic') && rufe.length === 0, 'eine KI-Zeile sagt in der Zeile, was an wen hinausgeht; gesendet ist nichts', JSON.stringify(kiz));
 
