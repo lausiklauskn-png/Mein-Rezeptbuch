@@ -38,13 +38,15 @@ F=[('alter-stand-doppelt', "    if (schon.has(s.alt)) continue;", "", 'kern/spei
    ('notiz-am-platz-statt-text', "const a = rest.find((y) => y.frei && String(y.x.txt).trim() === txt.trim());", "const a = null;", 'neu/app.mjs', 'die Notiz wandert mit ihrem Schritt'),
    ('stern-nimmt-nicht-zurueck', "stars: n === alt ? 0 : n } } : x)); sichern(); zeichne(); },", "stars: n } } : x)); sichern(); zeichne(); },", 'neu/app.mjs', 'derselbe Stern noch einmal nimmt die Bewertung zurück'),
    ('druck-mit-abgehaktem', "liste.filter((y) => y.gruppe === gid && !E_.haken[y.schluessel])) aus.push(", "liste.filter((y) => y.gruppe === gid)) aus.push(", 'neu/app.mjs', 'was abgehakt ist, steht nicht mehr im Druck'),
+   ('suche-bedeutung-immer', "  if (finde(s.frage).length) { sem.ids = []; sem.fuer = ''; semStatus(''); return; }   /* die Wortsuche hat etwas gefunden: keine Bedeutungssuche */\n", "", 'neu/app.mjs', 'es wird nicht nach Bedeutung gesucht', "return E.sinn && !wort.length && sem.fuer", "return E.sinn && sem.fuer", 'neu/app.mjs', "    if (finde(s.frage).length) { sem.ids = []; sem.fuer = ''; semStatus(''); return; }   /* inzwischen findet die Wortsuche etwas */\n", "", 'neu/app.mjs'),   # drei Riegel decken einander: alle drei nehmen
+   ('suche-index-veraltet', "sig = rs.map((r) => r.uid + '\\u0001' + semPassage(r, namen.get(katVonRezept(r)) || '')).join('\\u0002');", "sig = rs.map((r) => r.uid).join(',');", 'neu/app.mjs', 'der Bedeutungs-Index rechnet es neu'),
    ('plan-falsche-woche', "const tage = app.planTage(), ab = tagIso(tage[0]),", "const tage = app.planTage(), ab = tagIso(tage[1]),", 'neu/zusatz.mjs', 'trägt den Vorschlag in die gezeigte Woche ein')]
 # Jeder Fall fährt nur seinen Abschnitt der Probe (NUR_TEIL); die Probe als Ganzes läuft vorher einmal ohne Sabotage.
-TEILE={'alter':'1','alte':'1','richter':'2','bild':'3','sammel':'4','plan':'5','buch':'6','teller':'7','kontrast':'8','meldung':'8','handbuch':'8','muttis':'9','uebernahme':'10','nachtrag':'10','schritt':'10','notiz':'10','stern':'11','druck':'11'}
+TEILE={'alter':'1','alte':'1','richter':'2','bild':'3','sammel':'4','plan':'5','buch':'6','teller':'7','kontrast':'8','meldung':'8','handbuch':'8','muttis':'9','uebernahme':'10','nachtrag':'10','schritt':'10','notiz':'10','stern':'11','druck':'11','suche':'12'}
 def teil(name): return TEILE[name.split('-')[0]]
 nur=os.environ.get('NUR_FALL'); nur=nur.split(',') if nur else None; gefangen=0; durch=0; tot=0
 def anker(fall):
-    name,a,b,f,erwartet=fall[:5]; paare=[(a,b,f)]+([(fall[5],fall[6],fall[7])] if len(fall)>5 else []); return name,f,erwartet,paare
+    name,a,b,f,erwartet=fall[:5]; paare=[(a,b,f)]+[tuple(fall[i:i+3]) for i in range(5,len(fall),3)]; return name,f,erwartet,paare   # beliebig viele weitere (alt, neu, datei)
 if os.environ.get('NUR_ANKER'):
     for fall in F:
         name,f,erwartet,paare=anker(fall)

@@ -24,7 +24,7 @@ import { hinweiseEinrichten } from '../kern/oberflaeche/hinweis.mjs';
 import { wartenEinrichten, modellFortschritt, bytesMitAnteil } from '../kern/oberflaeche/warten.mjs';
 import { tresor } from '../kern/speicher/tresor.mjs';
 import { zusatz } from './zusatz.mjs';
-import { ladeBausteine, korpus as semKorpus, sucheBedeutung } from '../kern/suche/bedeutung.mjs';
+import { ladeBausteine, korpus as semKorpus, sucheBedeutung, passage as semPassage } from '../kern/suche/bedeutung.mjs';
 import { woche, planen, entplanen, ausAltemMenu, tagIso } from '../kern/modell/plan.mjs';
 import { text as spText, fuelle, sprache as sprWahl, kennt as sprKennt, sprachName, SPRACHEN, gebiet, ladeTabelle } from '../kern/oberflaeche/sprache.mjs';
 import { schluessel as schluesselLager, ANBIETER, erklaerung as schlErklaerung, formPasst, pruefeSchluessel, schluesselAdresse } from '../kern/ki/schluessel.mjs';
@@ -38,7 +38,7 @@ import { druckRezept, drucke } from '../kern/ausgabe/druck.mjs';
 import { teilLink, ausTeilLink, qrSvg, passtInQr } from '../kern/teilen/qr.mjs';
 import { rezeptIn } from '../kern/modell/einheiten.mjs';
 
-const FASSUNG = '0.14.2';
+const FASSUNG = '0.14.3';
 const breit = () => matchMedia('(min-width:1000px)').matches;
 const $ = (id) => document.getElementById(id);
 const esc = (t) => String(t ?? '').replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
@@ -183,7 +183,8 @@ const beispielText = () => { const p = katalog?.pakete?.find((x) => x.id === aus
 /* ---------- Sinn-Suche: Modul 03 und 04 der bisherigen App, erst beim Einschalten geladen ---------- */
 const sem = { ids: [], fuer: '', status: '', uhr: null, laeuft: false, korpus: null, sig: '' };
 /* Treffer der Sinn-Suche zur jetzigen Frage, ohne die, die schon nach Wort gefunden sind. */
-function sinnTreffer(wort = suche(Z.rezepte, s.frage, Z.kategorien)) { const da = new Set(wort.map((r) => r.uid)); return E.sinn && sem.fuer === s.frage.trim().toLowerCase() ? sem.ids.map(rezept).filter((r) => r && istInhalt(r) && !da.has(r.uid)) : []; }
+/* Klaus 24.11.: das Suchfeld ist zuerst eine Wortsuche. Nach Bedeutung wird nur gesucht, wenn die Wortsuche nichts findet. */
+function sinnTreffer(wort = finde(s.frage)) { return E.sinn && !wort.length && sem.fuer === s.frage.trim().toLowerCase() ? sem.ids.map(rezept).filter((r) => r && istInhalt(r)) : []; }
 const semStatus = (t) => { sem.status = t; const el = $('sinn-status'); if (el) el.textContent = t; };
 /* Ladebalken (Klaus 23.11.): das Sprachmodell (beim ersten Mal rund 120 MB) und das Einlesen der Rezepte zeigen ihren Stand. */
 const W = wartenEinrichten(document);
@@ -192,20 +193,23 @@ function semBereit() {
     const ab = modellFortschritt((a, g, t) => { w.anteil(a); if (t) w.text(fuelle(L('Sprachmodell wird geladen: {0} von {1} MB', 'Loading the language model: {0} of {1} MB'), g, t)); });
     try { await ladeBausteine('../sbkim/'); await window.SbkimEmbedding.init(); } finally { ab(); }
     w.anteil(null); w.text(L('Sinn-Suche wird vorbereitet …', 'Preparing meaning search …'));
-    const rs = Z.rezepte.filter(istInhalt), namen = new Map(alleKategorien(Z.rezepte, Z.kategorien).map((c) => [c.id, katName(c)])), sig = rs.map((r) => r.uid).join(',');
+    const rs = Z.rezepte.filter(istInhalt), namen = new Map(alleKategorien(Z.rezepte, Z.kategorien).map((c) => [c.id, katName(c)])), sig = rs.map((r) => r.uid + '\u0001' + semPassage(r, namen.get(katVonRezept(r)) || '')).join('\u0002');   /* ändert sich ein Rezept (oder kommt eine andere Sammlung herein), wird neu gerechnet; unveränderte Rezepte behält der Kern */
     if (!sem.korpus || sem.sig !== sig) { sem.korpus = await semKorpus(rs, (r) => namen.get(katVonRezept(r)) || '', { einbetten: (t) => window.SbkimEmbedding.embedPassage(t), fortschritt: (i, n) => { const t = fuelle(L('Sinn-Suche wird vorbereitet: {0} von {1} Rezepten', 'Preparing meaning search: {0} of {1} recipes'), i, n); semStatus(t); w.text(t); w.anteil(n ? i / n : null); } }); sem.sig = sig; }
     return sem.korpus;
   });
 }
-function semPlanen() { clearTimeout(sem.uhr); if (!E.sinn) return; const f = s.frage.trim().toLowerCase(); if (!f) { sem.ids = []; sem.fuer = ''; return; } sem.uhr = setTimeout(() => semLauf(f), 350); }
+function semPlanen() { clearTimeout(sem.uhr); if (!E.sinn) return; const f = s.frage.trim().toLowerCase(); if (!f) { sem.ids = []; sem.fuer = ''; return; }
+  if (finde(s.frage).length) { sem.ids = []; sem.fuer = ''; semStatus(''); return; }   /* die Wortsuche hat etwas gefunden: keine Bedeutungssuche */
+  sem.uhr = setTimeout(() => semLauf(f), 350); }
 async function semLauf(f) {
   if (!E.sinn) return; if (sem.laeuft) { sem.uhr = setTimeout(() => semLauf(f), 300); return; }
   sem.laeuft = true; semStatus(sem.korpus ? L('sucht nach Bedeutung …', 'searching by meaning …') : L('Sinn-Suche wird vorbereitet (beim ersten Mal lädt das Sprachmodell) …', 'Preparing meaning search (the language model loads the first time) …'));
   try {
     const c = await semBereit(); if (s.frage.trim().toLowerCase() !== f) return;   // es wurde schon weitergetippt
     sem.ids = await sucheBedeutung(window.SbkimMatch, f, c); sem.fuer = f; if (s.frage.trim().toLowerCase() !== f) return;
-    const wort = new Set(finde(s.frage).map((r) => r.uid)), dazu = sem.ids.filter((u) => !wort.has(u) && rezept(u)).length;
-    sem.status = dazu ? fuelle(L('{0} zusätzlich nach Bedeutung gefunden', '{0} more found by meaning'), dazu) : L('Sinn-Suche an, keine weiteren Treffer', 'Meaning search on, no further results');
+    if (finde(s.frage).length) { sem.ids = []; sem.fuer = ''; semStatus(''); return; }   /* inzwischen findet die Wortsuche etwas */
+    const dazu = sem.ids.filter((u) => rezept(u)).length;
+    sem.status = dazu ? fuelle(L('Nach Wort nichts gefunden · {0} nach Bedeutung', 'Nothing found by word · {0} by meaning'), dazu) : L('Auch nach Bedeutung nichts gefunden', 'Nothing found by meaning either');
     if (s.ansicht === 'start' && $('start-rest')) $('start-rest').innerHTML = startRest();
   } catch (f) { console.warn('Sinn-Suche:', f?.message || f); semStatus(L('Die Sinn-Suche ist gerade nicht verfügbar. Die Wortsuche läuft weiter.', 'Meaning search is not available right now. Word search keeps working.'));
  } finally { sem.laeuft = false; }

@@ -317,6 +317,20 @@ try {
   await p.click('[data-a=plan-woche][data-d="7"]'); ok(await p.locator('[data-a=plan-drucken]').count() === 0, 'eine leere Woche hat keinen Druck-Knopf');
   await k.close();
   }
+  if (will(12)) {
+  console.log('12 · Suchfeld: erst Wortsuche, nach Bedeutung nur ohne Worttreffer; der Index folgt dem Inhalt');
+  ({ p, k } = await seite({ rezepte: [R(1, 'Rindergulasch'), R(2, 'Apfelkuchen', { cat: 'kuchen', ings: [{ amt: '3', unit: '', name: 'Äpfel', note: '' }] })], einstellungen: { sinn: true } }));
+  const nachBedeutung = () => p.locator('#sinn-treffer .karte').allInnerTexts().then((l) => l.map((x) => x.split('\n')[0]));
+  await p.fill('#suchfeld', 'gulasch'); await p.waitForTimeout(1500);
+  ok((await p.locator('.karte').allInnerTexts()).some((x) => x.startsWith('Rindergulasch')) && await p.locator('#sinn-treffer').count() === 0 && !/Bedeutung/.test(await p.locator('#sinn-status').innerText().catch(() => '')), 'die Wortsuche findet „gulasch“: es wird nicht nach Bedeutung gesucht, kein zweiter Block');
+  await p.fill('#suchfeld', 'eintopf'); await p.waitForSelector('#sinn-treffer .karte', { timeout: 15000 }).catch(() => {});
+  ok((await nachBedeutung()).join('|') === 'Rindergulasch' && /Nach Wort nichts gefunden · 1 nach Bedeutung/.test(await p.locator('#sinn-status').innerText().catch(() => '')), 'die Wortsuche findet „eintopf“ nicht: dann wird nach Bedeutung gesucht, mit einer Zeile, die das sagt', (await nachBedeutung()).join('|'));
+  await p.fill('#suchfeld', ''); await geh(p, 'start'); await p.locator('.karte', { hasText: 'Apfelkuchen' }).first().click(); await p.waitForSelector('.rezept-held h1');
+  await p.click('[data-a=rleiste]'); await p.click('.rwerk [data-a=bearbeiten]'); await p.waitForSelector('[data-form=rezept]'); await p.fill('[name=name]', 'Kartoffelgulasch'); await p.click('[data-form=rezept] button[type=submit]'); await p.waitForSelector('.rezept-held h1');
+  await geh(p, 'start'); await p.fill('#suchfeld', 'eintopf'); await p.waitForFunction(() => document.querySelectorAll('#sinn-treffer .karte').length === 2, null, { timeout: 15000 }).catch(() => {});
+  ok((await nachBedeutung()).sort().join('|') === 'Kartoffelgulasch|Rindergulasch', 'ein Rezept wird bearbeitet (gleiche Kennung, neuer Inhalt): der Bedeutungs-Index rechnet es neu und findet es', (await nachBedeutung()).join('|'));
+  await k.close();
+  }
   ok(fehler.length === 0, 'keine Fehler in der Konsole, kein Aufruf nach draußen außer den gestellten', fehler.slice(0, 3).join(' · '));
 } catch (e) { rot++; console.log('  ✗ ROT: Probe abgebrochen — ' + String(e.message).split('\n')[0]); }
 await browser.close(); srv.close();

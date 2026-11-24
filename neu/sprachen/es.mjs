@@ -43,8 +43,6 @@ export default {
   'Sinn-Suche wird vorbereitet: {0} von {1} Rezepten': 'Preparando la búsqueda por significado: {0} de {1} recetas',
   'sucht nach Bedeutung …': 'buscando por significado …',
   'Sinn-Suche wird vorbereitet (beim ersten Mal lädt das Sprachmodell) …': 'Preparando la búsqueda por significado (la primera vez se carga el modelo de lenguaje) …',
-  '{0} zusätzlich nach Bedeutung gefunden': '{0} más encontradas por significado',
-  'Sinn-Suche an, keine weiteren Treffer': 'Búsqueda por significado activa, sin más resultados',
   'Die Sinn-Suche ist gerade nicht verfügbar. Die Wortsuche läuft weiter.': 'La búsqueda por significado no está disponible ahora. La búsqueda por palabras sigue funcionando.',
   'metrisch': 'métrico',
   'wie notiert': 'como en la receta',
@@ -541,4 +539,6 @@ export default {
   'Auf der Liste steht nichts Offenes': 'No queda nada pendiente en la lista',
   'In dieser Woche ist nichts geplant': 'No hay nada planificado esta semana',
   'Wochenplan': 'Plan semanal',
+  'Nach Wort nichts gefunden · {0} nach Bedeutung': 'Nada por palabra · {0} por significado',
+  'Auch nach Bedeutung nichts gefunden': 'Tampoco hay nada por significado',
 };
