@@ -34,7 +34,7 @@ try {
 
   console.log('2 · text() liefert in jeder Sprache jeden Eintrag');
   const falsch = await p.evaluate(async ([paare, codes]) => { const s = await import('/kern/oberflaeche/sprache.mjs'), aus = [];
-    for (const c of codes) { const t = s.tabelleVon(c); for (const [de, en] of Object.entries(paare)) { const v = s.text(c, de, en); if (typeof v !== 'string' || !v.trim() || v !== t[de] || (v === de && !['Standard', 'Liste'].includes(de))) aus.push(c + ': ' + de); } }
+    for (const c of codes) { const t = s.tabelleVon(c); for (const [de, en] of Object.entries(paare)) { const v = s.text(c, de, en); if (typeof v !== 'string' || !v.trim() || v !== t[de] || (v === de && !['Standard', 'Liste', 'Collage', 'Retro'].includes(de))) aus.push(c + ': ' + de); } }
     return aus; }, [PAARE, SPRACHEN]);
   ok(falsch.length === 0, `${ZAHL} Schlüssel × ${SPRACHEN.length} Sprachen: jeder kommt aus der Tabelle, keiner bleibt deutsch`, falsch.slice(0, 4).join(' · '));
 

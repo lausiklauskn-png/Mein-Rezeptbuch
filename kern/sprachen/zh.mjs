@@ -212,4 +212,16 @@ export default {
   'Zurück': '返回',
   'Weiter': '下一页',
   'Notizen': '备注',
+  // ausgabe/zine.mjs
+  'etwa 8 Cent': '约 8 美分',
+  'Titelseite': '封面',
+  'Schritt für Schritt': '分步图解',
+  'Gesundheit und Tipps': '健康与小贴士',
+  'Collage': '拼贴',
+  'Aquarell': '水彩',
+  'Zeitung': '报纸',
+  'Retro': '复古',
+  'Modern': '现代',
+  'Name und Zutaten': '名称和配料',
+  'Name und Schritte': '名称和步骤',
 };

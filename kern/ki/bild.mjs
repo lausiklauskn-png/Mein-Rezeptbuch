@@ -3,7 +3,9 @@
 //  - Zwei Modelle nacheinander (dall-e-3, dann gpt-image-1); ein 400/404 heißt „dieses Modell passt nicht“, dann das nächste.
 //  - Das Bild landet immer als data:-URL im Rezept. Eine fremde Adresse verfällt und wäre offline tot.
 //  - Gratis-Foto über Pollinations, ohne Schlüssel: der Rezeptname geht an diesen Dienst.
-export const BILD_MODELLE = [{ model: 'dall-e-3' }, { model: 'gpt-image-1' }];
+//  - Hochformat (Food-Zine): `groesse: 'hoch'` nimmt je Modell dessen Hochformat. Die alte App schickte beiden 1024x1792;
+//    das kennt nur dall-e-3, gpt-image-1 nimmt 1024x1536 (der Ersatz wäre sonst immer an der Größe gescheitert).
+export const BILD_MODELLE = [{ model: 'dall-e-3', hoch: '1024x1792' }, { model: 'gpt-image-1', hoch: '1024x1536' }];
 export const KOSTEN = { de: 'etwa 4 Cent je Bild, Abrechnung direkt bei OpenAI', en: 'about 4 cents per picture, billed directly by OpenAI' };
 export const KOSTEN_TEXT = KOSTEN.de;
 
@@ -27,7 +29,7 @@ export function bildAuftrag(rezept, art = 'essen') { return (BILD_ARTEN[art] || 
 const alsDataUrl = (blob) => new Promise((ja, nein) => { const fr = new FileReader(); fr.onload = () => ja(fr.result); fr.onerror = () => nein(new Error('Bild konnte nicht gelesen werden')); fr.readAsDataURL(blob); });
 
 async function einVersuch(schluessel, auftrag, variante, groesse, hol) {
-  const ant = await hol('https://api.openai.com/v1/images/generations', { method: 'POST', headers: { 'Content-Type': 'application/json', Authorization: 'Bearer ' + schluessel }, body: JSON.stringify({ model: variante.model, prompt: auftrag, n: 1, size: groesse }) });
+  const ant = await hol('https://api.openai.com/v1/images/generations', { method: 'POST', headers: { 'Content-Type': 'application/json', Authorization: 'Bearer ' + schluessel }, body: JSON.stringify({ model: variante.model, prompt: auftrag, n: 1, size: groesse === 'hoch' ? variante.hoch : groesse }) });
   if (!ant.ok) { const e = await ant.json().catch(() => ({})); const f = new Error(e.error?.message || 'HTTP ' + ant.status); f.status = ant.status; f.andresModell = ant.status === 400 || ant.status === 404; throw f; }
   const eintrag = (await ant.json()).data?.[0] || {};
   if (eintrag.b64_json) return 'data:image/png;base64,' + eintrag.b64_json;

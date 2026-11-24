@@ -25,6 +25,16 @@ export function normalisiereSchritt(s, i) {
   return { id: s?.id ?? i + 1, txt: text(s?.txt ?? s?.text).trim(), note: text(s?.note).trim() };
 }
 
+/** Food-Zine am Rezept: `zine` ist eine Liste aus drei Seiten (Titelseite, Schritt für Schritt, Gesundheit und Tipps), je die
+ *  data:-Adresse eines Bildes oder ''. Dieselbe Form wie `seiten` im Beispielpaket „foodzine-beispiele“. Eine fremde Adresse
+ *  kommt nicht mit (sie würde beim Zeigen ins Netz greifen); ohne eine einzige Seite gibt es das Feld nicht. */
+export const ZINE_SEITEN = 3;
+export function zineFeld(v) {
+  if (!Array.isArray(v)) return null;
+  const s = Array.from({ length: ZINE_SEITEN }, (_, i) => (typeof v[i] === 'string' && /^data:image\/(png|jpe?g|webp|gif);base64,/i.test(v[i]) ? v[i] : ''));
+  return s.some(Boolean) ? s : null;
+}
+
 /** Bringt ein Rezept in die Form des Kerns. Verändert das Original nicht. Unbekannte Felder bleiben erhalten. */
 export function normalisiere(roh) {
   const r = { ...roh };
@@ -43,6 +53,7 @@ export function normalisiere(roh) {
   if (!r.uid) r.uid = r.id != null ? 'alt-' + String(r.id) : neueUid();   // gleiche alte Nummer → gleiche Kennung, auch beim zweiten Import
   r.uid = String(r.uid);
   if (!Array.isArray(r.herkunft)) delete r.herkunft;
+  const zine = zineFeld(r.zine); if (zine) r.zine = zine; else delete r.zine;
   return r;
 }
 
