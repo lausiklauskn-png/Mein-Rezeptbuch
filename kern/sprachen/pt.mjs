@@ -212,4 +212,16 @@ export default {
   'Zurück': 'Voltar',
   'Weiter': 'Seguinte',
   'Notizen': 'Notas',
+  // ausgabe/zine.mjs
+  'etwa 8 Cent': 'cerca de 8 cêntimos',
+  'Titelseite': 'Capa',
+  'Schritt für Schritt': 'Passo a passo',
+  'Gesundheit und Tipps': 'Saúde e dicas',
+  'Collage': 'Colagem',
+  'Aquarell': 'Aguarela',
+  'Zeitung': 'Jornal',
+  'Retro': 'Retro',
+  'Modern': 'Moderno',
+  'Name und Zutaten': 'nome e ingredientes',
+  'Name und Schritte': 'nome e passos',
 };

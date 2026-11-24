@@ -25,6 +25,7 @@ import { installation, istApple, aktualisieren } from '../kern/oberflaeche/app-p
 import { wartenEinrichten, modellFortschritt, bytesMitAnteil } from '../kern/oberflaeche/warten.mjs';
 import { tresor } from '../kern/speicher/tresor.mjs';
 import { zusatz } from './zusatz.mjs';
+import { zine } from './zine.mjs';
 import { ladeBausteine, korpus as semKorpus, sucheBedeutung, passage as semPassage } from '../kern/suche/bedeutung.mjs';
 import { woche, planen, entplanen, ausAltemMenu, tagIso } from '../kern/modell/plan.mjs';
 import { text as spText, fuelle, sprache as sprWahl, kennt as sprKennt, sprachName, SPRACHEN, gebiet, ladeTabelle } from '../kern/oberflaeche/sprache.mjs';
@@ -264,7 +265,7 @@ const kiZeile = (a, i, t, was) => `<button class="zeile" data-a="${a}" title="${
 function rezeptMenue() {
   const r = rezept(s.uid); if (!r) return;
   fenster(`<h2 class="imp-kopf"><span>${esc(zeig(r).name)}</span></h2><div class="liste menue" id="rmenue">
-   ${zeile('drucken', 'drucken', L('Drucken', 'Print'))}${zeile('qr', 'qr', L('Teilen per QR-Code', 'Share by QR code'))}${zeile('einheiten', 'waage', L('Einheiten', 'Units'), einhName())}
+   ${zeile('drucken', 'drucken', L('Drucken', 'Print'))}${zeile('qr', 'qr', L('Teilen per QR-Code', 'Share by QR code'))}${zeile('einheiten', 'waage', L('Einheiten', 'Units'), einhName())}${zeile('zine', 'zine', L('Food-Zine', 'Food zine'), ZI.stand(r))}
    ${kiZeile('naehrwerte', 'flamme', L('Nährwerte schätzen', 'Estimate nutrition'), helferHinaus('naehrwerte', r, spr()))}${kiZeile('rechtschreibung', 'abc', L('Rechtschreibung prüfen', 'Check spelling'), helferHinaus('rechtschreibung', r, spr()))}${kiZeile('uebersetzen', 'welt', L('Übersetzen', 'Translate'), helferHinaus('uebersetzung', r, spr()))}</div>`);
 }
 /* Eine Übersetzung gilt für den Text, aus dem sie entstand: ändern sich Name, Zutaten oder Schritte, fällt sie weg – sonst stünde der alte Text weiter da. */
@@ -468,13 +469,14 @@ function ordnerWahlFenster(uid) {
 /* ---------- Bilder-Ordner ---------- */
 function bilderHtml() {
   const B = s.bilder, mit = Z.rezepte.filter((r) => istInhalt(r) && r.img), ohne = Z.rezepte.filter((r) => istInhalt(r) && !r.img);
-  const gez = mit.filter((r) => B.filter === 'alle' || (B.filter === 'beispiele' ? r.beispiel : !r.beispiel));
+  const zineF = B.filter === 'zine';   /* Food-Zine: jede Seite eine Kachel (neu/zine.mjs); gelöscht wird dort nur die Seite */
+  const gez = zineF ? ZI.galerie() : mit.filter((r) => B.filter === 'alle' || (B.filter === 'beispiele' ? r.beispiel : !r.beispiel));
   for (const u of [...B.wahl]) if (!gez.some((r) => r.uid === u)) B.wahl.delete(u);
   return `<div class="ueber"><h2 style="font-size:19px">${L('Bilder', 'Pictures')}</h2><small>${fuelle(L('{0} Bilder · {1} Rezepte ohne Bild', '{0} pictures · {1} recipes without a picture'), mit.length, ohne.length)}</small></div>
-   <div class="laeden">${[['alle', L('Alle', 'All')], ['eigene', L('Eigene', 'Own')], ['beispiele', L('Beispiele', 'Examples')]].map(([f, t]) => `<button class="chip" data-a="bilder-filter" data-f="${f}" aria-pressed="${B.filter === f}">${t}</button>`).join('')}<button class="chip" data-a="bilder-gross" aria-pressed="${B.gross}">${ic('voll')}${B.gross ? L('Groß', 'Large') : L('Klein', 'Small')}</button>${frag(L('Tippe Bilder an, um sie auszuwählen. „Löschen“ entfernt nur das Bild; das Rezept mit seinem Text bleibt.', 'Tap pictures to select them. “Delete” removes only the picture; the recipe with its text stays.'))}</div>
-   <div class="reihe" style="margin-bottom:10px"><button class="knopf rot" data-a="bilder-weg" ${B.wahl.size ? '' : 'disabled'}>${ic('muell')}${fuelle(L('Löschen ({0})', 'Delete ({0})'), B.wahl.size)}</button><button class="knopf" data-a="bilder-alle-wahl">${B.wahl.size === gez.length && gez.length ? L('Auswahl aufheben', 'Clear selection') : L('Alle auswählen', 'Select all')}</button><button class="knopf rot" data-a="bilder-alle-weg" ${mit.length ? '' : 'disabled'}>${L('Alle Bilder löschen', 'Delete all pictures')}</button>${ZU.sammelKnopf()}</div>
-   <div class="bildgitter ${B.gross ? 'gross' : ''}">${gez.map((r) => `<button class="bildkachel" data-a="bild-wahl" data-uid="${esc(r.uid)}" aria-pressed="${B.wahl.has(r.uid)}"><img src="${esc(r.img)}" alt="" loading="lazy"><span class="hk">${B.wahl.has(r.uid) ? ic('haken') : ''}</span><span class="bn">${esc(r.name)}</span></button>`).join('') || `<p class="quelle">${L('Keine Bilder in dieser Auswahl.', 'No pictures in this selection.')}</p>`}</div>
-   ${ohne.length ? `<div class="gruppe"><h3>${L('Rezepte ohne Bild', 'Recipes without a picture')}</h3><div class="liste">${ohne.map((r) => `<button class="zeile" data-a="bild-dazu" data-uid="${esc(r.uid)}">${ic('kamera')}<span>${esc(r.name)}<small>${L('Foto einfügen', 'Add photo')}</small></span></button>`).join('')}</div></div>` : ''}`;
+   <div class="laeden">${[['alle', L('Alle', 'All')], ['eigene', L('Eigene', 'Own')], ['beispiele', L('Beispiele', 'Examples')], ['zine', L('Food-Zine', 'Food zine')]].map(([f, t]) => `<button class="chip" data-a="bilder-filter" data-f="${f}" aria-pressed="${B.filter === f}">${t}</button>`).join('')}<button class="chip" data-a="bilder-gross" aria-pressed="${B.gross}">${ic('voll')}${B.gross ? L('Groß', 'Large') : L('Klein', 'Small')}</button>${frag(L('Tippe Bilder an, um sie auszuwählen. „Löschen“ entfernt nur das Bild; das Rezept mit seinem Text bleibt.', 'Tap pictures to select them. “Delete” removes only the picture; the recipe with its text stays.'))}</div>
+   <div class="reihe" style="margin-bottom:10px"><button class="knopf rot" data-a="bilder-weg" ${B.wahl.size ? '' : 'disabled'}>${ic('muell')}${fuelle(L('Löschen ({0})', 'Delete ({0})'), B.wahl.size)}</button><button class="knopf" data-a="bilder-alle-wahl">${B.wahl.size === gez.length && gez.length ? L('Auswahl aufheben', 'Clear selection') : L('Alle auswählen', 'Select all')}</button>${zineF ? '' : `<button class="knopf rot" data-a="bilder-alle-weg" ${mit.length ? '' : 'disabled'}>${L('Alle Bilder löschen', 'Delete all pictures')}</button>${ZU.sammelKnopf()}`}</div>
+   <div class="bildgitter ${B.gross ? 'gross' : ''}">${gez.map((r) => `<button class="bildkachel${r.hoch ? ' hoch' : ''}" data-a="bild-wahl" data-uid="${esc(r.uid)}" aria-pressed="${B.wahl.has(r.uid)}"><img src="${esc(r.img)}" alt="" loading="lazy"><span class="hk">${B.wahl.has(r.uid) ? ic('haken') : ''}</span><span class="bn">${esc(r.name)}${r.unter ? `<small>${esc(r.unter)}</small>` : ''}</span></button>`).join('') || `<p class="quelle">${L('Keine Bilder in dieser Auswahl.', 'No pictures in this selection.')}</p>`}</div>
+   ${ohne.length && !zineF ? `<div class="gruppe"><h3>${L('Rezepte ohne Bild', 'Recipes without a picture')}</h3><div class="liste">${ohne.map((r) => `<button class="zeile" data-a="bild-dazu" data-uid="${esc(r.uid)}">${ic('kamera')}<span>${esc(r.name)}<small>${L('Foto einfügen', 'Add photo')}</small></span></button>`).join('')}</div></div>` : ''}`;
 }
 /* Bild anpassen: Ausschnitt ziehen, Zoom, schnelle Lagen. Gespeichert in r.imgCrop wie in der alten App. */
 let zs = null;
@@ -676,7 +678,7 @@ function werkstattHtml() {
     ['aussehen', 'auge', WF.blau, L('Darstellung', 'Appearance'), '',
       zeile('sprache', 'welt', L('Sprache', 'Language'), E.sprache ? sprachName(E.sprache) : L('wie das Gerät', 'same as device')) + zeile('farbe', 'auge', L('Farbe, hell und dunkel', 'Colour, light and dark'), farbName(E.farbe) + ' · ' + Lk(TOENE[E.ton] || '', TOENE_EN[E.ton] || '')) + zeile('schrift', 'stift', L('Schriftgröße', 'Text size'), schriftWert(E.schrift) + ' %') + zeile('kontrast', 'kontrast', L('Hoher Kontrast', 'High contrast'), E.kontrast ? L('an', 'on') : L('aus', 'off'), `aria-pressed="${!!E.kontrast}"`) + zeile('einheiten', 'waage', L('Einheiten', 'Units'), einhName()) + zeile('hinweise', 'frage', L('Hinweis-Blasen', 'Tooltips'), E.hinweiseAus ? L('aus', 'off') : L('an', 'on'), `aria-pressed="${!E.hinweiseAus}"`) + (INST.zeigen() ? zeile('installieren', 'laden', L('Als App installieren', 'Install as an app')) : '')],
     ['beispiele', 'paket', WF.petrol, L('Beispiele', 'Examples'), '',
-      zeile('beispiel', 'paket', L('Beispielbuch laden', 'Load example book'), beispielText()) + (b ? zeile('beispiele-weg', 'muell', L('Beispiele entfernen', 'Remove examples'), String(b)) : '')],
+      zeile('beispiel', 'paket', L('Beispielbuch laden', 'Load example book'), beispielText()) + ZI.beispielZeile(zeile) + (b ? zeile('beispiele-weg', 'muell', L('Beispiele entfernen', 'Remove examples'), String(b)) : '')],
     ZU.buchThema(zeile, '#b07a4a'), ZU.hilfeThema(zeile, '#7d8794'),
     ['aufraeumen', 'muell', WF.koralle, L('Aufräumen', 'Clean up'), '', zeile('alles-weg', 'muell', L('Alle Rezepte löschen', 'Delete all recipes'), L('mit Rückfrage', 'asks first'))],
   ];
@@ -717,7 +719,8 @@ function bildBlatt(uid) {
    <div class="liste" style="margin-top:10px">${r.img ? zeile('zuschnitt', 'zuschnitt', L('Ausschnitt anpassen', 'Adjust section'), L('verschieben und vergrößern', 'move and enlarge')) : ''}
    ${zeile('bild-dazu', 'kamera', r.img ? L('Bild ersetzen', 'Replace picture') : L('Bild einfügen', 'Add picture'), L('Foto aufnehmen oder Datei wählen', 'Take a photo or choose a file'), `data-uid="${esc(uid)}"`)}
    ${zeile('ki-bild', 'funken', L('Bild von der KI erzeugen', 'Create picture with AI'), 'OpenAI, ' + kostenBild(), `data-uid="${esc(uid)}"`)}
-   ${zeile('gratis-bild', 'bild', L('Gratis-Foto erzeugen', 'Create free photo'), L('ohne Schlüssel, über den Dienst Pollinations', 'no key, via the Pollinations service'), `data-uid="${esc(uid)}"`)}</div>
+   ${zeile('gratis-bild', 'bild', L('Gratis-Foto erzeugen', 'Create free photo'), L('ohne Schlüssel, über den Dienst Pollinations', 'no key, via the Pollinations service'), `data-uid="${esc(uid)}"`)}
+   ${zeile('zine', 'zine', L('Food-Zine', 'Food zine'), ZI.stand(r))}</div>
    <div class="reihe" style="margin-top:10px"><button class="knopf" data-a="fenster-zu">${L('Schließen', 'Close')}</button>${frag(L('Ein Bild löschst du in den Einstellungen unter „Bilder“.', 'You delete a picture in the settings under “Pictures”.'))}</div>`);
 }
 const kostenBild = () => Lk(KOSTEN.de, KOSTEN.en);
@@ -893,7 +896,7 @@ const A = {
   'bilder-gross': () => { s.bilder.gross = !s.bilder.gross; zeichne(); },
   'bild-wahl': (e) => { const w = s.bilder.wahl; if (w.has(e.dataset.uid)) w.delete(e.dataset.uid); else w.add(e.dataset.uid); zeichne(); },
   'bilder-alle-wahl': () => { const w = s.bilder.wahl, alle = [...document.querySelectorAll('.bildkachel')].map((b) => b.dataset.uid); if (w.size === alle.length) w.clear(); else alle.forEach((u) => w.add(u)); zeichne(); },
-  'bilder-weg': () => { const w = new Set(s.bilder.wahl), vorher = Z.rezepte; Z.rezepte = Z.rezepte.map((r) => (w.has(r.uid) ? { ...r, img: '' } : r)); s.bilder.wahl.clear(); sichern(); zeichne(); melde(fuelle(L('−{0} Bilder', '−{0} pictures'), w.size), L('Rückgängig', 'Undo'), () => { Z.rezepte = vorher; sichern(); zeichne(); }); },
+  'bilder-weg': () => { const w = new Set(s.bilder.wahl), vorher = Z.rezepte; if (s.bilder.filter === 'zine') { s.bilder.wahl.clear(); ZI.galerieWeg(w); return; } Z.rezepte = Z.rezepte.map((r) => (w.has(r.uid) ? { ...r, img: '' } : r)); s.bilder.wahl.clear(); sichern(); zeichne(); melde(fuelle(L('−{0} Bilder', '−{0} pictures'), w.size), L('Rückgängig', 'Undo'), () => { Z.rezepte = vorher; sichern(); zeichne(); }); },
   'bilder-alle-weg': () => { const n = Z.rezepte.filter((r) => r.img).length; frage(L('Alle Bilder löschen?', 'Delete all pictures?'), fuelle(L('{0} Bilder werden entfernt. Die Rezepte mit ihrem Text bleiben.', '{0} pictures will be removed. The recipes with their text stay.'), n), L('Alle Bilder löschen', 'Delete all pictures'), () => { const vorher = Z.rezepte; Z.rezepte = Z.rezepte.map((r) => (r.img ? { ...r, img: '' } : r)); s.bilder.wahl.clear(); sichern(); zeichne(); melde(fuelle(L('−{0} Bilder', '−{0} pictures'), n), L('Rückgängig', 'Undo'), () => { Z.rezepte = vorher; sichern(); zeichne(); }); }); },
   'bild-dazu': (e) => { s.bildZiel = e.dataset.uid; fensterZu(); $('datei-bild').click(); },
   zuschnitt: () => zuschnittFenster(s.uid),
@@ -981,6 +984,9 @@ const A = {
 const ZU = zusatz({ L, spr, esc, ic, A, s, SK, W, Z: () => Z, setzeZ: (z) => { Z = z; }, E: () => E, fenster, fensterZu, beiZu: (f) => { zuTun = f; }, melde, sichern, zeichne, rezept, istInhalt, schluesselFenster, bildAusDatei, tresorAuto, sinnTreffer,
   zeichneStart: () => { if (s.ansicht === 'start' && $('start-rest')) $('start-rest').innerHTML = startRest(); }, katNamen: () => new Map(alleKategorien(Z.rezepte, Z.kategorien).map((c) => [c.id, katName(c)])), katVon: katVonRezept,
   tr: () => tr, ausgabe: () => ausgabe, planTage: () => woche(s.planTag).tage, einkaufZeilen: einkaufDruckZeilen });
+/* Food-Zine (neu/zine.mjs): drei Magazin-Seiten am Rezept, Galerie im Bilder-Ordner, Beispiel-Sätze. */
+const ZI = zine({ L, spr, esc, ic, A, s, SK, W, Z: () => Z, setzeZ: (z) => { Z = z; }, E: () => E, fenster, fensterZu, melde, sichern, zeichne, rezept, zeig, schluesselFenster, bildAusDatei, fehlerText, tresorAuto,
+  wahl: ZU.wahl, stellenHtml: ZU.stellenHtml, katalog: () => katalog, ausgabe: () => ausgabe });
 document.addEventListener('click', (ev) => {
   const e = ev.target.closest('[data-a]');
   if (s.leisteAuf && !ev.target.closest('#leiste')) { s.leisteAuf = false; leisteZeichnen(); }
