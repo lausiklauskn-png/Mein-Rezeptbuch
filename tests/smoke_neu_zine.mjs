@@ -261,13 +261,13 @@ try {
   ok(JSON.stringify(geholt.zine) === JSON.stringify([S1, '', S3]), 'ein Stand aus dem Tresor bringt die Seiten zurück', JSON.stringify((geholt.zine || []).map((x) => String(x).length)));
   await k.close();
   ({ p, k, netz } = await seite({ rezepte: [R(9, 'Schon da')] }));
-  await geh(p, 'werkstatt'); await p.setInputFiles('#datei-sicherung', { name: 'sicherung.json', mimeType: 'application/json', buffer: Buffer.from(datei) }); await wennToast(p, '\\+2 Rezepte');
+  await geh(p, 'werkstatt'); await p.setInputFiles('#datei-sicherung', { name: 'sicherung.json', mimeType: 'application/json', buffer: Buffer.from(datei) }); await p.click('[data-a=datei-dazu]'); await wennToast(p, '\\+2 Rezepte');
   let b = await bestandWenn(p, (x) => !!rz(x, 'r-1').zine);
   ok(JSON.stringify(rz(b, 'r-1').zine) === JSON.stringify([S1, '', S3]) && b.zustand.rezepte.length === 3, 'eingelesen in einer anderen App: die Seiten sind wieder da (hin und zurück)', (await toast(p)) + ' · ' + b.zustand.rezepte.map((r) => r.uid + ':' + JSON.stringify((r.zine || []).map((x) => String(x).length))).join(' '));
   await zumZine(p, 'Rindergulasch');
   ok(await p.locator('.zine-seite[data-i="0"] .zine-blatt img').getAttribute('src').catch(() => '') === S1 && await p.locator('.zine-seite[data-i="1"] .zine-blatt.leer').count() === 1 && await p.locator('.zine-seite[data-i="2"] .zine-blatt img').getAttribute('src').catch(() => '') === S3, 'das Fenster zeigt sie an ihren Plätzen');
   const ALT = { version: 10, exported: '2026-09-16T11:19:00.000Z', knoten: 'lokal-probe', recipes: [{ id: 41, uid: 'alt-zine-1', name: 'Ratatouille', cat: 'veg', img: '', ings: [{ id: 1, amt: '1', unit: '', name: 'Aubergine' }], steps: [{ id: 1, txt: 'Schmoren.' }], rating: { stars: 0, comment: '', imps: [] }, zine: [S1, 'https://fremd.example/seite2.png', S3] }], menu: [], folders: [] };
-  await geh(p, 'werkstatt'); await p.setInputFiles('#datei-sicherung', { name: 'alt.json', mimeType: 'application/json', buffer: Buffer.from(JSON.stringify(ALT)) }); await wennToast(p, '\\+1 Rezept');
+  await geh(p, 'werkstatt'); await p.setInputFiles('#datei-sicherung', { name: 'alt.json', mimeType: 'application/json', buffer: Buffer.from(JSON.stringify(ALT)) }); await p.click('[data-a=datei-dazu]'); await wennToast(p, '\\+1 Rezept');
   b = await bestandWenn(p, (x) => !!rz(x, 'alt-zine-1').zine);
   ok(JSON.stringify(rz(b, 'alt-zine-1').zine) === JSON.stringify([S1, '', S3]), 'eine Sicherung im Format der alten App (Fassung 10) mit Zine-Seiten wird gelesen; eine fremde Adresse darin wird keine Seite', JSON.stringify((rz(b, 'alt-zine-1').zine || []).map((x) => String(x).slice(0, 12))));
   await zuBildern(p); await p.click('[data-a=bilder-filter][data-f=zine]'); await p.waitForSelector('.bildkachel.hoch', { timeout: 5000 }).catch(() => {});

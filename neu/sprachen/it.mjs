@@ -634,4 +634,12 @@ export default {
   'Geöffnet · {0}': 'Aperto · {0}',
   '+1 Projekt · {0}': '+1 progetto · {0}',
   'Im Kreativbuch macht „Aus Bildern“ aus eigenen Fotos und PDF-Seiten ein Buch: bis zu 30 Bilder, je Datei bis zu 15 MB, im Gerät verkleinert, nichts geht an eine KI. Antippen wählt ein Bild zum Verschieben, Entfernen oder als Rezeptbild. „Projekte“ legt Auswahl, Stil, Texte und Bilder im Gerät ab, öffnet und löscht sie; als .kreativbuch-Datei nimmst du ein Projekt mit. In der Sicherung stehen Projekte nicht.': 'Nel libro creativo «Da immagini» trasforma le tue foto e pagine PDF in un libro: fino a 30 immagini, fino a 15 MB per file, ridotte sul dispositivo, niente va a un’IA. Tocca un’immagine per spostarla, rimuoverla o usarla come immagine della ricetta. «Progetti» conserva selezione, stile, testi e immagini sul dispositivo, li apre e li elimina; come file .kreativbuch porti con te un progetto. I progetti non sono nel backup.',
+  'Datei einlesen': 'Leggi un file',
+  '1 Rezept in der Datei': '1 ricetta nel file',
+  '{0} Rezepte in der Datei': '{0} ricette nel file',
+  'Hinzufügen': 'Aggiungi',
+  'Ersetzen': 'Sostituisci',
+  'Keine Rezepte in der Datei, nichts ersetzt': 'Nessuna ricetta nel file, niente sostituito',
+  'Ersetzt: {0} Rezepte': 'Sostituito: {0} ricette',
+  'Beim Einlesen einer Datei wählst du „Hinzufügen“ oder „Ersetzen“. Ersetzen tauscht Rezepte, Ordner, Kategorien und Plan gegen die Datei; der jetzige Stand kommt vorher in den Tresor, Einstellungen und KI-Schlüssel bleiben.': 'Leggendo un file scegli «Aggiungi» o «Sostituisci». Sostituisci scambia ricette, cartelle, categorie e piano con quelli del file; lo stato attuale va prima nella cassaforte, impostazioni e chiavi IA restano.',
 };

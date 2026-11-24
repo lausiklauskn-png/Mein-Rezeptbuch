@@ -45,9 +45,18 @@ F=[('alter-stand-doppelt', "    if (schon.has(s.alt)) continue;", "", 'kern/spei
    ('kopf-menue-install-bleibt', "w.addEventListener('appinstalled', () => { frage = null; fertig = true; beiAenderung(); });", "", 'kern/oberflaeche/app-pflege.mjs', 'über das Browser-Menü installiert'),
    ('kopf-als-app-knopf', "zeigen: () => !fertig && !laeuftAlsApp(w),", "zeigen: () => !fertig,", 'kern/oberflaeche/app-pflege.mjs', 'läuft die Seite als App'),
    ('kopf-loescht-fremde', "if (n.startsWith(cachePrefix))", "if (n)", 'kern/oberflaeche/app-pflege.mjs', 'nicht den der anderen'),
-   ('kopf-offline-loescht', "  if (!ok) return 'offline';", "", 'kern/oberflaeche/app-pflege.mjs', 'ohne Netz: eine kurze Meldung')]
+   ('kopf-offline-loescht', "  if (!ok) return 'offline';", "", 'kern/oberflaeche/app-pflege.mjs', 'ohne Netz: eine kurze Meldung'),
+   ('ersetzen-ohne-frage', "try { dateiFrage(lies(await W.mit(", "try { einfuegen(lies(await W.mit(", 'neu/app.mjs', 'erscheint die Frage'),
+   ('ersetzen-dazu-hinten', "<button class=\"knopf akz\" data-a=\"datei-dazu\">${L('Hinzufügen', 'Add')}</button><button class=\"knopf\" data-a=\"datei-ersetzen\">${L('Ersetzen', 'Replace')}</button>", "<button class=\"knopf\" data-a=\"datei-ersetzen\">${L('Ersetzen', 'Replace')}</button><button class=\"knopf akz\" data-a=\"datei-dazu\">${L('Hinzufügen', 'Add')}</button>", 'neu/app.mjs', '„Hinzufügen“ steht vorne'),
+   ('ersetzen-zwei-zeilen', "<button class=\"knopf\" data-a=\"datei-ersetzen\">", "<button class=\"knopf\" style=\"flex-basis:100%\" data-a=\"datei-ersetzen\">", 'neu/app.mjs', 'Knöpfe der Frage in einer Zeile'),
+   ('ersetzen-fuegt-hinzu', "Z = fuehreZusammen(Z, eingang, 'ersetzen').zustand;", "Z = fuehreZusammen(Z, eingang).zustand;", 'neu/app.mjs', 'genau der Inhalt der Datei'),
+   ('ersetzen-ohne-tresor', "  await tresorAuto(); const vorher = Z, h = hinweise(eingang);", "  const vorher = Z, h = hinweise(eingang);", 'neu/app.mjs', 'in den Tresor'),
+   ('ersetzen-nimmt-einstellungen', "Z = fuehreZusammen(Z, eingang, 'ersetzen').zustand;", "Z = fuehreZusammen(Z, eingang, 'ersetzen').zustand; E.farbe = 'braun';", 'neu/app.mjs', 'Einstellungen und KI-Schlüssel'),
+   ('ersetzen-rueckgaengig-tot', "L('Rückgängig', 'Undo'), () => { Z = vorher; sichern(); geh('start', { uid: null }, true); });", "L('Rückgängig', 'Undo'), () => {});", 'neu/app.mjs', '„Rückgängig“ stellt den Stand vor dem Ersetzen'),
+   ('ersetzen-leer-ersetzt', "if (!e.rezepte.length) { melde(L('Keine Rezepte in der Datei, nichts ersetzt', 'No recipes in the file, nothing replaced')); return; } ", "", 'neu/app.mjs', 'ohne Rezepte ersetzt nichts'),
+   ('ersetzen-beispiel-fragt', "einfuegen(lies(new TextDecoder().decode(roh)), true);", "dateiFrage(lies(new TextDecoder().decode(roh)));", 'neu/app.mjs', 'Beispielbuch fragt nicht')]
 # Jeder Fall fährt nur seinen Abschnitt der Probe (NUR_TEIL); die Probe als Ganzes läuft vorher einmal ohne Sabotage.
-TEILE={'alter':'1','alte':'1','richter':'2','bild':'3','sammel':'4','plan':'5','buch':'6','teller':'7','kontrast':'8','meldung':'8','handbuch':'8','muttis':'9','uebernahme':'10','nachtrag':'10','schritt':'10','notiz':'10','stern':'11','druck':'11','suche':'12','kopf':'13'}
+TEILE={'alter':'1','alte':'1','richter':'2','bild':'3','sammel':'4','plan':'5','buch':'6','teller':'7','kontrast':'8','meldung':'8','handbuch':'8','muttis':'9','uebernahme':'10','nachtrag':'10','schritt':'10','notiz':'10','stern':'11','druck':'11','suche':'12','kopf':'13','ersetzen':'14'}
 def teil(name): return TEILE[name.split('-')[0]]
 nur=os.environ.get('NUR_FALL'); nur=nur.split(',') if nur else None; gefangen=0; durch=0; tot=0
 def anker(fall):

@@ -634,4 +634,12 @@ export default {
   'Geöffnet · {0}': 'Abierto · {0}',
   '+1 Projekt · {0}': '+1 proyecto · {0}',
   'Im Kreativbuch macht „Aus Bildern“ aus eigenen Fotos und PDF-Seiten ein Buch: bis zu 30 Bilder, je Datei bis zu 15 MB, im Gerät verkleinert, nichts geht an eine KI. Antippen wählt ein Bild zum Verschieben, Entfernen oder als Rezeptbild. „Projekte“ legt Auswahl, Stil, Texte und Bilder im Gerät ab, öffnet und löscht sie; als .kreativbuch-Datei nimmst du ein Projekt mit. In der Sicherung stehen Projekte nicht.': 'En el libro creativo, «Con imágenes» convierte tus propias fotos y páginas PDF en un libro: hasta 30 imágenes, hasta 15 MB por archivo, reducidas en el dispositivo, nada va a una IA. Toca una imagen para moverla, quitarla o usarla como imagen de la receta. «Proyectos» guarda selección, estilo, textos e imágenes en el dispositivo, los abre y los elimina; como archivo .kreativbuch te llevas un proyecto. Los proyectos no están en la copia de seguridad.',
+  'Datei einlesen': 'Leer un archivo',
+  '1 Rezept in der Datei': '1 receta en el archivo',
+  '{0} Rezepte in der Datei': '{0} recetas en el archivo',
+  'Hinzufügen': 'Añadir',
+  'Ersetzen': 'Reemplazar',
+  'Keine Rezepte in der Datei, nichts ersetzt': 'No hay recetas en el archivo, nada reemplazado',
+  'Ersetzt: {0} Rezepte': 'Reemplazado: {0} recetas',
+  'Beim Einlesen einer Datei wählst du „Hinzufügen“ oder „Ersetzen“. Ersetzen tauscht Rezepte, Ordner, Kategorien und Plan gegen die Datei; der jetzige Stand kommt vorher in den Tresor, Einstellungen und KI-Schlüssel bleiben.': 'Al leer un archivo eliges «Añadir» o «Reemplazar». Reemplazar cambia recetas, carpetas, categorías y plan por los del archivo; el estado actual va antes a la caja fuerte, los ajustes y las claves de IA se quedan.',
 };
