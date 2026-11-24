@@ -58,7 +58,8 @@ export function buchGroesseText(bytes, sprache = 'de') {
 
 // ───────────── gemeinsame Teile beider Dokumente ─────────────
 
-const blatt = (titel, sprache, richtlinie, kopf, stil, rumpf) => `<!DOCTYPE html>
+/** Ein eigenständiges Dokument: Sprache, Inhalts-Richtlinie, Kopf, Stil, Rumpf (auch fürs Kreativbuch, kreativbuch.mjs). */
+export const blatt = (titel, sprache, richtlinie, kopf, stil, rumpf) => `<!DOCTYPE html>
 <html lang="${kennt(sprache) ? sprache : 'de'}">
 <head>
 <meta charset="utf-8">
@@ -81,7 +82,7 @@ function deckBilder(gruppen, max = 4) {
 }
 
 /** Das Deckblatt (ohne umschließendes Element) und die Stil-Regeln für die Ausschnitte seiner Bilder. */
-function deckblatt(b, { titel, untertitel, sprache, mitBildern, datum, anzahlText }) {
+export function deckblatt(b, { titel, untertitel, sprache, mitBildern, datum, anzahlText }) {
   const kopf = String(titel ?? '').trim() || text(sprache, 'Rezeptbuch', 'Recipe book'), unter = String(untertitel ?? '').trim(), bilder = mitBildern ? deckBilder(b.gruppen) : [];
   const wieViele = b.anzahl ? String(typeof anzahlText === 'function' ? anzahlText(b.anzahl) : b.anzahl === 1 ? text(sprache, '1 Rezept', '1 recipe') : fuelle(text(sprache, '{0} Rezepte', '{0} recipes'), b.anzahl)) : '';
   const stand = [wieViele, druckDatum(datum, sprache)].filter(Boolean).join(' · ');
@@ -216,7 +217,7 @@ export const BLAETTER_RICHTLINIE = `default-src 'none'; img-src data:; style-src
 
 /* Farben als Variablen: hell, dunkel (folgt dem Gerät) und für den Druck wieder hell. --ft ist die Grundfarbe als Schrift;
    im Dunkeln aufgehellt, sonst wäre ein dunkles Braun auf dunklem Blatt nicht zu lesen. */
-const BLAETTER_STIL = `:root{--ft:var(--f);--tisch:#ece6dd;--blatt:#fffdf9;--tx:#2a1a0a;--leise:#6b6259;--linie:#e3d8ca;--feld:#f5efe8;--nb:#eef6f5;--nt:#1e4a45;--neu:#a0401a}
+export const BLAETTER_STIL = `:root{--ft:var(--f);--tisch:#ece6dd;--blatt:#fffdf9;--tx:#2a1a0a;--leise:#6b6259;--linie:#e3d8ca;--feld:#f5efe8;--nb:#eef6f5;--nt:#1e4a45;--neu:#a0401a}
 @media (prefers-color-scheme:dark){:root{--ft:color-mix(in srgb,var(--f) 45%,#fff);--tisch:#14110e;--blatt:#231e19;--tx:#efe7dd;--leise:#b5a99b;--linie:#3d352d;--feld:#2f2822;--nb:#1d2c2a;--nt:#bfe0db;--neu:#f0a27e}}
 @media print{:root{--ft:var(--f);--tisch:#fff;--blatt:#fff;--tx:#2a1a0a;--leise:#666;--linie:#e8ddd0;--feld:#f5efe8;--nb:#f0f7f6;--nt:#1e4a45;--neu:#a0401a}}
 @page{size:A4;margin:2cm 2cm 2.2cm}
@@ -306,6 +307,15 @@ td.k{display:table-cell}
 
 const zeichen = (pfad) => `<svg viewBox="0 0 24 24" aria-hidden="true"><path d="${pfad}"></path></svg>`;
 
+/** Die Leiste zum Blättern und das Skript, als Zeilen für den Rumpf hinter </main> (auch fürs Kreativbuch). */
+export function blaetterLeiste(sprache) {
+  const knopf = (id, name, pfad) => `<button type="button" id="${id}" title="${esc(name)}" aria-label="${esc(name)}">${zeichen(pfad)}</button>`;
+  return [`<nav id="leiste" hidden="" aria-label="${esc(text(sprache, 'Blättern', 'Turn pages'))}" data-einzel="${esc(text(sprache, 'Seite {0} von {1}', 'Page {0} of {1}'))}" data-doppel="${esc(text(sprache, 'Seiten {0}–{1} von {2}', 'Pages {0}–{1} of {2}'))}">`,
+    knopf('zum-inhalt', text(sprache, 'Inhalt', 'Contents'), 'M5 7h14M5 12h14M5 17h9'), knopf('zurueck', text(sprache, 'Zurück', 'Back'), 'M15 5l-7 7 7 7'),
+    `<span id="zaehler" aria-live="polite"></span>`, knopf('weiter', text(sprache, 'Weiter', 'Next'), 'M9 5l7 7-7 7'), `</nav>`,
+    `<script>${BLAETTER_SKRIPT}</script>`];
+}
+
 /** Das ganze Buch als EINE eigenständige HTML-Datei zum Weitergeben und Blättern am Bildschirm: Deckblatt, Inhalt (mit
  *  Seitenzahlen – hier sind es die Seiten des Blätterbuchs), je Rezept eine Seite. Vor und zurück per Knopf, Pfeiltasten und
  *  Wischen, Sprung aus dem Inhalt, Seitenzähler; am Handy eine Seite, am breiten Schirm zwei nebeneinander; hell oder dunkel
@@ -322,13 +332,9 @@ export function buchBlaettern(rezepte, { titel, untertitel = '', kategorien, aus
     if (t.ausschnitt) ausschnitte += `#s${nr} .bild img{${t.ausschnitt}}\n`;
     return seite(nr, 'rezept', `${t.teile.join('\n')}\n<p class="snr">${nr}</p>`);
   }));
-  const knopf = (id, name, pfad) => `<button type="button" id="${id}" title="${esc(name)}" aria-label="${esc(name)}">${zeichen(pfad)}</button>`;
   const rumpf = [`<main id="buch">`, seite(1, 'deck', deck.html),
     b.anzahl ? seite(2, 'inhalt', `<h2>${esc(text(sprache, 'Inhalt', 'Contents'))}</h2>\n<ul class="iv">\n${inhalt}\n</ul>\n<p class="snr">2</p>`) : '', ...blaetter, `</main>`,
-    `<nav id="leiste" hidden="" aria-label="${esc(text(sprache, 'Blättern', 'Turn pages'))}" data-einzel="${esc(text(sprache, 'Seite {0} von {1}', 'Page {0} of {1}'))}" data-doppel="${esc(text(sprache, 'Seiten {0}–{1} von {2}', 'Pages {0}–{1} of {2}'))}">`,
-    knopf('zum-inhalt', text(sprache, 'Inhalt', 'Contents'), 'M5 7h14M5 12h14M5 17h9'), knopf('zurueck', text(sprache, 'Zurück', 'Back'), 'M15 5l-7 7 7 7'),
-    `<span id="zaehler" aria-live="polite"></span>`, knopf('weiter', text(sprache, 'Weiter', 'Next'), 'M9 5l7 7-7 7'), `</nav>`,
-    `<script>${BLAETTER_SKRIPT}</script>`].filter(Boolean).join('\n');
+    ...blaetterLeiste(sprache)].filter(Boolean).join('\n');
   return blatt(deck.kopf, sprache, BLAETTER_RICHTLINIE, '<meta name="viewport" content="width=device-width, initial-scale=1">\n<meta name="color-scheme" content="light dark">\n',
     `:root{--f:${druckFarbe(farbe)}}\n${BLAETTER_STIL}${ausschnitte}`, rumpf);
 }
