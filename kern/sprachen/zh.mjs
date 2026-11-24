@@ -242,4 +242,8 @@ export default {
   'Gesundheit': '健康',
   'Ökologie und Saison': '生态与时令',
   'Guten Appetit!': '祝您好胃口！',
+  'Die Datei ist kein Kreativbuch.': '该文件不是创意书。',
+  'Kreativbuch': '创意书',
+  '1 Bild': '1 张图片',
+  '{0} Bilder': '{0} 张图片',
 };

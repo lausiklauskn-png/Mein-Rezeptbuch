@@ -242,4 +242,8 @@ export default {
   'Gesundheit': 'Здоровье',
   'Ökologie und Saison': 'Экология и сезон',
   'Guten Appetit!': 'Приятного аппетита!',
+  'Die Datei ist kein Kreativbuch.': 'Файл не является творческой книгой.',
+  'Kreativbuch': 'Творческая книга',
+  '1 Bild': '1 картинка',
+  '{0} Bilder': 'Картинок: {0}',
 };
