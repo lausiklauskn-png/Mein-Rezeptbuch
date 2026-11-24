@@ -759,3 +759,42 @@ a.knopf{text-decoration:none}
 .kb-vorschau{position:fixed;inset:0;z-index:60;background:#14110e;animation:auf .18s ease-out}
 .kb-vorschau iframe{width:100%;height:100%;border:0;display:block;background:#ece6dd}
 .kb-vorschau .voll-x{background:rgba(0,0,0,.45)}
+/* Notizbuch (neu/notizbuch.mjs): oben das Feld mit Kamera und Haken, darunter der erkannte Tag, darunter die Notizen (zugeklappt). */
+.nz-kopf{position:relative}
+.nz-kopf .nz-zahl{position:absolute;top:-4px;right:-4px;margin:0;min-width:16px;height:16px;font-size:10px;padding:0 4px}
+.rail-n.nz-kopf .nz-zahl{position:static;margin-left:auto}
+.nz-feld{display:flex;gap:8px;align-items:flex-end}
+.nz-feld .mitmik{flex:1;min-width:0}
+.nz-feld textarea.feld{min-height:78px}
+.fenster .nz-feld .rund{flex:none;position:relative;width:42px;height:42px;background:var(--fl);border:1px solid var(--line);color:var(--ink)}
+.fenster .nz-feld .rund.akz{background:var(--vl);color:var(--vl-schrift);border-color:var(--vl-rand)}
+.nz-zahl-foto{position:absolute;top:-5px;right:-5px;font-style:normal;font-size:10px;font-weight:700;min-width:16px;height:16px;border-radius:8px;display:grid;place-items:center;background:var(--akz);color:var(--akz-ink)}
+.nz-fotos{display:flex;gap:6px;flex-wrap:wrap;margin:8px 0 0}
+.nz-foto{position:relative;width:58px;height:58px;border-radius:10px;overflow:hidden;flex:none;display:block;padding:0}
+.nz-foto img{width:100%;height:100%;object-fit:cover;display:block}
+.nz-foto>button{position:absolute;top:2px;right:2px;width:20px;height:20px;border-radius:50%;display:grid;place-items:center;background:rgba(0,0,0,.55);color:#fff}
+.nz-foto>button .ic{width:12px;height:12px}
+.nz-fotos.wahl .nz-foto[aria-pressed="true"]{box-shadow:0 0 0 2px var(--akz)}
+.nz-erkannt{margin:8px 0 4px;min-height:0}
+.nz-erkannt:empty{margin:0}
+.nz-tag .ic{width:15px;height:15px}
+.nz-tag.an{background:var(--vl);color:var(--vl-schrift);border-color:var(--vl-rand);font-weight:600}
+.nz-liste{list-style:none;margin:12px 0 0;padding:0;background:var(--fl);border-radius:14px;box-shadow:var(--schatten);overflow:hidden}
+.nz-notiz{border-top:1px solid var(--line)}
+.nz-notiz:first-child{border-top:0}
+.nz-zeile{display:flex;align-items:center;gap:6px;padding:6px 8px 6px 10px}
+.nz-auf{flex:1;min-width:0;display:flex;align-items:center;gap:10px;text-align:left;min-height:40px}
+.nz-auf>img,.nz-auf>.ic{width:34px;height:34px;border-radius:8px;object-fit:cover;flex:none}
+.nz-auf>.ic{width:20px;height:20px;margin:0 7px;color:var(--akz)}
+.nz-auf>span{flex:1;min-width:0;line-height:1.25}
+.nz-auf b{display:block;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.nz-auf small{display:block;color:var(--mut);font-size:11.5px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.fenster .nz-zeile .rund{flex:none;width:34px;height:34px;background:none;color:var(--mut)}
+.fenster .nz-zeile .rund[aria-pressed="true"]{color:var(--akz)}
+.nz-notiz.erl .nz-auf b{text-decoration:line-through;color:var(--mut);font-weight:500}
+.nz-inhalt{padding:0 10px 10px}
+.nz-text{white-space:pre-wrap;margin:0 0 8px;font-size:14px}
+.nz-inhalt .nz-wege{margin:8px 0;box-shadow:none;border:1px solid var(--line)}
+.nz-tagfeld{display:flex;align-items:center;gap:8px;font-size:13px;color:var(--mut)}
+.nz-tagfeld .ic{width:17px;height:17px;flex:none}
+.nz-tagfeld .feld{width:auto;flex:1;min-width:0;padding:6px 8px}

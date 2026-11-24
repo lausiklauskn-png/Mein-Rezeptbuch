@@ -139,7 +139,7 @@ try {
   await menue(p); await p.click('#rmenue [data-a=qr]'); await p.waitForSelector('#qr-bild svg'); await merke(p, 'QR-Code'); await zu(p);
   await k.close();
   ({ p, k } = await seite({ ort: 'en-GB', breite: 1280 })); await merke(p, 'Monitor mit Seitenleiste');
-  ok((await p.locator('.rail-n .t').allInnerTexts()).map(glatt).join(' | ') === 'Recipes | Planner | Shopping | Settings | Colour', 'Monitor: die Seitenleiste auf Englisch', (await p.locator('.rail-n .t').allInnerTexts()).map(glatt).join(' | ')); await k.close();
+  ok((await p.locator('.rail-n .t').allInnerTexts()).map(glatt).join(' | ') === 'Notebook | Recipes | Planner | Shopping | Settings | Colour', 'Monitor: die Seitenleiste auf Englisch', (await p.locator('.rail-n .t').allInnerTexts()).map(glatt).join(' | ')); await k.close();
   ({ p, k } = await seite({ ort: 'en-GB', bestand: null })); await p.waitForSelector('.leer.einladung'); await merke(p, 'leeres Buch');
   ok((await p.locator('.leer-text h2').innerText()).trim() === 'No recipes yet', 'leeres Buch: die Einladung auf Englisch'); await k.close();
   const funde = gesehen.flatMap(([wo, l]) => reste(l).map((r) => `${wo}: ${r}`));

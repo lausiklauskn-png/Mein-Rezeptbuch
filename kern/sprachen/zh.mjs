@@ -246,4 +246,8 @@ export default {
   'Kreativbuch': '创意书',
   '1 Bild': '1 张图片',
   '{0} Bilder': '{0} 张图片',
+  'Die Notiz hat keinen Text.': '这条笔记没有文字。',
+  'Zu dieser Notiz fiel Claude kein Rezept ein.': 'Claude 没能为这条笔记想出菜谱。',
+  'Foto-Notiz ({0})': '照片笔记（{0}）',
+  'Foto-Notiz': '照片笔记',
 };

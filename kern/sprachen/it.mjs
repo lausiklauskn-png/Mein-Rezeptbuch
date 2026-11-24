@@ -246,4 +246,8 @@ export default {
   'Kreativbuch': 'Libro creativo',
   '1 Bild': '1 immagine',
   '{0} Bilder': '{0} immagini',
+  'Die Notiz hat keinen Text.': 'La nota non ha testo.',
+  'Zu dieser Notiz fiel Claude kein Rezept ein.': 'A Claude non è venuta in mente nessuna ricetta per questa nota.',
+  'Foto-Notiz ({0})': 'Nota con foto ({0})',
+  'Foto-Notiz': 'Nota con foto',
 };
