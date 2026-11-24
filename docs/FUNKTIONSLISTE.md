@@ -130,8 +130,8 @@ Auftrag: Brief `docs/BRIEF_SITZUNG_2026-11-23_REZEPTBUCH-KUECHEN-KERN.md` im Rep
 | KI-Kreativbuch (Blätterbuch, Stil-System, Seiten 1–3, Kosten-Hinweis `kbCostOv`) | ausgabe | 12 | fehlt |
 | Eigenes Kreativbuch aus Bildern | ausgabe | 12 | fehlt |
 | KI-Buch (`aiBookOv`, `kbkResize`) | ausgabe | 12 | fehlt |
-| Food-Zine (Galerie, Prompt-Generator, Bild+Text in Zwischenablage) | ausgabe | 12 | fehlt (in Arbeit) (alt: `smoke_foodzine_bild`) |
-| KI-Zine (`zineOv`) | ausgabe | 12 | fehlt · das Food-Zine ist in Arbeit; ob das KI-Zine dazugehört, ist nicht geprüft |
+| Food-Zine (Galerie, Prompt-Generator, Bild+Text in Zwischenablage) | ausgabe | 12 | da (0.14.6) · drei Seiten, Auftrag kopieren (mit und ohne Foto), Bild einsetzen oder mit OpenAI-Schlüssel erzeugen, Stil, Galerie (smoke_neu_zine) |
+| KI-Zine (`zineOv`) | ausgabe | 12 | fehlt · das Food-Zine ist da (0.14.6); das KI-Zine der alten App ist nicht nachgebaut |
 
 ## 9 · Einstellungen (`sc-settings`) und Rahmen
 
@@ -178,8 +178,8 @@ Beide Ausgaben liegen unter derselben Herkunft `lausiklauskn-png.github.io`: jed
 | Funktion | Ziel | Stufe | Im Kern / Probe |
 |---|---|---|---|
 | **Werkstatt** als fünfter Bereich: Bücher, Import, KI-Helfer, Tresor, Einstellungen an einem Ort | kern (Rahmen) | 1 | da · smoke_neu · der Bereich heißt „Einstellungen“ (Klaus 23.11.); der Import liegt hinter „+“ |
-| Blatt hinter **+**: alle Wege zu einem neuen Rezept; Menü **⋮** am Rezept: Übersetzen, Nährwerte, Rechtschreibung, Foto, Food-Zine, QR, Drucken | kern | 1 | teils · Blatt und Menü da (smoke_neu, smoke_neu_menue); das Food-Zine fehlt im Menü (in Arbeit) |
-| **Rezeptpakete**: JSON im Format der Sicherung (v10, mit Bildern), Katalog in der App, Laden nur auf Tippen | kern | 5 | teils · das Beispielbuch lädt auf Tippen (smoke_neu); einen Katalog zur Auswahl gibt es nicht, das Food-Zine-Paket lässt sich nicht laden |
+| Blatt hinter **+**: alle Wege zu einem neuen Rezept; Menü **⋮** am Rezept: Übersetzen, Nährwerte, Rechtschreibung, Foto, Food-Zine, QR, Drucken | kern | 1 | da · Blatt und Menü samt Food-Zine (smoke_neu, smoke_neu_menue, smoke_neu_zine) |
+| **Rezeptpakete**: JSON im Format der Sicherung (v10, mit Bildern), Katalog in der App, Laden nur auf Tippen | kern | 5 | teils · das Beispielbuch und das Food-Zine-Paket laden auf Tippen, mit Prüfsumme (smoke_neu, smoke_neu_zine); einen Katalog zur Auswahl gibt es nicht |
 | **Beispielbuch** (~54 MB) beim ersten Start anbieten, nicht ungefragt laden | ausgabe | 5 | da · smoke_neu · 42 Rezepte, rund 10 MB, nur auf Tippen; dazu acht Startrezepte beim ersten Start ohne Frage (Klaus 23.11.) |
 | Pakete prüfen vor dem Einlesen: Prüfsumme aus dem Katalog, Bilder neu kodiert (ohne Metadaten), nur bekannte Felder | kern | 5 | teils · die Prüfsumme wird vor dem Einlesen nachgerechnet (ohne Probe in der App; ausgabe.test prüft den Katalog); Bilder werden nicht neu kodiert, unbekannte Felder bleiben |
 | Pakete mit fertigen Übersetzungen (`r.translations`), damit ohne KI-Schlüssel auch andere Sprachen gehen | kern | 5 | teils · eine Übersetzung am Rezept wird gezeigt (smoke_neu); im Beispielbuch tragen nur 2 von 42 Rezepten eine |
@@ -206,8 +206,8 @@ Beide Ausgaben liegen unter derselben Herkunft `lausiklauskn-png.github.io`: jed
 | 10 App-Zeichen | Web-App Mein = goldenes Buch bleibt; drei neue Zeichen per ChatGPT | `docs/vorschau/app-zeichen-auftraege.md`; APK und Windows je Ausgabe gleich | teils · das goldene Buch der Web-App ist da; die drei neuen Zeichen fehlen (die Aufträge liegen vor) |
 | 11 Extras, 12 Pakete | ja | wie gezeigt | teils · Menü am Rezept da (smoke_neu_menue); bei den Paketen nur das Beispielbuch |
 | neu 13 | Alles hinter + | Import-Blatt mit Reitern: Selbst, Foto-Scan, Web, Text/PDF, Vom Teller, Datei, Pakete, KI-Foto | da · smoke_neu, smoke_neu_scan, smoke_neu_web · sechs Kacheln; „Vom Teller“ und PDF stehen im Foto-Weg, das KI-Foto im Bild-Blatt |
-| neu 14 | Bild anpassen | Bildausschnitt (heute `openCrop`): ziehen, Zoom, Höhe, Lagen, Vorschau Karte/Kopf/Liste; anderes Bild per Kamera, Datei, KI, Gratis, Food-Zine | teils · Ziehen, Zoom, Lagen, Vorschau Karte und Kopf, Kamera, Datei, KI, Gratis da (smoke_neu); „Höhe“, die Vorschau „Liste“ und das Food-Zine fehlen |
-| neu 15 | Food-Zine | drei Seiten, Auftrag ohne Schlüssel kopieren, Bild einsetzen oder mit Schlüssel erzeugen, Stil, Galerie | fehlt (in Arbeit) |
+| neu 14 | Bild anpassen | Bildausschnitt (heute `openCrop`): ziehen, Zoom, Höhe, Lagen, Vorschau Karte/Kopf/Liste; anderes Bild per Kamera, Datei, KI, Gratis, Food-Zine | teils · Ziehen, Zoom, Lagen, Vorschau Karte und Kopf, Kamera, Datei, KI, Gratis da (smoke_neu); Food-Zine da (smoke_neu_zine); „Höhe“ und die Vorschau „Liste“ fehlen |
+| neu 15 | Food-Zine | drei Seiten, Auftrag ohne Schlüssel kopieren, Bild einsetzen oder mit Schlüssel erzeugen, Stil, Galerie | da (0.14.6, smoke_neu_zine) |
 | Regel | **keine Funktion auslassen** außer SBKIM und Mycel | gilt für die ganze Liste oben | teils · offen sind die Zeilen mit „fehlt“ und „teils“ |
 
 ## 14 · Abgleich mit dem Mixarium und dritte Runde (Klaus 23.11.)
@@ -239,5 +239,5 @@ Klaus hat zu den zehn Punkten der Mixarium-Sitzung und zu Punkt 16 Ja gesagt. Br
 | Kategorien anlegen, umbenennen, löschen, zusammenlegen, verschieben, Rezepte von Hand zuordnen | kern | alle Funktionen der alten App bleiben | da · smoke_neu |
 | Beispiel-Rezepte und -Bilder tragen eine Marke; **„Beispiele entfernen“** mit einem Klick, eigene Rezepte bleiben | kern | | da · smoke_neu |
 | **Alle Rezepte löschen**, einzelne Rezepte löschen, jeweils mit Rückfrage und Rückgängig | kern | | teils · „Alle Rezepte löschen“ mit Rückfrage, Tresor und Rückgängig (smoke_neu); ein einzelnes Rezept wird ohne Rückfrage gelöscht, mit Rückgängig |
-| **Bilder-Ordner** in der Werkstatt: Vorschau klein/groß, mehrere anhaken, löschen, einfügen, Filter Rezeptbilder/Food-Zine/Beispiele, „Alle Bilder löschen“ | kern | ein Rezept ohne Bild behält seinen Text | teils · alles da (smoke_neu) bis auf den Filter „Food-Zine“ (in Arbeit) |
-| Food-Zine-Beispiele nur als vollständige Sätze (3 Seiten) | ausgabe | einzelne Seiten nicht | fehlt (in Arbeit) · das Paket liegt in `beispiele/`, die App lädt es nicht |
+| **Bilder-Ordner** in der Werkstatt: Vorschau klein/groß, mehrere anhaken, löschen, einfügen, Filter Rezeptbilder/Food-Zine/Beispiele, „Alle Bilder löschen“ | kern | ein Rezept ohne Bild behält seinen Text | da · auch der Filter „Food-Zine“ (smoke_neu, smoke_neu_zine) |
+| Food-Zine-Beispiele nur als vollständige Sätze (3 Seiten) | ausgabe | einzelne Seiten nicht | da · nur vollständige Sätze, auf Tippen geladen (smoke_neu_zine) |
