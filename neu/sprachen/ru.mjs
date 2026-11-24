@@ -42,8 +42,6 @@ export default {
   'Sinn-Suche wird vorbereitet: {0} von {1} Rezepten': 'Поиск по смыслу готовится: рецепты, {0} из {1}',
   'sucht nach Bedeutung …': 'ищем по смыслу …',
   'Sinn-Suche wird vorbereitet (beim ersten Mal lädt das Sprachmodell) …': 'Поиск по смыслу готовится (в первый раз загружается языковая модель) …',
-  '{0} zusätzlich nach Bedeutung gefunden': 'Ещё найдено по смыслу: {0}',
-  'Sinn-Suche an, keine weiteren Treffer': 'Поиск по смыслу включён, других результатов нет',
   'Die Sinn-Suche ist gerade nicht verfügbar. Die Wortsuche läuft weiter.': 'Поиск по смыслу сейчас недоступен. Поиск по словам продолжает работать.',
   'metrisch': 'метрические',
   'wie notiert': 'как записано',
@@ -538,4 +536,6 @@ export default {
   'Auf der Liste steht nichts Offenes': 'В списке не осталось покупок',
   'In dieser Woche ist nichts geplant': 'На эту неделю ничего не запланировано',
   'Wochenplan': 'План на неделю',
+  'Nach Wort nichts gefunden · {0} nach Bedeutung': 'По словам ничего · по смыслу: {0}',
+  'Auch nach Bedeutung nichts gefunden': 'По смыслу тоже ничего',
 };

@@ -42,8 +42,6 @@ export default {
   'Sinn-Suche wird vorbereitet: {0} von {1} Rezepten': 'A preparar a pesquisa por significado: {0} de {1} receitas',
   'sucht nach Bedeutung …': 'a pesquisar por significado …',
   'Sinn-Suche wird vorbereitet (beim ersten Mal lädt das Sprachmodell) …': 'A preparar a pesquisa por significado (na primeira vez é carregado o modelo de linguagem) …',
-  '{0} zusätzlich nach Bedeutung gefunden': 'Mais {0} por significado',
-  'Sinn-Suche an, keine weiteren Treffer': 'Pesquisa por significado ativa, sem mais resultados',
   'Die Sinn-Suche ist gerade nicht verfügbar. Die Wortsuche läuft weiter.': 'A pesquisa por significado não está disponível de momento. A pesquisa por palavras continua a funcionar.',
   'metrisch': 'métrico',
   'wie notiert': 'como escrito',
@@ -538,4 +536,6 @@ export default {
   'Auf der Liste steht nichts Offenes': 'Não há nada por comprar na lista',
   'In dieser Woche ist nichts geplant': 'Não há nada planeado para esta semana',
   'Wochenplan': 'Plano semanal',
+  'Nach Wort nichts gefunden · {0} nach Bedeutung': 'Nada por palavra · {0} por significado',
+  'Auch nach Bedeutung nichts gefunden': 'Também nada por significado',
 };

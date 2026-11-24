@@ -43,8 +43,6 @@ export default {
   'Sinn-Suche wird vorbereitet: {0} von {1} Rezepten': 'Préparation de la recherche par le sens : {0} sur {1} recettes',
   'sucht nach Bedeutung …': 'recherche par le sens …',
   'Sinn-Suche wird vorbereitet (beim ersten Mal lädt das Sprachmodell) …': 'Préparation de la recherche par le sens (le modèle de langue se charge la première fois) …',
-  '{0} zusätzlich nach Bedeutung gefunden': '{0} de plus trouvées par le sens',
-  'Sinn-Suche an, keine weiteren Treffer': 'Recherche par le sens activée, pas d’autres résultats',
   'Die Sinn-Suche ist gerade nicht verfügbar. Die Wortsuche läuft weiter.': 'La recherche par le sens est indisponible pour le moment. La recherche par mots continue de fonctionner.',
   'metrisch': 'métrique',
   'wie notiert': 'comme noté',
@@ -541,4 +539,6 @@ export default {
   'Auf der Liste steht nichts Offenes': 'Rien à acheter sur la liste',
   'In dieser Woche ist nichts geplant': 'Rien de prévu cette semaine',
   'Wochenplan': 'Menu de la semaine',
+  'Nach Wort nichts gefunden · {0} nach Bedeutung': 'Rien par mot · {0} par le sens',
+  'Auch nach Bedeutung nichts gefunden': 'Rien non plus par le sens',
 };
