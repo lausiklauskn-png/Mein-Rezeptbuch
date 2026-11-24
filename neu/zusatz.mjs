@@ -133,10 +133,10 @@ export function zusatz(app) {
   };
 
   /* ── Buch: alle Rezepte, eine Kategorie oder ein Ordner als PDF zum Drucken oder als Datei zum Blättern (kern/ausgabe/buch.mjs). ── */
-  /** Das Thema „Buch“ für die Einstellungen: [id, symbol, farbe, titel, hilfe, zeilen]. zeile: der Zeilen-Baustein der App. */
-  function buchThema(zeile, farbe) {
+  /** Das Thema „Buch“ für die Einstellungen: [id, symbol, farbe, titel, hilfe, zeilen]. zeile: der Zeilen-Baustein der App; dazu: weitere Zeilen (Kreativbuch). */
+  function buchThema(zeile, farbe, dazu = '') {
     const n = mitInhalt().length;
-    return ['buch', 'buch', farbe, L('Buch', 'Book'), '', zeile('buch', 'drucken', L('Als PDF drucken', 'Print as a PDF'), String(n), 'data-art="pdf"') + zeile('buch', 'buch', L('Zum Blättern', 'To leaf through'), L('als Datei', 'as a file'), 'data-art="blaettern"')];
+    return ['buch', 'buch', farbe, L('Buch', 'Book'), '', zeile('buch', 'drucken', L('Als PDF drucken', 'Print as a PDF'), String(n), 'data-art="pdf"') + zeile('buch', 'buch', L('Zum Blättern', 'To leaf through'), L('als Datei', 'as a file'), 'data-art="blaettern"') + dazu];
   }
   const buchOpt = () => {
     const z = app.Z(), w = document.getElementById('buch-wahl').value, titel = document.getElementById('buch-titel').value.trim() || app.ausgabe().titel;

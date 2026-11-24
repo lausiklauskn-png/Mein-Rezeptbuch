@@ -26,6 +26,7 @@ import { wartenEinrichten, modellFortschritt, bytesMitAnteil } from '../kern/obe
 import { tresor } from '../kern/speicher/tresor.mjs';
 import { zusatz } from './zusatz.mjs';
 import { zine } from './zine.mjs';
+import { kreativbuch } from './kreativbuch.mjs';
 import { ladeBausteine, korpus as semKorpus, sucheBedeutung, passage as semPassage } from '../kern/suche/bedeutung.mjs';
 import { woche, planen, entplanen, ausAltemMenu, tagIso } from '../kern/modell/plan.mjs';
 import { text as spText, fuelle, sprache as sprWahl, kennt as sprKennt, sprachName, SPRACHEN, gebiet, ladeTabelle } from '../kern/oberflaeche/sprache.mjs';
@@ -679,7 +680,7 @@ function werkstattHtml() {
       zeile('sprache', 'welt', L('Sprache', 'Language'), E.sprache ? sprachName(E.sprache) : L('wie das Gerät', 'same as device')) + zeile('farbe', 'auge', L('Farbe, hell und dunkel', 'Colour, light and dark'), farbName(E.farbe) + ' · ' + Lk(TOENE[E.ton] || '', TOENE_EN[E.ton] || '')) + zeile('schrift', 'stift', L('Schriftgröße', 'Text size'), schriftWert(E.schrift) + ' %') + zeile('kontrast', 'kontrast', L('Hoher Kontrast', 'High contrast'), E.kontrast ? L('an', 'on') : L('aus', 'off'), `aria-pressed="${!!E.kontrast}"`) + zeile('einheiten', 'waage', L('Einheiten', 'Units'), einhName()) + zeile('hinweise', 'frage', L('Hinweis-Blasen', 'Tooltips'), E.hinweiseAus ? L('aus', 'off') : L('an', 'on'), `aria-pressed="${!E.hinweiseAus}"`) + (INST.zeigen() ? zeile('installieren', 'laden', L('Als App installieren', 'Install as an app')) : '')],
     ['beispiele', 'paket', WF.petrol, L('Beispiele', 'Examples'), '',
       zeile('beispiel', 'paket', L('Beispielbuch laden', 'Load example book'), beispielText()) + ZI.beispielZeile(zeile) + (b ? zeile('beispiele-weg', 'muell', L('Beispiele entfernen', 'Remove examples'), String(b)) : '')],
-    ZU.buchThema(zeile, '#b07a4a'), ZU.hilfeThema(zeile, '#7d8794'),
+    ZU.buchThema(zeile, '#b07a4a', KB.zeile(zeile)), ZU.hilfeThema(zeile, '#7d8794'),
     ['aufraeumen', 'muell', WF.koralle, L('Aufräumen', 'Clean up'), '', zeile('alles-weg', 'muell', L('Alle Rezepte löschen', 'Delete all recipes'), L('mit Rückfrage', 'asks first'))],
   ];
   return `<div class="ueber"><h2 style="font-size:19px">${L('Einstellungen', 'Settings')}</h2><small>${fuelle(L('{0} Rezepte', '{0} recipes'), n)}</small></div>
@@ -987,6 +988,9 @@ const ZU = zusatz({ L, spr, esc, ic, A, s, SK, W, Z: () => Z, setzeZ: (z) => { Z
 /* Food-Zine (neu/zine.mjs): drei Magazin-Seiten am Rezept, Galerie im Bilder-Ordner, Beispiel-Sätze. */
 const ZI = zine({ L, spr, esc, ic, A, s, SK, W, Z: () => Z, setzeZ: (z) => { Z = z; }, E: () => E, fenster, fensterZu, melde, sichern, zeichne, rezept, zeig, schluesselFenster, bildAusDatei, fehlerText, tresorAuto,
   wahl: ZU.wahl, stellenHtml: ZU.stellenHtml, katalog: () => katalog, ausgabe: () => ausgabe });
+/* Kreativbuch (neu/kreativbuch.mjs): aus den Rezepten ein gestaltetes Buch, Texte von Claude im gewählten Stil; Einstellungen → Buch. */
+const KB = kreativbuch({ L, spr, esc, ic, A, SK, Z: () => Z, E: () => E, fenster, fensterZu, beiZu: (f) => { zuTun = f; }, melde, sichern, zeig, istInhalt, schluesselFenster,
+  katNamen: () => new Map(alleKategorien(Z.rezepte, Z.kategorien).map((c) => [c.id, katName(c)])), katVon: katVonRezept, wahl: ZU.wahl, stellenHtml: ZU.stellenHtml, ausgabe: () => ausgabe });
 document.addEventListener('click', (ev) => {
   const e = ev.target.closest('[data-a]');
   if (s.leisteAuf && !ev.target.closest('#leiste')) { s.leisteAuf = false; leisteZeichnen(); }
