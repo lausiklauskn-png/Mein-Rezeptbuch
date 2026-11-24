@@ -40,9 +40,14 @@ F=[('alter-stand-doppelt', "    if (schon.has(s.alt)) continue;", "", 'kern/spei
    ('druck-mit-abgehaktem', "liste.filter((y) => y.gruppe === gid && !E_.haken[y.schluessel])) aus.push(", "liste.filter((y) => y.gruppe === gid)) aus.push(", 'neu/app.mjs', 'was abgehakt ist, steht nicht mehr im Druck'),
    ('suche-bedeutung-immer', "  if (finde(s.frage).length) { sem.ids = []; sem.fuer = ''; semStatus(''); return; }   /* die Wortsuche hat etwas gefunden: keine Bedeutungssuche */\n", "", 'neu/app.mjs', 'es wird nicht nach Bedeutung gesucht', "return E.sinn && !wort.length && sem.fuer", "return E.sinn && sem.fuer", 'neu/app.mjs', "    if (finde(s.frage).length) { sem.ids = []; sem.fuer = ''; semStatus(''); return; }   /* inzwischen findet die Wortsuche etwas */\n", "", 'neu/app.mjs'),   # drei Riegel decken einander: alle drei nehmen
    ('suche-index-veraltet', "sig = rs.map((r) => r.uid + '\\u0001' + semPassage(r, namen.get(katVonRezept(r)) || '')).join('\\u0002');", "sig = rs.map((r) => r.uid).join(',');", 'neu/app.mjs', 'der Bedeutungs-Index rechnet es neu'),
-   ('plan-falsche-woche', "const tage = app.planTage(), ab = tagIso(tage[0]),", "const tage = app.planTage(), ab = tagIso(tage[1]),", 'neu/zusatz.mjs', 'trägt den Vorschlag in die gezeigte Woche ein')]
+   ('plan-falsche-woche', "const tage = app.planTage(), ab = tagIso(tage[0]),", "const tage = app.planTage(), ab = tagIso(tage[1]),", 'neu/zusatz.mjs', 'trägt den Vorschlag in die gezeigte Woche ein'),
+   ('kopf-bleibt-nach-install', "if (c?.outcome === 'accepted') fertig = true;", "", 'kern/oberflaeche/app-pflege.mjs', 'nach „Installieren“ ist er weg'),
+   ('kopf-menue-install-bleibt', "w.addEventListener('appinstalled', () => { frage = null; fertig = true; beiAenderung(); });", "", 'kern/oberflaeche/app-pflege.mjs', 'über das Browser-Menü installiert'),
+   ('kopf-als-app-knopf', "zeigen: () => !fertig && !laeuftAlsApp(w),", "zeigen: () => !fertig,", 'kern/oberflaeche/app-pflege.mjs', 'läuft die Seite als App'),
+   ('kopf-loescht-fremde', "if (n.startsWith(cachePrefix))", "if (n)", 'kern/oberflaeche/app-pflege.mjs', 'nicht den der anderen'),
+   ('kopf-offline-loescht', "  if (!ok) return 'offline';", "", 'kern/oberflaeche/app-pflege.mjs', 'ohne Netz: eine kurze Meldung')]
 # Jeder Fall fährt nur seinen Abschnitt der Probe (NUR_TEIL); die Probe als Ganzes läuft vorher einmal ohne Sabotage.
-TEILE={'alter':'1','alte':'1','richter':'2','bild':'3','sammel':'4','plan':'5','buch':'6','teller':'7','kontrast':'8','meldung':'8','handbuch':'8','muttis':'9','uebernahme':'10','nachtrag':'10','schritt':'10','notiz':'10','stern':'11','druck':'11','suche':'12'}
+TEILE={'alter':'1','alte':'1','richter':'2','bild':'3','sammel':'4','plan':'5','buch':'6','teller':'7','kontrast':'8','meldung':'8','handbuch':'8','muttis':'9','uebernahme':'10','nachtrag':'10','schritt':'10','notiz':'10','stern':'11','druck':'11','suche':'12','kopf':'13'}
 def teil(name): return TEILE[name.split('-')[0]]
 nur=os.environ.get('NUR_FALL'); nur=nur.split(',') if nur else None; gefangen=0; durch=0; tot=0
 def anker(fall):

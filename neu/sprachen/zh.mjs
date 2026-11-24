@@ -538,4 +538,10 @@ export default {
   'Wochenplan': '周计划',
   'Nach Wort nichts gefunden · {0} nach Bedeutung': '按词未找到 · 按含义 {0} 个',
   'Auch nach Bedeutung nichts gefunden': '按含义也未找到',
+  'Tippen: App aktualisieren': '点按：更新应用',
+  'Fassung {0} – tippen zum Aktualisieren': '版本 {0} – 点按更新',
+  'Teilen → „Zum Home-Bildschirm“': '分享 → “添加到主屏幕”',
+  'Browser-Menü ⋮ → „App installieren“': '浏览器菜单 ⋮ → “安装应用”',
+  'Neueste Fassung wird geholt …': '正在获取最新版本 …',
+  'Ohne Netz – die App bleibt, wie sie ist': '无网络 – 应用保持不变',
 };

@@ -538,4 +538,10 @@ export default {
   'Wochenplan': 'Plano semanal',
   'Nach Wort nichts gefunden · {0} nach Bedeutung': 'Nada por palavra · {0} por significado',
   'Auch nach Bedeutung nichts gefunden': 'Também nada por significado',
+  'Tippen: App aktualisieren': 'Toque: atualizar a app',
+  'Fassung {0} – tippen zum Aktualisieren': 'Versão {0} – toque para atualizar',
+  'Teilen → „Zum Home-Bildschirm“': 'Partilhar → «Adicionar ao ecrã principal»',
+  'Browser-Menü ⋮ → „App installieren“': 'Menu do navegador ⋮ → «Instalar app»',
+  'Neueste Fassung wird geholt …': 'A obter a versão mais recente …',
+  'Ohne Netz – die App bleibt, wie sie ist': 'Sem rede – a app fica como está',
 };
