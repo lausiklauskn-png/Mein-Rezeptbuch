@@ -631,4 +631,12 @@ export default {
   'Geöffnet · {0}': 'Открыто · {0}',
   '+1 Projekt · {0}': '+1 проект · {0}',
   'Im Kreativbuch macht „Aus Bildern“ aus eigenen Fotos und PDF-Seiten ein Buch: bis zu 30 Bilder, je Datei bis zu 15 MB, im Gerät verkleinert, nichts geht an eine KI. Antippen wählt ein Bild zum Verschieben, Entfernen oder als Rezeptbild. „Projekte“ legt Auswahl, Stil, Texte und Bilder im Gerät ab, öffnet und löscht sie; als .kreativbuch-Datei nimmst du ein Projekt mit. In der Sicherung stehen Projekte nicht.': 'В творческой книге «Из картинок» делает книгу из ваших фото и страниц PDF: до 30 картинок, до 15 МБ на файл, уменьшаются на устройстве, ничего не уходит в ИИ. Нажмите на картинку, чтобы переместить её, убрать или сделать фото рецепта. «Проекты» сохраняют выбор, стиль, тексты и картинки на устройстве, открывают и удаляют их; файлом .kreativbuch проект можно взять с собой. В резервной копии проектов нет.',
+  'Datei einlesen': 'Прочитать файл',
+  '1 Rezept in der Datei': '1 рецепт в файле',
+  '{0} Rezepte in der Datei': 'Рецептов в файле: {0}',
+  'Hinzufügen': 'Добавить',
+  'Ersetzen': 'Заменить',
+  'Keine Rezepte in der Datei, nichts ersetzt': 'В файле нет рецептов, ничего не заменено',
+  'Ersetzt: {0} Rezepte': 'Заменено: рецептов {0}',
+  'Beim Einlesen einer Datei wählst du „Hinzufügen“ oder „Ersetzen“. Ersetzen tauscht Rezepte, Ordner, Kategorien und Plan gegen die Datei; der jetzige Stand kommt vorher in den Tresor, Einstellungen und KI-Schlüssel bleiben.': 'При чтении файла ты выбираешь «Добавить» или «Заменить». «Заменить» меняет рецепты, папки, категории и план на данные из файла; текущее состояние сначала попадает в сейф, настройки и ключи ИИ остаются.',
 };

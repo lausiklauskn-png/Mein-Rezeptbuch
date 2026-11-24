@@ -631,4 +631,12 @@ export default {
   'Geöffnet · {0}': '已打开 · {0}',
   '+1 Projekt · {0}': '+1 个项目 · {0}',
   'Im Kreativbuch macht „Aus Bildern“ aus eigenen Fotos und PDF-Seiten ein Buch: bis zu 30 Bilder, je Datei bis zu 15 MB, im Gerät verkleinert, nichts geht an eine KI. Antippen wählt ein Bild zum Verschieben, Entfernen oder als Rezeptbild. „Projekte“ legt Auswahl, Stil, Texte und Bilder im Gerät ab, öffnet und löscht sie; als .kreativbuch-Datei nimmst du ein Projekt mit. In der Sicherung stehen Projekte nicht.': '在创意书中，“用图片”把你自己的照片和 PDF 页面做成一本书：最多 30 张图片，每个文件最多 15 MB，在设备上缩小，不会发送给任何 AI。点按图片即可移动、移除或设为菜谱图片。“项目”把选择、风格、文字和图片保存在设备上，并可打开和删除；以 .kreativbuch 文件的形式可以带走一个项目。项目不包含在备份中。',
+  'Datei einlesen': '读取文件',
+  '1 Rezept in der Datei': '文件中有 1 个食谱',
+  '{0} Rezepte in der Datei': '文件中有 {0} 个食谱',
+  'Hinzufügen': '添加',
+  'Ersetzen': '替换',
+  'Keine Rezepte in der Datei, nichts ersetzt': '文件中没有食谱，未替换',
+  'Ersetzt: {0} Rezepte': '已替换：{0} 个食谱',
+  'Beim Einlesen einer Datei wählst du „Hinzufügen“ oder „Ersetzen“. Ersetzen tauscht Rezepte, Ordner, Kategorien und Plan gegen die Datei; der jetzige Stand kommt vorher in den Tresor, Einstellungen und KI-Schlüssel bleiben.': '读取文件时可以选择“添加”或“替换”。替换会用文件中的食谱、文件夹、分类和计划替换现有内容；当前状态会先存入保险箱，设置和 AI 密钥保持不变。',
 };

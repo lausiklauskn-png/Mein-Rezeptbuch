@@ -631,4 +631,12 @@ export default {
   'Geöffnet · {0}': 'Aberto · {0}',
   '+1 Projekt · {0}': '+1 projeto · {0}',
   'Im Kreativbuch macht „Aus Bildern“ aus eigenen Fotos und PDF-Seiten ein Buch: bis zu 30 Bilder, je Datei bis zu 15 MB, im Gerät verkleinert, nichts geht an eine KI. Antippen wählt ein Bild zum Verschieben, Entfernen oder als Rezeptbild. „Projekte“ legt Auswahl, Stil, Texte und Bilder im Gerät ab, öffnet und löscht sie; als .kreativbuch-Datei nimmst du ein Projekt mit. In der Sicherung stehen Projekte nicht.': 'No livro criativo, “Com imagens” transforma as tuas fotos e páginas PDF num livro: até 30 imagens, até 15 MB por ficheiro, reduzidas no dispositivo, nada vai para uma IA. Toca numa imagem para a mover, remover ou usar como imagem da receita. “Projetos” guarda seleção, estilo, textos e imagens no dispositivo, abre-os e elimina-os; como ficheiro .kreativbuch levas um projeto contigo. Os projetos não estão na cópia de segurança.',
+  'Datei einlesen': 'Ler um ficheiro',
+  '1 Rezept in der Datei': '1 receita no ficheiro',
+  '{0} Rezepte in der Datei': '{0} receitas no ficheiro',
+  'Hinzufügen': 'Adicionar',
+  'Ersetzen': 'Substituir',
+  'Keine Rezepte in der Datei, nichts ersetzt': 'Nenhuma receita no ficheiro, nada substituído',
+  'Ersetzt: {0} Rezepte': 'Substituído: {0} receitas',
+  'Beim Einlesen einer Datei wählst du „Hinzufügen“ oder „Ersetzen“. Ersetzen tauscht Rezepte, Ordner, Kategorien und Plan gegen die Datei; der jetzige Stand kommt vorher in den Tresor, Einstellungen und KI-Schlüssel bleiben.': 'Ao ler um ficheiro escolhes “Adicionar” ou “Substituir”. Substituir troca receitas, pastas, categorias e plano pelos do ficheiro; o estado atual vai antes para o cofre, as definições e as chaves de IA ficam.',
 };
