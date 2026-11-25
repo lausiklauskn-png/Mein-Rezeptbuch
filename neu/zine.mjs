@@ -8,7 +8,7 @@
 // Projekte des Kreativbuchs halten es genauso. Der Weg nach draußen ist „Als Buch“ (Blättern, PDF, HTML-Datei).
 // Die Seiten, die bis Fassung 0.15 am Rezept lagen (`r.zine`), und die Beispiel-Sätze wandern einmal in die Sammlung, ohne Doppel.
 // Die Hauptdatei (app.mjs) reicht ihre Werkzeuge herein (wie bei zusatz.mjs).
-import { ZINE_FORMATE, ZINE_FORMAT_VORGABE, zineFormat, ZINE_EXTRAS, zinePoster, zineTrend, zineFotoHinweis, ZINE_CHAT, ZINE_EIGEN_KANTE, ZINE_EIGEN_GUETE, ZINE_PNG_KANTE,
+import { ZINE_FORMATE, ZINE_FORMAT_VORGABE, zineFormat, ZINE_EXTRAS, zinePoster, zineTrend, zineFotoHinweis, ZINE_CHAT, ZINE_PNG_KANTE,
   ZS_KANTE, ZS_KLEIN, ZS_GUETE, zsVerschiebe, zsDateienTeilen, ZS_DATEI_MAX, zineSammlung, zineAusRezepten, zineSaetzeBilder, zineDruck } from '../kern/ausgabe/zine.mjs';
 import { ebBlaettern, ebPdf } from '../kern/ausgabe/eigenbuch.mjs';
 import { buchGroesse, buchGroesseText } from '../kern/ausgabe/buch.mjs';
@@ -61,10 +61,10 @@ export function zine(app) {
   function bildHtml() {
     const q = quelle(), r = rz(), opt = (w, t) => `<button class="chip" role="radio" aria-checked="${Zs.bild === w}" data-a="zn-bild" data-w="${w}">${esc(t)}</button>`;
     const vor = q ? `<img class="zn-mini" src="${esc(q)}" alt="">${Zs.bild === 'eigen' ? `<button class="knopf" data-a="zn-eigen">${L('Anderes Bild …', 'Other picture …')}</button>` : ''}`
-      : Zs.bild === 'eigen' ? `<button class="knopf" data-a="zn-eigen">${ic('bild')}${L('Bild wählen …', 'Choose a picture …')}</button>`
+      : Zs.wahl ? `<span class="zn-leise">${L('Tippe unten in „Meine Food-Zine-Bilder“ auf ein Bild.', 'Tap a picture below in “My food zine pictures”.')}</span>`
       : Zs.bild === 'rezept' && r ? `<span class="zn-leise">${L('Dieses Rezept hat noch kein Bild.', 'This recipe has no picture yet.')}</span>` : '';
     return `<div class="laeden" role="radiogroup" aria-label="${esc(L('Bild für die KI', 'Picture for the AI'))}">${opt('rezept', L('📷 Bild aus Rezept', '📷 Picture from recipe'))}${opt('eigen', L('📎 Eigenes Bild', '📎 Own picture'))}${opt('ohne', L('Ohne Bild', 'No picture'))}</div>
-     <div class="zn-vorschau" id="zn-vorschau">${vor}</div><input type="file" id="zn-eigen-datei" accept="image/*" hidden>`;
+     <div class="zn-vorschau" id="zn-vorschau">${vor}</div>`;
   }
   function rezeptWahl() {
     const g = app.gruppen();
@@ -78,7 +78,8 @@ export function zine(app) {
   }
   function sammlungHtml() {
     const n = liste.length;
-    return `<div class="gruppe zs" id="zs" data-g="sammlung"><h3>${L('Meine Food-Zine-Bilder', 'My food zine pictures')} · <span id="zs-zahl">${n}</span></h3>
+    return `<div class="gruppe zs ${Zs.wahl ? 'wahl' : ''}" id="zs" data-g="sammlung"><h3>${L('Meine Food-Zine-Bilder', 'My food zine pictures')} · <span id="zs-zahl">${n}</span></h3>
+     ${Zs.wahl ? `<div class="zs-wahl-hin" id="zs-wahl-hin" role="status"><span>${L('Tippe auf ein Bild für die KI', 'Tap a picture for the AI')}</span><button class="chip" data-a="zs-wahl-aus">${L('Abbrechen', 'Cancel')}</button></div>` : ''}
      <div class="zs-gitter" id="zs-gitter">${liste.map((e) => `<div class="zs-kachel" role="button" tabindex="0" data-a="zs-gross" data-id="${esc(e.id)}" title="${esc(e.name)}"><img src="${esc(e.klein)}" alt="${esc(e.name)}" draggable="false"><button class="zs-x" data-a="zs-weg" data-id="${esc(e.id)}" aria-label="${esc(L('Entfernen', 'Remove'))}" title="${esc(L('Entfernen', 'Remove'))}">${ic('x')}</button></div>`).join('')}<button class="zs-kachel zs-dazu" data-a="zs-dazu" aria-label="${esc(L('Bilder hinzufügen', 'Add pictures'))}" title="${esc(fuelle(L('Bilder hinzufügen, bis {0} MB je Datei', 'Add pictures, up to {0} MB per file'), ZS_DATEI_MAX / 1048576))}">${ic('plus')}</button></div>
      <input type="file" id="zs-datei" accept="image/*" multiple hidden>
      ${n ? `<div class="reihe zs-buch" id="zs-buch"><span class="zn-leise">${L('Als Buch', 'As a book')}</span><button class="knopf" data-a="zs-blaettern">${ic('buch')}${L('Blättern', 'Leaf through')}</button><button class="knopf" data-a="zs-pdf">${ic('drucken')}PDF</button><button class="knopf" data-a="zs-html">${ic('laden')}HTML</button></div>` : ''}
@@ -86,13 +87,14 @@ export function zine(app) {
   }
   function innen() {
     const F = FORMAT(), E = EXTRA();
-    return `<div class="gruppe" data-g="rezept"><h3>${L('Wähle ein Lieblingsrezept', 'Choose a favourite recipe')}</h3>${rezeptWahl()}</div>
+    /* Am breiten Schirm zwei Spalten (Klaus 25.11.; nach der Breite der Ansicht, nicht des Fensters): links die Wahl, rechts Auftrag und Sammlung */
+    return `<div class="zn-spalten"><div class="zn-links"><div class="gruppe" data-g="rezept"><h3>${L('Wähle ein Lieblingsrezept', 'Choose a favourite recipe')}</h3>${rezeptWahl()}</div>
      <div class="gruppe" data-g="bild"><h3>${L('Bild für die KI', 'Picture for the AI')}</h3>${bildHtml()}</div>
      <div class="gruppe" data-g="format"><h3>${L('Format wählen', 'Choose a format')}</h3><div class="zn-formate" role="radiogroup" aria-label="${esc(L('Format wählen', 'Choose a format'))}">${ZINE_FORMATE.map((id) => `<button class="zn-format" role="radio" aria-checked="${id === Zs.format}" data-a="zn-format" data-f="${id}"><span class="zn-sym" aria-hidden="true">${F[id][0]}</span><b>${esc(F[id][1])}</b><small>${esc(F[id][2])}</small></button>`).join('')}</div></div>
      <div class="gruppe" data-g="extras"><h3>${L('Extras (optional)', 'Extras (optional)')}</h3><div class="liste zn-extras">${ZINE_EXTRAS.map((id) => `<label class="zeile"><input type="checkbox" data-extra="${id}" ${Zs.extras.has(id) ? 'checked' : ''}><span>${esc(E[id])}</span></label>`).join('')}</div></div>
-     <button class="knopf zn-trend" data-a="zn-trend">${L('🔥 KI-Überraschung: Trendrezepte entdecken!', '🔥 AI surprise: discover trend recipes!')}</button>
-     <div class="gruppe" data-g="auftrag"><h3>${L('Auftrag kopieren oder selber schreiben', 'Copy the request or write your own')}</h3>${auftragHtml()}</div>
-     ${sammlungHtml()}`;
+     <button class="knopf zn-trend" data-a="zn-trend">${L('🔥 KI-Überraschung: Trendrezepte entdecken!', '🔥 AI surprise: discover trend recipes!')}</button></div>
+     <div class="zn-rechts"><div class="gruppe" data-g="auftrag"><h3>${L('Auftrag kopieren oder selber schreiben', 'Copy the request or write your own')}</h3>${auftragHtml()}</div>
+     ${sammlungHtml()}</div></div>`;
   }
   /** Die Ansicht `zine` (app.mjs zeichnet sie). */
   function html() {
@@ -109,8 +111,21 @@ export function zine(app) {
   A.zine = () => { if (app.s.uid && app.rezept(app.s.uid)) { if (Zs.rid !== app.s.uid) { Zs.rid = app.s.uid; Zs.trend = false; } } fensterZu(); auf(); };   /* am Rezept: mit diesem Rezept */
   A['zine-auf'] = () => auf();
   A['kreativ-zine'] = () => auf(true);
-  A['zn-bild'] = (e) => { Zs.bild = e.dataset.w; frisch(); if (Zs.bild === 'eigen' && !Zs.eigen) $('zn-eigen-datei')?.click(); };   /* erst neu zeichnen, dann wählen: sonst hinge die Wahl an einem Feld, das es nicht mehr gibt */
-  A['zn-eigen'] = () => $('zn-eigen-datei')?.click();
+  /* Klaus 25.11.: das eigene Bild für die KI kommt aus „Meine Food-Zine-Bilder“ (dort liegen beliebige Bilder). „Eigenes Bild“ schaltet die
+     Sammlung in den Wahl-Modus und führt hin; ein Tipp auf ein Bild wählt es. Ist die Sammlung leer, öffnet es gleich die Dateiwahl: das neue
+     Bild kommt in die Sammlung und ist gewählt. Bricht man ab, bleibt die vorige Wahl. Kein eigener Dateiweg nur für das KI-Bild. */
+  const wahlAn = () => {
+    if (!liste.length) { Zs.wahlNeu = true; $('zs-datei')?.click(); return; }
+    Zs.wahl = true; frisch(); requestAnimationFrame(() => $('zs')?.scrollIntoView({ block: 'nearest', behavior: 'smooth' }));
+  };
+  A['zn-bild'] = (e) => { if (e.dataset.w === 'eigen' && !Zs.eigen) { wahlAn(); return; } Zs.bild = e.dataset.w; Zs.wahl = false; frisch(); };
+  A['zn-eigen'] = () => wahlAn();
+  A['zs-wahl-aus'] = () => { Zs.wahl = false; frisch(); };
+  /** Ein Bild der Sammlung wird das Bild für die KI (das große, 1600 px; das PNG für die Zwischenablage wird wie bisher vorbereitet). */
+  async function waehle(id) {
+    const b = await SM().hol(id); if (!b) return;
+    Zs.eigen = b.gross; Zs.eigenId = id; Zs.bild = 'eigen'; Zs.wahl = false; frisch(); $('zn-vorschau')?.scrollIntoView({ block: 'nearest' });
+  }
   A['zn-format'] = (e) => { Zs.format = zineFormat(e.dataset.f); geaendert(); };
   A['zn-trend'] = () => { Zs.trend = true; Zs.hand = false; frisch(); $('zn-auftrag')?.scrollIntoView({ block: 'nearest', behavior: 'smooth' }); };
   A['zn-neu'] = () => { Zs.hand = false; frisch(); };
@@ -118,11 +133,6 @@ export function zine(app) {
     const t = ev.target;
     if (t.id === 'zn-rezept') { Zs.rid = t.value; Zs.bild = Zs.bild === 'eigen' ? 'eigen' : 'rezept'; geaendert(); return; }
     if (t.dataset?.extra && t.closest?.('#zine-ansicht')) { if (t.checked) Zs.extras.add(t.dataset.extra); else Zs.extras.delete(t.dataset.extra); geaendert(); return; }
-    if (t.id === 'zn-eigen-datei') {
-      const d = t.files[0]; t.value = ''; if (!d) { if (!Zs.eigen) { Zs.bild = 'rezept'; frisch(); } return; }
-      try { Zs.eigen = await W.mit(L('Foto wird aufbereitet …', 'Preparing the photo …'), () => app.bildAusDatei(d, ZINE_EIGEN_KANTE, ZINE_EIGEN_GUETE)); Zs.bild = 'eigen'; frisch(); }
-      catch { melde(L('Das Bild konnte nicht gelesen werden.', 'The picture could not be read.')); }
-    }
   });
   document.addEventListener('input', (ev) => {
     if (ev.target.id !== 'zn-auftrag') return;
@@ -158,10 +168,10 @@ export function zine(app) {
   async function laden() { geladen = (async () => { try { liste = await SM().liste(); } catch { liste = []; } sammlungFrisch(); })(); return geladen; }
   const sammlungFrisch = () => { const z = $('zs'); if (z) z.outerHTML = sammlungHtml(); const k = document.querySelector('.kr-teil [data-a=kreativ-zine] small'); if (k) k.textContent = String(liste.length); };
   const anzahl = () => liste.length;
-  A['zs-dazu'] = () => $('zs-datei')?.click();
+  A['zs-dazu'] = () => { Zs.wahlNeu = !!Zs.wahl; $('zs-datei')?.click(); };   /* „+“ im Wahl-Modus: hinzufügen und gleich wählen */
   document.addEventListener('change', async (ev) => {
     if (ev.target.id !== 'zs-datei') return;
-    const alle = [...ev.target.files]; ev.target.value = ''; if (!alle.length) return;
+    const alle = [...ev.target.files], waehlen = Zs.wahlNeu; Zs.wahlNeu = false; ev.target.value = ''; if (!alle.length) return;
     const { gut, zuGross } = zsDateienTeilen(alle.filter((d) => /^image\//.test(d.type))), fremd = alle.filter((d) => !/^image\//.test(d.type)).length; let kaputt = 0;
     const neue = [];
     await W.mit(L('Bilder werden verkleinert …', 'Reducing the pictures …'), async (w) => {
@@ -174,11 +184,14 @@ export function zine(app) {
     let dazu = [];
     try { dazu = await SM().dazu(neue); } catch { melde(L('Speichern ist fehlgeschlagen.', 'Saving failed.')); return; }
     liste = await SM().liste(); sammlungFrisch();
+    if (waehlen && dazu.length) await waehle(dazu[0].id ?? dazu[0]);
     melde([dazu.length === 1 ? L('+1 Bild', '+1 picture') : fuelle(L('+{0} Bilder', '+{0} pictures'), dazu.length), zuGross.length ? fuelle(L('{0} über {1} MB', '{0} over {1} MB'), zuGross.length, ZS_DATEI_MAX / 1048576) : '', kaputt + fremd ? fuelle(L('{0} nicht lesbar', '{0} unreadable'), kaputt + fremd) : ''].filter(Boolean).join(' · '));
   });
   /** Entfernen mit Rückgängig (aus der Kachel und aus der Großansicht). */
   async function weg(id) {
-    const x = await SM().weg(id); if (!x) return; liste = await SM().liste(); if (document.querySelector('.zs-voll')) fensterZu(); sammlungFrisch();
+    const i = liste.findIndex((e) => e.id === id), voll = !!document.querySelector('.zs-voll');
+    const x = await SM().weg(id); if (!x) return; liste = await SM().liste(); sammlungFrisch();
+    if (voll) { const n = liste[Math.min(i, liste.length - 1)]; if (n) await gross(n.id); else A['zs-zu'](); }   /* Klaus 25.11.: weiter mit dem nächsten (oder dem vorigen, wenn es das letzte war) */
     melde(L('Bild entfernt', 'Picture removed'), L('Rückgängig', 'Undo'), async () => { await SM().zurueck(x); liste = await SM().liste(); sammlungFrisch(); });
   }
   A['zs-weg'] = (e) => weg(e.dataset.id);
@@ -186,16 +199,27 @@ export function zine(app) {
 
   /* Großansicht: das Original (sonst das große Bild), darunter Drucken, Als Rezeptbild, Entfernen. */
   let objUrl = '';
-  A['zs-gross'] = async (e) => {
-    if (Date.now() - gezogen < 400) return;
-    const ein = liste.find((x) => x.id === e.dataset.id), b = ein && (await SM().hol(ein.id)); if (!b) return;
+  /* Großansicht mit Blättern (Klaus 25.11.): Pfeile links und rechts am Bildrand (am Anfang und Ende ausgeblendet, kein Ringlauf), Wischen,
+     Pfeiltasten; der Zähler steht bei der Beschriftung. Drucken, Als Rezeptbild und Entfernen gelten dem gezeigten Bild. */
+  A['zs-gross'] = async (e) => { if (Date.now() - gezogen < 400) return; if (Zs.wahl) { await waehle(e.dataset.id); return; } await gross(e.dataset.id); };   /* im Wahl-Modus wählt ein Tipp */
+  async function gross(id) {
+    const i = liste.findIndex((x) => x.id === id), ein = liste[i], b = ein && (await SM().hol(ein.id)); if (!b) return;
     if (objUrl) URL.revokeObjectURL(objUrl); objUrl = b.orig instanceof Blob ? URL.createObjectURL(b.orig) : '';
     offen = { ...ein, ...b };
+    const pf = (d, ico, t, da) => `<button class="zs-pf ${d < 0 ? 'li' : 're'}" data-a="zs-schritt" data-d="${d}" aria-label="${esc(t)}" title="${esc(t)}" ${da ? '' : 'hidden'}>${ic(ico)}</button>`;
     $('fensterort').innerHTML = `<div class="vollbild zs-voll" data-a="zs-zu" role="dialog" aria-modal="true" aria-label="${esc(ein.name)}"><img src="${esc(objUrl || b.gross)}" alt="${esc(ein.name)}"><button class="voll-x" data-a="zs-zu" aria-label="${esc(L('Schließen', 'Close'))}">${ic('x')}</button>
-      <div class="zs-leiste" data-a="nichts"><b>${esc(ein.name)}</b><div class="reihe"><button class="knopf" data-a="zs-druck">${ic('drucken')}${L('Drucken / PDF', 'Print / PDF')}</button><button class="knopf" data-a="zs-rezeptbild">${ic('bild')}${L('Als Rezeptbild', 'As recipe picture')}</button><button class="knopf rot" data-a="zs-weg-voll">${ic('muell')}${L('Entfernen', 'Remove')}</button></div></div></div>`;
-  };
+      ${pf(-1, 'links', L('Voriges Bild', 'Previous picture'), i > 0)}${pf(1, 'rechts', L('Nächstes Bild', 'Next picture'), i < liste.length - 1)}
+      <div class="zs-leiste" data-a="nichts"><b>${esc(ein.name)} <small class="zs-nr" id="zs-nr">${i + 1} / ${liste.length}</small></b><div class="reihe"><button class="knopf" data-a="zs-druck">${ic('drucken')}${L('Drucken / PDF', 'Print / PDF')}</button><button class="knopf" data-a="zs-rezeptbild">${ic('bild')}${L('Als Rezeptbild', 'As recipe picture')}</button><button class="knopf" data-a="zs-fuer-ki">${ic('funken')}${L('Für die KI verwenden', 'Use for the AI')}</button><button class="knopf rot" data-a="zs-weg-voll">${ic('muell')}${L('Entfernen', 'Remove')}</button></div></div></div>`;
+  }
+  const blaettern = (d) => { if (!offen || !document.querySelector('.zs-voll')) return; const n = liste[liste.findIndex((x) => x.id === offen.id) + d]; if (n) gross(n.id); };
+  A['zs-schritt'] = (e) => blaettern(+e.dataset.d);
+  A['zs-fuer-ki'] = async () => { if (!offen) return; const id = offen.id; A['zs-zu'](); await waehle(id); $('zn-vorschau')?.scrollIntoView({ block: 'center' }); melde(L('Bild für die KI gewählt', 'Picture for the AI chosen')); };
+  document.addEventListener('keydown', (ev) => { if (!document.querySelector('.zs-voll') || document.querySelector('.fenster')) return; if (ev.key === 'ArrowRight') blaettern(1); else if (ev.key === 'ArrowLeft') blaettern(-1); });
+  let wisch = null, gewischt = 0;
+  document.addEventListener('touchstart', (ev) => { wisch = ev.target.closest?.('.zs-voll') && !ev.target.closest('button, .zs-leiste') ? { x: ev.touches[0].clientX, y: ev.touches[0].clientY } : null; }, { passive: true });
+  document.addEventListener('touchend', (ev) => { if (!wisch) return; const t = ev.changedTouches[0], dx = t.clientX - wisch.x, dy = t.clientY - wisch.y; wisch = null; if (Math.abs(dx) > 60 && Math.abs(dx) > Math.abs(dy)) { gewischt = Date.now(); blaettern(dx < 0 ? 1 : -1); } }, { passive: true });
   A.nichts = () => {};
-  A['zs-zu'] = () => { fensterZu(); if (objUrl) { URL.revokeObjectURL(objUrl); objUrl = ''; } };
+  A['zs-zu'] = () => { if (Date.now() - gewischt < 500) return; /* ein Wischen ist kein Tipp zum Schließen */ fensterZu(); if (objUrl) { URL.revokeObjectURL(objUrl); objUrl = ''; } };
   const alsDaten = (blob) => new Promise((ja, nein) => { const f = new FileReader(); f.onload = () => ja(f.result); f.onerror = () => nein(f.error); f.readAsDataURL(blob); });
   A['zs-druck'] = async () => {
     if (!offen) return; let bild = offen.gross;

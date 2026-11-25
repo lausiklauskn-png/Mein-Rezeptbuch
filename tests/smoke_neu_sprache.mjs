@@ -101,7 +101,7 @@ try {
   await zumRezept(p); await p.click('[data-a=rleiste]'); await p.click('[data-naehr] summary'); await merke(p, 'Rezept mit Werkzeugen');
   ok((await p.locator('.zweispalt').innerText()).includes('Ingredients') && (await p.locator('[data-naehr] summary').innerText()).includes('per serving') && glatt(await p.locator('.rezept-held .meta').innerText()).includes('40 min'), 'Rezept: Überschriften, Nährwerte und Zeit auf Englisch; der Inhalt bleibt, wie er ist');
   await p.click('.rwerk [data-a=rmenue]'); await p.waitForSelector('#rmenue'); await merke(p, 'Menü am Rezept'); await zu(p);
-  for (const [a, sel] of [['kat-zuordnen', '.wahl-liste'], ['ordner-zuordnen', '#ord-wahl'], ['bild-blatt', '.fenster .liste']]) { await p.click(`.rwerk [data-a=${a}]`); await p.waitForSelector(sel); await merke(p, 'Fenster ' + a); await zu(p); }
+  for (const [a, sel] of [['einordnen', '#ein-kat'], ['bild-blatt', '.fenster .liste']]) { await p.click(`.rwerk [data-a=${a}]`); await p.waitForSelector(sel); await merke(p, 'Fenster ' + a); await zu(p); }
   await p.click('[data-a=planen]'); await p.waitForSelector('.tagwahl'); await merke(p, 'Fenster Planen'); await zu(p);
   await p.click('[data-a=auf-liste]'); await toast(p, /shopping list|servings adjusted/); await merke(p, 'Meldung Einkaufen');
   await p.click('[data-a=kochen]'); await p.waitForSelector('.koch'); await merke(p, 'Kochen 1'); await p.click('.k-fuss .vor'); await p.waitForFunction(() => /2/.test(document.querySelector('.k-nr')?.innerText || '')); await merke(p, 'Kochen 2');
@@ -134,8 +134,8 @@ try {
   await p.click('.themen [data-a=tresor]'); await p.waitForSelector('[data-form=tresor]'); await p.click('[data-form=tresor] button[type=submit]'); await p.waitForSelector('.tr-liste .zeile'); await merke(p, 'Tresor mit Stand'); await zu(p);
   await p.setInputFiles('#datei-sicherung', { name: 'kaputt.json', mimeType: 'application/json', buffer: Buffer.from('kein json') }); await toast(p, /backup|Sicherung/); await merke(p, 'Meldung: Datei ist keine Sicherung');
   ok(glatt(await p.locator('#toast').innerText()) === 'The file is not a valid backup (no JSON).', 'eine Meldung, die der Kern nur deutsch kennt, steht englisch da', glatt(await p.locator('#toast').innerText()));
-  await geh(p, 'start', '.fotokat'); await zumRezept(p, 'Apfelkuchen'); await p.click('.rezept-held img'); await p.waitForSelector('.vollbild'); await merke(p, 'Bild groß'); await p.click('.voll-werk'); await p.waitForSelector('.bb-bild'); await merke(p, 'Bild-Blatt mit Bild');
-  await p.click('.fenster [data-a=zuschnitt]'); await p.waitForSelector('#zs-rahmen'); await merke(p, 'Bild anpassen'); await zu(p);
+  await geh(p, 'start', '.fotokat'); await zumRezept(p, 'Apfelkuchen'); if (!(await p.locator('.rwerk').count())) await p.click('[data-a=rleiste]'); await p.click('.rwerk [data-a=bild-blatt]'); await p.waitForSelector('.bb-bild'); await merke(p, 'Bild-Blatt mit Bild'); await zu(p);
+  await p.click('.rezept-held img'); await p.waitForSelector('.bildvoll #zs-rahmen'); await merke(p, 'Bild anpassen (Vollbild)'); await p.click('.bildvoll [data-a=bv-zu]'); await p.waitForTimeout(200);
   await menue(p); await p.click('#rmenue [data-a=qr]'); await p.waitForSelector('#qr-bild svg'); await merke(p, 'QR-Code'); await zu(p);
   await k.close();
   ({ p, k } = await seite({ ort: 'en-GB', breite: 1280 })); await merke(p, 'Monitor mit Seitenleiste');

@@ -37,12 +37,12 @@ import { vorbereiten, erkennen, rezeptAusScan, wasGehtHinaus, wohinKurz, istPdf,
 import { vermerken, vermerkHtml, fundeZumEntscheiden, fundName, meldung as kiMeldung } from '../kern/ki/reinigung.mjs';
 import { dateiPruefen, pruefHtml, kiAnweisungen } from '../kern/pruefung/datei.mjs';
 import { webAdresse, holeSeite, ausEingefuegtem, ohneKi, fuerKi, mitKi, holeBild } from '../kern/import/web.mjs';
-import { naehrwerte, naehrwerteAnRezept, naehrwertZeilen, rechtschreibung, rechtschreibungAnwenden, uebersetze, uebersetzungAnRezept, uebersetzungPasst, kostenSchaetzung, wasGehtHinaus as helferHinaus } from '../kern/ki/helfer.mjs';
+import { naehrwerte, naehrwerteAnRezept, naehrwertZeilen, rechtschreibung, rechtschreibungAnwenden, uebersetze, uebersetzungAnRezept, uebersetzungPasst, uebersetzeMit, rateSprache, alsUebersetzung, alsHauptfassung, SPRACH_CODES, kostenSchaetzung, wasGehtHinaus as helferHinaus } from '../kern/ki/helfer.mjs';
 import { druckRezept, drucke } from '../kern/ausgabe/druck.mjs';
 import { teilLink, ausTeilLink, qrSvg, passtInQr } from '../kern/teilen/qr.mjs';
 import { rezeptIn } from '../kern/modell/einheiten.mjs';
 
-const FASSUNG = '0.16.0';
+const FASSUNG = '0.16.1';
 const breit = () => matchMedia('(min-width:1000px)').matches;
 const $ = (id) => document.getElementById(id);
 const esc = (t) => String(t ?? '').replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
@@ -102,12 +102,13 @@ let toastTun = null;
 /* ---------- Navigation (mit Zurück-Taste) ---------- */
 function geh(ansicht, extra = {}, ersetzen = false) {
   diktatAus();
-  Object.assign(s, { ansicht, leisteAuf: false, rleiste: false, ...extra });   /* jede Ansicht beginnt mit eingeklappten Werkzeugen */
+  if (ansicht === 'form' && s.ansicht !== 'form') s.formVon = s.ansicht;   /* woher das Formular kam: am breiten Schirm bleibt diese Liste links stehen */
+  Object.assign(s, { ansicht, leisteAuf: false, rleiste: false, abschnitt: null, ...extra });   /* jede Ansicht beginnt mit eingeklappten Werkzeugen */
   if (ansicht === 'form' && s.ausNotiz && s.form?.neu) { s.form.notiz = s.ausNotiz; s.ausNotiz = null; }   /* aus dem Notizbuch (Foto lesen, Vom Teller): die Notiz reist mit */
   if (ansicht === 'kochen') { $('toast').innerHTML = ''; toastTun = null; }   // nichts über den Knöpfen der Kochansicht
   const st = { ansicht, uid: s.uid };
   if (ersetzen) history.replaceState(st, ''); else history.pushState(st, '');
-  zeichne(true); scrollTo(0, 0);
+  zeichne(true); scrollTo(0, 0); if (ansicht === 'form') document.querySelector('.md-detail')?.scrollTo(0, 0);
 }
 let nachZurueck = null;   // was nach einem Schritt zurück noch geschehen soll (Vollbild → Bild-Blatt)
 addEventListener('popstate', (e) => { const st = e.state || { ansicht: 'start' }; Object.assign(s, { ansicht: st.ansicht, uid: st.uid || null, leisteAuf: false, form: null }); fensterZu(); zeichne(st.ansicht !== 'rezept' || !breit()); if (nachZurueck) { const f = nachZurueck; nachZurueck = null; f(); } });
@@ -123,7 +124,7 @@ function kopfZeichnen() {
   k.classList.toggle('zu', !!E.railZu);
   if (breit()) {
     const n = (zu, i, t) => `<button class="rail-n" data-a="geh" data-zu="${zu}" ${(zu === 'start' ? ['start', 'rezept', 'kochen'].includes(s.ansicht) : zu === 'kreativ' ? ['kreativ', 'zine'].includes(s.ansicht) : s.ansicht === zu) ? 'aria-current="page"' : ''} title="${t}">${ic(i)}<span class="t">${t}</span></button>`;
-    k.innerHTML = `<div class="rail-oben"><img class="logo" src="${esc(seitenZeichen())}" alt="" width="30" height="30"><span class="name t">${esc(ausgabe.titel)}${kopfFassung()}</span>${kopfInstall()}<button class="rail-klapp" data-a="rail" aria-label="${E.railZu ? L('Leiste ausklappen', 'Expand bar') : L('Leiste einklappen', 'Collapse bar')}">${ic(E.railZu ? 'rechts' : 'links')}</button></div>
+    k.innerHTML = `<div class="rail-oben"><img class="logo" src="${esc(seitenZeichen())}" alt="" width="30" height="30"><span class="name t">${esc(ausgabe.titel)}${kopfFassung()}</span>${kopfInstall()}<button class="rail-klapp" data-a="rail" aria-label="${E.railZu ? L('Leiste ausklappen', 'Expand bar') : L('Leiste einklappen', 'Collapse bar')}">${ic((E.railZu ? 'rechts' : 'links') === 'links' ? (E.railSeite === 'r' ? 'rechts' : 'links') : (E.railSeite === 'r' ? 'links' : 'rechts'))}</button><button class="rail-griff" data-a="rail-seite" aria-label="${L('Leiste verschieben: lange drücken und zur anderen Seite ziehen; ein Tipp wechselt die Seite', 'Move the bar: long-press and drag to the other side; a tap switches sides')}" title="${L('Leiste verschieben', 'Move the bar')}">${ic('pfeile')}</button></div>
      <button class="knopf akz rail-neu" data-a="neu" aria-label="${L('Neues Rezept', 'New recipe')}">${ic('plus')}<span class="t">${L('Neues Rezept', 'New recipe')}</span></button>${NB.kopfKnopf(true)}${n('start', 'buch', L('Rezepte', 'Recipes'))}${n('baum', 'ordner', L('Ordner', 'Folders'))}${n('plan', 'plan', L('Planer', 'Planner'))}${n('einkauf', 'einkauf', L('Einkauf', 'Shopping')).replace('</button>', (ekOffen() ? `<span class="zahl">${ekOffen()}</span>` : '') + '</button>')}${n('kreativ', 'zine', L('Kreativbuch', 'Creative book'))}${n('werkstatt', 'einst', L('Einstellungen', 'Settings'))}
      <button class="rail-n" data-a="farbe" title="${L('Farbe', 'Colour')}"><span class="farbknopf"></span><span class="t">${L('Farbe', 'Colour')}</span></button>`;
     return;
@@ -245,14 +246,63 @@ function rezeptHtml() {
   const wk = (akt, i, t, kl = '') => `<button class="chip ${kl}" data-a="${akt}" aria-label="${esc(t)}" title="${esc(t)}">${ic(i)}<span class="wk-t">${esc(t)}</span></button>`;   /* am Handy nur das Symbol (Klaus 23.11.: „kein Button-Kino“), am Monitor neben dem Bild mit Wort */
   const winkel = (d) => `<svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="${d}"/></svg>`;
   return `<div class="rezept-held" data-a="held" role="button" tabindex="0" aria-label="${r.img ? L('Bild groß ansehen', 'View picture large') : L('Bild einfügen', 'Add picture')}">${r.img ? `<img src="${esc(r.img)}" alt="${esc(r.name)}" ${ausschnitt(r)}>` : ic('karte')}
-    <div class="verlauf"><div class="tzeile">${s.rleiste ? `<div class="rwerk">${wk('bearbeiten', 'stift', L('Bearbeiten', 'Edit'))}${wk('kat-zuordnen', 'karte', L('Kategorie', 'Category'))}${wk('ordner-zuordnen', 'ordner', L('Ordner', 'Folder'))}${wk('bild-blatt', 'bild', L('Bild', 'Picture'))}${wk('nurdies', 'voll', s.nurDies ? L('Alles zeigen', 'Show everything') : L('Nur dieses Rezept', 'Only this recipe'), 'nurbreit')}${wk('rmenue', 'mehr', L('Mehr: Drucken, Teilen, Nährwerte …', 'More: print, share, nutrition …'))}${wk('loeschen', 'muell', L('Rezept löschen', 'Delete recipe'), 'rot')}</div>` : ''}<button class="wk-pf zur" data-a="zurueck" aria-label="${L('Zurück', 'Back')}">${winkel('M15 5l-7 7 7 7')}</button><h1>${esc(r.name)}</h1><button class="wk-pf" data-a="rleiste" aria-expanded="${s.rleiste}" aria-label="${L('Werkzeuge für Rezept und Bild', 'Tools for recipe and picture')}">${winkel(s.rleiste ? 'M5 9l7 7 7-7' : 'M5 15l7-7 7 7')}</button></div><div class="meta">${r.prepTime ? `<span>${ic('uhr')}${esc(minText(r.prepTime))}</span>` : ''}<span>${ic('karte')}${esc(c ? katName(c) : '')}</span>${ordnerVonRezept(r, Z.ordner) ? `<span class="im-ordner">${ic('ordner')}${esc(ordTitel(findeOrdner(Z.ordner, r.folder)))}</span>` : ''}${sterneHtml(roh)}${uebUm}</div></div></div>
+    ${vollKnopf()}<div class="verlauf"><div class="tzeile">${s.rleiste ? `<div class="rwerk" role="toolbar">${wk('einordnen', 'ordner', L('Einordnen: Kategorie und Ordner', 'Organise: category and folder'))}${wk('bild-blatt', 'bild', L('Bild', 'Picture'))}${wk('uebersetzen', 'welt', L('Übersetzen', 'Translate'))}${wk('rmenue', 'mehr', L('Mehr: Drucken, Teilen, Nährwerte …', 'More: print, share, nutrition …'))}${wk('bearbeiten', 'stift', L('Bearbeiten', 'Edit'))}${wk('loeschen', 'muell', L('Rezept löschen', 'Delete recipe'), 'rot')}</div>` : ''}<button class="wk-pf zur" data-a="zurueck" aria-label="${L('Zurück', 'Back')}">${winkel('M15 5l-7 7 7 7')}</button><h1>${esc(r.name)}</h1><button class="wk-pf" data-a="rleiste" aria-expanded="${s.rleiste}" aria-label="${L('Werkzeuge für Rezept und Bild', 'Tools for recipe and picture')}">${winkel(s.rleiste ? 'M5 9l7 7 7-7' : 'M5 15l7-7 7 7')}</button></div><div class="meta">${r.prepTime ? `<span>${ic('uhr')}${esc(minText(r.prepTime))}</span>` : ''}<span>${ic('karte')}${esc(c ? katName(c) : '')}</span>${ordnerVonRezept(r, Z.ordner) ? `<span class="im-ordner">${ic('ordner')}${esc(ordTitel(findeOrdner(Z.ordner, r.folder)))}</span>` : ''}${sterneHtml(roh)}${uebUm}</div></div></div>
    <div class="bogen"><div class="zweispalt"><div>
     ${r.steps.length ? `<div class="reihe"><button class="knopf akz" data-a="kochen" style="flex:1.3">${ic('koch')}${L('Kochen', 'Cook')}</button><button class="knopf" data-a="auf-liste" style="flex:1">${ic('einkauf')}${L('Einkaufen', 'Shop')}</button><button class="knopf" data-a="planen" aria-label="${L('In den Wochenplan', 'Into the week plan')}">${ic('plan')}</button></div>` : `<div class="reihe"><button class="knopf" data-a="auf-liste">${ic('einkauf')}${L('Einkaufen', 'Shop')}</button><button class="knopf" data-a="planen">${ic('plan')}${L('Planen', 'Plan')}</button></div>`}
     <div class="portion"><span>${L('Portionen', 'Servings')}</span><span class="st"><button data-a="portion" data-d="-1" aria-label="${L('Weniger', 'Fewer')}">${ic('minus')}</button><b id="portionen">${n}</b><button data-a="portion" data-d="1" aria-label="${L('Mehr', 'More')}">${ic('plus')}</button></span></div>
-    <h2 class="h">${L('Zutaten', 'Ingredients')}</h2><ul class="zut">${r.ings.map((z) => `<li><b>${esc([skaliere(z.amt, f), z.unit].filter(Boolean).join(' '))}</b><span>${esc(z.name)}${z.note ? `<small>${esc(z.note)}</small>` : ''}</span></li>`).join('')}</ul>${naehrHtml(r, n)}${geraeteVon(r).length ? `<h2 class="h">${L('Geräte', 'Equipment')}</h2><div class="gr-liste">${geraeteVon(r).map((g) => `<span class="gr-chip">${geraetSvg(g)}${esc(geraetName(g))}</span>`).join('')}</div>` : ''}</div>
-    <div><h2 class="h">${L('Zubereitung', 'Method')}</h2><ol class="schritte">${r.steps.map((x) => `<li><span>${esc(x.txt)}${x.note ? `<small>${esc(x.note)}</small>` : ''}</span></li>`).join('')}</ol>
+    ${abschnittKopf('ings', L('Zutaten', 'Ingredients'))}${s.abschnitt?.uid === roh.uid && s.abschnitt.teil === 'ings' ? abschnittForm(roh, 'ings') : `<ul class="zut">${r.ings.map((z) => `<li><b>${esc([skaliere(z.amt, f), z.unit].filter(Boolean).join(' '))}</b><span>${esc(z.name)}${z.note ? `<small>${esc(z.note)}</small>` : ''}</span></li>`).join('')}</ul>`}${naehrHtml(r, n)}${geraeteVon(r).length ? `<h2 class="h">${L('Geräte', 'Equipment')}</h2><div class="gr-liste">${geraeteVon(r).map((g) => `<span class="gr-chip">${geraetSvg(g)}${esc(geraetName(g))}</span>`).join('')}</div>` : ''}</div>
+    <div>${abschnittKopf('steps', L('Zubereitung', 'Method'))}${s.abschnitt?.uid === roh.uid && s.abschnitt.teil === 'steps' ? abschnittForm(roh, 'steps') : `<ol class="schritte">${r.steps.map((x) => `<li><span>${esc(x.txt)}${x.note ? `<small>${esc(x.note)}</small>` : ''}</span></li>`).join('')}</ol>`}
     ${r.source ? `<p class="quelle">${fuelle(L('Quelle: {0}', 'Source: {0}'), esc(r.source))}</p>` : ''}${vermerkHtml(r, spr())}</div></div></div>`;
 }
+
+/* ---------- Abschnitt an Ort und Stelle bearbeiten (Klaus 25.11.): der Stift an „Zutaten“ und „Zubereitung“ macht genau diesen Teil zum Textfeld.
+   Bearbeitet wird, was dasteht: die Übersetzung, wenn sie gezeigt wird (dann fragt das Speichern, ob sie die Hauptfassung wird). Die Nummern
+   der Schritte stehen nur als Anzeige links, nicht im Text. ---------- */
+const uebGezeigt = (roh) => (roh && s.original !== roh.uid && sicht(roh, spr()) !== roh ? spr() : '');
+const abschnittKopf = (teil, titel) => `<h2 class="h ab-kopf">${esc(titel)}<button class="ab-stift" data-a="abschnitt" data-t="${teil}" aria-pressed="${s.abschnitt?.uid === s.uid && s.abschnitt?.teil === teil}" aria-label="${esc(fuelle(L('{0} bearbeiten', 'Edit {0}'), titel))}" title="${esc(fuelle(L('{0} bearbeiten', 'Edit {0}'), titel))}">${ic('stift')}</button></h2>`;
+const abSchrittFeld = (i, txt) => `<li><span class="ab-nr" aria-hidden="true">${i + 1}</span><textarea class="feld" name="s" rows="3" aria-label="${esc(fuelle(L('Schritt {0}', 'Step {0}'), i + 1))}">${esc(txt)}</textarea></li>`;
+function abschnittForm(roh, teil) {
+  const ueb = uebGezeigt(roh), z = ueb ? sicht(roh, ueb) : roh;
+  const hin = ueb ? `<small class="ab-hin">${esc(fuelle(L('Du bearbeitest die Übersetzung ({0}).', 'You are editing the translation ({0}).'), sprachName(ueb)))}</small>` : '';
+  const knoepfe = `<div class="reihe"><button class="knopf akz" type="submit">${ic('haken')}${L('Speichern', 'Save')}</button><button class="knopf" type="button" data-a="ab-zu">${L('Abbrechen', 'Cancel')}</button></div>`;
+  if (teil === 'ings') return `<form class="abschnitt" data-form="abschnitt" data-t="ings">${hin}<textarea class="feld" name="ings" id="ab-ings" rows="${Math.max(4, z.ings.length + 1)}" aria-label="${L('Zutaten, eine je Zeile', 'Ingredients, one per line')}">${esc(z.ings.map(zutatZeile).join('\n'))}</textarea>${knoepfe}</form>`;
+  return `<form class="abschnitt" data-form="abschnitt" data-t="steps">${hin}<ol class="ab-schritte">${(z.steps.length ? z.steps : [{ txt: '' }]).map((x, i) => abSchrittFeld(i, x.txt)).join('')}</ol><button class="knopf" type="button" data-a="ab-schritt-dazu">${ic('plus')}${L('Schritt', 'Step')}</button>${knoepfe}</form>`;
+}
+function abschnittSpeichern(form) {
+  const roh = rezept(s.abschnitt?.uid); if (!roh) return;
+  const teil = form.dataset.t, d = new FormData(form), ueb = uebGezeigt(roh), basis = ueb ? sicht(roh, ueb) : roh;
+  const neuTeil = teil === 'ings' ? String(d.get('ings') || '').split('\n').filter((t) => t.trim()).map(zutatAusZeile) : schritteMitNotiz(d.getAll('s').map(String).map((t) => t.trim()).filter(Boolean), roh.steps);
+  const neu = normalisiere({ ...basis, [teil]: neuTeil });
+  const fertig = () => { s.abschnitt = null; zeichne(); melde(L('Gespeichert', 'Saved')); };
+  if (JSON.stringify((neu[teil] || []).map(teil === 'ings' ? zutatZeile : (x) => x.txt)) === JSON.stringify((basis[teil] || []).map(teil === 'ings' ? zutatZeile : (x) => x.txt))) { s.abschnitt = null; zeichne(); return; }   /* nichts geändert */
+  if (!ueb) { rezeptSetzen(neu); fertig(); return; }
+  fassungFrage(roh, neu, ueb, fertig);
+}
+/* ---------- Eine bearbeitete Übersetzung speichern: einmal fragen, ob sie die Hauptfassung wird (Kern: alsHauptfassung / alsUebersetzung) ---------- */
+const rezeptDirekt = (r) => { Z.rezepte = Z.rezepte.map((x) => (x.uid === r.uid ? { ...r, modified: new Date().toISOString() } : x)); sichern(); };   /* ohne das Wegwerfen alter Übersetzungen: hier bleibt jede Fassung */
+let fassungOffen = null, quelleFertig = null;
+function fassungFrage(alt, neu, ziel, fertig) {
+  fassungOffen = { uid: alt.uid, neu, ziel, fertig };
+  fenster(`<h2>${L('Als Hauptfassung übernehmen?', 'Use as the main version?')}</h2><p>${esc(fuelle(L('Du hast die Übersetzung ({0}) bearbeitet. Als Hauptfassung wird sie der Text des Rezepts; das bisherige Original bleibt als Übersetzung erhalten.', 'You edited the translation ({0}). As the main version it becomes the text of the recipe; the previous original stays as a translation.'), sprachName(ziel)))}</p>
+   <div class="reihe" id="fassung-wahl"><button class="knopf akz" data-a="fassung-haupt">${L('Ja, als Hauptfassung', 'Yes, as the main version')}</button><button class="knopf" data-a="fassung-ueb">${L('Nein, nur die Übersetzung', 'No, only the translation')}</button><button class="knopf" data-a="fenster-zu">${L('Abbrechen', 'Cancel')}</button></div>`);
+}
+/* Sprache des bisherigen Originals: r.sprache, sonst geraten aus dem Text (Kern: rateSprache); ist beides nicht eindeutig, wird gefragt. */
+function quellSprache(r, ziel) {
+  const q = [r.sprache, rateSprache(r)].find((c) => SPRACH_CODES.includes(c) && c !== ziel);
+  if (q) return Promise.resolve(q);
+  return new Promise((fertig) => {
+    fenster(`<h2>${L('Sprache des Originals', 'Language of the original')}</h2><p>${esc(L('In welcher Sprache ist das bisherige Original geschrieben?', 'In which language is the previous original written?'))}</p><div class="tagwahl" id="quelle-wahl">${SPRACHEN.filter(([c]) => c !== ziel).map(([c, n]) => `<button class="chip" data-a="quelle-wahl" data-s="${c}" lang="${c}">${esc(n)}</button>`).join('')}</div>`);
+    quelleFertig = fertig; zuTun = () => { quelleFertig = null; fertig(''); };
+  });
+}
+
+/* Vollbild (Klaus 25.11., wie in der Familienakte): ein runder Knopf mit vier Ecken unten rechts im Rezeptbild schaltet die GANZE App ins
+   Vollbild des Browsers (documentElement: Leiste, Liste, Rezept, Fenster und Meldungen bleiben bedienbar, nur die Browserleiste verschwindet).
+   Derselbe Knopf beendet es; endet es über Esc oder das System, folgt der Knopf über `fullscreenchange`. Geht es nicht, passiert nichts. */
+const vollAn = () => !!document.fullscreenElement;
+const ecken = (innen) => `<svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="${innen ? 'M9 4v5H4M15 4v5h5M20 15h-5v5M4 15h5v5' : 'M4 9V4h5M15 4h5v5M20 15v5h-5M9 20H4v-5'}"/></svg>`;
+const vollKnopf = () => { const an = vollAn(), t = an ? L('Vollbild beenden', 'Exit full screen') : L('Vollbild', 'Full screen'); return `<button class="held-voll" data-a="vollbild" aria-pressed="${an}" aria-label="${t}" title="${t}">${ecken(an)}</button>`; };
+document.addEventListener('fullscreenchange', () => { document.querySelectorAll('.held-voll').forEach((k) => { k.outerHTML = vollKnopf(); }); });
 
 const geraeteVon = (r) => [...new Set(r.steps.flatMap((x) => erkenne(x.txt)))];
 const geraetName = (g) => Lk(GERAETE[g].de, GERAETE[g].en);
@@ -280,15 +330,57 @@ const rezeptSetzen = (neu) => { Z.rezepte = Z.rezepte.map((x) => (x.uid === neu.
    diese Sprache spricht. Die eigene Sprache steht vorn. Gesendet wird erst beim Tipp auf eine Sprache; was hinausgeht, steht darüber. ---------- */
 const zielSprachen = () => [...SPRACHEN].sort((a, b) => (b[0] === spr()) - (a[0] === spr()));
 const hatUebersetzung = (r, ziel) => uebersetzungPasst(r, r.translations?.[ziel]);
-function uebersetzFenster() {
+/* Klaus 25.11.: kostenlos im Gerät, wo der Browser einen Übersetzer mitbringt (Chromes Translator-API; am Android-Chrome fehlt sie bisher, dann
+   steht dieser Weg nicht da). Claude bleibt der zweite Weg (beste Qualität, eigener Schlüssel). Beide legen die Fassung unter r.translations ab. */
+const geraetUebersetzer = () => typeof self !== 'undefined' && 'Translator' in self && typeof self.Translator?.create === 'function';
+/* Angeboten wird der Weg nur, wenn der Übersetzer von der Sprache des Rezepts aus wenigstens eine Sprache kann (die API allein reicht nicht:
+   ohne Sprachmodell meldet sie überall „unavailable“). Gemerkt je Ausgangssprache. */
+const geraetKann = new Map();
+async function geraetMoeglich(r) {
+  if (!geraetUebersetzer()) return false;
+  const q = SPRACH_CODES.includes(r.sprache) ? r.sprache : rateSprache(r) || 'en';
+  if (!geraetKann.has(q)) geraetKann.set(q, Promise.race([new Promise((ja) => { const ziele = SPRACH_CODES.filter((z) => z !== q); let offen = ziele.length; const eins = (v) => { if (v && v !== 'unavailable') ja(true); else if (--offen === 0) ja(false); };
+    for (const z of ziele) { try { self.Translator.availability({ sourceLanguage: q, targetLanguage: z }).then(eins, () => eins('')); } catch { eins(''); } } }), new Promise((w) => setTimeout(() => w(false), 1500))]));   /* antwortet die API nicht, gilt sie als nicht da */
+  return geraetKann.get(q);
+}
+async function uebersetzFenster() {
   const r = rezept(s.uid); if (!r) return;
-  if (!SK.anthropic) return schluesselFenster('anthropic', 'rmenue');
-  const was = helferHinaus('uebersetzung', r, spr());
-  fenster(`<h2 class="imp-kopf">${ic('welt')}<span>${L('Übersetzen', 'Translate')}<small id="ueb-was">${esc(kiKurz(was))}</small></span></h2>
-   <div class="tagwahl" id="ueb-wahl" title="${esc(was)}">${zielSprachen().map(([c, n]) => `<button class="chip" data-a="uebersetze" data-s="${c}" lang="${c}">${hatUebersetzung(r, c) ? ic('haken') : ''}${esc(n)}</button>`).join('')}</div>`);
+  const geraet = await geraetMoeglich(r);
+  if (!geraet && !SK.anthropic) return schluesselFenster('anthropic', 'uebersetzen');
+  const weg = geraet && s.uebWeg !== 'claude' ? 'geraet' : 'claude', was = helferHinaus('uebersetzung', r, spr());
+  const wk = (w, t, u) => `<button class="chip" role="radio" aria-checked="${weg === w}" data-a="ueb-weg" data-w="${w}">${esc(t)}<small>${esc(u)}</small></button>`;
+  fenster(`<h2 class="imp-kopf">${ic('welt')}<span>${L('Übersetzen', 'Translate')}<small id="ueb-was">${esc(weg === 'geraet' ? L('im Gerät · es geht nichts hinaus', 'on the device · nothing is sent') : kiKurz(was))}</small></span></h2>
+   ${geraet ? `<div class="tagwahl ueb-wege" id="ueb-weg" role="radiogroup" aria-label="${L('Weg', 'Way')}">${wk('geraet', L('Im Gerät', 'On the device'), L('kostenlos', 'free'))}${wk('claude', 'Claude', L('beste Qualität', 'best quality'))}</div>` : ''}
+   <div class="tagwahl" id="ueb-wahl" data-weg="${weg}" title="${esc(weg === 'geraet' ? '' : was)}">${zielSprachen().map(([c, n]) => `<button class="chip" data-a="uebersetze" data-s="${c}" lang="${c}">${hatUebersetzung(r, c) ? ic('haken') : ''}${esc(n)}</button>`).join('')}</div>`);
+  if (weg === 'geraet') uebGeraetPruefen(r);
+}
+/* Welche Sprachen kann der Übersetzer im Gerät von der Sprache des Rezepts aus? Was er nicht kann, wird ausgegraut. */
+async function uebGeraetPruefen(r) {
+  const q = SPRACH_CODES.includes(r.sprache) ? r.sprache : rateSprache(r); if (!q) return;
+  for (const b of document.querySelectorAll('#ueb-wahl [data-s]')) {
+    const ziel = b.dataset.s; if (ziel === q) { b.disabled = true; b.title = L('Sprache des Rezepts', 'Language of the recipe'); continue; }
+    try { const v = await Promise.race([self.Translator.availability({ sourceLanguage: q, targetLanguage: ziel }), new Promise((w) => setTimeout(() => w(''), 1500))]); if (v === 'unavailable' && b.isConnected) { b.disabled = true; b.title = L('Im Gerät nicht verfügbar', 'Not available on the device'); } } catch { /* unbekannt: Knopf bleibt */ }
+  }
+}
+async function uebersetzeImGeraet(r, ziel) {
+  const quelle = await quellSprache(r, ziel); if (!quelle) return;
+  fensterZu();
+  try {
+    const t = await W.mit(fuelle(L('Wird im Gerät übersetzt: {0} …', 'Translating on the device: {0} …'), sprachName(ziel)), async (w) => {
+      const v = await self.Translator.availability({ sourceLanguage: quelle, targetLanguage: ziel });
+      if (v === 'unavailable') throw new Error(fuelle(L('Der Übersetzer im Gerät kann {0} → {1} nicht. Bitte Claude wählen.', 'The translator on the device cannot do {0} → {1}. Please choose Claude.'), sprachName(quelle), sprachName(ziel)));
+      if (v !== 'available') w.text(L('Sprachpaket wird geladen …', 'Downloading the language pack …'));
+      const tr = await self.Translator.create({ sourceLanguage: quelle, targetLanguage: ziel, monitor(m) { m.addEventListener('downloadprogress', (e) => { w.anteil(e.loaded); w.text(fuelle(L('Sprachpaket wird geladen: {0} %', 'Downloading the language pack: {0} %'), Math.round((e.loaded || 0) * 100))); }); } });
+      w.anteil(null); w.text(fuelle(L('Wird im Gerät übersetzt: {0} …', 'Translating on the device: {0} …'), sprachName(ziel)));
+      try { return await uebersetzeMit(r, ziel, (x) => tr.translate(x), { sprache: spr() }); } finally { try { tr.destroy?.(); } catch { /* schon frei */ } }
+    });
+    const da = rezept(r.uid) || r; rezeptSetzen(uebersetzungAnRezept(SPRACH_CODES.includes(da.sprache) ? da : { ...da, sprache: quelle }, ziel, t, spr())); s.original = null; zeichne(); melde(fuelle(L('Im Gerät übersetzt: {0}', 'Translated on the device: {0}'), sprachName(ziel)));
+  } catch (f) { melde(f?.message || L('Die Übersetzung im Gerät ist fehlgeschlagen.', 'Translating on the device failed.')); }
 }
 async function uebersetzeEins(ziel) {
-  const r = rezept(s.uid); if (!r || !SK.anthropic || !sprKennt(ziel)) return;
+  const r = rezept(s.uid); if (!r || !sprKennt(ziel)) return;
+  if (geraetUebersetzer() && document.querySelector('#ueb-wahl')?.dataset.weg === 'geraet') return uebersetzeImGeraet(r, ziel);
+  if (!SK.anthropic) return schluesselFenster('anthropic', 'uebersetzen');
   fensterZu();
   try {
     const t = await W.mit(fuelle(L('Wird übersetzt: {0} …', 'Translating: {0} …'), sprachName(ziel)), () => uebersetze(r, ziel, { schluessel: SK.anthropic, stufe: E.scan.stufe, sprache: spr() }));
@@ -453,12 +545,27 @@ function katWahlFenster(titel, ohneId, aktion, uid = '') {
 }
 
 /* ---------- Ordner (Kern: modell/ordner.mjs): eigene Sammlungen neben den Kategorien. Ein Ordner frisst die Kategorie nicht. ---------- */
-const ORD_ERKL = () => L('Ordner sind eigene Sammlungen neben den Kategorien, zum Beispiel „Weihnachten“ oder „Für Gäste“. Ein Rezept liegt in höchstens einem Ordner und behält seine Kategorie. Wird ein Ordner gelöscht, bleiben die Rezepte.', 'Folders are your own collections next to the categories, e.g. “Christmas” or “For guests”. A recipe is in one folder at most and keeps its category. If a folder is deleted, the recipes stay.');
+const ORD_ERKL = () => L('Ordner sind eigene Sammlungen neben den Kategorien, zum Beispiel „Hochzeit von Jonas und Lisa“. Ein Rezept liegt in höchstens einem Ordner und behält seine Kategorie. Wird ein Ordner gelöscht, bleiben die Rezepte.', 'Folders are your own collections next to the categories, e.g. “Jonas and Lisa’s wedding”. A recipe is in one folder at most and keeps its category. If a folder is deleted, the recipes stay.');
+/* Einordnen (Klaus 25.11.): EIN Fenster für Kategorie und Ordner. Ein Tipp setzt sofort, das Fenster bleibt offen, damit beides in einem Gang geht. */
+function einordnenFenster(uid) {
+  const r = rezept(uid); if (!r) return; const kJetzt = katVonRezept(r), oJetzt = ordnerVonRezept(r, Z.ordner);
+  const kats = alleKategorien(Z.rezepte, Z.kategorien).filter((c) => c.art !== 'ohne'), haken = (an) => (an ? ic('haken', 'pf') : '');
+  fenster(`<h2 class="imp-kopf"><span>${L('Einordnen', 'Organise')}<small>${esc(zeig(r).name)}</small></span><button class="rund" data-a="fenster-zu" aria-label="${L('Schließen', 'Close')}">${ic('x')}</button></h2>
+   <p class="ein-satz">${L('Die Kategorie sagt, was es ist. Ein Ordner ist eine eigene Sammlung quer dazu, z. B. „Hochzeit von Jonas und Lisa“; jedes Gericht bleibt in seiner Kategorie.', 'The category says what it is. A folder is a separate collection across it, e.g. “Jonas and Lisa’s wedding”; every dish stays in its category.')}</p>
+   <h3 class="ein-h">${L('Kategorie', 'Category')}</h3><div class="wahl-liste" id="ein-kat">${kats.map((c) => `<button class="zeile" data-a="ein-kat" data-ziel="${esc(c.id)}" data-uid="${esc(uid)}" aria-pressed="${c.id === kJetzt}"><span class="kat-zeichen">${katSticker(c)}</span><span>${esc(katName(c))}</span>${haken(c.id === kJetzt)}</button>`).join('')}
+    <button class="zeile" data-a="ein-kat" data-ziel="" data-uid="${esc(uid)}" aria-pressed="${kJetzt === KAT_OHNE}">${ic('frage')}<span>${L('ohne Kategorie', 'no category')}</span>${haken(kJetzt === KAT_OHNE)}</button></div>
+   <form class="suche" data-form="ein-kat-neu" data-uid="${esc(uid)}" style="margin-top:8px">${ic('plus')}<input name="n" placeholder="${L('Neue Kategorie anlegen', 'Create new category')}" autocomplete="off" aria-label="${L('Neue Kategorie', 'New category')}"></form>
+   <h3 class="ein-h ein-ord">${L('Ordner (optional)', 'Folder (optional)')}</h3><div class="wahl-liste" id="ein-ord">${Z.ordner.map((o) => `<button class="zeile" data-a="ein-ord" data-oid="${esc(o.id)}" data-uid="${esc(uid)}" aria-pressed="${String(o.id) === oJetzt}">${o.ico ? `<span class="kat-zeichen" aria-hidden="true">${esc(o.ico)}</span>` : ic('ordner')}<span>${esc(ordTitel(o))}</span>${haken(String(o.id) === oJetzt)}</button>`).join('')}
+    ${oJetzt ? `<button class="zeile" data-a="ein-ord" data-oid="" data-uid="${esc(uid)}">${ic('x')}<span>${L('aus dem Ordner nehmen', 'take out of the folder')}</span></button>` : ''}</div>
+   <form class="suche" data-form="ein-ord-neu" data-uid="${esc(uid)}" style="margin-top:8px">${ic('plus')}<input name="n" placeholder="${L('Neuer Ordner, z. B. Hochzeit von Jonas und Lisa', 'New folder, e.g. Jonas and Lisa’s wedding')}" autocomplete="off" aria-label="${L('Neuer Ordner', 'New folder')}"></form>`);
+}
+const einKat = (uid, ziel) => { Z.rezepte = Z.rezepte.map((r) => (r.uid === uid ? { ...r, cat: ziel } : r)); sichern(); zeichne(); einordnenFenster(uid); melde(L('Kategorie geändert', 'Category changed')); };
+const einOrd = (uid, oid) => { const o = findeOrdner(Z.ordner, oid); Z.rezepte = legeIn(Z.rezepte, Z.ordner, uid, oid); sichern(); zeichne(); einordnenFenster(uid); melde(o ? fuelle(L('Liegt jetzt im Ordner „{0}“', 'Now in the folder “{0}”'), ordTitel(o)) : L('Aus dem Ordner genommen', 'Taken out of the folder')); };
 function ordnerWahlFenster(uid) {
   const r = rezept(uid); if (!r) return; const jetzt = ordnerVonRezept(r, Z.ordner);
   fenster(`<h2>${L('In einen Ordner legen', 'Put into a folder')} ${frag(ORD_ERKL())}</h2><div class="wahl-liste" id="ord-wahl">${Z.ordner.map((o) => `<button class="zeile" data-a="ordner-setzen" data-oid="${esc(o.id)}" data-uid="${esc(uid)}" aria-pressed="${String(o.id) === jetzt}">${o.ico ? `<span class="kat-zeichen" aria-hidden="true">${esc(o.ico)}</span>` : ic('ordner')}<span>${esc(ordTitel(o))}</span>${String(o.id) === jetzt ? ic('haken', 'pf') : ''}</button>`).join('')}
     ${jetzt ? `<button class="zeile" data-a="ordner-setzen" data-oid="" data-uid="${esc(uid)}">${ic('x')}<span>${L('aus dem Ordner nehmen', 'take out of the folder')}</span></button>` : ''}</div>
-    <form class="suche" data-form="ordner-neu-zu" data-uid="${esc(uid)}" style="margin-top:10px">${ic('plus')}<input name="n" placeholder="${L('Neuen Ordner anlegen', 'Create new folder')}" autocomplete="off" aria-label="${L('Neuer Ordner', 'New folder')}"></form>`);
+    <form class="suche" data-form="ordner-neu-zu" data-uid="${esc(uid)}" style="margin-top:10px">${ic('plus')}<input name="n" placeholder="${L('Neuer Ordner, z. B. Hochzeit von Jonas und Lisa', 'New folder, e.g. Jonas and Lisa’s wedding')}" autocomplete="off" aria-label="${L('Neuer Ordner', 'New folder')}"></form>`);
 }
 
 /* ---------- Explorer „Ordner“ (Klaus 25.11., R3/R9): alle Kategorien und Ordner als Baum, wie „Meine Ordner“ der alten App ----------
@@ -596,13 +703,29 @@ function bilderHtml() {
 }
 /* Bild anpassen: Ausschnitt ziehen, Zoom, schnelle Lagen. Gespeichert in r.imgCrop wie in der alten App. */
 let zs = null;
+/* Klaus 25.11. (R10): „Bild anpassen“ geht im Vollbild auf, auch am Handy. Der Rahmen hat die Form des Kopfbilds, die Vorschauen Karte und
+   Kopfbild sind aus den echten Maßen der Seite gerechnet. Die übrigen Bildwege stehen unten rechts am Bild. */
+function bildMasse() {
+  const v = (el) => { const b = el?.getBoundingClientRect(); return b && b.width > 20 && b.height > 20 ? b.width / b.height : 0; };
+  let karte = v(document.querySelector('.karte .bild'));
+  if (!karte) { const k = document.createElement('div'); k.style.cssText = 'position:absolute;left:-9999px;top:0;width:180px;visibility:hidden'; k.innerHTML = '<span class="karte"><span class="bild"></span></span>'; $('main').appendChild(k); karte = v(k.querySelector('.bild')); k.remove(); }
+  const kopf = v(document.querySelector('.rezept-held>img')) || v(document.querySelector('.rezept-held'));
+  return { karte: +(karte || 4 / 3).toFixed(4), kopf: +(kopf || 3 / 2).toFixed(4) };
+}
 function zuschnittFenster(uid) {
-  const r = rezept(uid); if (!r?.img) return; zs = { uid, x: zahl(r.imgCrop?.x, 50), y: zahl(r.imgCrop?.y, 50), z: Math.min(3, Math.max(1, zahl(r.imgCrop?.scale, 1))) };
-  fenster(`<h2>${L('Bild anpassen', 'Adjust picture')}</h2><div class="zs-rahmen" id="zs-rahmen"><img src="${esc(r.img)}" alt="" draggable="false" id="zs-bild"></div>
-   <div class="laeden" style="margin:10px 0 6px">${[[L('Mitte', 'Centre'), '50,50'], [L('Oben', 'Top'), '50,0'], [L('Unten', 'Bottom'), '50,100'], [L('Links', 'Left'), '0,50'], [L('Rechts', 'Right'), '100,50']].map(([t, l]) => `<button class="chip" data-a="zs-lage" data-l="${l}">${t}</button>`).join('')}</div>
+  const r = rezept(uid); if (!r?.img) { bildBlatt(uid); return; }
+  zs = { uid, x: zahl(r.imgCrop?.x, 50), y: zahl(r.imgCrop?.y, 50), z: Math.min(3, Math.max(1, zahl(r.imgCrop?.scale, 1))) };
+  const m = bildMasse(), bw = (w, i, t, kl = '') => `<button class="bv-k ${kl}" data-a="bv-werk" data-w="${w}" aria-label="${esc(t)}" title="${esc(t)}">${ic(i)}<span>${esc(t)}</span></button>`;
+  fensterZu();
+  $('fensterort').innerHTML = `<div class="bildvoll" role="dialog" aria-modal="true" aria-label="${L('Bild anpassen', 'Adjust picture')}" style="--vh:${m.kopf};--vk:${m.karte}">
+   <div class="bv-kopf"><h2>${L('Bild anpassen', 'Adjust picture')}<small>${esc(zeig(r).name)}</small></h2><button class="voll-x" data-a="bv-zu" aria-label="${L('Schließen', 'Close')}">${ic('x')}</button></div>
+   <div class="bv-bildort"><div class="zs-rahmen" id="zs-rahmen"><img src="${esc(r.img)}" alt="" draggable="false" id="zs-bild"></div>
+    <div class="bv-werk" role="toolbar" aria-label="${L('Bild', 'Picture')}">${bw('bild-dazu', 'kamera', L('Bild ersetzen', 'Replace picture'))}${bw('ki-bild', 'funken', L('Bild von der KI erzeugen', 'Create picture with AI'))}${bw('gratis-bild', 'bild', L('Foto über Pollinations', 'Photo via Pollinations'))}${bw('zine', 'zine', L('Food-Zine', 'Food zine'))}${bw('bild-entfernen', 'muell', L('Bild entfernen', 'Remove picture'), 'rot')}</div></div>
+   <div class="bv-regler"><div class="laeden">${[[L('Mitte', 'Centre'), '50,50'], [L('Oben', 'Top'), '50,0'], [L('Unten', 'Bottom'), '50,100'], [L('Links', 'Left'), '0,50'], [L('Rechts', 'Right'), '100,50']].map(([t, l]) => `<button class="chip" data-a="zs-lage" data-l="${l}">${t}</button>`).join('')}</div>
    <label class="zs-regler">${L('Zoom', 'Zoom')}<input type="range" id="zs-zoom" min="100" max="300" value="${Math.round(zs.z * 100)}"><b id="zs-wert"></b></label>
    <div class="zs-vor"><div><span class="vk"><img src="${esc(r.img)}" alt=""></span>${L('Karte', 'Card')}</div><div><span class="vh"><img src="${esc(r.img)}" alt=""></span>${L('Kopfbild', 'Header picture')}</div></div>
-   <div class="reihe" style="margin-top:12px"><button class="knopf akz" data-a="zs-ok">${ic('haken')}${L('Übernehmen', 'Apply')}</button><button class="knopf" data-a="zs-null">${L('Zurücksetzen', 'Reset')}</button><button class="knopf" data-a="fenster-zu">${L('Abbrechen', 'Cancel')}</button></div>`);
+   <div class="reihe"><button class="knopf akz" data-a="zs-ok">${ic('haken')}${L('Übernehmen', 'Apply')}</button><button class="knopf" data-a="zs-null">${L('Zurücksetzen', 'Reset')}</button><button class="knopf" data-a="bv-zu">${L('Abbrechen', 'Cancel')}</button></div></div></div>`;
+  history.pushState({ ...(history.state || { ansicht: s.ansicht, uid: s.uid }), voll: true }, '');
   zsZeigen();
 }
 function zsZeigen() { if (!zs) return; document.querySelectorAll('#zs-bild, .zs-vor img').forEach((i) => { i.style.objectPosition = `${zs.x}% ${zs.y}%`; i.style.transformOrigin = `${zs.x}% ${zs.y}%`; i.style.transform = `scale(${zs.z})`; }); const w = $('zs-wert'); if (w) w.textContent = zs.z.toLocaleString(geb(), { minimumFractionDigits: 1, maximumFractionDigits: 1 }) + '×'; }
@@ -734,7 +857,7 @@ async function scanSenden() {
 /* ---------- Anlegen und Bearbeiten ---------- */
 function formHtml() {
   const f = s.form, kats = alleKategorien(Z.rezepte, Z.kategorien).filter((c) => c.art !== 'ohne');
-  return `<div class="ueber"><h2 style="font-size:19px">${f.neu ? L('Neues Rezept', 'New recipe') : L('Rezept bearbeiten', 'Edit recipe')}</h2></div>
+  return `<div class="ueber"><h2 style="font-size:19px">${f.neu ? L('Neues Rezept', 'New recipe') : L('Rezept bearbeiten', 'Edit recipe')}</h2></div>${f.ueb ? `<p class="ab-hin" id="form-ueb">${esc(fuelle(L('Du bearbeitest die Übersetzung ({0}).', 'You are editing the translation ({0}).'), sprachName(f.ueb)))}</p>` : ''}
   <form class="felder" data-form="rezept">
    <label>${L('Name', 'Name')}<input class="feld" name="name" value="${esc(f.name)}" required autocomplete="off"></label>
    <div class="zwei"><label>${L('Kategorie', 'Category')}<select class="feld" name="cat"><option value="">${L('ohne Kategorie', 'no category')}</option>${kats.map((c) => `<option value="${esc(c.id)}" ${f.cat === c.id ? 'selected' : ''}>${esc(katName(c))}</option>`).join('')}</select></label>
@@ -768,13 +891,16 @@ function formSpeichern(form) {
     const da = alleKategorien(Z.rezepte, Z.kategorien).find((c) => katName(c).toLowerCase() === katneu.toLowerCase());
     if (da) cat = da.id; else { cat = 'eig_' + Date.now().toString(36); Z.kategorien = { ...Z.kategorien, eigene: [...Z.kategorien.eigene, { id: cat, de: katneu, symbol: 'karte' }] }; }
   }
-  const alt = f.uid ? rezept(f.uid) : null, vor = alt ? formAus(alt) : null, zeilen = (t) => String(t ?? '').replace(/\r\n?/g, '\n');
+  const alt = f.uid ? rezept(f.uid) : null, basis = alt && f.ueb ? sicht(alt, f.ueb) : alt, vor = basis ? formAus(basis) : null, zeilen = (t) => String(t ?? '').replace(/\r\n?/g, '\n');
   const textBlieb = !!vor && ['name', 'ings', 'steps'].every((k) => zeilen(vor[k]) === zeilen(f[k]));   /* nur Kategorie, Portionen, Zeit oder Foto geändert: eine Übersetzung bleibt */
-  const neu = ohneAlteUebersetzung(alt, normalisiere({ ...(alt || { id: Z.rezepte.reduce((m, r) => Math.max(m, +r.id || 0), 0) + 1, uid: neueUid(), created: new Date().toISOString() }), name: f.name, cat, ...(findeOrdner(Z.ordner, f.folder) || f.folder === '' ? { folder: f.folder || '' } : {}), servings: f.servings, prepTime: f.prepTime === '' ? undefined : +f.prepTime, img: f.img,
-    ings: String(f.ings).split('\n').filter((t) => t.trim()).map(zutatAusZeile), steps: schritteMitNotiz(String(f.steps).split(/\n\s*\n|\n/).filter((t) => t.trim()), alt ? alt.steps : []), modified: new Date().toISOString() }), textBlieb);
+  const roh = normalisiere({ ...(alt || { id: Z.rezepte.reduce((m, r) => Math.max(m, +r.id || 0), 0) + 1, uid: neueUid(), created: new Date().toISOString() }), name: f.name, cat, ...(findeOrdner(Z.ordner, f.folder) || f.folder === '' ? { folder: f.folder || '' } : {}), servings: f.servings, prepTime: f.prepTime === '' ? undefined : +f.prepTime, img: f.img,
+    ings: String(f.ings).split('\n').filter((t) => t.trim()).map(zutatAusZeile), steps: schritteMitNotiz(String(f.steps).split(/\n\s*\n|\n/).filter((t) => t.trim()), alt ? alt.steps : []), modified: new Date().toISOString() });
+  const danach = (uid) => { s.form = null; if (!(f.notiz && NB.uebernommen(f.notiz, uid))) melde(L('Gespeichert', 'Saved')); geh(s.formVon === 'baum' && breit() ? 'baum' : 'rezept', { uid }, true); };
+  if (alt && f.ueb && !textBlieb) { fassungFrage(alt, roh, f.ueb, () => danach(alt.uid)); return; }   /* eine Übersetzung bearbeitet: einmal fragen */
+  const neu = ohneAlteUebersetzung(alt, alt && f.ueb ? { ...roh, name: alt.name, ings: alt.ings, steps: alt.steps } : roh, textBlieb);
   delete neu.beispiel; if (f.neu && f.flavors?.length) neu.flavors = f.flavors; if (f.neu && f.source) neu.source = f.source; if (f.kiEntfernt?.length) vermerken(neu, f.kiEntfernt, 'scan');   /* was vor der KI herausgenommen wurde, steht am Rezept */
   Z.rezepte = alt ? Z.rezepte.map((r) => (r.uid === alt.uid ? neu : r)) : [...Z.rezepte, neu];
-  sichern(); s.form = null; if (!(f.notiz && NB.uebernommen(f.notiz, neu.uid))) melde(L('Gespeichert', 'Saved')); geh('rezept', { uid: neu.uid }, true);
+  sichern(); danach(neu.uid);
 
 }
 
@@ -951,11 +1077,33 @@ const los = () => { if (!zug) return; const weit = zug.weit; clearTimeout(zug.uh
 document.addEventListener('pointerup', los); document.addEventListener('pointercancel', los);
 document.addEventListener('contextmenu', (ev) => { if (ev.target.closest?.('.fl-griff')) ev.preventDefault(); });
 
+/* ---------- Seitenleiste am breiten Schirm verschieben (Klaus 25.11., R11): lange drücken (oder mit der Maus am Griff ziehen), zur anderen Seite
+   ziehen, loslassen: sie rastet links oder rechts ein. Oben und unten gibt es nicht: die Leiste ist eine hohe Spalte mit Namen; quer gelegt
+   bräuchte sie eine zweite Gestalt, und der Platz über dem Rezept gehört dem Inhalt. Die Seite steht in den Einstellungen (E.railSeite). ---------- */
+let rz = null, railGezogen = 0;
+const railZiel = (x) => { let z = $('rail-ziel'); if (!z) { z = document.createElement('div'); z.id = 'rail-ziel'; z.setAttribute('aria-hidden', 'true'); document.body.appendChild(z); } z.className = 'rail-ziel ' + (x > innerWidth / 2 ? 'r' : 'l') + (E.railZu ? ' zu' : ''); };
+const railZiehtAn = () => { if (!rz || rz.weit) return; rz.weit = true; document.body.classList.add('rail-zieht'); railZiel(rz.lx ?? rz.x); };
+document.addEventListener('pointerdown', (ev) => { if (!breit()) return; const k = ev.target.closest?.('#kopf'); if (!k || ev.button > 0) return; rz = { x: ev.clientX, y: ev.clientY, griff: !!ev.target.closest('.rail-griff'), maus: ev.pointerType === 'mouse', weit: false, uhr: setTimeout(railZiehtAn, 450) }; });
+document.addEventListener('pointermove', (ev) => {
+  if (!rz) return; rz.lx = ev.clientX;
+  if (!rz.weit) { if (Math.hypot(ev.clientX - rz.x, ev.clientY - rz.y) < 8) return; if (rz.griff && rz.maus) railZiehtAn(); else { clearTimeout(rz.uhr); rz = null; return; } }
+  railZiel(ev.clientX);
+});
+const railLos = () => { if (!rz) return; const z = rz; rz = null; clearTimeout(z.uhr); if (!z.weit) return; railGezogen = Date.now(); document.body.classList.remove('rail-zieht'); $('rail-ziel')?.remove();
+  const seite = (z.lx ?? z.x) > innerWidth / 2 ? 'r' : 'l'; if (seite !== (E.railSeite === 'r' ? 'r' : 'l')) { E.railSeite = seite; sichern(); zeichne(); } };
+document.addEventListener('pointerup', railLos); document.addEventListener('pointercancel', railLos);
+document.addEventListener('contextmenu', (ev) => { if (breit() && ev.target.closest?.('#kopf')) ev.preventDefault(); });
+
 /* ---------- Zeichnen ---------- */
 function zeichne(einzug = false) {
   kopfZeichnen(); leisteZeichnen();
-  const m = $('main'), lesen = ['start', 'rezept', 'kochen'].includes(s.ansicht);
-  if (breit() && s.ansicht === 'baum') {   /* Explorer am breiten Schirm: Baum links, das gewählte Rezept rechts */
+  const m = $('main'), lesen = ['start', 'rezept', 'kochen'].includes(s.ansicht), formRechts = breit() && s.ansicht === 'form';
+  document.body.dataset.rail = E.railSeite === 'r' ? 'r' : 'l';
+  if (formRechts) {   /* Klaus 25.11.: am breiten Schirm steht das Formular im Rezeptbereich rechts; die Liste (oder der Baum) bleibt links stehen */
+    const alt = m.querySelector('.md-liste')?.scrollTop || 0, ausBaum = s.formVon === 'baum';
+    m.innerHTML = `<div class="md ${ausBaum ? 'bz-md' : ''}"><div class="md-liste">${ausBaum ? baumHtml() : startHtml()}</div><div class="md-detail"><div class="md-form">${formHtml()}</div></div></div>`;
+    const l = m.querySelector('.md-liste'); if (l) l.scrollTop = alt;
+  } else if (breit() && s.ansicht === 'baum') {   /* Explorer am breiten Schirm: Baum links, das gewählte Rezept rechts */
     const alt = m.querySelector('.md-liste')?.scrollTop || 0;
     m.innerHTML = `<div class="md bz-md ${s.nurDies && rezept(s.uid) ? 'nur' : ''}"><div class="md-liste">${baumHtml()}</div><div class="md-detail">${rezept(s.uid) ? rezeptHtml() : `<div class="leer bz-hier"><p>${L('Ein Tipp auf ein Rezept im Baum öffnet es hier.', 'Tap a recipe in the tree to open it here.')}</p></div>`}</div></div>`;
     const l = m.querySelector('.md-liste'); if (l) l.scrollTop = alt;
@@ -988,7 +1136,7 @@ const A = {
   'baum-verschieben': () => { const w = s.baum.wahl; if (w?.size) baumZielFenster([...w]); },
   'baum-ziel': (e) => { const w = [...(s.baum.wahl || [])]; fensterZu(); baumAblegen(w, e.dataset.art, e.dataset.id); },
   'baum-suche-leer': () => { s.baum.q = ''; zeichne(); $('baumfeld')?.focus(); },
-  'baum-ordner-neu': () => fenster(`<h2>${L('Neuer Ordner', 'New folder')}</h2><form class="suche" data-form="baum-ordner-neu">${ic('ordner')}<input name="n" placeholder="${L('Name des Ordners', 'Folder name')}" autocomplete="off" aria-label="${L('Name des Ordners', 'Folder name')}" required></form><div class="reihe" style="margin-top:10px"><button class="knopf akz" data-a="baum-form-ok">${L('Anlegen', 'Create')}</button><button class="knopf" data-a="fenster-zu">${L('Abbrechen', 'Cancel')}</button></div>`) || document.querySelector('#fensterort input[name=n]')?.focus(),
+  'baum-ordner-neu': () => fenster(`<h2>${L('Neuer Ordner', 'New folder')}</h2><form class="suche" data-form="baum-ordner-neu">${ic('ordner')}<input name="n" placeholder="${L('Neuer Ordner, z. B. Hochzeit von Jonas und Lisa', 'New folder, e.g. Jonas and Lisa’s wedding')}" autocomplete="off" aria-label="${L('Name des Ordners', 'Folder name')}" required></form><div class="reihe" style="margin-top:10px"><button class="knopf akz" data-a="baum-form-ok">${L('Anlegen', 'Create')}</button><button class="knopf" data-a="fenster-zu">${L('Abbrechen', 'Cancel')}</button></div>`) || document.querySelector('#fensterort input[name=n]')?.focus(),
   'baum-form-ok': () => document.querySelector('#fensterort form')?.requestSubmit(),
   'ordner-setzen': (e) => { const o = findeOrdner(Z.ordner, e.dataset.oid); Z.rezepte = legeIn(Z.rezepte, Z.ordner, e.dataset.uid, e.dataset.oid); sichern(); fensterZu(); zeichne(); melde(o ? fuelle(L('Liegt jetzt im Ordner „{0}“', 'Now in the folder “{0}”'), ordTitel(o)) : L('Aus dem Ordner genommen', 'Taken out of the folder')); },
   'ordner-weg': (e) => { const vorher = { r: Z.rezepte, o: Z.ordner }, o = findeOrdner(Z.ordner, e.dataset.oid), l = ordLoeschen(Z.rezepte, Z.ordner, e.dataset.oid); Z.rezepte = l.rezepte; Z.ordner = l.ordner; sichern(); zeichne();
@@ -1007,7 +1155,22 @@ const A = {
   diktat: (e) => { const f = document.querySelector(e.dataset.feld); if (!f) return; diktat(f, spr(), (an) => { e.setAttribute('aria-pressed', String(an)); }, { beiFehler: (satz) => melde(satz) }); f.focus(); },   /* Kern 0.20: schreibt an der Schreibmarke, kennt „Komma“, „Punkt“, „neue Zeile“; Fehler (kein Mikrofon, keine Erlaubnis) werden gesagt */
   installieren: async () => { if (INST.kannFragen()) await INST.fragen(); else melde(istApple() ? L('Teilen → „Zum Home-Bildschirm“', 'Share → “Add to Home Screen”') : L('Browser-Menü ⋮ → „App installieren“', 'Browser menu ⋮ → “Install app”')); kopfZeichnen(); if (s.ansicht === 'werkstatt') zeichne(); },
   aktualisieren: async () => { melde(L('Neueste Fassung wird geholt …', 'Fetching the latest version …')); const e = await aktualisieren({ cachePrefix: 'rezeptbuch-neu-', probe: './sw.js' }); if (e === 'offline') melde(L('Ohne Netz – die App bleibt, wie sie ist', 'Offline – the app stays as it is')); else location.reload(); },
-  bearbeiten: () => { s.form = formAus(rezept(s.uid)); geh('form'); },
+  bearbeiten: () => { const r = rezept(s.uid); if (!r) return; const ueb = uebGezeigt(r); s.form = { ...formAus(ueb ? sicht(r, ueb) : r), ueb }; geh('form'); },   /* bearbeitet wird, was dasteht (Klaus 25.11.) */
+  abschnitt: (e) => { const t = e.dataset.t; s.abschnitt = s.abschnitt?.uid === s.uid && s.abschnitt.teil === t ? null : { uid: s.uid, teil: t }; zeichne(); document.querySelector('.abschnitt textarea')?.focus(); },
+  'ab-zu': () => { s.abschnitt = null; zeichne(); },
+  'ab-schritt-dazu': () => { const ol = document.querySelector('.ab-schritte'); if (!ol) return; ol.insertAdjacentHTML('beforeend', abSchrittFeld(ol.children.length, '')); ol.lastElementChild.querySelector('textarea').focus(); },
+  'fassung-haupt': async () => { const f = fassungOffen, alt = f && rezept(f.uid); if (!alt) return; const quelle = await quellSprache(alt, f.ziel); if (!quelle) return;
+    try { const r2 = alsHauptfassung(alt, f.ziel, f.neu, quelle, spr()); fassungOffen = null; rezeptDirekt(r2); s.original = null; fensterZu(); f.fertig(r2); } catch (x) { melde(x.message); } },
+  'fassung-ueb': () => { const f = fassungOffen, alt = f && rezept(f.uid); if (!alt) return; try { const r2 = alsUebersetzung(alt, f.ziel, f.neu, spr()); fassungOffen = null; rezeptDirekt(r2); fensterZu(); f.fertig(r2); } catch (x) { melde(x.message); } },
+  'quelle-wahl': (e) => { const f = quelleFertig; quelleFertig = null; zuTun = null; f?.(e.dataset.s); },
+  'ueb-weg': (e) => { s.uebWeg = e.dataset.w; uebersetzFenster(); },
+  'bild-entfernen': (e) => { const uid = e.dataset.uid || s.uid, r = rezept(uid); if (!r?.img) return; const vorher = Z.rezepte; Z.rezepte = Z.rezepte.map((x) => { if (x.uid !== uid) return x; const { imgCrop, ...rest } = x; return { ...rest, img: '' }; }); sichern(); zeichne();
+    melde(L('Bild entfernt', 'Picture removed'), L('Rückgängig', 'Undo'), () => { Z.rezepte = vorher; sichern(); zeichne(); }); },
+  /* Bild anpassen im Vollbild: Schließen nimmt den Schritt im Verlauf zurück; ein Werkzeug unten rechts schließt erst und tut dann seins */
+  'bv-zu': () => { zs = null; if (history.state?.voll) history.back(); else fensterZu(); },
+  'bv-werk': (e) => { const w = e.dataset.w, uid = s.uid; zs = null; if (w === 'bild-dazu') { s.bildZiel = uid; $('datei-bild').click(); } const tun = () => { if (w !== 'bild-dazu' && A[w]) A[w]({ dataset: { uid } }); };
+    if (history.state?.voll) { nachZurueck = tun; history.back(); } else { fensterZu(); tun(); } },
+  'rail-seite': () => { E.railSeite = E.railSeite === 'r' ? 'l' : 'r'; sichern(); zeichne(); },
   loeschen: () => { const r = rezept(s.uid); if (!r) return; const vorher = Z.rezepte; Z.rezepte = Z.rezepte.filter((x) => x.uid !== r.uid); sichern(); geh('start', { uid: null }, true); melde(fuelle(L('„{0}“ gelöscht', '“{0}” deleted'), r.name), L('Rückgängig', 'Undo'), () => { Z.rezepte = vorher; sichern(); zeichne(true); }); },
   kochen: () => { K.i = 0; K.kopf = true; geh('kochen', { uid: s.uid }); wachAn(); },
   'k-schritt': (e) => { const r = rezept(s.uid); K.i = Math.min(r.steps.length - 1, Math.max(0, K.i + +e.dataset.d)); weckerAus(); kochZeichnen(); $('k-inhalt')?.classList.add('k-neu'); },
@@ -1049,6 +1212,9 @@ const A = {
   'kat-alle-ziel': (e) => { const vorher = Z.rezepte, id = e.dataset.kid, ziel = e.dataset.ziel; let n = 0;
     Z.rezepte = Z.rezepte.map((r) => (istInhalt(r) && katVonRezept(r) === id ? (n++, { ...r, cat: ziel }) : r)); sichern(); fensterZu(); zeichne();
     melde(fuelle(L('{0} Rezepte zugeordnet', '{0} recipes assigned'), n), L('Rückgängig', 'Undo'), () => { Z.rezepte = vorher; sichern(); zeichne(); }); },
+  einordnen: () => einordnenFenster(s.uid),
+  'ein-kat': (e) => einKat(e.dataset.uid, e.dataset.ziel),
+  'ein-ord': (e) => einOrd(e.dataset.uid, e.dataset.oid),
   'kat-zuordnen': () => { const r = rezept(s.uid); if (r) katWahlFenster(L('Kategorie zuordnen', 'Assign category'), null, 'kat-setzen', r.uid); },
   'kat-setzen': (e) => { Z.rezepte = Z.rezepte.map((r) => (r.uid === e.dataset.uid ? { ...r, cat: e.dataset.ziel } : r)); sichern(); fensterZu(); zeichne(); melde(L('Kategorie geändert', 'Category changed')); },
   'bilder-filter': (e) => { s.bilder.filter = e.dataset.f; zeichne(); },
@@ -1079,7 +1245,7 @@ const A = {
   'bild-blatt': () => bildBlatt(s.uid),
   // Tipp aufs Bild: mit Bild das Vollbild, ohne Bild gleich das Bild-Blatt. Am Monitor steht die Namenszeile UNTER dem Bild
   // (Klaus 23.11.: „der Winkel soll im Monitor stehen, nicht im Bild“); ein Tipp dort öffnet kein Bild.
-  held: (e, ev) => { if (breit() && ev?.target?.closest?.('.verlauf')) return; A[rezept(s.uid)?.img ? 'bild-voll' : 'bild-blatt'](); },
+  held: (e, ev) => { if (breit() && ev?.target?.closest?.('.verlauf')) return; if (rezept(s.uid)?.img) zuschnittFenster(s.uid); else bildBlatt(s.uid); },   /* R10: ein Tipp aufs Bild öffnet gleich „Bild anpassen“ im Vollbild */
   'bild-voll': () => { const r = zeig(rezept(s.uid)); if (!r?.img) return; fensterZu(); $('fensterort').innerHTML = `<div class="vollbild" data-a="voll-zu" role="dialog" aria-modal="true" aria-label="${esc(r.name)}"><img src="${esc(r.img)}" alt="${esc(r.name)}"><button class="voll-werk" data-a="voll-werk">${ic('bild')}${L('Bild bearbeiten', 'Edit picture')}</button><button class="voll-x" data-a="voll-zu" aria-label="${L('Schließen', 'Close')}">${ic('x')}</button><p>${esc(r.name)}</p></div>`; history.pushState({ ...(history.state || { ansicht: s.ansicht, uid: s.uid }), voll: true }, ''); },
   'voll-zu': () => { if (document.querySelector('.vollbild')) { fensterZu(); if (history.state?.voll) history.back(); } },
   // Klaus 23.11.: ein Tipp aufs Bild öffnet das Vollbild, von dort geht es mit einem Tipp zum Bild-Blatt (Ausschnitt, ersetzen, KI-Bild).
@@ -1116,8 +1282,8 @@ const A = {
   'tresor-weg': async (e) => { await tr.loeschen(e.dataset.id); tresorFenster(); },
   'zs-lage': (e) => { const [x, y] = e.dataset.l.split(','); zs.x = +x; zs.y = +y; zsZeigen(); },
   'zs-null': () => { zs.x = 50; zs.y = 50; zs.z = 1; $('zs-zoom').value = 100; zsZeigen(); },
-  'zs-ok': () => { const z = zs; zs = null; Z.rezepte = Z.rezepte.map((r) => (r.uid === z.uid ? { ...r, imgCrop: { ...(r.imgCrop || {}), x: Math.round(z.x), y: Math.round(z.y), scale: Math.round(z.z * 100) / 100 } } : r)); sichern(); fensterZu(); zeichne(); },
-  nurdies: () => { s.nurDies = !s.nurDies; zeichne(); },
+  'zs-ok': () => { const z = zs; if (!z) return; Z.rezepte = Z.rezepte.map((r) => (r.uid === z.uid ? { ...r, imgCrop: { ...(r.imgCrop || {}), x: Math.round(z.x), y: Math.round(z.y), scale: Math.round(z.z * 100) / 100 } } : r)); sichern(); A['bv-zu'](); zeichne(); },
+  vollbild: () => { try { const p = vollAn() ? document.exitFullscreen?.() : document.documentElement.requestFullscreen?.(); p?.catch?.(() => melde(L('Vollbild ist hier nicht möglich.', 'Full screen is not possible here.'))); } catch { /* ohne Vollbild */ } },
   rail: () => { E.railZu = !E.railZu; sichern(); kopfZeichnen(); },
   schrift: () => fenster(`<h2>${L('Schriftgröße', 'Text size')} ${frag(L('Die Schrift ändert sich, während du schiebst. Sie gilt für die ganze App, auch beim Kochen.', 'The text changes while you slide. It applies to the whole app, also when cooking.'))}</h2>${schriftRegler(E.schrift, spr())}<div class="reihe" style="margin-top:14px"><button class="knopf" data-a="schrift-100">${L('Zurück auf 100 %', 'Back to 100 %')}</button><button class="knopf akz" data-a="fenster-zu">${L('Fertig', 'Done')}</button></div>`),
   'schrift-100': () => { E.schrift = schriftSetzen(document.documentElement, 100); $('schriftregler').value = 100; $('schriftzahl').textContent = '100 %'; sichern(); },
@@ -1185,6 +1351,7 @@ document.addEventListener('toggle', (ev) => { const d = ev.target; if (!d.classL
 document.addEventListener('pointerdown', (ev) => { if (document.getElementById('frag-blase') && !ev.target.closest?.('.frag, #frag-blase')) fragZu(); }, true);
 addEventListener('resize', fragZu); document.addEventListener('scroll', (ev) => { if (ev.target.closest?.('#frag-blase')) return; const d = document.querySelector('details.frag[open]'); if (!d) return; const r = d.querySelector('summary').getBoundingClientRect(); if (r.bottom < 0 || r.top > innerHeight) fragZu(); else fragLegen(d); }, true);   /* die Blase wandert mit dem „?“ */
 document.addEventListener('click', (ev) => {
+  if (Date.now() - railGezogen < 400 && ev.target.closest?.('#kopf')) return;   /* der Zug an der Seitenleiste ist kein Tipp */
   const e = ev.target.closest('[data-a]');
   if (s.leisteAuf && !ev.target.closest('#leiste')) { s.leisteAuf = false; leisteZeichnen(); }
   if (e && A[e.dataset.a]) A[e.dataset.a](e, ev);
@@ -1192,6 +1359,7 @@ document.addEventListener('click', (ev) => {
 });
 document.addEventListener('submit', (ev) => { ev.preventDefault(); const f = ev.target.dataset.form;
   if (f === 'rezept') formSpeichern(ev.target);
+  else if (f === 'abschnitt') abschnittSpeichern(ev.target);
   else if (f === 'web-holen') webHolen();
   else if (f === 'recht') { const r = rezept(s.uid), wahl = new FormData(ev.target).getAll('n').map(Number), e = s.recht; if (!r || !e) return; rezeptSetzen(rechtschreibungAnwenden(r, e.aenderungen.filter((_, i) => wahl.includes(i)))); s.recht = null; fensterZu(); zeichne(); melde(fuelle(L('{0} übernommen', '{0} applied'), wahl.length)); }
   else if (f === 'schluessel') { const a = ev.target.dataset.anbieter, k = $('schl-feld').value.trim(), danach = ev.target.dataset.danach;
@@ -1201,6 +1369,8 @@ document.addEventListener('submit', (ev) => { ev.preventDefault(); const f = ev.
   else if (f === 'baum-suche') { $('baumfeld')?.blur(); }
   else if (f === 'baum-ordner-neu') { const n = String(new FormData(ev.target).get('n') || '').trim(); if (!n) return; const a = ordAnlegen(Z.ordner, n); Z.ordner = a.ordner; s.baum.auf.add(bzKey('ord', a.id)); sichern(); fensterZu(); zeichne(); melde(a.neu ? fuelle(L('Ordner „{0}“ angelegt – zieh Rezepte hinein', 'Folder “{0}” created – drag recipes into it'), n) : fuelle(L('Den Ordner „{0}“ gibt es schon', 'The folder “{0}” already exists'), n)); }
   else if (f === 'ordner-neu-zu') { const n = String(new FormData(ev.target).get('n') || '').trim(), uid = ev.target.dataset.uid; if (!n || !uid) return; const a = ordAnlegen(Z.ordner, n); Z.ordner = a.ordner; A['ordner-setzen']({ dataset: { uid, oid: a.id } }); }
+  else if (f === 'ein-kat-neu') { const n = String(new FormData(ev.target).get('n') || '').trim(), uid = ev.target.dataset.uid; if (!n || !uid) return; const a = katAnlegen(Z.kategorien, n); Z.kategorien = a.kat; einKat(uid, a.id); }
+  else if (f === 'ein-ord-neu') { const n = String(new FormData(ev.target).get('n') || '').trim(), uid = ev.target.dataset.uid; if (!n || !uid) return; const a = ordAnlegen(Z.ordner, n); Z.ordner = a.ordner; einOrd(uid, a.id); }
   else if (f === 'kat-neu-zu') { const n = String(new FormData(ev.target).get('n') || '').trim(), uid = document.querySelector('[data-a="kat-setzen"]')?.dataset.uid; if (!n || !uid) return; const a = katAnlegen(Z.kategorien, n); Z.kategorien = a.kat; A['kat-setzen']({ dataset: { uid, ziel: a.id } }); }
   else if (f === 'laden') { const n = String(new FormData(ev.target).get('n') || '').trim(); if (!n) return; Z.einkauf = { ...Z.einkauf, laeden: { ...Z.einkauf.laeden, [n]: Z.einkauf.laeden[n] || [...(Z.einkauf.laeden[Z.einkauf.laden] || [])] }, laden: n }; sichern(); fensterZu(); zeichne(); }
 });
@@ -1236,7 +1406,7 @@ let wischX = null;
 document.addEventListener('touchstart', (ev) => { wischX = ev.target.closest?.('.koch') && !ev.target.closest('button') ? ev.touches[0].clientX : null; }, { passive: true });
 document.addEventListener('touchend', (ev) => { if (wischX == null) return; const d = ev.changedTouches[0].clientX - wischX; wischX = null; if (Math.abs(d) > 60) A['k-schritt']({ dataset: { d: d < 0 ? 1 : -1 } }); }, { passive: true });
 matchMedia('(min-width:1000px)').addEventListener('change', () => zeichne());
-document.addEventListener('keydown', (ev) => { if (ev.key === 'Escape' && s.ansicht !== 'kochen') { if (document.querySelector('.vollbild')) A['voll-zu'](); else if ($('fensterort').innerHTML) fensterZu(); else if (s.leisteAuf) { s.leisteAuf = false; leisteZeichnen(); } } });
+document.addEventListener('keydown', (ev) => { if (ev.key === 'Escape' && s.ansicht !== 'kochen') { if (document.querySelector('.vollbild')) A['voll-zu'](); else if (document.querySelector('.bildvoll')) A['bv-zu'](); else if ($('fensterort').innerHTML) fensterZu(); else if (s.leisteAuf) { s.leisteAuf = false; leisteZeichnen(); } } });
 $('datei-sicherung').addEventListener('change', async (ev) => { const d = ev.target.files[0]; ev.target.value = ''; if (!d) return; try { dateiFrage(lies(await W.mit(L('Datei wird eingelesen …', 'Reading the file …'), () => d.text()))); } catch (f) { melde(fehlerText(f, L('Die Datei konnte nicht gelesen werden.', 'The file could not be read.'))); } });
 $('datei-bild').addEventListener('change', async (ev) => { const d = ev.target.files[0]; ev.target.value = ''; if (!d) return; if (s.bildZiel) { const uid = s.bildZiel; s.bildZiel = null; try { const img = await W.mit(L('Foto wird aufbereitet …', 'Preparing the photo …'), () => bildAusDatei(d)); Z.rezepte = Z.rezepte.map((r) => (r.uid === uid ? { ...r, img, imgCrop: { x: 50, y: 50, scale: 1 } } : r)); sichern(); zeichne(); melde(L('Bild eingefügt', 'Picture added')); } catch { melde(L('Das Bild konnte nicht gelesen werden.', 'The picture could not be read.')); } return; }
   if (!s.form) return; try { s.form.img = await W.mit(L('Foto wird aufbereitet …', 'Preparing the photo …'), () => bildAusDatei(d)); zeichne(); } catch { melde(L('Das Bild konnte nicht gelesen werden.', 'The picture could not be read.')); } });

@@ -184,6 +184,68 @@ export function uebersetzungAnRezept(rezept, ziel, t, sprache = 'de') {
   return { ...rezept, translations: { ...alt, [z]: { ...t, name: str(t.name), ingredients: t.ingredients.map(str), steps: t.steps.map(str) } } };
 }
 
+/* ── Übersetzen im Gerät und bearbeitete Fassungen (Klaus 25.11.) ── */
+/** Übersetzt ein Rezept mit einem Übersetzer im Gerät (z. B. Chromes eingebaute Translator-API): `uebersetzer(text)` → Promise<Text>.
+ *  Übersetzt werden Name, jeder Zutatenname und jeder Schritt einzeln; Mengen und Einheiten bleiben am Rezept. Zurück: dieselbe Form wie
+ *  uebersetze() ({ name, ingredients, steps }), dazu `weg: 'geraet'`. Es geht nichts hinaus, was der Übersetzer nicht selbst tut. */
+export async function uebersetzeMit(rezept, ziel, uebersetzer, { sprache = 'de' } = {}) {
+  const z = str(ziel);
+  if (!ZIEL.test(z)) throw fehler(sprache, 'Keine Zielsprache gewählt.', 'No target language chosen.');
+  if (!istInhalt(rezept)) throw ohneName(sprache);
+  if (typeof uebersetzer !== 'function') throw fehler(sprache, 'Kein Übersetzer im Gerät.', 'No translator on this device.');
+  const eins = async (t) => (str(t) ? str(await uebersetzer(str(t))) || str(t) : '');
+  const name = await eins(rezept.name), ingredients = [], steps = [];
+  for (const x of rezept.ings || []) ingredients.push(await eins(x.name));
+  for (const x of rezept.steps || []) steps.push(await eins(x.txt));
+  return { name, ingredients, steps, weg: 'geraet' };
+}
+
+export const SPRACH_CODES = ['de', 'en', 'es', 'fr', 'it', 'pt', 'ru', 'zh'];
+const KLEINWOERTER = {
+  de: 'der die das und mit den dem des ein eine einen zu von auf ist nicht im in bis oder etwas dann noch alles minuten',
+  en: 'the and with of to in a an for until add into or then about minutes over all is it',
+  es: 'el la los las y con de del en para hasta añadir o un una al minutos todo se',
+  fr: 'le la les et avec de du des pour dans jusqu un une au ou puis ajouter minutes tout est',
+  it: 'il lo la gli le e con di del della per fino aggiungere un una al o poi minuti tutto',
+  pt: 'o a os as e com de do da para até adicionar um uma ao ou depois minutos tudo em',
+};
+/** Rät die Sprache eines Rezepts aus seinem Text (Name, Zutaten, Schritte): kyrillisch → ru, chinesische Zeichen → zh, sonst die häufigsten
+ *  kleinen Wörter. Ist es nicht eindeutig (zu wenig Text, zwei Sprachen gleich stark), kommt '' zurück; dann fragt die App. */
+export function rateSprache(r) {
+  const t = [r && r.name, ...((r && r.ings) || []).map((x) => x && x.name), ...((r && r.steps) || []).map((x) => x && x.txt)].map(str).join(' ');
+  const kyr = (t.match(/[Ѐ-ӿ]/g) || []).length, han = (t.match(/[一-鿿]/g) || []).length, lat = (t.match(/[A-Za-zÀ-ÿ]/g) || []).length;
+  if (kyr > lat && kyr >= 3) return 'ru';
+  if (han > lat / 3 && han >= 2) return 'zh';
+  const woerter = t.toLowerCase().split(/[^a-zà-ÿßñç]+/).filter(Boolean), punkte = {};
+  for (const [c, l] of Object.entries(KLEINWOERTER)) { const m = new Set(l.split(' ')); punkte[c] = woerter.filter((w) => m.has(w)).length; }
+  if (/[äöüß]/i.test(t)) punkte.de += 2; if (/ñ/i.test(t)) punkte.es += 2; if (/ç|ã|õ/i.test(t)) punkte.pt += 2;
+  const folge = Object.entries(punkte).sort((a, b) => b[1] - a[1]);
+  return folge[0][1] >= 3 && folge[0][1] >= folge[1][1] * 1.5 ? folge[0][0] : '';
+}
+const namen = (r) => (r.ings || []).map((z) => str(z && z.name));
+const texte = (r) => (r.steps || []).map((x) => str(x && x.txt));
+const einheiten = (r) => (r.ings || []).map((z) => ({ unit: str(z && z.unit) }));
+/** Eine bearbeitete Übersetzung NUR als Übersetzung ablegen. `neu` ist das Rezept, wie es im Formular stand (Text in der Sprache `ziel`).
+ *  Die übrigen Felder (Kategorie, Portionen, Zeit, Bild, Mengen) kommen aus `neu`, der Text des Originals bleibt. Die Übersetzung braucht so
+ *  viele Zutaten und Schritte wie das Original; sonst Fehler mit passtNicht (dann geht nur „als Hauptfassung“). */
+export function alsUebersetzung(alt, ziel, neu, sprache = 'de') {
+  const z = str(ziel); if (!ZIEL.test(z)) throw fehler(sprache, 'Keine Zielsprache gewählt.', 'No target language chosen.');
+  const ai = alt.ings || [], as = alt.steps || [], ni = neu.ings || [], ns = neu.steps || [];
+  if (ni.length !== ai.length || ns.length !== as.length) { const f = new Error(fuelle(text(sprache, 'Als Übersetzung braucht der Text so viele Zutaten und Schritte wie das Original ({0} und {1}). Als Hauptfassung geht es immer.', 'As a translation the text needs as many ingredients and steps as the original ({0} and {1}). As the main version it always works.'), ai.length, as.length)); f.passtNicht = true; throw f; }
+  const t = { name: str(neu.name) || str(alt.name), ingredients: namen(neu), steps: texte(neu), amounts: einheiten(neu) };
+  return { ...neu, name: alt.name, ings: ai.map((x, i) => ({ ...x, amt: str(ni[i].amt) })), steps: as.map((x, i) => ({ ...x, note: ns[i] && ns[i].note != null ? ns[i].note : x.note })),
+    translations: { ...(alt.translations && typeof alt.translations === 'object' ? alt.translations : {}), [z]: t } };
+}
+/** Eine bearbeitete Übersetzung wird die Hauptfassung: ihr Text wird name/ings/steps, das Rezept trägt `sprache: ziel`, und das bisherige
+ *  Original wandert als Übersetzung in seine Sprache `quelle` (mit seinen Einheiten). Nichts geht verloren; andere Übersetzungen bleiben. */
+export function alsHauptfassung(alt, ziel, neu, quelle, sprache = 'de') {
+  const z = str(ziel), q = str(quelle);
+  if (!ZIEL.test(z) || !ZIEL.test(q)) throw fehler(sprache, 'Keine Zielsprache gewählt.', 'No target language chosen.');
+  if (z === q) throw fehler(sprache, 'Original und Übersetzung haben dieselbe Sprache.', 'Original and translation have the same language.');
+  const { [z]: _weg, ...rest } = alt.translations && typeof alt.translations === 'object' ? alt.translations : {};
+  return { ...neu, sprache: z, translations: { ...rest, [q]: { name: str(alt.name), ingredients: namen(alt), steps: texte(alt), amounts: einheiten(alt), original: true } } };
+}
+
 /** Listenpreise von Anthropic in US-Dollar je 1 Mio. Token, [hinein, heraus], Stand 2026-11. Fehlt ein Modell, nennt die Schätzung nur Token. */
 export const PREISE = { 'claude-haiku-5-5': [0.1, 0.5], 'claude-sonnet-5-5': [2, 10], 'claude-opus-5-5': [4, 20] };
 const token = (t) => Math.ceil(String(t || '').length / 4);   /* Schätzung: 4 Zeichen je Token; kyrillische und chinesische Schrift braucht mehr */

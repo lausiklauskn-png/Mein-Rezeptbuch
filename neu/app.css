@@ -115,8 +115,12 @@ body[data-fl="l"] .rezept-held{margin-left:calc(-1 * var(--rand) - 14px)}
 .schritte li::before{counter-increment:s;content:counter(s);width:28px;height:28px;border-radius:50%;display:grid;place-items:center;font-weight:700;font-size:13px;background:var(--vl);color:var(--vl-schrift);border:1px solid var(--vl-rand)}
 .schritte small{display:block;color:var(--mut);font-size:12.5px;margin-top:2px}
 .quelle{font-size:12.5px;color:var(--mut);margin-top:14px;overflow-wrap:anywhere}
+/* Zwei Spalten (Zutaten | Zubereitung) hängen an der Breite des Rezeptbereichs, nicht des Fensters (Klaus 25.11.: am geteilten Schirm wurde
+   die Zubereitung neben Leiste und Liste auf ein Wort je Zeile gequetscht). Unter 640 px Inhaltsbreite stehen sie untereinander. */
+.bogen{container-type:inline-size}
+.zweispalt>div{min-width:0}
+@container (min-width:640px){.zweispalt{display:grid;grid-template-columns:minmax(240px,320px) minmax(0,1fr);gap:32px;align-items:start}}
 @media(min-width:900px){
- .zweispalt{display:grid;grid-template-columns:minmax(260px,340px) 1fr;gap:32px;align-items:start}
  .rezept-held{height:340px}
 }
 
@@ -265,7 +269,7 @@ body:has(.koch) .fl{display:none}
  .rail-n .farbknopf{width:21px;height:21px}.rail-n .farbknopf::after{width:8px;height:8px}
  .fl{display:none}
  main,body[data-fl] main{max-width:none;margin:0;padding:22px 28px 40px}
- body:is([data-ansicht="start"],[data-ansicht="rezept"],[data-ansicht="kochen"]) main{padding:0}
+ body:is([data-ansicht="start"],[data-ansicht="rezept"],[data-ansicht="kochen"],[data-ansicht="form"]) main{padding:0}
  .md{display:grid;grid-template-columns:400px minmax(0,1fr);height:100svh}
  .md-liste{overflow:auto;padding:16px 16px 30px;border-right:1px solid var(--line)}
  .md-liste .held,.md-liste .held-ueber{display:none}
@@ -719,6 +723,7 @@ a.knopf{text-decoration:none}
 /* Food-Zine (neu/zine.mjs): der Poster-Auftrag als eigene Ansicht (Lieblingsrezept, Bild, Format, Extras, Trend, Auftragsfeld) und darunter
    die Sammlung „Meine Food-Zine-Bilder“ (Ordnen mit langem Druck oder Maus, Tippen = groß ansehen). Am Handy (390 px) läuft nichts quer. */
 .zine-ansicht{max-width:720px}
+@media(min-width:1000px){.zine-ansicht{max-width:1280px}}
 .zine-ansicht .gruppe h3 .ic{width:14px;height:14px}
 .zine-ansicht select.feld{width:100%}
 .zn-vorschau{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-top:8px;min-height:0}
@@ -880,3 +885,83 @@ a.knopf{text-decoration:none}
 .bz-alle{flex:none;margin:0 2px;font-size:12.5px;white-space:nowrap}
 .bz-leere{display:flex;align-items:center;gap:8px;margin:8px 2px 0;padding:6px 8px;color:var(--mut);font-size:13.5px;border-radius:10px}
 .bz-leere[aria-expanded="true"] .bz-pf{transform:rotate(90deg)}
+
+/* 0.16.1 · Rezept: Stift an „Zutaten“ und „Zubereitung“ – der Abschnitt wird an Ort und Stelle zum Textfeld; die Nummern sind nur Anzeige */
+.ab-kopf{display:flex;align-items:center;gap:8px}
+.ab-stift{width:30px;height:30px;border-radius:50%;display:grid;place-items:center;color:var(--mut);background:none;border:1px solid transparent;cursor:pointer;flex:none}
+.ab-stift .ic{width:16px;height:16px}
+.ab-stift:hover,.ab-stift[aria-pressed="true"]{color:var(--akz);border-color:var(--line);background:var(--fl)}
+.abschnitt{display:grid;gap:8px;margin-bottom:6px}
+.abschnitt textarea{width:100%;min-height:60px;font:inherit;font-size:14.5px;resize:vertical}
+.ab-hin{display:block;font-size:12.5px;color:var(--mut)}
+.ab-schritte{display:grid;gap:10px;list-style:none}
+.ab-schritte li{display:grid;grid-template-columns:30px minmax(0,1fr);gap:10px;align-items:start}
+.ab-nr{width:28px;height:28px;border-radius:50%;display:grid;place-items:center;font-weight:700;font-size:13px;background:var(--vl);color:var(--vl-schrift);border:1px solid var(--vl-rand);margin-top:4px;user-select:none}
+.abschnitt>.knopf{justify-self:start}
+/* Formular am breiten Schirm im Rezeptbereich rechts */
+.md-form{padding:20px 30px 40px}
+/* Vollbild-Knopf unten rechts im Rezeptbild (vier Ecken, ohne Text) */
+.held-voll{position:absolute;right:12px;bottom:32px;z-index:2;width:38px;height:38px;border-radius:50%;display:grid;place-items:center;cursor:pointer;background:rgba(22,15,9,.5);color:#fff;border:1px solid rgba(255,255,255,.3);-webkit-backdrop-filter:blur(8px);backdrop-filter:blur(8px)}
+.held-voll:focus-visible{outline:2px solid #fff}
+.rezept-held .verlauf{padding-right:58px}
+@media(min-width:1000px){
+ .md-detail .held-voll{top:calc(min(58vh,520px) - 50px);bottom:auto}
+ .md-detail .rezept-held:not(:has(>img)) .held-voll{top:8px}
+ .md-detail .rezept-held .verlauf{padding-right:30px}
+}
+@media print{.held-voll,.ab-stift{display:none!important}}
+/* Bild anpassen im Vollbild (R10): Rahmen in der Form des Kopfbilds, Bildwege unten rechts am Bild */
+.bildvoll{position:fixed;inset:0;z-index:60;background:#14100c;color:#f4ece2;overflow:auto;display:flex;flex-direction:column;gap:10px;padding:calc(10px + env(safe-area-inset-top,0px)) 12px calc(14px + env(safe-area-inset-bottom,0px));animation:auf .18s ease-out}
+.bv-kopf{display:flex;align-items:flex-start;gap:10px}
+.bv-kopf h2{flex:1;min-width:0;font-size:17px}
+.bv-kopf h2 small{display:block;font-weight:400;font-size:12.5px;opacity:.75;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.bv-kopf .voll-x{position:static;flex:none}
+.bv-bildort{position:relative;align-self:center;width:min(100%,calc(62svh * var(--vh,1.5)))}
+.bildvoll .zs-rahmen{aspect-ratio:var(--vh,1.5);width:100%;outline-color:#fff}
+.bv-werk{position:absolute;right:8px;bottom:8px;display:flex;gap:6px;flex-wrap:wrap;justify-content:flex-end;max-width:calc(100% - 16px)}
+.bv-k{height:38px;min-width:38px;padding:0 10px;border-radius:19px;display:inline-flex;align-items:center;justify-content:center;gap:6px;cursor:pointer;background:rgba(12,8,4,.62);color:#fff;border:1px solid rgba(255,255,255,.3);font-size:13px;font-weight:600;-webkit-backdrop-filter:blur(8px);backdrop-filter:blur(8px)}
+.bv-k .ic{width:18px;height:18px}.bv-k.rot{color:#ffc2b5}
+.bv-k span{display:none}
+@media(min-width:1000px){.bv-k span{display:inline}}
+.bv-regler{width:min(100%,720px);align-self:center;display:grid;gap:8px}
+.bildvoll .chip{background:rgba(255,255,255,.1);color:#fff;border-color:rgba(255,255,255,.22)}
+.bildvoll .zs-regler,.bildvoll .zs-vor{color:rgba(244,236,226,.8)}
+.bildvoll .zs-regler b{color:#fff}
+.bildvoll .zs-vor .vk{width:110px;aspect-ratio:var(--vk,1.33)}
+.bildvoll .zs-vor .vh{width:170px;aspect-ratio:var(--vh,1.5)}
+.bildvoll .knopf:not(.akz){background:rgba(255,255,255,.1);color:#fff;border-color:rgba(255,255,255,.22)}
+/* Seitenleiste am breiten Schirm: links oder rechts (R11) */
+.rail-griff{display:none}
+@media(min-width:1000px){
+ .kopf{-webkit-user-select:none;user-select:none;-webkit-touch-callout:none}
+ .rail-griff{display:grid;place-items:center;width:28px;height:28px;border-radius:8px;flex:none;cursor:grab;touch-action:none;color:inherit;background:none;border:0}
+ .rail-griff .ic{width:17px;height:17px}
+ body[data-rail="r"] .app{grid-template-columns:minmax(0,1fr) auto}
+ body[data-rail="r"] .kopf{order:2;box-shadow:-1px 0 0 var(--line)}
+ body[data-rail="r"] .md-liste{border-right:0;border-left:0;box-shadow:1px 0 0 var(--line)}
+ body.rail-zieht .kopf{opacity:.55;cursor:grabbing}
+ .rail-ziel{position:fixed;top:0;bottom:0;width:204px;z-index:70;pointer-events:none;border:2px dashed var(--akz);border-radius:14px;background:color-mix(in srgb,var(--akz) 14%,transparent)}
+ .rail-ziel.zu{width:62px}
+ .rail-ziel.l{left:0}.rail-ziel.r{right:0}
+}
+/* Großansicht „Meine Food-Zine-Bilder“: blättern (Klaus 25.11.) */
+.zs-pf{position:absolute;top:50%;transform:translateY(-50%);width:46px;height:46px;border-radius:50%;display:grid;place-items:center;cursor:pointer;background:rgba(0,0,0,.45);color:#fff;border:1px solid rgba(255,255,255,.3);z-index:2}
+.zs-pf .ic{width:22px;height:22px}
+.zs-pf.li{left:10px}.zs-pf.re{right:10px}
+.zs-pf[hidden]{display:none}
+.zs-zahl{font-weight:400;opacity:.8;margin-left:6px;font-size:13px}
+.zs-nr{font-weight:400;opacity:.8;margin-left:6px;font-size:13px}
+/* Food-Zine: zwei Spalten nach der Breite der Ansicht (links die Wahl, rechts Auftrag und Sammlung); schmal untereinander */
+#zine-ansicht{container-type:inline-size}
+.zn-spalten>div{min-width:0}
+@container (min-width:860px){.zn-spalten{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:28px;align-items:start}}
+/* Wahl-Modus der Sammlung: ein Tipp auf ein Bild wählt es für die KI */
+.zs.wahl{outline:2px solid var(--akz);outline-offset:4px;border-radius:14px}
+.zs-wahl-hin{display:flex;align-items:center;gap:10px;margin:0 0 8px;padding:6px 10px;border-radius:10px;background:color-mix(in srgb,var(--akz) 14%,transparent);font-size:13.5px;font-weight:600}
+.zs-wahl-hin span{flex:1;min-width:0}
+.zs.wahl .zs-kachel:not(.zs-dazu){cursor:copy}
+/* Einordnen: Kategorie und Ordner in einem Fenster */
+.ein-satz{font-size:13px;color:var(--mut);margin:2px 0 10px}
+.ein-h{font-size:13px;letter-spacing:.06em;text-transform:uppercase;color:var(--mut);margin:6px 0 6px;font-weight:650}
+.ein-h.ein-ord{margin-top:18px;padding-top:14px;border-top:2px solid var(--line)}
+.wahl-liste .zeile[aria-pressed="true"]{font-weight:650}

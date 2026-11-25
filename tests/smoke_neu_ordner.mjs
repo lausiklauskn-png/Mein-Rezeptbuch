@@ -33,10 +33,11 @@ try {
   console.log('2 · Rezept in einen Ordner legen: die Kategorie bleibt');
   await zumStart(p); const vorSushi = (await leiste(p)).find((t) => t.startsWith('Sushi'));
   await p.locator('.fotokat button', { hasText: 'Sushi' }).click(); await p.locator('.karte', { hasText: 'Dragon Roll' }).click(); await p.waitForSelector('.rezept-held h1');
-  await p.click('[data-a=rleiste]'); ok(await p.locator('.rwerk [data-a=ordner-zuordnen]').count() === 1 && await p.locator('.rwerk [data-a=kat-zuordnen]').count() === 1, 'Werkzeuge am Rezept: Kategorie und Ordner getrennt');
-  await p.click('.rwerk [data-a=ordner-zuordnen]');
-  ok(await p.locator('#ord-wahl .zeile').count() === 2 && (await p.locator('#ord-wahl').innerText()).includes('Sommer <b>'), 'das Fenster zeigt die Ordner (Name als Text, nicht als HTML)');
-  await p.locator('#ord-wahl .zeile', { hasText: 'Für Gäste' }).click();
+  await p.click('[data-a=rleiste]'); ok(await p.locator('.rwerk [data-a=einordnen]').count() === 1 && await p.locator('.rwerk [data-a=ordner-zuordnen], .rwerk [data-a=kat-zuordnen]').count() === 0, 'Werkzeuge am Rezept: EIN Knopf „Einordnen“ für Kategorie und Ordner (Klaus 25.11.)');
+  await p.click('.rwerk [data-a=einordnen]');
+  ok(await p.locator('#ein-kat .zeile').count() > 5 && await p.locator('#ein-ord .zeile').count() === 2 && (await p.locator('#ein-ord').innerText()).includes('Sommer <b>'), 'das Fenster zeigt oben die Kategorien, darunter die Ordner (Name als Text, nicht als HTML)');
+  await p.locator('#ein-ord .zeile', { hasText: 'Für Gäste' }).click(); await p.waitForTimeout(150);
+  ok(await p.locator('#ein-ord .zeile[aria-pressed=true]', { hasText: 'Für Gäste' }).count() === 1, 'ein Tipp setzt sofort; das Fenster bleibt offen und zeigt den Haken'); await p.keyboard.press('Escape');
   ok((await p.locator('#toast').innerText()).includes('Für Gäste') && (await p.locator('.rezept-held .im-ordner').innerText()).includes('Für Gäste'), 'das Rezept liegt im Ordner; er steht am Rezept');
   ok((await p.locator('.rezept-held .meta').innerText()).includes('Sushi'), 'die Kategorie steht weiter am Rezept');
   await p.goBack(); await p.waitForSelector('.fotokat');
@@ -46,10 +47,10 @@ try {
 
   console.log('3 · Neuen Ordner aus dem Rezept heraus anlegen; Ordner ansehen');
   await p.locator('.karte:not(:has-text("Dragon Roll"))').first().click(); await p.waitForSelector('.rezept-held h1'); const zweites = await p.locator('.rezept-held h1').innerText();   /* ein ANDERES Rezept als das erste */
-  ok(!zweites.includes('Dragon Roll') && await p.locator('.rwerk').count() === 0, 'Selbst-Riegel: es ist ein anderes Rezept; es beginnt mit eingeklappten Werkzeugen', zweites); await p.click('[data-a=rleiste]'); await p.click('.rwerk [data-a=ordner-zuordnen]'); await p.fill('[data-form=ordner-neu-zu] input', 'Weihnachten'); await p.keyboard.press('Enter');
+  ok(!zweites.includes('Dragon Roll') && await p.locator('.rwerk').count() === 0, 'Selbst-Riegel: es ist ein anderes Rezept; es beginnt mit eingeklappten Werkzeugen', zweites); await p.click('[data-a=rleiste]'); await p.click('.rwerk [data-a=einordnen]'); await p.fill('[data-form=ein-ord-neu] input', 'Weihnachten'); await p.keyboard.press('Enter'); await p.waitForTimeout(150); await p.keyboard.press('Escape');
   ok((await p.locator('.rezept-held .im-ordner').innerText()).includes('Weihnachten'), 'neuer Ordner angelegt und das Rezept gleich hineingelegt');
-  ok(await p.locator('.rwerk').count() === 1, 'die Werkzeuge bleiben nach der Wahl offen (wie bei der Kategorie)'); await p.click('.rwerk [data-a=ordner-zuordnen]');
-  ok(await p.locator('#ord-wahl .zeile[aria-pressed=true]').count() === 1 && (await p.locator('#ord-wahl .zeile[aria-pressed=true]').innerText()).includes('Weihnachten') && await p.locator('#ord-wahl [data-oid=""]').count() === 1, 'im Fenster ist der jetzige Ordner markiert; „aus dem Ordner nehmen“ steht da');
+  ok(await p.locator('.rwerk').count() === 1, 'die Werkzeuge bleiben nach der Wahl offen (wie bei der Kategorie)'); await p.click('.rwerk [data-a=einordnen]');
+  ok(await p.locator('#ein-ord .zeile[aria-pressed=true]').count() === 1 && (await p.locator('#ein-ord .zeile[aria-pressed=true]').innerText()).includes('Weihnachten') && await p.locator('#ein-ord [data-oid=""]').count() === 1, 'im Fenster ist der jetzige Ordner markiert; „aus dem Ordner nehmen“ steht da');
   await p.keyboard.press('Escape'); await p.goBack(); await p.waitForSelector('.fotokat');
   await p.locator('.fotokat .ord', { hasText: 'Weihnachten' }).click();
   ok(await p.locator('.karte').count() === 1 && (await p.locator('.karte strong').innerText()) === zweites && await p.locator('#start-rest .ueber h2').count() === 0 && await p.locator('.fotokat .ord[aria-pressed=true]', { hasText: 'Weihnachten' }).count() === 1, 'Tipp auf den Ordner zeigt sein Rezept; der Ordner ist in der Leiste gewählt, keine zweite Überschrift');
@@ -62,7 +63,7 @@ try {
   ok((await p.locator('.rezept-held .im-ordner').innerText()).includes('Weihnachten') && /Kuchen|Gebäck/.test(await p.locator('.rezept-held .meta').innerText()), 'gespeichert: im Ordner UND in der Kategorie');
   await p.click('[data-a=rleiste]'); await p.click('[data-a=bearbeiten]'); await p.selectOption('[name=folder]', { label: 'Für Gäste' }); await p.click('button[type=submit]'); await p.waitForSelector('.rezept-held h1');
   ok((await p.locator('.rezept-held .im-ordner').innerText()).includes('Für Gäste'), 'beim Bearbeiten lässt sich der Ordner wechseln');
-  await p.click('[data-a=rleiste]'); await p.click('.rwerk [data-a=ordner-zuordnen]'); await p.click('#ord-wahl [data-oid=""]');
+  await p.click('[data-a=rleiste]'); await p.click('.rwerk [data-a=einordnen]'); await p.click('#ein-ord [data-oid=""]'); await p.waitForTimeout(150); await p.keyboard.press('Escape');
   ok(await p.locator('.rezept-held .im-ordner').count() === 0 && (await p.locator('#toast').innerText()).includes('Aus dem Ordner genommen'), '„aus dem Ordner nehmen“ nimmt es heraus');
 
   console.log('5 · Umbenennen, ordnen, Neuladen, Sicherung');
