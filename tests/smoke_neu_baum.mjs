@@ -73,7 +73,7 @@ try {
   await fingerZieh(p, gruppe(p, 'Sushi').locator('.bz-rgriff').first(), gruppe(p, 'Für Gäste').locator('.bz-kopf'));
   z = await zustand(p); const o1 = z.ordner.find((o) => o.name === 'Für Gäste'), r1 = z.rezepte.find((r) => r.name === erstes);
   ok(r1 && String(r1.folder) === String(o1.id) && r1.cat === sushiId, 'langer Druck und ziehen: das Rezept liegt im Ordner und behält seine Kategorie', JSON.stringify({ f: r1?.folder, c: r1?.cat }));
-  ok(await zahlIn(p, 'Sushi') === sushiN - 1 && (await gruppe(p, 'Sushi').locator('.bz-zahl').innerText()).includes('+1 in Ordnern') && await zahlIn(p, 'Für Gäste') === 1, 'der Baum zeigt es nur beim Ordner; die Kategorie sagt „+1 in Ordnern“', await gruppe(p, 'Sushi').locator('.bz-zahl').innerText());
+  ok(await zahlIn(p, 'Sushi') === sushiN - 1 && (await gruppe(p, 'Sushi').locator('.bz-zahl').innerText()).includes('+1 in Event-Ordnern') && await zahlIn(p, 'Für Gäste') === 1, 'der Baum zeigt es nur beim Ordner; die Kategorie sagt „+1 in Event-Ordnern“ (Klaus 25.11.: Event-Ordner)', await gruppe(p, 'Sushi').locator('.bz-zahl').innerText());
   ok((await p.locator('#toast').innerText()).includes('Für Gäste') && await p.locator('#toast [data-a=toast-tun]').count() === 1, 'die Meldung nennt das Ziel und bietet Rückgängig');
   await p.click('#toast [data-a=toast-tun]'); await p.waitForTimeout(300); z = await zustand(p); ok(!z.rezepte.find((r) => r.name === erstes).folder, 'Rückgängig nimmt es wieder heraus');
   /* Selbst-Riegel: ein Finger, der sich vor Ablauf der Uhr bewegt, scrollt; er zieht nicht */

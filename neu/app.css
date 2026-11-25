@@ -986,3 +986,19 @@ a.knopf{text-decoration:none}
 .ev-knoepfe .chip{min-height:34px}
 .ev-knoepfe .chip:disabled{opacity:.5}
 .chip.akz{background:var(--vl);color:var(--vl-schrift);border-color:var(--vl-rand);font-weight:650}
+
+/* Einordnen (Klaus 25.11. abends): ✓ zum Anlegen im Feld (am Tablet zeigte die Tastatur „Weiter“ und sprang ins Ordner-Feld);
+   im gewählten Ordner stehen Haken und ✕ in derselben Zeile */
+.suche .ein-ok{color:var(--akz)}
+.ein-ozeile{display:flex;align-items:center;gap:4px}
+.ein-ozeile .zeile{flex:1;min-width:0}
+.ein-ox{flex:none;width:40px;height:40px;background:none;color:var(--mut)}
+.suche:has(input:placeholder-shown) .ein-ok{opacity:.35}
+/* Einordnen: das Bild einer Kategorie ist ein eigener Knopf links in der Zeile (Tipp ändert das Bild, wie im Baum) */
+.ein-kzeile{display:flex;align-items:center;gap:6px}
+.ein-kzeile .zeile{flex:1;min-width:0}
+.ein-kbild{flex:none;width:44px;height:44px;display:grid;place-items:center;border-radius:50%}
+.ein-kbild .ic{width:20px;height:20px;color:var(--akz)}
+.ueb-fass{display:inline-flex;align-items:center;gap:4px;color:var(--mut)}
+.ueb-fass .ic{width:16px;height:16px}
+.ueb-fass .chip{min-height:26px;padding:0 8px;font-size:12px;font-weight:650}

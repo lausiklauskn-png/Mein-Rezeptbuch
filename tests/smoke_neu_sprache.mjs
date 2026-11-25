@@ -210,10 +210,10 @@ try {
   ok(JSON.stringify(ges.zustand.rezepte[0].translations?.en) === JSON.stringify(EN_SUPPE) && ges.zustand.rezepte[0].name === 'Kartofelsuppe' && ges.zustand.rezepte[0].ings[0].name === 'Kartofeln', 'gespeichert ist die Übersetzung unter translations.en; das Rezept selbst bleibt, wie es ist');
   const zut = glatt(await p.locator('.zut').innerText()), schr = glatt(await p.locator('.schritte').innerText());
   ok(await p.locator('.rezept-held h1').innerText() === 'Potato soup' && zut.includes('500 g potatoes') && zut.includes('stock') && schr.includes('Peel the potatoes') && !schr.includes('schälen') && (await p.title()).startsWith('Potato soup'), 'englische Oberfläche: Name, Zutaten und Schritte stehen in der Übersetzung da, die Mengen bleiben', zut);
-  ok(await p.locator('.ueb-um').count() === 1 && await p.getAttribute('.ueb-um', 'aria-pressed') === 'true' && glatt(await p.locator('.ueb-um').innerText()) === 'EN' && await p.locator('.rezept-held .meta .ueb-um').count() === 1, 'ein kleiner Umschalter steht in der Meta-Zeile (keine eigene Zeile)');
-  await p.click('.ueb-um'); await p.waitForFunction(() => document.querySelector('.ueb-um')?.getAttribute('aria-pressed') === 'false', null, { timeout: 5000 }).catch(() => {});
-  ok(await p.locator('.rezept-held h1').innerText() === 'Kartofelsuppe' && glatt(await p.locator('.schritte').innerText()).includes('schälen') && await p.getAttribute('.ueb-um', 'aria-pressed') === 'false', 'der Umschalter zeigt das Original');
-  await p.click('.ueb-um'); await p.waitForFunction(() => document.querySelector('.rezept-held h1')?.innerText === 'Potato soup'); ok(true, 'ein zweiter Tipp zeigt wieder die Übersetzung');
+  ok(await p.locator('.rezept-held .meta .ueb-fass .ueb-um').count() === 2 && await p.getAttribute('.ueb-um[data-s=en]', 'aria-pressed') === 'true' && await p.getAttribute('.ueb-um[data-s=orig]', 'aria-pressed') === 'false' && glatt(await p.locator('.ueb-um[data-s=en]').innerText()) === 'EN', 'kleine Sprach-Chips in der Meta-Zeile: Original und EN, EN ist gewählt (keine eigene Zeile)');
+  await p.click('.ueb-um[data-s=orig]'); await p.waitForFunction(() => document.querySelector('.ueb-um[data-s=orig]')?.getAttribute('aria-pressed') === 'true', null, { timeout: 5000 }).catch(() => {});
+  ok(await p.locator('.rezept-held h1').innerText() === 'Kartofelsuppe' && glatt(await p.locator('.schritte').innerText()).includes('schälen'), 'der Chip „Original“ zeigt das Original');
+  await p.click('.ueb-um[data-s=en]'); await p.waitForFunction(() => document.querySelector('.rezept-held h1')?.innerText === 'Potato soup'); ok(true, 'der Chip EN zeigt wieder die Übersetzung');
   await geh(p, 'start', '.fotokat'); ok((await p.locator('.karte strong').allInnerTexts()).includes('Potato soup'), 'auch die Karte in der Liste trägt den übersetzten Namen');
   const such = async (wort) => { await p.fill('#suchfeld', wort); await p.waitForSelector('.ueber h2'); const n = await p.locator('#start-rest .karte').count(); await p.fill('#suchfeld', ''); return n; };
   ok(await such('potato') === 1 && await such('kartof') === 1 && await such('stock') === 1, 'die Suche findet das Rezept unter dem, was dasteht, und unter dem Original');
@@ -226,13 +226,15 @@ try {
   ok(await p.inputValue('[name=name]') === 'Potato soup', 'bearbeitet wird die angezeigte Fassung, hier die englische Übersetzung (Klaus 25.11.)');
   await p.fill('[name=servings]', '6'); await p.click('[data-form=rezept] button[type=submit]'); await p.waitForSelector('.rezept-held h1');
   ges = await bisGespeichert(p, (g) => g.zustand.rezepte[0].servings === 6); ok(ges.zustand.rezepte[0].servings === 6 && !!ges.zustand.rezepte[0].translations?.en && JSON.stringify(ges.zustand.rezepte[0].ings.map(({ amt, unit, name }) => [amt, unit, name])) === JSON.stringify(SUPPE.ings.map(({ amt, unit, name }) => [amt, unit, name])) && await p.locator('.rezept-held h1').innerText() === 'Potato soup', 'nur die Portionen geändert: die Übersetzung bleibt, und Name, Zutaten und Schritte bleiben genau, wie sie waren (nichts wird neu zerlegt)', JSON.stringify(ges.zustand.rezepte[0].ings[3]));
-  await p.click('.ueb-um'); await p.waitForFunction(() => document.querySelector('.rezept-held h1')?.textContent === 'Kartofelsuppe');   /* das Original zeigen, dann das Original bearbeiten */
+  await p.click('.ueb-um[data-s=orig]'); await p.waitForFunction(() => document.querySelector('.rezept-held h1')?.textContent === 'Kartofelsuppe');   /* das Original zeigen, dann das Original bearbeiten */
   if (!(await p.locator('.rwerk').count())) await p.click('[data-a=rleiste]'); await p.click('.rwerk [data-a=bearbeiten]'); await p.waitForSelector('[data-form=rezept]');
   await p.fill('[name=name]', 'Kartoffelsuppe'); await p.click('[data-form=rezept] button[type=submit]'); await p.waitForSelector('.rezept-held h1');
   ges = await bisGespeichert(p, (g) => g.zustand.rezepte[0].name === 'Kartoffelsuppe'); ok(!ges.zustand.rezepte[0].translations && await p.locator('.rezept-held h1').innerText() === 'Kartoffelsuppe' && await p.locator('.ueb-um').count() === 0, 'ändert sich der Text des Rezepts, fällt die Übersetzung weg: es steht nicht der alte Text da');
   await k.close();
   ({ p, k } = await seite({ ort: 'de-DE', bestand: { ...BESTAND, rezepte: [{ ...SUPPE, translations: { en: EN_SUPPE } }, KUCHEN] } })); await zumRezept(p);
-  ok(await p.locator('.rezept-held h1').innerText() === 'Kartofelsuppe' && await p.locator('.ueb-um').count() === 0, 'deutsche Oberfläche: eine englische Übersetzung am Rezept ändert die Ansicht nicht'); await k.close();
+  ok(await p.locator('.rezept-held h1').innerText() === 'Kartofelsuppe' && await p.getAttribute('.ueb-um[data-s=orig]', 'aria-pressed') === 'true', 'deutsche Oberfläche: zuerst steht das Original da');
+  await p.click('.ueb-um[data-s=en]'); await p.waitForFunction(() => document.querySelector('.rezept-held h1')?.innerText === 'Potato soup', null, { timeout: 5000 }).catch(() => {});
+  ok(await p.locator('.rezept-held h1').innerText() === 'Potato soup', 'Klaus 25.11.: eine Übersetzung in einer anderen Sprache als der Oberfläche ist trotzdem zu sehen – ein Tipp auf EN zeigt sie'); await k.close();
 
   console.log('6 · Ohne Schlüssel fragt die App danach; nichts geht hinaus');
   rufe.length = 0; ({ p, k } = await seite({ ort: 'de-DE', schluessel: {} })); await zumRezept(p); await menue(p); await p.click('#rmenue [data-a=uebersetzen]');

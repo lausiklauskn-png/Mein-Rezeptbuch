@@ -50,7 +50,26 @@ try {
   ok(!zweites.includes('Dragon Roll') && await p.locator('.rwerk').count() === 0, 'Selbst-Riegel: es ist ein anderes Rezept; es beginnt mit eingeklappten Werkzeugen', zweites); await p.click('[data-a=rleiste]'); await p.click('.rwerk [data-a=einordnen]'); await p.fill('[data-form=ein-ord-neu] input', 'Weihnachten'); await p.keyboard.press('Enter'); await p.waitForTimeout(150); await p.keyboard.press('Escape');
   ok((await p.locator('.rezept-held .im-ordner').innerText()).includes('Weihnachten'), 'neuer Ordner angelegt und das Rezept gleich hineingelegt');
   ok(await p.locator('.rwerk').count() === 1, 'die Werkzeuge bleiben nach der Wahl offen (wie bei der Kategorie)'); await p.click('.rwerk [data-a=einordnen]');
-  ok(await p.locator('#ein-ord .zeile[aria-pressed=true]').count() === 1 && (await p.locator('#ein-ord .zeile[aria-pressed=true]').innerText()).includes('Weihnachten') && await p.locator('#ein-ord [data-oid=""]').count() === 1, 'im Fenster ist der jetzige Ordner markiert; „aus dem Ordner nehmen“ steht da');
+  ok(await p.locator('#ein-ord .zeile[aria-pressed=true]').count() === 1 && (await p.locator('#ein-ord .zeile[aria-pressed=true]').innerText()).includes('Weihnachten') && await p.locator('#ein-ord .ein-ozeile:has(.zeile[aria-pressed=true]) .ein-ox').count() === 1 && await p.locator('#ein-ord .zeile', { hasText: 'aus dem Ordner nehmen' }).count() === 0, 'im Fenster ist der jetzige Ordner markiert; ✕ steht in derselben Zeile, keine eigene Zeile „aus dem Ordner nehmen“ (Klaus 25.11.)');
+  await p.click('#ein-ord .ein-ox'); await p.waitForTimeout(150);
+  ok(await p.locator('#ein-ord .zeile[aria-pressed=true]').count() === 0 && await p.locator('#ein-ord .ein-ox').count() === 0 && await p.locator('.fenster').count() === 1, 'ein Tipp auf ✕ nimmt es heraus; das Fenster bleibt offen');
+  await p.locator('#ein-ord .zeile', { hasText: 'Weihnachten' }).click(); await p.waitForTimeout(150); await p.locator('#ein-ord .zeile', { hasText: 'Weihnachten' }).click(); await p.waitForTimeout(150);
+  ok(await p.locator('#ein-ord .zeile[aria-pressed=true]').count() === 0, 'ein zweiter Tipp auf den angehakten Ordner nimmt den Haken wieder weg');
+  await p.locator('#ein-ord .zeile', { hasText: 'Weihnachten' }).click(); await p.waitForTimeout(150);
+  /* Klaus 25.11. (Tablet): „Neue Kategorie anlegen funktioniert nicht, ist kein Haken“ – die Tastatur zeigte „Weiter“ und sprang ins Ordner-Feld */
+  ok(await p.locator('[data-form=ein-kat-neu] input[enterkeyhint=done]').count() === 1 && await p.locator('[data-form=ein-ord-neu] input[enterkeyhint=done]').count() === 1, 'beide Felder sagen der Tastatur „Fertig“, nicht „Weiter“');
+  await p.fill('[data-form=ein-kat-neu] input', 'Festtagsküche'); await p.click('[data-form=ein-kat-neu] .ein-ok'); await p.waitForTimeout(250);
+  const neuK = p.locator('#ein-kat .zeile[aria-pressed=true]');
+  ok(await neuK.count() === 1 && (await neuK.innerText()).includes('Festtagsküche') && await neuK.evaluate((e) => { const b = e.getBoundingClientRect(), f = e.closest('.fenster').getBoundingClientRect(); return b.top >= f.top && b.bottom <= f.bottom; }), 'der ✓-Knopf legt die Kategorie an, hakt sie an und rollt sie ins Bild');
+  ok((await p.locator('#ein-ord .ein-ox').getAttribute('aria-label')).startsWith('Rezept aus „') && (await p.locator('.fenster .ein-ord').innerText()).startsWith('EVENT-ORDNER') || (await p.locator('.fenster .ein-ord').innerText()).startsWith('Event-Ordner'), 'der ✕ sagt, dass das REZEPT herausgenommen wird; der Abschnitt heißt „Event-Ordner“ (Klaus 25.11.)', await p.locator('#ein-ord .ein-ox').getAttribute('aria-label'));
+  /* Klaus 25.11.: Bild oder Zeichen einer Kategorie auch im Fenster „Einordnen“ ändern */
+  const kz = p.locator('#ein-kat .ein-kzeile', { has: p.locator('.zeile', { hasText: 'Festtagsküche' }) });
+  ok(await p.locator('#ein-kat .ein-kbild[data-a=ein-bild]').count() > 5 && await kz.locator('.ein-kbild').count() === 1, 'jede Kategorie hat links ihr Bild als eigenen Knopf');
+  await kz.locator('.ein-kbild').click(); await p.waitForSelector('[data-a=kat-emoji-setzen]');
+  await p.locator('[data-a=kat-emoji-setzen][data-e="🎂"]').first().click(); await p.waitForSelector('#ein-kat', { timeout: 5000 }).catch(() => {});
+  ok(await p.locator('#ein-kat').count() === 1 && (await kz.locator('.ein-kbild').innerText()).includes('🎂') && await p.locator('#ein-kat .zeile[aria-pressed=true]', { hasText: 'Festtagsküche' }).count() === 1, 'gewählt: zurück in „Einordnen“, die Kategorie trägt das neue Zeichen, die Wahl bleibt', [await p.locator('#ein-kat').count(), await kz.locator('.ein-kbild').innerHTML().catch(() => '–'), await p.locator('#ein-kat .zeile[aria-pressed=true]').innerText().catch(() => '–')].join(' · ').slice(0, 300));
+  await kz.locator('.ein-kbild').click(); await p.waitForSelector('[data-a=kat-emoji-setzen]'); await p.keyboard.press('Escape'); await p.waitForTimeout(150);
+  ok(await p.locator('#ein-kat').count() === 1, 'abgebrochen: auch dann zurück in „Einordnen“');
   await p.keyboard.press('Escape'); await p.goBack(); await p.waitForSelector('.fotokat');
   await p.locator('.fotokat .ord', { hasText: 'Weihnachten' }).click();
   ok(await p.locator('.karte').count() === 1 && (await p.locator('.karte strong').innerText()) === zweites && await p.locator('#start-rest .ueber h2').count() === 0 && await p.locator('.fotokat .ord[aria-pressed=true]', { hasText: 'Weihnachten' }).count() === 1, 'Tipp auf den Ordner zeigt sein Rezept; der Ordner ist in der Leiste gewählt, keine zweite Überschrift');
@@ -63,8 +82,8 @@ try {
   ok((await p.locator('.rezept-held .im-ordner').innerText()).includes('Weihnachten') && /Kuchen|Gebäck/.test(await p.locator('.rezept-held .meta').innerText()), 'gespeichert: im Ordner UND in der Kategorie');
   await p.click('[data-a=rleiste]'); await p.click('[data-a=bearbeiten]'); await p.selectOption('[name=folder]', { label: 'Für Gäste' }); await p.click('button[type=submit]'); await p.waitForSelector('.rezept-held h1');
   ok((await p.locator('.rezept-held .im-ordner').innerText()).includes('Für Gäste'), 'beim Bearbeiten lässt sich der Ordner wechseln');
-  await p.click('[data-a=rleiste]'); await p.click('.rwerk [data-a=einordnen]'); await p.click('#ein-ord [data-oid=""]'); await p.waitForTimeout(150); await p.keyboard.press('Escape');
-  ok(await p.locator('.rezept-held .im-ordner').count() === 0 && (await p.locator('#toast').innerText()).includes('Aus dem Ordner genommen'), '„aus dem Ordner nehmen“ nimmt es heraus');
+  await p.click('[data-a=rleiste]'); await p.click('.rwerk [data-a=einordnen]'); await p.click('#ein-ord .ein-ox'); await p.waitForTimeout(150); await p.keyboard.press('Escape');
+  ok(await p.locator('.rezept-held .im-ordner').count() === 0 && (await p.locator('#toast').innerText()).includes('Rezept aus dem Event-Ordner genommen'), '✕ in der Zeile nimmt das Rezept heraus; die Meldung sagt „Rezept“ (Klaus 25.11.)');
 
   console.log('5 · Umbenennen, ordnen, Neuladen, Sicherung');
   await zurWerkstatt(p); await p.click('.zeile[data-zu=baum]'); await p.waitForSelector('.bz-gruppe[data-art=ord]');
