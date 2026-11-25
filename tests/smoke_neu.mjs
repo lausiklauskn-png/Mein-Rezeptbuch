@@ -380,6 +380,20 @@ try {
     ok(pRufe.length === 1 && pRufe[0].includes('/image/Forelle') && pRufe[0].includes('key=sk_probe'), 'das Bild kommt von gen.pollinations.ai, mit dem Schlüssel', pRufe.join(' '));
     ok(await q.locator('.rezept-held img').count() === 1, 'das Rezept hat danach ein Bild');
     await kz.close(); }
+  console.log('9b · Klaus 25.11.: jede Erklärung hinter „?“ ist ganz zu lesen');
+  for (const breite of [390, 1280]) { const { p: q, k: kf } = await seite(() => { localStorage.setItem('mrz9m', JSON.stringify([{ id: 3, name: 'Forelle', cat: 'fisch', ings: [{ name: 'Forelle' }], steps: [{ txt: 'braten' }] }])); });
+    await q.setViewportSize({ width: breite, height: 800 }); await q.waitForSelector('.karte');
+    const pruefe = async (wo) => { await q.waitForFunction(() => document.getAnimations().every((a) => a.playState !== 'running')); const n = await q.locator('details.frag:visible').count(); let schlecht = [];
+      for (let i = 0; i < n; i++) { const d = q.locator('details.frag:visible').nth(i); await d.locator('summary').click(); await q.evaluate(() => new Promise((r) => requestAnimationFrame(() => requestAnimationFrame(r))));   /* ein Finger ist langsamer als ein Skript */
+        const lage = await d.evaluate((e) => { const p = document.getElementById('frag-blase'); if (!p) return { drin: false, oben: false, text: 'keine Blase' }; const r = p.getBoundingClientRect(); const ecken = [[r.left + 14, r.top + 14], [r.right - 14, r.top + 14], [r.left + 14, r.bottom - 14], [r.right - 14, r.bottom - 14]];   /* runde Ecken (12 px): innen messen */
+          return { drin: r.left >= 0 && r.right <= innerWidth && r.top >= 0 && r.bottom <= innerHeight && r.width > 100, oben: ecken.every(([x, y]) => p.contains(document.elementFromPoint(x, y))), text: p.textContent.slice(0, 30) }; });
+        if (!lage.drin || !lage.oben) schlecht.push(JSON.stringify(lage)); await d.locator('summary').click().catch(() => {}); }
+      ok(n > 0 && !schlecht.length, `${breite} px · ${wo}: ${n} Erklärungen, jede ganz im Bild und obenauf`, schlecht.join(' · ')); };
+    await q.locator('.karte', { hasText: 'Forelle' }).click(); if (breite < 1000) await q.waitForSelector('.rezept-held'); await q.click('.rezept-held'); await pruefe('Bild-Blatt'); await q.click('.fenster [data-a=fenster-zu]');
+    if (!(await q.locator('[data-a=ordner-zuordnen]:visible').count())) await q.click('.rezept-held [data-a=rleiste]'); await q.click('[data-a=ordner-zuordnen]'); await q.waitForSelector('[data-form=ordner-neu-zu]'); await pruefe('In einen Ordner legen'); await q.locator('.schleier').click({ position: { x: 4, y: 4 } });
+    if (breite < 1000) await q.click('#leiste .fl-griff'); await q.click(breite < 1000 ? '#leiste [data-zu=werkstatt]' : '#kopf [data-zu=werkstatt]'); await pruefe('Einstellungen');
+    await q.click('[data-zu=kategorien]'); await q.waitForSelector('#kat-liste'); await pruefe('Kategorien');
+    await kf.close(); }
   ok(fehler.length === 0, 'keine Fehler in der Konsole, kein Netz nach draußen', fehler.join(' · '));
 } catch (e) { rot++; console.log('  ✗ ROT: Probe abgebrochen — ' + e.message.split('\n')[0]); }
 await browser.close(); srv.close();

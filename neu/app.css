@@ -142,7 +142,8 @@ textarea.feld{min-height:120px;resize:vertical;line-height:1.45}
 .frag{display:inline-block;position:relative}
 .frag summary{list-style:none;width:22px;height:22px;border-radius:50%;border:1px solid var(--line);display:grid;place-items:center;font-weight:700;font-size:12px;color:var(--akz);cursor:pointer;background:var(--fl)}
 .frag summary::-webkit-details-marker{display:none}
-.frag p{position:absolute;z-index:8;right:0;top:28px;width:250px;max-width:74vw;background:var(--fl);border:1px solid var(--line);border-radius:12px;padding:8px 10px;font-size:12.5px;line-height:1.4;box-shadow:0 10px 26px rgba(0,0,0,.2);color:var(--ink);font-weight:400;text-transform:none;letter-spacing:0}
+.frag p{display:none}
+.frag-blase{position:fixed;overflow:auto;z-index:80;max-width:calc(100vw - 16px);background:var(--fl);border:1px solid var(--line);border-radius:12px;padding:8px 10px;font-size:12.5px;line-height:1.4;box-shadow:0 10px 26px rgba(0,0,0,.2);color:var(--ink);font-weight:400;text-transform:none;letter-spacing:0}
 
 /* Flying Widget (wie Private Akte): Griff, lange drücken oder ziehen, rastet links/rechts/unten ein */
 .fl{position:fixed;z-index:45;top:64%;right:0;transform:translateY(-50%)}
