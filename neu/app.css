@@ -1084,3 +1084,8 @@ a.knopf{text-decoration:none}
 .karte.ziel-vor{box-shadow:-4px 0 0 0 var(--akz),var(--schatten)}
 .karte.ziel-nach{box-shadow:4px 0 0 0 var(--akz),var(--schatten)}
 .fotokat button.kz-ziel .bild{box-shadow:0 0 0 3px var(--akz);transform:scale(1.08)}
+/* R22 Beispielbilder an den Food-Zine-Formaten (0.19.1) */
+.zn-format .zn-bsp{width:100%;height:78px;object-fit:contain;border-radius:6px;background:var(--fl2);-webkit-user-drag:none;user-select:none;-webkit-touch-callout:none}
+#zn-gross{position:fixed;inset:0;z-index:95;display:grid;place-content:center;justify-items:center;gap:8px;padding:16px;background:rgba(20,14,8,.62);pointer-events:none}
+#zn-gross img{max-width:min(94vw,820px);max-height:82vh;object-fit:contain;border-radius:10px;box-shadow:0 10px 40px rgba(0,0,0,.45);background:#fff}
+#zn-gross span{color:#fff;font-weight:650;font-size:14px;text-shadow:0 1px 3px rgba(0,0,0,.6)}

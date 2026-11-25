@@ -715,7 +715,6 @@ export default {
   'Instagram': 'Instagram',
   '1:1 · Quadrat': '1:1 · квадрат',
   'Zeitungsseite': 'Газетная страница',
-  'Zweispaltig · Hochformat': 'Две колонки · книжный',
   'Rezeptkarte': 'Карточка рецепта',
   'A5 · Kompakt': 'A5 · компактно',
   'Panorama': 'Панорама',
@@ -890,4 +889,7 @@ export default {
   '{0} Schritte': 'Шагов: {0}',
   '{0} Zutaten': 'Ингредиентов: {0}',
   'Reihenfolge geändert': 'Порядок изменён',
+  'Beispiel groß: Maus darauf oder lange drücken': 'Пример крупно: наведи мышь или удерживай',
+  'Beispiel: {0}': 'Пример: {0}',
+  'Aufgeschlagene Doppelseite': 'Открытый разворот',
 };

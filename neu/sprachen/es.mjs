@@ -718,7 +718,6 @@ export default {
   'Instagram': 'Instagram',
   '1:1 · Quadrat': '1:1 · cuadrado',
   'Zeitungsseite': 'Página de periódico',
-  'Zweispaltig · Hochformat': 'Dos columnas · vertical',
   'Rezeptkarte': 'Tarjeta de receta',
   'A5 · Kompakt': 'A5 · compacta',
   'Panorama': 'Panorámica',
@@ -893,4 +892,7 @@ export default {
   '{0} Schritte': '{0} pasos',
   '{0} Zutaten': '{0} ingredientes',
   'Reihenfolge geändert': 'Orden cambiado',
+  'Beispiel groß: Maus darauf oder lange drücken': 'Ejemplo grande: pasa el ratón o mantén pulsado',
+  'Beispiel: {0}': 'Ejemplo: {0}',
+  'Aufgeschlagene Doppelseite': 'Doble página abierta',
 };

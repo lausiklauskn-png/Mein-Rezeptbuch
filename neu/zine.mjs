@@ -30,7 +30,7 @@ export function zine(app) {
 
   /* ── Namen der Formate und Extras (die Kennungen und Auftragstexte stehen im Kern) ── */
   const FORMAT = () => ({ poster: ['📄', L('Poster', 'Poster'), L('Querformat · Standard', 'Landscape · standard')], a4: ['📋', L('DIN A4', 'DIN A4'), L('Hochformat', 'Portrait')],
-    insta: ['📱', L('Instagram', 'Instagram'), L('1:1 · Quadrat', '1:1 · square')], zeitung: ['📰', L('Zeitungsseite', 'Newspaper page'), L('Zweispaltig · Hochformat', 'Two columns · portrait')],
+    insta: ['📱', L('Instagram', 'Instagram'), L('1:1 · Quadrat', '1:1 · square')], zeitung: ['📰', L('Zeitungsseite', 'Newspaper page'), L('Aufgeschlagene Doppelseite', 'Open double page')],
     karte: ['🎴', L('Rezeptkarte', 'Recipe card'), L('A5 · Kompakt', 'A5 · compact')], panorama: ['🖼️', L('Panorama', 'Panorama'), L('16:9 · Breitformat', '16:9 · widescreen')] });
   const EXTRA = () => ({ nutr: L('Nährwert-Infografik', 'Nutrition infographic'), steps: L('Step-by-Step Diagramm', 'Step-by-step diagram'), shop: L('Einkaufslisten-Block', 'Shopping list block'),
     retro: L('Vintage/Retro-Stil', 'Vintage/retro style'), qr: L('QR-Code Platzhalter', 'QR code placeholder') });
@@ -90,7 +90,7 @@ export function zine(app) {
     /* Am breiten Schirm zwei Spalten (Klaus 25.11.; nach der Breite der Ansicht, nicht des Fensters): links die Wahl, rechts Auftrag und Sammlung */
     return `<div class="zn-spalten"><div class="zn-links"><div class="gruppe" data-g="rezept"><h3>${L('Wähle ein Lieblingsrezept', 'Choose a favourite recipe')}</h3>${rezeptWahl()}</div>
      <div class="gruppe" data-g="bild"><h3>${L('Bild für die KI', 'Picture for the AI')}</h3>${bildHtml()}</div>
-     <div class="gruppe" data-g="format"><h3>${L('Format wählen', 'Choose a format')}</h3><div class="zn-formate" role="radiogroup" aria-label="${esc(L('Format wählen', 'Choose a format'))}">${ZINE_FORMATE.map((id) => `<button class="zn-format" role="radio" aria-checked="${id === Zs.format}" data-a="zn-format" data-f="${id}"><span class="zn-sym" aria-hidden="true">${F[id][0]}</span><b>${esc(F[id][1])}</b><small>${esc(F[id][2])}</small></button>`).join('')}</div></div>
+     <div class="gruppe" data-g="format"><h3>${L('Format wählen', 'Choose a format')}</h3><div class="zn-formate" role="radiogroup" aria-label="${esc(L('Format wählen', 'Choose a format'))}">${ZINE_FORMATE.map((id) => `<button class="zn-format" role="radio" aria-checked="${id === Zs.format}" data-a="zn-format" data-f="${id}" title="${esc(L('Beispiel groß: Maus darauf oder lange drücken', 'Example large: hover or long-press'))}"><img class="zn-bsp" src="./zine-beispiele/${id}-klein.webp?v=1" alt="" loading="lazy" decoding="async"><b>${esc(F[id][1])}</b><small>${esc(F[id][2])}</small></button>`).join('')}</div></div>
      <div class="gruppe" data-g="extras"><h3>${L('Extras (optional)', 'Extras (optional)')}</h3><div class="liste zn-extras">${ZINE_EXTRAS.map((id) => `<label class="zeile"><input type="checkbox" data-extra="${id}" ${Zs.extras.has(id) ? 'checked' : ''}><span>${esc(E[id])}</span></label>`).join('')}</div></div>
      <button class="knopf zn-trend" data-a="zn-trend">${L('🔥 KI-Überraschung: Trendrezepte entdecken!', '🔥 AI surprise: discover trend recipes!')}</button></div>
      <div class="zn-rechts"><div class="gruppe" data-g="auftrag"><h3>${L('Auftrag kopieren oder selber schreiben', 'Copy the request or write your own')}</h3>${auftragHtml()}</div>
@@ -126,7 +126,19 @@ export function zine(app) {
     const b = await SM().hol(id); if (!b) return;
     Zs.eigen = b.gross; Zs.eigenId = id; Zs.bild = 'eigen'; Zs.wahl = false; frisch(); $('zn-vorschau')?.scrollIntoView({ block: 'nearest' });
   }
-  A['zn-format'] = (e) => { Zs.format = zineFormat(e.dataset.f); geaendert(); };
+  A['zn-format'] = (e) => { if (Date.now() - bspGross < 500) return; Zs.format = zineFormat(e.dataset.f); geaendert(); };
+  /* R22 (Klaus 25.11., seine Bilder): ein Beispiel je Format. Klein in der Kachel (im Offline-Vorrat); groß erst, wenn man es ansieht:
+     Maus darauf, Finger lange drücken (450 ms). Loslassen schließt; ein langer Druck wählt das Format nicht. */
+  let bspUhr = null, bspGross = 0;
+  const bspZeigen = (k) => { bspWeg(); const f = k.dataset.f, F = FORMAT()[f]; if (!F) return; const d = document.createElement('div'); d.id = 'zn-gross'; d.setAttribute('role', 'img'); d.setAttribute('aria-label', fuelle(L('Beispiel: {0}', 'Example: {0}'), F[1]));
+    d.innerHTML = `<img src="./zine-beispiele/${f}-gross.webp?v=1" alt=""><span>${esc(F[1])} · ${esc(F[2])}</span>`; document.body.appendChild(d); };
+  const bspWeg = () => document.getElementById('zn-gross')?.remove();
+  document.addEventListener('pointerover', (ev) => { if (ev.pointerType !== 'mouse') return; const k = ev.target.closest?.('.zn-format'); if (k && !k.contains(ev.relatedTarget)) bspZeigen(k); });
+  document.addEventListener('pointerout', (ev) => { if (ev.pointerType !== 'mouse') return; const k = ev.target.closest?.('.zn-format'); if (k && !k.contains(ev.relatedTarget)) bspWeg(); });
+  document.addEventListener('pointerdown', (ev) => { if (ev.pointerType === 'mouse') return; const k = ev.target.closest?.('.zn-format'); if (!k) return; clearTimeout(bspUhr); bspUhr = setTimeout(() => { bspGross = Date.now(); bspZeigen(k); navigator.vibrate?.(10); }, 450); });
+  const bspLos = (ev) => { if (ev.pointerType === 'mouse') return; clearTimeout(bspUhr); if (document.getElementById('zn-gross')) { bspGross = Date.now(); bspWeg(); } };
+  document.addEventListener('pointerup', bspLos); document.addEventListener('pointercancel', bspLos);
+  document.addEventListener('contextmenu', (ev) => { if (ev.target.closest?.('.zn-format')) ev.preventDefault(); });
   A['zn-trend'] = () => { Zs.trend = true; Zs.hand = false; frisch(); $('zn-auftrag')?.scrollIntoView({ block: 'nearest', behavior: 'smooth' }); };
   A['zn-neu'] = () => { Zs.hand = false; frisch(); };
   document.addEventListener('change', async (ev) => {
