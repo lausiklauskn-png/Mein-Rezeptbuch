@@ -14,7 +14,24 @@ Klaus 23.11.2026: „Brief lesen, bevor gebaut wird. Und dann Brief ergänzen, s
 
 ---
 
-## Runde E · 23./24.11.2026 nachts · Kern 0.21–0.22, PWA 0.13.0–0.14.0 (gemeinsame Nacht-Sitzung)
+## Runde F · 25.11.2026 · Kern 0.27.1, PWA 0.15.2 (Vergleichs-Sitzung alt ↔ neu)
+
+| Kern | neu |
+|---|---|
+| 0.27.1 | `gratisBild(rezept, { schluessel })`: Pollinations nimmt Bilder seit 2026 nur mit eigenem Schlüssel (`sk_…`); ohne Schlüssel kam HTTP 402 (gilt auch für die alte App). Mit Schlüssel: `gen.pollinations.ai/image/…?key=…`. Fehler 401/402/403 tragen `f.schluessel` und Klartext. Neuer Anbieter `pollinations` in `ki/schluessel.mjs` (Prüfen über `/image/models`). |
+
+### Von Klaus am 25.11. gesagt, gilt fürs Mixarium
+
+- **Ersetzen beim Einlesen einer Sicherung wie im Rezeptbuch:** die Einkaufsliste bleibt, wenn die Datei keine trägt.
+- **Name der APK beim nächsten Bau: „App Mein Mixarium“**, mit dem vorgesehenen neuen Symbol (Entwurf als PNG liegt vor).
+- **Doppelungen beim Einlesen erkennen** (Inhalt und Bild) und je Doppel wählen: Bild behalten, Text behalten, Rezept behalten. **„alkoholfrei“ und „mit Alkohol“ sind keine Doppel**, auch wenn sich nur dieses Wort unterscheidet (kommt in den Kern).
+- **Wischen an der Rezeptkarte** (Vorbild Muttis), **Explorer-Baum** für Kategorien und Ordner: kommen im Rezeptbuch, danach prüfen fürs Mixarium.
+- Rezeptbuch 0.15.2: Kategorien „ohne“/„unbekannt“/„mitgebracht“ lassen sich auf einmal zuordnen (`kat-alle`); „Sicherung teilen“ (Web Share mit Datei). Fürs Mixarium prüfen.
+- Mixarium ruft `gratisBild(frei, { art: 'getraenk' })` ohne Schlüssel: nach `kern-nachziehen` den Schlüssel `SK.pollinations` mitgeben (sonst bleibt HTTP 402, jetzt mit Klartext).
+
+---
+
+## Runde E · 23./24.11.2026 nachts · Kern 0.21–0.22, PWA 0.13.0–0.14.0 (gemeinsame Nacht-Sitzung) (vorige Fassung)
 
 | Kern | neu |
 |---|---|
@@ -30,29 +47,3 @@ Klaus 23.11.2026: „Brief lesen, bevor gebaut wird. Und dann Brief ergänzen, s
 - **Eine Probe, die im Browser ein Versprechen nie erfüllt, hängt für immer:** beim Anlegen des Bestands über IndexedDB immer `onerror`/`try…catch` → `reject`.
 
 ---
-
-## Runde D · 23.11.2026 abends · Kern 0.18–0.20, PWA 0.12.0 (Nacht-Sitzung, Klaus war wach) (vorige Fassung)
-
-| Kern | neu |
-|---|---|
-| 0.18 | KI-Schlüssel (`ki/schluessel.mjs`), Claude (`ki/claude.mjs`), Mistral OCR, Reinigung vor der KI, Foto-Scan (`import/scan.mjs`), „Datei prüfen“ |
-| 0.19 | Web-Import ohne öffentliche Weiterleiter (`import/web.mjs`) |
-| 0.20 | Ordner (`modell/ordner.mjs`) · Funde im PDF rot markiert (`pdfFuersNetz` → `marken`, `zudecken`, `fundName`) · `kiAnweisungen` liefert den Text der Stelle · Spracheingabe mit den Fähigkeiten aus Modul 21 (`oberflaeche/diktat.mjs`) · Kreuz/Haken/Plus/Minus ohne Kasten |
-
-### Von Klaus am Abend gesagt, gilt für beide Apps
-
-- **Kein Erklärtext auf den Blättern.** „Es ist ein Kochbuch, ist immer ein Bilderbuch. Bilder sprechen für sich. Symbole sprechen für sich.“ Ein „?“ nur genau dort, wo es gebraucht wird, und **ohne eigene Zeile** (in der Kopfzeile oder im Knopf); „manchmal reicht ein Tooltip“.
-- **Keine dicken Knöpfe auf dem Bild** („kein Button-Kino“): die Werkzeuge hinter dem Winkel sind kleine runde Symbole.
-- **Nichts wiederholen:** die Kategorie steht nicht auf jeder Karte.
-- **Kurze Knopf- und Meldungstexte**, alles auf einer Zeile im Handy: „+42 Rezepte“ statt „42 Rezepte dazu“.
-- **Nicht leer anfangen:** ein paar Beispiele gleich mitgeben, entfernbar; nicht erst fragen.
-- **Einklappbar statt lange Scroll-Listen**, einfache Links zu den Themen, nicht viele Farben in einem Fenster.
-- **Der Bereich heißt „Einstellungen“** (Zahnrad). Im Mixarium heißt „Menü“ „Getränkekarte“, in der Leiste „Karte“.
-- **Farbfelder in Wasserfarben:** durchscheinend, nicht kräftig leuchtend, Strichzeichnung im selben Ton (wie die Labor-Kacheln).
-- **Dateiprüfung im Hintergrund.** Wird etwas gefunden: **markieren** (rote Fläche, der versteckte Text ist lesbar), dann **entscheiden: raus oder rein**. Keine Panik-Texte.
-- **Vorbild Private Akte** für Übersicht; vor dem Weiterbauen eine klickbare Vorschau als HTML-Datei (`tools/vorschau-bauen.mjs`).
-- **Kopf am schmalen Schirm:** oben bleiben Suche, Farbpalette und das Plus; kein Pfeil zum Aufklappen. Schrift, Hell/Dunkel, Sichern und die Einstellungen stehen in der **fliegenden Leiste**.
-- **Hell und Dunkel als Sonne und Mond** (Strichzeichnung), „wie das Gerät“ fällt als Wahl weg.
-- **„Sichern“ in der fliegenden Leiste**, „dass man nicht erst in die Einstellungen muss“.
-- **Direktlink zur Schlüssel-Seite** des Anbieters im Schlüssel-Fenster (`schluesselAdresse(a)` im Kern).
-- **Kein Verweis auf die bisherige App** in der neuen App.

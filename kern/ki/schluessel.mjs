@@ -11,6 +11,10 @@ export const ANBIETER = {
     wofuer: ['KI-Bilder', 'AI pictures'] },
   mistral: { name: 'Mistral', beginn: '', seite: 'console.mistral.ai/api-keys',
     wofuer: ['Texterkennung beim Foto-Scan (Mistral OCR, Rechenzentrum in der EU)', 'Text recognition for the photo scan (Mistral OCR, data centre in the EU)'] },
+  /* Klaus 25.11.: das Gratis-Foto antwortete mit HTTP 402. Pollinations nimmt Bilder seit 2026 nur noch mit eigenem Schlüssel
+     (sk_…, Doku gen.pollinations.ai: „Bearer key required“, 402 = Budget des Kontos aufgebraucht). */
+  pollinations: { name: 'Pollinations', beginn: 'sk_', seite: 'enter.pollinations.ai',
+    wofuer: ['Fotos über den Dienst Pollinations (eigenes Konto dort)', 'Photos via the Pollinations service (your own account there)'] },
 };
 const eintrag = (a) => 'schluessel-' + a;
 /** Die Seite des Anbieters, auf der man einen Schlüssel erstellt (Klaus 23.11.: Direktlink, „dass man schneller an den Punkt kommt“). */
@@ -54,6 +58,7 @@ export async function pruefeSchluessel(a, wert, { hol = fetch, sprache = 'de' } 
   let ant;
   try {
     if (a === 'anthropic') ant = await hol('https://api.anthropic.com/v1/messages', { method: 'POST', headers: { 'content-type': 'application/json', 'x-api-key': k, 'anthropic-version': '2023-06-01', 'anthropic-dangerous-direct-browser-access': 'true' }, body: JSON.stringify({ model: 'claude-haiku-5-5', max_tokens: 16, messages: [{ role: 'user', content: 'Hi' }] }) });
+    else if (a === 'pollinations') ant = await hol('https://gen.pollinations.ai/image/models?key=' + encodeURIComponent(k));
     else ant = await hol(a === 'openai' ? 'https://api.openai.com/v1/models' : 'https://api.mistral.ai/v1/models', { headers: { Authorization: 'Bearer ' + k } });
   } catch { return { ok: false, text: fuelle(text(sprache, 'Keine Verbindung zu {0}. Besteht Internet?', 'No connection to {0}. Is there internet?'), A.name) }; }
   if (ant.ok) return { ok: true, text: text(sprache, 'Der Schlüssel funktioniert.', 'The key works.') };

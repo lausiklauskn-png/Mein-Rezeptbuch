@@ -36,20 +36,41 @@ async function einVersuch(schluessel, auftrag, variante, groesse, hol) {
   if (eintrag.url) { const bild = await hol(eintrag.url); if (!bild.ok) throw new Error('Bild-Adresse nicht abrufbar (HTTP ' + bild.status + ')'); return alsDataUrl(await bild.blob()); }
   throw new Error('Kein Bild erhalten');
 }
+/** Die Bildmodelle, die der Schlüssel laut /v1/models kennt, ohne die festen; das neueste (größter Name) zuerst. Fehler → []. */
+export async function bildModelleDesSchluessels(schluessel, hol = fetch) {
+  try {
+    const ant = await hol('https://api.openai.com/v1/models', { headers: { Authorization: 'Bearer ' + schluessel } }); if (!ant.ok) return [];
+    const fest = new Set(BILD_MODELLE.map((m) => m.model));
+    return ((await ant.json()).data || []).map((m) => String(m.id || '')).filter((id) => /^(gpt-image|chatgpt-image|dall-e)/.test(id) && !fest.has(id))
+      .sort((a, b) => b.localeCompare(a, 'en', { numeric: true })).map((model) => ({ model, hoch: /^dall-e/.test(model) ? '1024x1792' : '1024x1536' }));
+  } catch { return []; }
+}
 /** Erzeugt ein Bild und gibt es als data:-URL zurück. Wirft einen Fehler mit Klartext (401 = Schlüssel, 429 = Guthaben/Limit). */
 export async function kiBild(schluessel, rezept, { groesse = '1024x1024', hol = fetch, art = 'essen', auftrag = null } = {}) {
   if (!schluessel) throw new Error('Kein OpenAI-Schlüssel');
   let letzter = null; const text = auftrag ? auftrag(rezept) : bildAuftrag(rezept, art);
   for (const v of BILD_MODELLE) { try { return await einVersuch(schluessel, text, v, groesse, hol); } catch (f) { letzter = f; if (!f.andresModell) break; } }
+  /* Klaus 25.11.: „The model 'gpt-image-1' does not exist.“ – OpenAI tauscht die Bildmodelle aus. Passt keins der festen,
+     fragt der Kern den Schlüssel, welche Bildmodelle er kennt, und versucht die übrigen (das neueste zuerst). */
+  if (letzter?.andresModell) for (const v of await bildModelleDesSchluessels(schluessel, hol)) { try { return await einVersuch(schluessel, text, v, groesse, hol); } catch (f) { letzter = f; if (!f.andresModell) break; } }
   if (letzter?.status === 401) throw Object.assign(new Error('Der OpenAI-Schlüssel wurde abgelehnt. Bitte prüfen.'), { status: 401 });
   if (letzter?.status === 429) throw Object.assign(new Error('OpenAI meldet: Limit erreicht oder kein Guthaben.'), { status: 429 });
   throw letzter || new Error('Kein Bild erhalten');
 }
-/** Gratis-Foto ohne Schlüssel (Pollinations). */
-export async function gratisBild(rezept, { hol = fetch, saat = Date.now(), art = 'essen' } = {}) {
-  const auftrag = encodeURIComponent(rezept.name + (BILD_ARTEN[art] || BILD_ARTEN.essen).gratis);
-  const ant = await hol('https://image.pollinations.ai/prompt/' + auftrag + '?width=768&height=576&model=flux&nologo=true&seed=' + saat);
-  if (!ant.ok) throw new Error('Der Gratis-Dienst antwortet nicht (HTTP ' + ant.status + ').');
+/** Foto über Pollinations. Ohne Schlüssel die alte Adresse (so rief es die alte App; seit 2026 lehnt der Dienst dort mit 402 ab),
+ *  mit Schlüssel die neue (gen.pollinations.ai, Schlüssel als ?key=, weil ein Bild-GET im Browser keinen Kopf setzen soll).
+ *  401/402/403 heißen: Schlüssel fehlt, abgelehnt oder Guthaben aufgebraucht – das sagt die Meldung im Klartext. */
+export async function gratisBild(rezept, { hol = fetch, saat = Date.now(), art = 'essen', schluessel = '' } = {}) {
+  const auftrag = encodeURIComponent(rezept.name + (BILD_ARTEN[art] || BILD_ARTEN.essen).gratis), k = String(schluessel || '').trim();
+  const adresse = k ? 'https://gen.pollinations.ai/image/' + auftrag + '?width=768&height=576&model=flux&nologo=true&seed=' + (saat % 2147483647) + '&key=' + encodeURIComponent(k)
+    : 'https://image.pollinations.ai/prompt/' + auftrag + '?width=768&height=576&model=flux&nologo=true&seed=' + saat;
+  const ant = await hol(adresse);
+  if (!ant.ok) {
+    if (ant.status === 402 && !k) throw Object.assign(new Error('Pollinations verlangt jetzt einen eigenen Schlüssel.'), { status: 402, schluessel: true });
+    if (ant.status === 401 || ant.status === 403) throw Object.assign(new Error(k ? 'Pollinations lehnt den Schlüssel ab. Bitte prüfen.' : 'Pollinations verlangt jetzt einen eigenen Schlüssel.'), { status: ant.status, schluessel: true });
+    if (ant.status === 402) throw Object.assign(new Error('Pollinations meldet: Guthaben des Kontos aufgebraucht.'), { status: 402 });
+    throw new Error('Der Gratis-Dienst antwortet nicht (HTTP ' + ant.status + ').');
+  }
   return alsDataUrl(await ant.blob());
 }
 

@@ -353,6 +353,33 @@ try {
   { const sw = await readFile(join(WURZEL, 'neu', 'sw.js'), 'utf8'), st = JSON.parse(await readFile(join(WURZEL, 'neu', 'start-rezepte.json'), 'utf8')), buch = JSON.parse(await readFile(join(WURZEL, 'beispiele', 'beispielbuch-mein-rezeptbuch.json'), 'utf8'));
     ok(sw.includes('"./start-rezepte.json"') && st.recipes.length === 8 && st.recipes.every((r) => r.img && r.uid && buch.recipes.some((b) => b.uid === r.uid && b.name === r.name)), 'die Startrezepte liegen im Offline-Vorrat, haben Bilder und dieselbe Kennung wie im Beispielbuch (kein Doppel beim Laden)');
     ok((await readFile(join(WURZEL, 'neu', 'start-rezepte.json'))).length < 900 * 1024, 'die Datei bleibt unter 900 KB'); }
+  console.log('9 · Klaus 25.11.: ohne/unbekannte Kategorie zuordnen, Sicherung teilen, Foto über Pollinations');
+  { const { p: q, k: kz } = await seite(() => { localStorage.setItem('mrz9m', JSON.stringify([{ id: 1, name: 'Ohne Kat', cat: '', ings: [], steps: [{ txt: 'a' }] }, { id: 2, name: 'Fremd Kat', cat: 'xyz_raetsel', ings: [], steps: [{ txt: 'b' }] }, { id: 3, name: 'Forelle', cat: 'fisch', ings: [{ name: 'Forelle' }], steps: [{ txt: 'braten' }] }])); });
+    await q.waitForSelector('.karte'); await q.click('#leiste .fl-griff'); await q.click('#leiste [data-zu=werkstatt]'); await q.click('[data-zu=kategorien]');
+    ok(/2 Rezepte haben keine oder eine unbekannte Kategorie/.test(await q.locator('#kat-offen').innerText().catch(() => '')), 'Kategorien: ein Hinweis nennt die Rezepte ohne oder mit unbekannter Kategorie');
+    ok(await q.locator('.kat-zeile[data-kid=__ohne] [data-a=kat-alle]').count() === 1 && await q.locator('.kat-zeile[data-kid=xyz_raetsel] [data-a=kat-alle]').count() === 1 && await q.locator('.kat-zeile[data-kid=fisch] [data-a=kat-alle]').count() === 0, '„Ohne Kategorie“ und die unbekannte tragen den Knopf „alle zuordnen“, eine bekannte nicht');
+    await q.click('.kat-zeile[data-kid=xyz_raetsel] [data-a=kat-alle]'); await q.locator('.wahl-liste .zeile', { hasText: 'Fisch' }).click();
+    ok(await q.locator('.kat-zeile[data-kid=xyz_raetsel]').count() === 0 && (await q.locator('.kat-zeile[data-kid=fisch] small').innerText()).trim() === '2', 'die unbekannte Kategorie ist leer und verschwindet, Fisch zählt 2');
+    await q.click('.kat-zeile[data-kid=__ohne] [data-a=kat-alle]'); await q.locator('.wahl-liste .zeile', { hasText: 'Fisch' }).click();
+    ok(await q.locator('#kat-offen').count() === 0 && (await q.locator('.kat-zeile[data-kid=fisch] small').innerText()).trim() === '3', 'auch „Ohne Kategorie“ ist zugeordnet, der Hinweis ist weg');
+    await q.click('#toast button'); ok((await q.locator('.kat-zeile[data-kid=fisch] small').innerText()).trim() === '2' && await q.locator('.kat-zeile[data-kid=__ohne]').count() === 1, 'Rückgängig holt „Ohne Kategorie“ zurück');
+    await q.click('#leiste .fl-griff'); await q.click('#leiste [data-zu=werkstatt]');
+    ok(await q.locator('[data-a=sicherung-teilen]').count() === 0, 'ohne Teilen im Browser steht „Sicherung teilen“ nicht da');
+    await q.addInitScript(() => { navigator.canShare = () => true; navigator.share = async (d) => { window.__geteilt = d.files.map((f) => f.name + '|' + f.type + '|' + f.size); }; });
+    await q.reload(); await q.waitForSelector('.gruss'); await q.click('#leiste .fl-griff'); await q.click('#leiste [data-zu=werkstatt]');
+    await q.click('[data-a=sicherung-teilen]'); const geteilt = await q.waitForFunction(() => window.__geteilt, null, { timeout: 5000 }).then((h) => h.jsonValue()).catch(() => null);
+    ok(geteilt && geteilt.length === 1 && /\.json\|application\/json\|\d{3,}$/.test(geteilt[0]), '„Sicherung teilen“ gibt die Sicherung als JSON-Datei ans Teilen', JSON.stringify(geteilt));
+    await q.click('#leiste .fl-griff'); await q.click('#leiste [data-zu=start]'); await q.locator('.karte', { hasText: 'Forelle' }).click(); await q.click('.rezept-held');
+    ok(/Pollinations-Schlüssel/.test(await q.locator('.fenster [data-a=gratis-bild]').innerText()), 'Bild-Blatt: das Foto über Pollinations nennt den eigenen Schlüssel');
+    await q.click('.fenster [data-a=gratis-bild]'); ok(await q.locator('[data-form=schluessel][data-anbieter=pollinations]').count() === 1, 'ohne Schlüssel fragt die App zuerst nach dem Pollinations-Schlüssel');
+    const pRufe = []; const png = 'iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8z8BQDwAEhQGAhKmMIQAAAABJRU5ErkJggg==';
+    await q.route('https://gen.pollinations.ai/**', (r) => { pRufe.push(r.request().url()); r.fulfill({ contentType: 'image/png', body: Buffer.from(png, 'base64'), headers: { 'access-control-allow-origin': '*' } }); });
+    await q.fill('#schl-feld', 'sk_probe0000000000000000000'); await q.click('[data-form=schluessel] button[type=submit]');
+    await q.waitForSelector('.fenster [data-a=ja]'); ok(/Foto über Pollinations erzeugen/.test(await q.locator('.fenster h2').innerText()), 'nach dem Speichern geht es gleich mit der Rückfrage weiter');
+    await q.click('.fenster [data-a=ja]'); await q.waitForSelector('.rezept-held img', { timeout: 8000 }).catch(() => {});
+    ok(pRufe.length === 1 && pRufe[0].includes('/image/Forelle') && pRufe[0].includes('key=sk_probe'), 'das Bild kommt von gen.pollinations.ai, mit dem Schlüssel', pRufe.join(' '));
+    ok(await q.locator('.rezept-held img').count() === 1, 'das Rezept hat danach ein Bild');
+    await kz.close(); }
   ok(fehler.length === 0, 'keine Fehler in der Konsole, kein Netz nach draußen', fehler.join(' · '));
 } catch (e) { rot++; console.log('  ✗ ROT: Probe abgebrochen — ' + e.message.split('\n')[0]); }
 await browser.close(); srv.close();

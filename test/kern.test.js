@@ -189,6 +189,17 @@ test('KI-Bild: zweites Modell bei 400, b64 wird data:-URL, 401 mit Klartext, kei
   await assert.rejects(kiBild('sk-x', r, { hol: async () => ant(false, 401, {}) }), /Schlüssel wurde abgelehnt/);
   await assert.rejects(kiBild('', r), /Kein OpenAI-Schlüssel/);
   await assert.rejects(gratisBild(r, { hol: async () => ({ ok: false, status: 502 }) }), /antwortet nicht/);
+  /* Klaus 25.11.: „The model 'gpt-image-1' does not exist.“ – dann fragt der Kern /v1/models und nimmt das neueste Bildmodell */
+  { const versucht = []; const hol2 = async (u, o) => { if (u.endsWith('/v1/models')) return ant(true, 200, { data: [{ id: 'gpt-4o' }, { id: 'gpt-image-1' }, { id: 'gpt-image-1.5' }, { id: 'gpt-image-2' }, { id: 'dall-e-2' }] });
+      const m = JSON.parse(o.body).model; versucht.push(m); return m === 'gpt-image-1.5' ? ant(true, 200, { data: [{ b64_json: 'QUJD' }] }) : ant(false, 404, { error: { message: `The model '${m}' does not exist.` } }); };
+    assert.equal(await kiBild('sk-x', r, { hol: hol2 }), 'data:image/png;base64,QUJD');
+    assert.deepEqual(versucht, ['dall-e-3', 'gpt-image-1', 'gpt-image-2', 'gpt-image-1.5'], versucht.join(' ')); }
+  /* Klaus 25.11.: HTTP 402 ohne Schlüssel – Pollinations verlangt jetzt einen eigenen Schlüssel; mit Schlüssel die neue Adresse */
+  await assert.rejects(gratisBild(r, { hol: async () => ({ ok: false, status: 402 }) }), (f) => /eigenen Schlüssel/.test(f.message) && f.schluessel === true);
+  await assert.rejects(gratisBild(r, { schluessel: 'sk_x', hol: async () => ({ ok: false, status: 401 }) }), (f) => /lehnt den Schlüssel ab/.test(f.message) && f.schluessel === true);
+  await assert.rejects(gratisBild(r, { schluessel: 'sk_x', hol: async () => ({ ok: false, status: 402 }) }), (f) => /Guthaben/.test(f.message) && !f.schluessel);
+  let adr = ''; await assert.rejects(gratisBild(r, { schluessel: 'sk_ab c', saat: 7, hol: async (u) => { adr = u; return { ok: true, blob: async () => { throw new Error('nur die Adresse'); } }; } }), /nur die Adresse/);
+  assert.ok(adr.startsWith('https://gen.pollinations.ai/image/Gulasch') && adr.endsWith('&seed=7&key=sk_ab%20c'), adr);
 });
 test('Tresor: höchstens fünf automatische, die älteste fällt heraus; benannte bleiben; holen und löschen', async () => {
   const m = new Map(); const lager = { hol: async (k) => m.get(k) ?? null, setz: async (k, v) => { m.set(k, v); }, weg: async (k) => { m.delete(k); } };

@@ -250,4 +250,5 @@ export default {
   'Zu dieser Notiz fiel Claude kein Rezept ein.': 'Claude 没能为这条笔记想出菜谱。',
   'Foto-Notiz ({0})': '照片笔记（{0}）',
   'Foto-Notiz': '照片笔记',
+  'Fotos über den Dienst Pollinations (eigenes Konto dort)': '通过 Pollinations 服务生成照片（需自己的账户）',
 };

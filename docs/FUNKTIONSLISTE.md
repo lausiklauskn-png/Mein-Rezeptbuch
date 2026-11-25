@@ -114,7 +114,7 @@ Auftrag: Brief `docs/BRIEF_SITZUNG_2026-11-23_REZEPTBUCH-KUECHEN-KERN.md` im Rep
 | Schlüssel-Einführung (Wizard, `?setup=1`) | kern | 10 | anders · das Schlüssel-Fenster erscheint, wenn ein Schlüssel gebraucht wird, mit „Schlüssel holen“ (smoke_neu_scan); kein Wizard, kein `?setup=1` |
 | Zugangscode-Erklärung | kern | 10 | da · smoke_neu · hinter „?“ im Schlüssel-Fenster (alt: `smoke_zugangscode_erklaerung`) |
 | KI-Bild (DALL·E 3, eine Naht, Warteschlange, Bildcache Stufe 3) | kern | 10 | da · smoke_neu, smoke_neu_zusatz, kern-bild-sammel (alt: `smoke_ki_bild`) |
-| Gratis KI-Foto (Pollinations, ohne Schlüssel) | kern | 10 | da · smoke_neu prüft nur den Knopf, der Abruf ist ungeprüft — der Hinweis „der Name geht an Pollinations“ steht vor dem Senden |
+| Gratis KI-Foto (Pollinations, ohne Schlüssel) | kern | 10 | anders · Pollinations verlangt seit 2026 einen eigenen Schlüssel (ohne: HTTP 402, auch in der alten App; Klaus 25.11.); jetzt „Foto über Pollinations“ mit eigenem Schlüssel, Abruf mit gestelltem Dienst geprüft (smoke_neu Abschnitt 9) |
 | Bildauftrag einmal anhalten bei KI-Anweisung | kern | 10 | da · smoke_neu_zusatz (alt: `smoke_reinigung`) |
 | AI-Panel (Rezept verbessern, Varianten) | kern | 10 | anders · Planer → „Vorschlag“: Claude verteilt eigene Rezepte auf die Woche (smoke_neu_zusatz, kern-helfer); den Auftrag zum Kopieren für eine fremde KI gibt es nicht mehr |
 | Übersetzung von Rezepten (TRANSLATION ENGINE, `r.translations`) | kern | 10 | da · smoke_neu_sprache, kern-helfer |
@@ -148,7 +148,7 @@ Auftrag: Brief `docs/BRIEF_SITZUNG_2026-11-23_REZEPTBUCH-KUECHEN-KERN.md` im Rep
 | App-Bewertung (`appRatings9m`) | entfällt | – | entfällt · Store-Bewertung statt eigener |
 | Einklappbare Navigation | entfällt | – | entfällt · ersetzt durch die fliegende Leiste (Handy) und die Seitenleiste (Monitor) |
 | Debug-Konsole Eruda (`eruda9`) | entfällt | – | entfällt · nicht in der neuen Fassung |
-| `_CR`-Wasserzeichen (`_cr_block.txt`, `build.py`) | offen | – | fehlt · Klaus entscheidet, ob im Kern |
+| `_CR`-Wasserzeichen (`_cr_block.txt`, `build.py`) | entfällt | – | entfällt · Klaus 25.11.: weglassen; Nachweis sind Git-Historie und Copyright |
 
 ## 10 · Netz-Module
 

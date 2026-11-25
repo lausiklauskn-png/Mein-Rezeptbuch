@@ -250,4 +250,5 @@ export default {
   'Zu dieser Notiz fiel Claude kein Rezept ein.': 'Claude не придумал рецепт для этой заметки.',
   'Foto-Notiz ({0})': 'Фотозаметка ({0})',
   'Foto-Notiz': 'Фотозаметка',
+  'Fotos über den Dienst Pollinations (eigenes Konto dort)': 'Фото через сервис Pollinations (собственный аккаунт там)',
 };
