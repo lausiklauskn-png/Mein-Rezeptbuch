@@ -3,7 +3,7 @@
   "short_name": "Mein Rezeptbuch",
   "description": "Mein persönliches digitales Kochbuch mit KI-Unterstützung – vollständig offline, keine Anmeldung nötig",
   "start_url": "./index.html",
-  "scope": "./",
+  "scope": "./index.html",
   "id": "/Mein-Rezeptbuch/index.html",
   "display": "standalone",
   "orientation": "any",
