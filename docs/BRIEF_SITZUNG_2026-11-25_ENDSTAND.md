@@ -22,6 +22,8 @@ die alten Seiten selbst unverändert), damit `/neu/` nicht mehr dazugehört. Die
 „Mein Rezeptbuch neu“ / „Mein Mixarium neu“. Alte App zum Installieren über `…/index.html` öffnen. Am Tablet noch nicht
 bestätigt; bei Problemen `chrome://webapks` (Manifest Id, Start Url, Scope) ansehen lassen. Klaus vergleicht erst in den
 PWAs und zieht Änderungen danach in die APK (deren Bau dauert lange).
+Beim nächsten APK-Bau: der Name der APK auf dem Startbildschirm soll „App Mein Rezeptbuch“ lauten (Klaus 25.11.;
+entsprechend beim Mixarium „App Mein Mixarium“ – vorher bestätigen lassen), damit APK, alte PWA und „… neu“ auseinanderzuhalten sind.
 
 ## Stand auf `main`
 
