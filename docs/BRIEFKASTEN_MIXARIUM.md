@@ -14,7 +14,7 @@ Klaus 23.11.2026: „Brief lesen, bevor gebaut wird. Und dann Brief ergänzen, s
 
 ---
 
-## Runde G · 25.11.2026 abends · PWA 0.15.4 (kein Kern-Wechsel)
+## Runde G · 25.11.2026 abends · PWA 0.15.4–0.15.5 (kein Kern-Wechsel)
 
 - **Explorer „Ordner“** (R3/R9) in `neu/app.mjs` (Ansicht `baum`, Funktionen `baumHtml`/`baumGruppe`/`baumAblegen`, Ziehen `bz…`): eigener Punkt
   „Ordner“ unter „Rezepte“ in Seiten- und fliegender Leiste. Alle Kategorien und Ordner aufklappbar mit ihren Rezepten; **Klaus: gleich in der
@@ -22,6 +22,9 @@ Klaus 23.11.2026: „Brief lesen, bevor gebaut wird. Und dann Brief ergänzen, s
   auf Kategorie = `cat` setzen und aus dem Ordner nehmen, auf Ordner = `folder` (Kategorie bleibt). Mehrfachauswahl „Auswählen → Verschieben
   nach …“. Breiter Schirm: Baum links, Rezept rechts. Kein Kern-Teil (nutzt `legeIn`, `umsortieren` aus dem Kern) – fürs Mixarium übernehmbar,
   dort aber Kategorien-Fenster statt Ansicht prüfen. Probe `tests/smoke_neu_baum.mjs`.
+- **0.15.5:** im Baum „Alle zuordnen →“ nur noch bei „Ohne Kategorie“/unbekannt, leere Kategorien eingeklappt, alte Ordner-Liste in den
+  Einstellungen entfernt (Klaus: Doppelung vermeiden). **R12:** Bücher und Food-Zine-Bilder als eigener Punkt „Kreativbuch“ in der Leiste, nicht mehr
+  in den Einstellungen; im Mixarium beim Getränkebuch prüfen, ob dasselbe passt.
 
 ## Runde F · 25.11.2026 · Kern 0.27.1, PWA 0.15.2 (Vergleichs-Sitzung alt ↔ neu) (vorige Fassung)
 

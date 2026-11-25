@@ -89,7 +89,7 @@ try {
   { const kk = await browser.newContext({ locale: 'de-DE', viewport: { width: 1280, height: 800 } }); const q = mitThemen(await kk.newPage()); q.on('pageerror', (e) => fehler.push(e.message));
     await q.goto(URL0); await q.waitForSelector('.gruss'); await q.click('[data-a=beispiel]'); await q.waitForSelector('.md-detail h1', { timeout: 20000 });
     ok(await q.locator('.md-liste .karte').count() === 42 && await q.locator('.md-detail h1').count() === 1, 'Liste links, Rezept rechts');
-    ok(await q.locator('#leiste').isHidden() && await q.locator('.rail-n').count() === 7, 'Leiste steht links, kein Griff am Rand (sechs Bereiche mit „Ordner“ und das Notizbuch)');
+    ok(await q.locator('#leiste').isHidden() && await q.locator('.rail-n').count() === 8, 'Leiste steht links, kein Griff am Rand (sieben Bereiche mit „Ordner“ und „Kreativbuch“ und das Notizbuch)');
     await q.locator('.md-liste').evaluate((e) => { e.scrollTop = 600; }); await q.locator('.md-liste .karte', { has: q.getByText('Ebi Tempura', { exact: true }) }).click();
     ok((await q.locator('.md-detail h1').innerText()) === 'Ebi Tempura' && await q.locator('.md-liste').evaluate((e) => e.scrollTop) > 300, 'Tipp links wechselt das Rezept rechts, die Liste bleibt an ihrer Stelle', (await q.locator('.md-detail h1').innerText()) + ' / ' + await q.locator('.md-liste').evaluate((e) => e.scrollTop));
     ok(await q.locator('.rezept-held .rund').count() === 0 && await q.locator('.rezept-held .wk-pf:visible').count() === 1, 'es gibt nur den kleinen Pfeil in der Namenszeile');
@@ -335,7 +335,7 @@ try {
     await q.evaluate(() => { document.documentElement.style.fontSize = ''; }); await q.setViewportSize({ width: 390, height: 800 });
     await q.click('#leiste .fl-griff'); ok((await q.locator('#leiste [data-zu=werkstatt]').innerText()).includes('Einstellungen'), 'der Bereich heißt „Einstellungen“');
     await q.click('#leiste [data-zu=werkstatt]'); await q.waitForSelector('.themen');
-    ok(await q.locator('.themen .gruppe').count() === 8 && await q.locator('.themen .gruppe.auf').count() === 0 && await q.locator('.themen .zeile').count() === 0 && (await q.locator('.ueber h2').innerText()) === 'Einstellungen', 'Einstellungen: acht Themen, alle eingeklappt, keine lange Liste');
+    ok(await q.locator('.themen .gruppe').count() === 7 && await q.locator('.themen .gruppe.auf').count() === 0 && await q.locator('.themen .zeile').count() === 0 && (await q.locator('.ueber h2').innerText()) === 'Einstellungen', 'Einstellungen: sieben Themen (das Buch steht seit R12 im Bereich Kreativbuch), alle eingeklappt, keine lange Liste');
     ok(await q.locator('.themen .frag').count() === 0 && await q.locator('main p:not(.quelle)').count() === 0, 'eingeklappt steht kein Erklärtext und kein „?“ da');
     ok(await q.locator('main a[href="../"], main a[href$="index.html"]').count() === 0 && /^Mein Rezeptbuch \d+\.\d+\.\d+$/.test((await q.locator('#fassung').innerText()).trim()), 'kein Verweis auf die bisherige App; unten steht nur die Fassung');
     const feld = await q.locator('.gkopf .kfeld').first().evaluate((e) => { const c = document.createElement('canvas'); c.width = c.height = 1; const x = c.getContext('2d'); x.fillStyle = getComputedStyle(e).backgroundColor; x.fillRect(0, 0, 1, 1); return { m: [...x.getImageData(0, 0, 1, 1).data], b: e.offsetWidth }; });   /* über eine Leinwand: die Farbe kommt als color-mix und nicht als rgb() */

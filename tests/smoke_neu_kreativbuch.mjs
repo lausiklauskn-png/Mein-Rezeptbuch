@@ -52,7 +52,7 @@ const wennToast = (p, muster) => p.waitForFunction((m) => new RegExp(m).test(doc
 const bestand = (p) => p.evaluate(() => new Promise((ja) => { const a = indexedDB.open('KuechenKern-rezeptbuch'); a.onsuccess = () => { const q = a.result.transaction('zustand').objectStore('zustand').get('alles'); q.onsuccess = () => { a.result.close(); ja(q.result); }; }; }));
 const bestandWenn = async (p, pruef) => { let b = await bestand(p); for (let i = 0; i < 50 && !pruef(b); i++) { await p.waitForTimeout(100); b = await bestand(p); } return b; };
 const texteIm = (b, stil = KB_STIL_VORGABE) => Object.fromEntries(Object.entries(b?.einstellungen?.kreativ?.texte || {}).filter(([, je]) => je && je[stil]).map(([u, je]) => [u, je[stil]]));
-const zumKb = async (p) => { await geh(p, 'werkstatt'); await p.locator('.gruppe[data-g=buch] [data-a=kreativ]').click(); await p.waitForSelector('#kb-stile'); };
+const zumKb = async (p) => { await geh(p, 'kreativ'); await p.locator('.gruppe[data-g=buch] [data-a=kreativ]').click(); await p.waitForSelector('#kb-stile'); };
 const ablageText = (p) => p.evaluate(() => navigator.clipboard.readText());
 /* Die Kategorienamen, wie die App sie zeigt (aus der Auswahl: „Fleisch · 2“) – für den erwarteten Auftrag. */
 const katNamen = (p) => p.locator('#kb-wahl option[value^="k:"]').evaluateAll((l) => Object.fromEntries(l.map((o) => [o.value.slice(2), o.textContent.replace(/ · \d+$/, '')])));
@@ -63,11 +63,11 @@ const will = (n) => !process.env.NUR_TEIL || process.env.NUR_TEIL.split(',').inc
 let p, k, netz;
 try {
   if (will(1)) {
-  console.log('1 · Einstellungen → Buch → Kreativbuch: ein Fenster ohne Erklärtext, Auswahl, acht Stile, die Wege; 390 px');
+  console.log('1 · Leiste → Kreativbuch: ein Fenster ohne Erklärtext, Auswahl, acht Stile, die Wege; 390 px');
   ({ p, k, netz } = await seite());
-  await geh(p, 'werkstatt');
+  await geh(p, 'kreativ');
   const z = await p.locator('.gruppe[data-g=buch] .zeile').allInnerTexts();
-  ok(z.length === 3 && /Kreativbuch/.test(z[2]) && /Als PDF drucken/.test(z[0]), 'im Thema „Buch“ steht die Zeile „Kreativbuch“ neben PDF und Blättern', z.join(' | ').replace(/\n/g, ' '));
+  ok(z.length === 5 && /Kreativbuch/.test(z[0]) && z.some((t) => /Als PDF drucken/.test(t)) && z.some((t) => /Buch aus Bildern/.test(t)) && z.some((t) => /Projekte/.test(t)), 'R12: der Bereich „Kreativbuch“ in der Leiste hat Kreativbuch, Buch aus Bildern, Projekte, PDF und Blättern', z.join(' | ').replace(/\n/g, ' '));
   await p.locator('.gruppe[data-g=buch] [data-a=kreativ]').click(); await p.waitForSelector('#kb-stile');
   ok(await p.locator('.fenster p').count() === 0 && await p.locator('.fenster details').count() === 0, 'kein Erklärtext auf dem Fenster');
   const wahlen = await p.locator('#kb-wahl option').allInnerTexts();
@@ -223,7 +223,7 @@ try {
   if (will(8)) {
   console.log('8 · Sprache und Handbuch');
   ({ p, k, netz } = await seite({ ort: 'fr-FR' }));
-  await geh(p, 'werkstatt');
+  await geh(p, 'kreativ');
   ok(!!frApp['Kreativbuch'] && (await p.locator('.gruppe[data-g=buch] [data-a=kreativ] span').first().evaluate((e) => e.firstChild.textContent)) === frApp['Kreativbuch'], 'auf Französisch kommt die Zeile aus der Tabelle der App', frApp['Kreativbuch']);
   await k.close();
   ({ p, k, netz } = await seite());
@@ -248,7 +248,7 @@ try {
   }, seiten).then((b64) => Buffer.from(b64, 'base64'));
   /* Maße eines eingebetteten Bildes und die Farbe seines ersten Bildpunkts. */
   const masse = (p, src) => p.evaluate(async (src) => { const b = await createImageBitmap(await (await fetch(src)).blob()), c = document.createElement('canvas'); c.width = b.width; c.height = b.height; const x = c.getContext('2d'); x.drawImage(b, 0, 0); return [b.width, b.height, [...x.getImageData(1, 1, 1, 1).data.slice(0, 3)]]; }, src);
-  const ebAuf = async (p) => { await zumKb(p); await p.click('[data-a=eb-auf]'); await p.waitForSelector('#eb-gitter'); };
+  const ebAuf = async (p) => { await zumKb(p); await p.click('.fenster [data-a=eb-auf]'); await p.waitForSelector('#eb-gitter'); };
   const kacheln = (p) => p.locator('#eb-gitter .eb-kachel[data-i]').evaluateAll((l) => l.map((k) => ({ name: k.querySelector('img').getAttribute('alt'), src: k.querySelector('img').getAttribute('src') })));
   const waehle = async (p, dateien) => { const [fc] = await Promise.all([p.waitForEvent('filechooser'), p.click('[data-a=eb-dazu]')]); await fc.setFiles(dateien); };
   const lagerHol = (p, schluessel) => p.evaluate((k) => new Promise((ja) => { const a = indexedDB.open('KuechenKern-rezeptbuch'); a.onsuccess = () => { const q = a.result.transaction('zustand').objectStore('zustand').get(k); q.onsuccess = () => { a.result.close(); ja(q.result ?? null); }; }; }), schluessel);
@@ -260,7 +260,7 @@ try {
   await zumKb(p);
   const mehr = await p.locator('.kb-mehr .knopf').evaluateAll((l) => l.map((b) => ({ t: b.innerText.trim(), h: b.getBoundingClientRect().height })));
   ok(mehr.length === 2 && mehr[0].t === 'Aus Bildern' && mehr[1].t === 'Projekte' && mehr.every((x) => x.h <= 40), 'im Kreativbuch stehen „Aus Bildern“ und „Projekte“, jeder Knopf in einer Zeile', JSON.stringify(mehr));
-  await p.click('[data-a=eb-auf]'); await p.waitForSelector('#eb-gitter');
+  await p.click('.fenster [data-a=eb-auf]'); await p.waitForSelector('#eb-gitter');
   ok(await p.locator('.fenster p').count() === 0 && (await p.locator('#eb-stand').innerText()).trim() === `0 / ${EB_MAX}` && await p.locator('[data-a=eb-dazu]').count() === 1, 'das Fenster: kein Erklärtext, oben „0 / 30“, ein Feld zum Hinzufügen', await p.locator('#eb-stand').innerText());
   ok(/15 MB/.test(await hinweis(p.locator('[data-a=eb-dazu]'))), 'der Hinweis am Feld nennt die Grenze je Datei', await hinweis(p.locator('[data-a=eb-dazu]')));
   const quer = await bildDatei(p, 3000, 2000, 'image/jpeg'), hoch = await bildDatei(p, 600, 900, 'image/png', true);
@@ -346,8 +346,8 @@ try {
   const foto = await bildDatei(p, 1800, 1200, 'image/jpeg');
   await waehle(p, [{ name: 'Fest.jpg', mimeType: 'image/jpeg', buffer: foto }]); await wennToast(p, '\\+1 Bild');
   await p.click('.fenster [data-a=kb-auf]'); await p.waitForSelector('#kb-stile');
-  ok((await p.locator('[data-a=eb-auf]').innerText()).trim() === 'Aus Bildern · 1', 'im Kreativbuch steht, wie viele eigene Bilder da sind', await p.locator('[data-a=eb-auf]').innerText());
-  await p.click('[data-a=kbp-auf]'); await p.waitForSelector('#kbp-name');
+  ok((await p.locator('.fenster [data-a=eb-auf]').innerText()).trim() === 'Aus Bildern · 1', 'im Kreativbuch steht, wie viele eigene Bilder da sind', await p.locator('.fenster [data-a=eb-auf]').innerText());
+  await p.click('.fenster [data-a=kbp-auf]'); await p.waitForSelector('#kbp-name');
   ok(await p.locator('.fenster p').count() === 0 && /^Kreativbuch \d/.test(await p.inputValue('#kbp-name')) && await p.locator('.kbp-zeile').count() === 0, 'das Fenster: kein Erklärtext, ein Name ist vorgeschlagen, noch kein Projekt', await p.inputValue('#kbp-name'));
   const l390 = await lauf(p);
   ok(l390.quer <= 0 && l390.seite <= 0 && !l390.raus.length && !l390.hoch.length, 'am Handy (390 px) läuft im Projekte-Fenster nichts quer', JSON.stringify(l390));
@@ -365,14 +365,14 @@ try {
   ok(!sichText.includes('Sommerfest') && !sichText.includes('kreativ'), 'Projekte stehen nicht in der Sicherung', sich.suggestedFilename());
   await p.reload(); await p.waitForSelector('.gruss');
   await zumKb(p);
-  ok((await p.locator('[data-a=eb-auf]').innerText()).trim() === 'Aus Bildern', 'nach dem Neuladen sind die Bilder erst mit dem Projekt wieder da');
+  ok((await p.locator('.fenster [data-a=eb-auf]').innerText()).trim() === 'Aus Bildern', 'nach dem Neuladen sind die Bilder erst mit dem Projekt wieder da');
   await p.click('#kb-stile [data-stil=elegant]'); await p.waitForSelector('#kb-stile [data-stil=elegant][aria-checked=true]', { timeout: 5000 }).catch(() => {});
-  await p.click('[data-a=kbp-auf]'); await p.waitForSelector('.kbp-zeile');
+  await p.click('.fenster [data-a=kbp-auf]'); await p.waitForSelector('.kbp-zeile');
   await p.click('.kbp-zeile [data-a=kbp-oeffnen]');
   ok(await wennToast(p, 'Geöffnet · Sommerfest'), 'öffnen meldet den Namen', await toast(p));
   await p.waitForSelector('#kb-stile', { timeout: 5000 }).catch(() => {});
-  ok(await p.locator('#kb-stile [data-stil=nordisch]').getAttribute('aria-checked') === 'true' && (await p.locator('[data-a=eb-auf]').innerText()).trim() === 'Aus Bildern · 1' && (await p.locator('#kb-stand').innerText()).trim() === '3 von 3 mit Text', 'geöffnet: Stil, Texte und Bilder des Projekts sind wieder da', (await p.locator('#kb-stand').innerText()));
-  await p.click('[data-a=kbp-auf]'); await p.waitForSelector('#kbp-name');
+  ok(await p.locator('#kb-stile [data-stil=nordisch]').getAttribute('aria-checked') === 'true' && (await p.locator('.fenster [data-a=eb-auf]').innerText()).trim() === 'Aus Bildern · 1' && (await p.locator('#kb-stand').innerText()).trim() === '3 von 3 mit Text', 'geöffnet: Stil, Texte und Bilder des Projekts sind wieder da', (await p.locator('#kb-stand').innerText()));
+  await p.click('.fenster [data-a=kbp-auf]'); await p.waitForSelector('#kbp-name');
   ok(await p.inputValue('#kbp-name') === 'Sommerfest', 'der Name des geöffneten Projekts steht im Feld');
   await p.click('[data-a=kbp-speichern]');
   ok(await wennToast(p, 'Ersetzt · Sommerfest') && (await lagerHol(p, 'kreativ-projekte'))?.length === 1, 'unter demselben Namen ersetzt speichern das Projekt, statt ein zweites anzulegen', await toast(p));

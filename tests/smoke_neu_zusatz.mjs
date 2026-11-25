@@ -180,9 +180,10 @@ try {
   console.log('6 · Buch: als PDF drucken oder als Datei zum Blättern, ganz oder eine Auswahl');
   const BUCH = [R(1, 'Rindergulasch', { img: 'data:image/png;base64,' + PNG }), R(2, 'Linsensuppe <b>fett</b>', { cat: 'suppe' }), R(3, 'Apfelkuchen', { cat: 'kuchen', img: 'data:image/png;base64,' + PNG }), R(4, 'Marmorkuchen', { cat: 'kuchen' })];   /* ein Kuchen trägt ein Bild: sonst wäre „ohne Bilder“ in der Kuchen-Auswahl von selbst wahr */
   ({ p, k } = await seite({ rezepte: BUCH, ordner: [{ id: 'o-leer', name: 'Leerer Ordner' }] }));
-  await geh(p, 'werkstatt');
+  await geh(p, 'werkstatt'); ok(await p.locator('.gruppe[data-g=buch]').count() === 0, 'R12: das Buch steht nicht mehr in den Einstellungen');
+  await geh(p, 'kreativ');
   const bz = await p.locator('.gruppe[data-g=buch] .zeile').allInnerTexts();
-  ok(bz.length === 3 && /Als PDF drucken/.test(bz[0]) && /Zum Blättern/.test(bz[1]), 'in den Einstellungen steht das Thema „Buch“ mit den Zeilen: als PDF drucken, zum Blättern (dahinter das Kreativbuch, smoke_neu_kreativbuch)', bz.join(' | ').replace(/\n/g, ' '));
+  ok(bz.length === 5 && bz.some((t) => /Als PDF drucken/.test(t)) && bz.some((t) => /Zum Blättern/.test(t)), 'im Bereich „Kreativbuch“ stehen: als PDF drucken, zum Blättern (dazu Kreativbuch, Bilder, Projekte)', bz.join(' | ').replace(/\n/g, ' '));
   await p.locator('.gruppe[data-g=buch] .zeile[data-art=blaettern]').click(); await p.waitForSelector('#buch-wahl');
   const wahlen = await p.locator('#buch-wahl option').allInnerTexts();
   ok(await p.inputValue('#buch-titel') === 'Mein Rezeptbuch' && wahlen[0] === 'Alle Rezepte · 4' && wahlen.some((t) => /Kuchen.* · 2/.test(t)) && wahlen.includes('Leerer Ordner') && await p.locator('#buch-bilder').isChecked() && await p.locator('.fenster p').count() === 0, 'das Fenster fragt Titel, Auswahl (mit Zahlen) und „mit Bildern“, ohne Erklärtext', wahlen.join(' | '));
@@ -243,11 +244,11 @@ try {
   await p.locator('#handbuch summary').first().click();
   ok(await p.locator('#handbuch details[open] p').count() >= 2 && (await p.locator('#handbuch details[open] p').first().innerText()).length > 40, 'ein Tipp klappt ein Thema auf und zeigt seine Absätze');
   await p.keyboard.press('Escape'); await p.evaluate(() => document.querySelector('[data-a=fenster-zu]')?.click());
-  await p.locator('.zeile[data-zu=ordner]').click(); await p.waitForSelector('.ord-zeile'); await p.locator('.ord-zeile [data-a=ordner-weg]').first().click(); await p.waitForSelector('#toast button');
+  await p.locator('.zeile[data-zu=baum]').click(); await p.waitForSelector('.bz-gruppe[data-art=ord]'); await p.locator('.bz-gruppe[data-art=ord] [data-a=ordner-weg]').first().click(); await p.waitForSelector('#toast button');
   const lage = await p.evaluate(() => { const b = document.querySelector('#toast button').getBoundingClientRect(), t = document.querySelector('#toast').getBoundingClientRect(), oben = document.elementFromPoint(b.left + b.width / 2, b.top + b.height / 2); return { rechts: b.right, links: b.left, breit: innerWidth, toastRechts: t.right, trifft: !!oben && !!oben.closest('#toast button'), text: document.querySelector('#toast span').scrollWidth > document.querySelector('#toast span').clientWidth }; });
   ok(lage.rechts <= lage.breit && lage.links >= 0 && lage.rechts <= lage.toastRechts + 0.5 && lage.trifft, 'bei 390 px liegt „Rückgängig“ ganz in der Meldung und ist antippbar, auch bei langem Text (der Text kürzt sich)', JSON.stringify(lage));
   await p.mouse.click(lage.links + 8, (await p.locator('#toast button').boundingBox()).y + 6); await p.waitForTimeout(300);
-  ok(await p.locator('.ord-zeile').count() === 1, 'der Tipp an dieser Stelle macht das Löschen rückgängig');
+  ok(await p.locator('.bz-gruppe[data-art=ord]').count() === 1, 'der Tipp an dieser Stelle macht das Löschen rückgängig');
   await k.close();
 
   }

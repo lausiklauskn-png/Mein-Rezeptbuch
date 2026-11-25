@@ -39,12 +39,13 @@ export function zine(app) {
     fenster(`<h2 class="imp-kopf">${ic('zine')}<span>${esc(app.zeig(r).name)}</span></h2>
      <div class="laeden" id="zine-stile" role="radiogroup" aria-label="${esc(L('Stil', 'Style'))}">${Object.keys(ZINE_STILE).map((id) => `<button class="chip" role="radio" aria-checked="${id === st}" data-a="zine-stil" data-stil="${esc(id)}">${esc(stilName(id, spr()))}</button>`).join('')}</div>
      <div class="zine-seiten" id="zine">${zineSeiten(r).map((bild, i) => seiteHtml(r, bild, i)).join('')}</div><input type="file" id="zine-datei" accept="image/*" hidden>
-     <div class="reihe"><button class="knopf" data-a="fenster-zu">${L('Schließen', 'Close')}</button></div>`);
+     <div class="reihe"><button class="knopf" data-a="fenster-zu">${L('Schließen', 'Close')}</button><button class="knopf" data-a="zine-zum-buch" title="${esc(L('Alle Food-Zine-Bilder und die Bücher', 'All food zine pictures and the books'))}">${ic('buch')}${L('Zum Kreativbuch', 'To the creative book')}</button></div>`);
     offen = uid;
     if (r.img) pngVon(r.img).catch(() => {});   /* das Rezeptfoto für die Zwischenablage schon jetzt umrechnen: beim Tipp muss es fertig sein */
   }
   A.zine = () => zineFenster(s.uid);   /* aus dem Menü am Rezept und aus dem Bild-Blatt: beide gehören zum offenen Rezept */
   A['zine-auf'] = () => zineFenster(offen);
+  A['zine-zum-buch'] = () => { fensterZu(); app.geh('kreativ'); };   /* R12: vom Food-Zine direkt zum Kreativbuch */
   A['zine-stil'] = (e) => { app.E().zineStil = zineStil(e.dataset.stil); sichern(); zineFenster(offen); };
   A['zine-gross'] = (e) => { const r = app.rezept(offen), i = +e.dataset.i, bild = r && zineSeiten(r)[i]; if (!bild) return; const n = app.zeig(r).name + ' · ' + seitenName(i, spr());
     $('fensterort').innerHTML = `<div class="vollbild" data-a="zine-auf" role="dialog" aria-modal="true" aria-label="${esc(n)}"><img src="${esc(bild)}" alt="${esc(n)}"><button class="voll-x" data-a="zine-auf" aria-label="${esc(L('Schließen', 'Close'))}">${ic('x')}</button><p>${esc(n)}</p></div>`; };
