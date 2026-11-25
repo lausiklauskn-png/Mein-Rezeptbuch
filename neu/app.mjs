@@ -42,7 +42,7 @@ import { druckRezept, drucke, druckMenuekarte } from '../kern/ausgabe/druck.mjs'
 import { teilLink, ausTeilLink, qrSvg, passtInQr } from '../kern/teilen/qr.mjs';
 import { rezeptIn } from '../kern/modell/einheiten.mjs';
 
-const FASSUNG = '0.17.0';
+const FASSUNG = '0.17.1';
 const breit = () => matchMedia('(min-width:1000px)').matches;
 const $ = (id) => document.getElementById(id);
 const esc = (t) => String(t ?? '').replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
@@ -389,6 +389,32 @@ async function uebersetzeEins(ziel) {
 }
 /* Alle übersetzen: erst die Zielsprache, dann steht im Knopf, wie viele Rezepte ohne diese Fassung es sind und was es etwa kostet (Kern: kostenSchaetzung).
    Schon Übersetzte werden übersprungen, ein Fehlschlag hält den Rest nicht auf. Solange es läuft, steht ein Fenster mit „Abbrechen“ da; es zu schließen bricht ab. */
+/* R23 (Klaus 25.11.): neu eingelesene Rezepte bekommen die Sprachen, in denen das Buch schon Übersetzungen hat. Klaus' Wahl: gratis
+   automatisch – wo Chromes Übersetzer im Gerät das Sprachpaket schon hat („available“), wird still im Gerät übersetzt (es geht nichts
+   hinaus, nichts kostet); ein Sprachpaket wird ungefragt nicht geladen. Was übrig bleibt, nennt eine Meldung mit „Übersetzen“: das
+   öffnet „Alle übersetzen“ mit Kostenangabe, Claude übersetzt erst auf diesen Tipp. */
+/* Sprachname im Satz, in der Sprache der Oberfläche („noch nicht auf Französisch“); ohne Intl der Eigenname. */
+const sprachImSatz = (c) => { try { const n = new Intl.DisplayNames([geb()], { type: 'language' }).of(c); return n && n !== c ? n.charAt(0).toLocaleUpperCase(geb()) + n.slice(1) : sprachName(c); } catch { return sprachName(c); } };
+const buchZiele = () => { const m = new Map(); for (const r of Z.rezepte) if (istInhalt(r)) for (const c of Object.keys(r.translations || {})) if (sprKennt(c) && hatUebersetzung(r, c)) m.set(c, (m.get(c) || 0) + 1); return [...m.keys()]; };
+async function nachEinlesen(uids) {
+  const ziele = buchZiele(); if (!uids?.length || !ziele.length) return;
+  let imGeraet = 0; const rest = new Map();
+  for (const ziel of ziele) for (const uid of uids) {
+    const r = rezept(uid); if (!r || !istInhalt(r) || hatUebersetzung(r, ziel)) continue;
+    const q = SPRACH_CODES.includes(r.sprache) ? r.sprache : rateSprache(r); if (!q || q === ziel) continue;
+    let geschafft = false;
+    if (geraetUebersetzer()) try {
+      const v = await Promise.race([self.Translator.availability({ sourceLanguage: q, targetLanguage: ziel }), new Promise((w) => setTimeout(() => w(''), 1500))]);
+      if (v === 'available') { const tr = await self.Translator.create({ sourceLanguage: q, targetLanguage: ziel });
+        try { const t = await uebersetzeMit(r, ziel, (x) => tr.translate(x), { sprache: spr() }); const da = rezept(uid); if (da) { rezeptSetzen(uebersetzungAnRezept(SPRACH_CODES.includes(da.sprache) ? da : { ...da, sprache: q }, ziel, t, spr())); imGeraet++; geschafft = true; } } finally { try { tr.destroy?.(); } catch { /* schon frei */ } } }
+    } catch { /* bleibt für Claude */ }
+    if (!geschafft) rest.set(ziel, (rest.get(ziel) || 0) + 1);
+  }
+  if (imGeraet) zeichne();
+  const [ziel, n] = [...rest][0] || [];
+  if (n) melde(fuelle(L('{0} neue Rezepte noch nicht auf {1}', '{0} new recipes not yet in {1}'), n, sprachImSatz(ziel)) + (imGeraet ? ' · ' + fuelle(L('{0} im Gerät übersetzt', '{0} translated on the device'), imGeraet) : ''), L('Übersetzen', 'Translate'), () => alleUebFenster(ziel));
+  else if (imGeraet) melde(fuelle(L('{0} neue Übersetzungen im Gerät angelegt', '{0} new translations made on the device'), imGeraet));
+}
 const uebOffen = (ziel) => Z.rezepte.filter((r) => istInhalt(r) && !hatUebersetzung(r, ziel));
 const rezepteText = (n) => (n === 1 ? L('1 Rezept', '1 recipe') : fuelle(L('{0} Rezepte', '{0} recipes'), n));
 const kostenKurz = (n, k) => [rezepteText(n), k.usd == null ? fuelle(L('etwa {0} Token', 'about {0} tokens'), k.token.toLocaleString(geb())) : k.usd < 0.01 ? L('unter 0,01 $', 'under $0.01') : fuelle(L('etwa {0} $', 'about ${0}'), k.usd.toLocaleString(geb(), { minimumFractionDigits: 2, maximumFractionDigits: 2 })), 'Anthropic'].join(' · ');
@@ -881,20 +907,21 @@ async function scanSenden() {
     return;
   }
   /* Stapel: versteckter Text geht nie mit (ohne Rückfrage, am Rezept vermerkt); ein Befehl an eine KI im gelesenen Text → die Datei wird nicht gesendet. */
-  const vorher = Z.rezepte, fehler = []; let ok = 0, entfernt = 0;
+  const vorher = Z.rezepte, fehler = [], neuIds = []; let ok = 0, entfernt = 0;
   await W.mit(L('Dateien werden gelesen …', 'Reading the files …'), async (w) => {
     for (let i = 0; i < n; i++) { const d = sc.dateien[i]; w.anteil(i / n); w.text(fuelle(L('Datei {0} von {1}: {2}', 'File {0} of {1}: {2}'), i + 1, n, d.name));
       try {
         const v = await vorbereiten(d, { sprache: spr() });
         const r = rezeptAusScan(await erkennen(v, { ...opt, beiAnweisung: async () => false }), { kategorien: kats, bild: v.store, sprache: spr() }), jetzt = new Date().toISOString(), neu = normalisiere({ id: naechsteId(), uid: neueUid(), created: jetzt, modified: jetzt, ...r });
         if (v.liste.length) vermerken(neu, v.liste, 'scan'); entfernt += fundeZumEntscheiden(v.liste).length;
-        Z.rezepte = [...Z.rezepte, neu]; ok++;
+        Z.rezepte = [...Z.rezepte, neu]; neuIds.push(neu.uid); ok++;
       } catch (f) { fehler.push([d.name, f.abgebrochen ? L('Befehl an eine KI im Text. Nicht gesendet.', 'Instruction to an AI in the text. Not sent.') : f.message]); if (f.schluesselAbgelehnt || f.keinSchluessel) break; }
     }
   });
   sichern(); s.scan = null; s.kat = 'alle'; s.frage = ''; geh('start', {}, s.ansicht === 'start');
   melde(fuelle(L('{0} von {1} gelesen', '{0} of {1} read'), ok, n) + (entfernt ? ' · ' + fuelle(L('{0} versteckt entfernt', '{0} hidden removed'), entfernt) : ''), ok ? L('Rückgängig', 'Undo') : '', () => { Z.rezepte = vorher; sichern(); zeichne(true); });
   if (fehler.length) fenster(`<h2>${L('Nicht gelesen', 'Not read')}</h2><ul class="ki-liste" id="scan-fehler">${fehler.map(([name, grund]) => `<li><b>${esc(name)}</b><br>${esc(grund)}</li>`).join('')}</ul><div class="reihe"><button class="knopf" data-a="fenster-zu">${L('Schließen', 'Close')}</button></div>`);
+  if (neuIds.length) setTimeout(() => nachEinlesen(neuIds), 7200);   /* nach der Meldung mit „Rückgängig“ */
 }
 
 /* ---------- Anlegen und Bearbeiten ---------- */
@@ -943,7 +970,7 @@ function formSpeichern(form) {
   const neu = ohneAlteUebersetzung(alt, alt && (f.ueb || textBlieb) ? { ...roh, name: alt.name, ings: alt.ings, steps: alt.steps } : roh, textBlieb);   /* Text unverändert: Name, Zutaten und Schritte bleiben, wie sie waren (nichts wird neu zerlegt, etwa „1 kleine Zwiebel“) */
   delete neu.beispiel; if (f.neu && f.flavors?.length) neu.flavors = f.flavors; if (f.neu && f.source) neu.source = f.source; if (f.kiEntfernt?.length) vermerken(neu, f.kiEntfernt, 'scan');   /* was vor der KI herausgenommen wurde, steht am Rezept */
   Z.rezepte = alt ? Z.rezepte.map((r) => (r.uid === alt.uid ? neu : r)) : [...Z.rezepte, neu];
-  sichern(); danach(neu.uid);
+  sichern(); danach(neu.uid); if (!alt) setTimeout(() => nachEinlesen([neu.uid]), 3600);   /* nach der Meldung „Gespeichert“ */
 
 }
 
@@ -1058,6 +1085,7 @@ function einfuegen(eingang, beispiel = false) {
   const vorher = Z; Z = m.zustand; ergaenze(); sichern(); s.kat = 'alle'; s.frage = '';
   melde((m.neu === 1 ? L('+1 Rezept', '+1 recipe') : fuelle(L('+{0} Rezepte', '+{0} recipes'), m.neu)) + (m.doppelt ? ' · ' + fuelle(L('{0} schon da', '{0} already there'), m.doppelt) : '') + (h.ohneKategorie ? ' · ' + fuelle(L('{0} ohne Kategorie', '{0} without category'), h.ohneKategorie) : ''), m.neu ? L('Rückgängig', 'Undo') : '', () => { Z = vorher; sichern(); zeichne(true); });
   geh('start', {}, s.ansicht === 'start');
+  const alt = new Set(vorher.rezepte.map((r) => r.uid)), neuIds = Z.rezepte.filter((r) => !alt.has(r.uid)).map((r) => r.uid); if (neuIds.length) setTimeout(() => nachEinlesen(neuIds), 7200);   /* R23: nach der Meldung mit „Rückgängig“ */
 }
 /* Klaus 24.11.: nach dem Wählen einer Datei die Wahl „Hinzufügen“ (wie bisher, vorne) oder „Ersetzen“. Beispielpakete fragen nicht. */
 let dateiEingang = null;

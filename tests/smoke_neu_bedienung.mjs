@@ -238,6 +238,29 @@ try {
     }
     await k.close();
   }
+  console.log('R23 · neu eingelesene Rezepte bekommen die Sprachen des Buchs (Klaus: gratis automatisch im Gerät, sonst auf Tipp)');
+  {
+    const B = { uid: 'b1', id: 1, name: 'Kartoffelsuppe', cat: 'suppen', sprache: 'de', servings: 4, ings: [{ amt: '1', unit: 'kg', name: 'Kartoffeln' }], steps: [{ txt: 'Kochen.' }], translations: { fr: { name: 'Soupe', ingredients: ['pommes de terre'], steps: ['Cuire.'] } } };
+    const DATEI = { version: 11, exported: '2026-11-25T21:00:00.000Z', recipes: [{ uid: 'n1', name: 'Linsensuppe', cat: 'suppen', sprache: 'de', ings: [{ amt: '200', unit: 'g', name: 'Linsen' }], steps: ['Linsen kochen.'] }, { uid: 'n2', name: 'Apfelkuchen', cat: 'kuchen', sprache: 'de', ings: [{ amt: '3', unit: '', name: 'Äpfel' }], steps: ['Backen.'] }], menu: [], folders: [] };
+    const einlesen = async (p) => { await p.click('#leiste .fl-griff').catch(() => {}); await p.evaluate(() => document.querySelector('[data-zu=werkstatt]')?.click()); await p.setInputFiles('#datei-sicherung', { name: 'neu.json', mimeType: 'application/json', buffer: Buffer.from(JSON.stringify(DATEI)) }); await p.click('[data-a=datei-dazu]'); await p.waitForTimeout(8200); };
+    for (const fall of ['geraet', 'laden', 'ohne']) {
+      const { p, k } = await seite(390, { geraet: fall !== 'ohne' }); if (fall === 'laden') await p.evaluate(() => { sessionStorage.laden = '1'; });
+      await p.evaluate((b) => new Promise((ja) => { const a = indexedDB.open('KuechenKern-rezeptbuch', 1); a.onsuccess = () => { const t = a.result.transaction('zustand', 'readwrite'), st = t.objectStore('zustand'), q = st.get('alles'); q.onsuccess = () => { const x = q.result; x.zustand.rezepte = [b]; st.put(x, 'alles'); }; t.oncomplete = () => ja(); }; }), B);
+      await p.reload(); await p.waitForSelector('.gruss'); await einlesen(p);
+      const z = (await zustand(p)).zustand, n1 = z.rezepte.find((r) => r.uid === 'n1'), n2 = z.rezepte.find((r) => r.uid === 'n2'), t = await p.locator('#toast').innerText().catch(() => '');
+      if (fall === 'geraet') {
+        ok(/^\[fr\] /.test(n1?.translations?.fr?.name || '') && /^\[fr\] /.test(n2?.translations?.fr?.name || ''), 'Sprachpaket im Gerät da: beide neuen Rezepte bekommen still die französische Fassung', JSON.stringify(n1?.translations));
+        ok(/2 neue Übersetzungen im Gerät angelegt/.test(t) && !(await p.evaluate(() => window.__tr.verfuegbar)).some((x) => x.endsWith('>en')), 'die Meldung sagt es; übersetzt wird nur in Sprachen, die das Buch schon hat', t);
+      } else {
+        ok(!n1?.translations?.fr && !n2?.translations?.fr, fall === 'laden' ? 'Sprachpaket fehlt: es wird ungefragt nichts geladen und nichts übersetzt' : 'ohne Übersetzer im Gerät: nichts geschieht ohne Tipp (keine Kosten)');
+        if (fall === 'laden') ok((await p.evaluate(() => window.__tr.erzeugt)).length === 0, 'kein Übersetzer erzeugt, also auch kein Download');
+        ok(/2 neue Rezepte noch nicht auf Französisch/.test(t) && (await p.locator('#toast [data-a=toast-tun]').innerText()) === 'Übersetzen', 'die Meldung nennt die Zahl und bietet „Übersetzen“ an', t);
+        if (await p.locator('#toast [data-a=toast-tun]').count()) { await p.click('#toast [data-a=toast-tun]'); await p.waitForSelector('.fenster', { timeout: 5000 }).catch(() => {}); }
+        ok(await p.locator('.fenster [data-a=alle-ueb-los], .fenster [data-anbieter], .fenster input').count() > 0, '„Übersetzen“ führt zu „Alle übersetzen“ (mit Kosten) oder zuerst zum Schlüssel');
+      }
+      await k.close();
+    }
+  }
   ok(!fehler.length, 'keine Fehler in der Konsole, kein Netz nach draußen', fehler.slice(0, 3).join(' | '));
 } catch (f) { rot++; console.log('  ✗ ROT: Absturz — ' + String(f?.message || f).split('\n')[0]); }
 await browser.close(); srv.close();

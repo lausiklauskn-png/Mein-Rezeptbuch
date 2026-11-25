@@ -838,4 +838,7 @@ export default {
   'Abgeglichen · der Kalender bleibt, wie er ist': 'Готово · календарь остаётся как есть',
   'Für wie viele?': 'На сколько человек?',
   'Wie im Rezept ({0})': 'Как в рецепте ({0})',
+  '{0} neue Rezepte noch nicht auf {1}': 'Новых рецептов ещё не на языке «{1}»: {0}',
+  '{0} im Gerät übersetzt': 'Переведено на устройстве: {0}',
+  '{0} neue Übersetzungen im Gerät angelegt': 'Новых переводов на устройстве: {0}',
 };
