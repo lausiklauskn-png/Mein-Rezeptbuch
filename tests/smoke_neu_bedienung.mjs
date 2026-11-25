@@ -179,6 +179,9 @@ try {
   await p.click('.md-detail [data-a=rleiste]').catch(() => {}); if (!(await p.locator('.rwerk').count())) await p.click('.md-detail [data-a=rleiste]'); await p.click('.rwerk [data-a=uebersetzen]'); await p.click('#ueb-weg [data-w=claude]'); await p.waitForSelector('#ueb-wahl[data-weg=claude]');
   await p.click('#ueb-wahl [data-s=fr]'); await p.waitForFunction(() => /Übersetzt/.test(document.getElementById('toast').textContent), null, { timeout: 8000 }).catch(() => {});
   r = await rz(p, 'r-suppe'); ok(rufe.length === 1 && r.translations?.fr?.name === 'Soupe de pommes de terre', 'Claude bleibt der zweite Weg (beste Qualität)');
+  /* Klaus 25.11.: „Übersetzt: Italiano“, aber es stand weiter Deutsch da. Nach dem Übersetzen steht die neue Fassung da, umschaltbar. */
+  ok((await p.locator('.rezept-held h1').innerText()).trim() === 'Soupe de pommes de terre' && await p.getAttribute('.ueb-um[data-s=fr]', 'aria-pressed') === 'true', 'nach dem Übersetzen steht die neue Fassung da (deutsche Oberfläche, Französisch gewählt), der Chip FR ist gewählt', await p.locator('.rezept-held h1').innerText());
+  await p.click('.ueb-um[data-s=orig]'); await p.waitForTimeout(150); ok(!(await p.locator('.rezept-held h1').innerText()).includes('Soupe'), 'der Chip „Original“ führt zurück');
   await k.close();
 
   for (const breite of [390, 1280]) {

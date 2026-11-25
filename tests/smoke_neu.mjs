@@ -146,7 +146,9 @@ try {
   const fisch = p.locator('.kat-name[data-kid=fisch]'); await fisch.fill('Fisch & Meer'); await fisch.blur();
   await p.click('.kat-zeile[data-kid=fisch] [data-a=kat-emoji]'); await p.locator('.emoji-raster button', { hasText: '🍣' }).click();
   let lt = await leiste(); ok(lt.some((t) => /Fisch & Meer\s+2$/.test(t.trim())), 'umbenannt: „Fisch & Meer“ steht in der Leiste', lt.join(' | '));
-  await zuWerk('kategorien'); ok(await p.locator('.kat-zeile[data-kid=fisch] .kat-zeichen img.sticker').count() === 1, 'Fisch hat Rezepte mit Bild: dort steht ein Mini-Foto, kein Zeichen (Klaus 23.11.: „Bilder sprechen mehr“)');
+  await zuWerk('kategorien'); ok(await p.locator('.kat-zeile[data-kid=fisch] .kat-zeichen img.sticker').count() === 0 && (await p.locator('.kat-zeile[data-kid=fisch] .kat-zeichen').innerText()) === '🍣', 'ein gewähltes Zeichen gilt, auch wenn die Kategorie Rezepte mit Bild hat (Klaus 25.11.: „die Emojis kann ich nicht ändern“; vorher stand hier das Foto)');
+  await p.click('.kat-zeile[data-kid=fisch] [data-a=kat-emoji]'); await p.locator('[data-a=kat-bild-setzen][data-uid]').first().click(); await p.waitForTimeout(150);
+  ok(await p.locator('.kat-zeile[data-kid=fisch] .kat-zeichen img.sticker').count() === 1, 'ein gewähltes Foto gilt wieder (Bilder sprechen mehr, Klaus 23.11.)');
   { const ohneBild = await p.evaluate(() => [...document.querySelectorAll('.kat-zeile')].find((z) => !z.querySelector('img.sticker') && z.querySelector('.kat-name'))?.dataset.kid);
     if (ohneBild) { await p.click(`.kat-zeile[data-kid="${ohneBild}"] [data-a=kat-emoji]`); ok((await p.locator('.fenster').innerText()).includes('noch kein Rezept ein Bild'), 'ohne Bild sagt das Fenster, dass das Zeichen steht'); await p.locator('.emoji-raster button', { hasText: '🎂' }).click(); ok((await p.locator(`.kat-zeile[data-kid="${ohneBild}"] .kat-zeichen`).innerText()) === '🎂', 'ohne Bild bleibt das gewählte Zeichen'); }
     else ok(false, 'die Probe braucht eine Kategorie ohne Bild'); }
