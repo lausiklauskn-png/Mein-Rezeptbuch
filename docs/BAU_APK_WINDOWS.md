@@ -283,6 +283,7 @@ Keine laufenden Kosten (alles im Gerät oder ohne Dienst). Reihenfolge = Reihenf
 | 5 | **Food-Zine an die ChatGPT-/Claude-App übergeben**: Teilen mit Bild **und** Auftrag in einem Schritt statt kopieren/wechseln/einfügen | Zwischenablage mit Text + Bild über `clipboard.write` der Hülle, immer verlässlich |
 | 6 | **Kochwecker und Erinnerungen als echte Benachrichtigung**, auch bei gesperrtem Schirm (Local Notifications); Notizbuch ohne `.ics`-Umweg | Benachrichtigung des Systems |
 | 7 | **Diktat offline** über den Sprach-Baustein der Familienakte (ProSpeech) | Diktat des Systems, sonst wie heute |
+| 7a | **Gerätekalender anschließen** (Klaus 25.11., wie Private Akte/Private Brain): Event-Ordner, Notiz-Erinnerungen und auf Wunsch der Wochenplan als Termine im Android-Kalender (Calendar Provider), mit Abgleich | Kalender des Systems (Outlook/Windows-Kalender über `.ics` oder Graph, entscheiden beim Bau) |
 | 8 | **Verknüpfungen am App-Zeichen** (langer Druck: Neues Rezept, Einkaufsliste, Notiz); später ein Widget „Einkaufsliste“ | **Bücher direkt als PDF-Datei** (`printToPDF`, ohne Druckdialog) · **zweites Fenster** (Kochansicht auf zweitem Bildschirm) · Tastenkürzel (Strg+N, Strg+F) |
 
 Je Punkt beim Bau: eine Probe, die mit **und** ohne Hülle läuft (ohne Hülle muss der PWA-Weg unverändert grün bleiben), und

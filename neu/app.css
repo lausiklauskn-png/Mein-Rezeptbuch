@@ -965,3 +965,5 @@ a.knopf{text-decoration:none}
 .ein-h{font-size:13px;letter-spacing:.06em;text-transform:uppercase;color:var(--mut);margin:6px 0 6px;font-weight:650}
 .ein-h.ein-ord{margin-top:18px;padding-top:14px;border-top:2px solid var(--line)}
 .wahl-liste .zeile[aria-pressed="true"]{font-weight:650}
+.mitmik .nz-leer{position:absolute;right:6px;top:6px;width:28px;height:28px;border-radius:50%;display:grid;place-items:center;background:var(--fl);color:var(--mut)}
+.mitmik .nz-leer .ic{width:15px;height:15px}

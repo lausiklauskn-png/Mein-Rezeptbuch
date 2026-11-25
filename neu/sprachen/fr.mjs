@@ -808,4 +808,6 @@ export default {
   'Nächstes Bild': 'Image suivante',
   'Für die KI verwenden': 'Utiliser pour l’IA',
   'Bild für die KI gewählt': 'Image pour l’IA choisie',
+  'Text löschen und neu anfangen': 'Effacer le texte et recommencer',
+  'Text gelöscht': 'Texte effacé',
 };

@@ -805,4 +805,6 @@ export default {
   'Nächstes Bild': '下一张',
   'Für die KI verwenden': '用于 AI',
   'Bild für die KI gewählt': '已选定给 AI 的图片',
+  'Text löschen und neu anfangen': '清除文字并重新开始',
+  'Text gelöscht': '文字已清除',
 };

@@ -808,4 +808,6 @@ export default {
   'Nächstes Bild': 'Immagine successiva',
   'Für die KI verwenden': 'Usa per l’IA',
   'Bild für die KI gewählt': 'Immagine per l’IA scelta',
+  'Text löschen und neu anfangen': 'Cancella il testo e ricomincia',
+  'Text gelöscht': 'Testo cancellato',
 };

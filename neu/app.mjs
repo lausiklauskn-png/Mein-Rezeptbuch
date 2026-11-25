@@ -897,7 +897,7 @@ function formSpeichern(form) {
     ings: String(f.ings).split('\n').filter((t) => t.trim()).map(zutatAusZeile), steps: schritteMitNotiz(String(f.steps).split(/\n\s*\n|\n/).filter((t) => t.trim()), alt ? alt.steps : []), modified: new Date().toISOString() });
   const danach = (uid) => { s.form = null; if (!(f.notiz && NB.uebernommen(f.notiz, uid))) melde(L('Gespeichert', 'Saved')); geh(s.formVon === 'baum' && breit() ? 'baum' : 'rezept', { uid }, true); };
   if (alt && f.ueb && !textBlieb) { fassungFrage(alt, roh, f.ueb, () => danach(alt.uid)); return; }   /* eine Übersetzung bearbeitet: einmal fragen */
-  const neu = ohneAlteUebersetzung(alt, alt && f.ueb ? { ...roh, name: alt.name, ings: alt.ings, steps: alt.steps } : roh, textBlieb);
+  const neu = ohneAlteUebersetzung(alt, alt && (f.ueb || textBlieb) ? { ...roh, name: alt.name, ings: alt.ings, steps: alt.steps } : roh, textBlieb);   /* Text unverändert: Name, Zutaten und Schritte bleiben, wie sie waren (nichts wird neu zerlegt, etwa „1 kleine Zwiebel“) */
   delete neu.beispiel; if (f.neu && f.flavors?.length) neu.flavors = f.flavors; if (f.neu && f.source) neu.source = f.source; if (f.kiEntfernt?.length) vermerken(neu, f.kiEntfernt, 'scan');   /* was vor der KI herausgenommen wurde, steht am Rezept */
   Z.rezepte = alt ? Z.rezepte.map((r) => (r.uid === alt.uid ? neu : r)) : [...Z.rezepte, neu];
   sichern(); danach(neu.uid);
@@ -1332,7 +1332,7 @@ const ZI = zine({ L, spr, esc, ic, A, s, W, Z: () => Z, setzeZ: (z) => { Z = z; 
   gruppen: rezeptGruppen, katInfo, bildAusDatei, frag, katalog: () => katalog, ausgabe: () => ausgabe, tresorAuto });
 /* Notizbuch (neu/notizbuch.mjs): unterwegs Foto oder Notiz festhalten; später lesen, vorschlagen, planen, in den Kalender. Knopf im Kopf. */
 const NB = notizbuch({ L, spr, esc, ic, A, s, W, SK, Z: () => Z, setzeZ: (z) => { Z = z; }, E: () => E, fenster, fensterZu, melde, sichern, zeichne, kopfZeichnen: () => { kopfZeichnen(); leisteZeichnen(); }, rezept, istInhalt, geh,
-  geb, mik, bildAusDatei, schluesselFenster, befehlFrage, scanGewaehlt, scanKats, formAus, titel: () => ausgabe?.titel || '' });
+  geb, mik, bildAusDatei, schluesselFenster, befehlFrage, scanGewaehlt, scanKats, formAus, titel: () => ausgabe?.titel || '', diktatAus });
 /* Kreativbuch (neu/kreativbuch.mjs): aus den Rezepten ein gestaltetes Buch, Texte von Claude im gewählten Stil; Einstellungen → Buch. */
 const KB = kreativbuch({ L, spr, esc, ic, A, W, SK, Z: () => Z, setzeZ: (z) => { Z = z; }, E: () => E, lager: () => lager, fenster, fensterZu, beiZu: (f) => { zuTun = f; }, melde, sichern, zeichne, zeig, istInhalt, schluesselFenster,
   katNamen: () => new Map(alleKategorien(Z.rezepte, Z.kategorien).map((c) => [c.id, katName(c)])), katVon: katVonRezept, gruppen: rezeptGruppen, wahl: ZU.wahl, stellenHtml: ZU.stellenHtml, ausgabe: () => ausgabe });

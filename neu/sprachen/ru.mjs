@@ -805,4 +805,6 @@ export default {
   'Nächstes Bild': 'Следующее изображение',
   'Für die KI verwenden': 'Использовать для ИИ',
   'Bild für die KI gewählt': 'Изображение для ИИ выбрано',
+  'Text löschen und neu anfangen': 'Стереть текст и начать заново',
+  'Text gelöscht': 'Текст стёрт',
 };
