@@ -848,4 +848,6 @@ export default {
   'Fassungen': '版本',
   'Original zeigen': '显示原文',
   'Original': '原文',
+  'Geändert: die Fassung {0} ist neu zu übersetzen': '已更改：{0}版本需要重新翻译',
+  'Geändert und im Gerät neu übersetzt': '已更改，并已在设备上重新翻译',
 };

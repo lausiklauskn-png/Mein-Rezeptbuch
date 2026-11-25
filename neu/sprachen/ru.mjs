@@ -848,4 +848,6 @@ export default {
   'Fassungen': 'Версии',
   'Original zeigen': 'Показать оригинал',
   'Original': 'Оригинал',
+  'Geändert: die Fassung {0} ist neu zu übersetzen': 'Изменено: версию ({0}) нужно перевести заново',
+  'Geändert und im Gerät neu übersetzt': 'Изменено и заново переведено на устройстве',
 };

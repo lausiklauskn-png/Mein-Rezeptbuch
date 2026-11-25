@@ -851,4 +851,6 @@ export default {
   'Fassungen': 'Versiones',
   'Original zeigen': 'Mostrar el original',
   'Original': 'Original',
+  'Geändert: die Fassung {0} ist neu zu übersetzen': 'Modificada: hay que volver a traducir la versión en {0}',
+  'Geändert und im Gerät neu übersetzt': 'Modificada y traducida de nuevo en el dispositivo',
 };

@@ -241,6 +241,22 @@ try {
     }
     await k.close();
   }
+  console.log('Klaus 25.11.: ein übersetztes Rezept wird geändert – die Fassung wird neu übersetzt');
+  {
+    const B = { uid: 'g1', id: 1, name: 'Hühnerfrikassee', cat: 'fleisch', sprache: 'de', servings: 4, ings: [{ amt: '400', unit: 'g', name: 'Hähnchenbrust' }], steps: [{ txt: 'Garen.' }], translations: { fr: { name: 'Fricassée', ingredients: ['poulet'], steps: ['Cuire.'] } } };
+    for (const fall of ['geraet', 'ohne']) {
+      const { p, k } = await seite(1280, { geraet: fall === 'geraet' });
+      await p.evaluate((b) => new Promise((ja) => { const a = indexedDB.open('KuechenKern-rezeptbuch', 1); a.onsuccess = () => { const t = a.result.transaction('zustand', 'readwrite'), st = t.objectStore('zustand'), q = st.get('alles'); q.onsuccess = () => { const x = q.result; x.zustand.rezepte = [b]; st.put(x, 'alles'); }; t.oncomplete = () => ja(); }; }), B);
+      await p.reload(); await p.waitForSelector('.gruss'); await zumRezept(p, 'Hühnerfrikassee');
+      if (!(await p.locator('.rwerk').count())) await p.click('[data-a=rleiste]'); await p.click('.rwerk [data-a=bearbeiten]'); await p.waitForSelector('[data-form=rezept]');
+      await p.fill('[name=name]', 'Hühnerfrikassee mit Käse überbacken'); await p.click('[data-form=rezept] button[type=submit]'); await p.waitForTimeout(4600);
+      const r = (await zustand(p)).zustand.rezepte[0], t = await p.locator('#toast').innerText().catch(() => '');
+      if (fall === 'geraet') ok(r.translations?.fr?.name === '[fr] Hühnerfrikassee mit Käse überbacken' && /im Gerät neu übersetzt/.test(t), 'Sprachpaket da: die französische Fassung wird still neu übersetzt, aus dem neuen Text', (r.translations?.fr?.name || '–') + ' · ' + t);
+      else { ok(!r.translations?.fr && /Fassung Französisch ist neu zu übersetzen/.test(t) && (await p.locator('#toast [data-a=toast-tun]').innerText()) === 'Übersetzen', 'ohne Übersetzer im Gerät: die alte Fassung ist weg (stimmt nicht mehr), eine Meldung bietet „Übersetzen“ an', t);
+        if (await p.locator('#toast [data-a=toast-tun]').count()) { await p.click('#toast [data-a=toast-tun]'); await p.waitForSelector('.fenster', { timeout: 5000 }).catch(() => {}); } ok(await p.locator('#ueb-wahl, [data-form=schluessel]').count() === 1, '„Übersetzen“ öffnet die Übersetzung dieses Rezepts (oder zuerst den Schlüssel)'); }
+      await k.close();
+    }
+  }
   console.log('R23 · neu eingelesene Rezepte bekommen die Sprachen des Buchs (Klaus: gratis automatisch im Gerät, sonst auf Tipp)');
   {
     const B = { uid: 'b1', id: 1, name: 'Kartoffelsuppe', cat: 'suppen', sprache: 'de', servings: 4, ings: [{ amt: '1', unit: 'kg', name: 'Kartoffeln' }], steps: [{ txt: 'Kochen.' }], translations: { fr: { name: 'Soupe', ingredients: ['pommes de terre'], steps: ['Cuire.'] } } };
