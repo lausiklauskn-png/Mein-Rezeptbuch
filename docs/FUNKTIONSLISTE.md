@@ -130,7 +130,7 @@ Auftrag: Brief `docs/BRIEF_SITZUNG_2026-11-23_REZEPTBUCH-KUECHEN-KERN.md` im Rep
 | KI-Kreativbuch (Blätterbuch, Stil-System, Seiten 1–3, Kosten-Hinweis `kbCostOv`) | ausgabe | 12 | da · smoke_neu_kreativbuch, kern-kreativbuch · Einstellungen → Buch → Kreativbuch; Texte von Claude je Rezept (sechs Felder der alten App), acht Stile, je Rezept bis zu drei Seiten, Kosten vorab, Lauf abbrechbar |
 | Eigenes Kreativbuch aus Bildern | ausgabe | 12 | da · smoke_neu_kreativbuch, kern-eigenbuch · Kreativbuch → „Aus Bildern“: Fotos und PDF-Seiten, bis 30 Bilder, 15 MB je Datei, im Gerät verkleinert (1600/320 px), ordnen, entfernen mit Rückgängig, Blättern/PDF/HTML, ein Bild als Rezeptbild; Projekte im Gerät (speichern, öffnen, ersetzen, löschen mit Rückgängig, als .kreativbuch-Datei, alte Dateien lesbar), nicht in der Sicherung |
 | KI-Buch (`aiBookOv`, `kbkResize`) | ausgabe | 12 | da · `aiBookOv` war der Kopier-Weg des KI-Kreativbuchs (Rezepte wählen, Stil, Auftrag kopieren, Antwort einsetzen) samt Food-Zine-Teil: abgedeckt durch „Auftrag kopieren“/„Antwort einsetzen“ und die Food-Zine; `kbkResize` gehört zu „Aus Bildern“ (oben) |
-| Food-Zine (Galerie, Prompt-Generator, Bild+Text in Zwischenablage) | ausgabe | 12 | da (0.14.6) · drei Seiten, Auftrag kopieren (mit und ohne Foto), Bild einsetzen oder mit OpenAI-Schlüssel erzeugen, Stil, Galerie (smoke_neu_zine) |
+| Food-Zine (Galerie, Prompt-Generator, Bild+Text in Zwischenablage) | ausgabe | 12 | da (0.16.0) · Poster-Auftrag der alten App (Fluss A): Lieblingsrezept, Bild für die KI (Rezept/eigenes/ohne), 6 Formate, 5 Extras, KI-Überraschung, Auftragsfeld änderbar, Kopieren · Claude · ChatGPT; kein Erzeugen über einen Schlüssel; Sammlung „Meine Food-Zine-Bilder“ im Gerät (ordnen mit Finger und Maus, Druck, Als Rezeptbild, Als Buch) (smoke_neu_poster) |
 | KI-Zine (`zineOv`) | ausgabe | 12 | fehlt · das Food-Zine ist da (0.14.6); das KI-Zine der alten App ist nicht nachgebaut |
 
 ## 9 · Einstellungen (`sc-settings`) und Rahmen
@@ -207,7 +207,7 @@ Beide Ausgaben liegen unter derselben Herkunft `lausiklauskn-png.github.io`: jed
 | 11 Extras, 12 Pakete | ja | wie gezeigt | teils · Menü am Rezept da (smoke_neu_menue); bei den Paketen nur das Beispielbuch |
 | neu 13 | Alles hinter + | Import-Blatt mit Reitern: Selbst, Foto-Scan, Web, Text/PDF, Vom Teller, Datei, Pakete, KI-Foto | da · smoke_neu, smoke_neu_scan, smoke_neu_web · sechs Kacheln; „Vom Teller“ und PDF stehen im Foto-Weg, das KI-Foto im Bild-Blatt |
 | neu 14 | Bild anpassen | Bildausschnitt (heute `openCrop`): ziehen, Zoom, Höhe, Lagen, Vorschau Karte/Kopf/Liste; anderes Bild per Kamera, Datei, KI, Gratis, Food-Zine | teils · Ziehen, Zoom, Lagen, Vorschau Karte und Kopf, Kamera, Datei, KI, Gratis da (smoke_neu); Food-Zine da (smoke_neu_zine); „Höhe“ und die Vorschau „Liste“ fehlen |
-| neu 15 | Food-Zine | drei Seiten, Auftrag ohne Schlüssel kopieren, Bild einsetzen oder mit Schlüssel erzeugen, Stil, Galerie | da (0.14.6, smoke_neu_zine) |
+| neu 15 | Food-Zine | Poster-Auftrag wie alt, Auftragsfeld, Claude/ChatGPT, Sammlung im Gerät; die drei Seiten (0.14.6) sind ersetzt, alte Seiten wandern einmal in die Sammlung | da (0.16.0, smoke_neu_poster) |
 | Regel | **keine Funktion auslassen** außer SBKIM und Mycel | gilt für die ganze Liste oben | teils · offen sind die Zeilen mit „fehlt“ und „teils“ |
 
 ## 14 · Abgleich mit dem Mixarium und dritte Runde (Klaus 23.11.)
@@ -239,5 +239,5 @@ Klaus hat zu den zehn Punkten der Mixarium-Sitzung und zu Punkt 16 Ja gesagt. Br
 | Kategorien anlegen, umbenennen, löschen, zusammenlegen, verschieben, Rezepte von Hand zuordnen | kern | alle Funktionen der alten App bleiben | da · smoke_neu |
 | Beispiel-Rezepte und -Bilder tragen eine Marke; **„Beispiele entfernen“** mit einem Klick, eigene Rezepte bleiben | kern | | da · smoke_neu |
 | **Alle Rezepte löschen**, einzelne Rezepte löschen, jeweils mit Rückfrage und Rückgängig | kern | | teils · „Alle Rezepte löschen“ mit Rückfrage, Tresor und Rückgängig (smoke_neu); ein einzelnes Rezept wird ohne Rückfrage gelöscht, mit Rückgängig |
-| **Bilder-Ordner** in der Werkstatt: Vorschau klein/groß, mehrere anhaken, löschen, einfügen, Filter Rezeptbilder/Food-Zine/Beispiele, „Alle Bilder löschen“ | kern | ein Rezept ohne Bild behält seinen Text | da · auch der Filter „Food-Zine“ (smoke_neu, smoke_neu_zine) |
-| Food-Zine-Beispiele nur als vollständige Sätze (3 Seiten) | ausgabe | einzelne Seiten nicht | da · nur vollständige Sätze, auf Tippen geladen (smoke_neu_zine) |
+| **Bilder-Ordner** in der Werkstatt: Vorschau klein/groß, mehrere anhaken, löschen, einfügen, Filter Rezeptbilder/Beispiele, „Alle Bilder löschen“ | kern | ein Rezept ohne Bild behält seinen Text | da · der Filter „Food-Zine“ ist seit 0.16 weg: die Food-Zine-Bilder haben ihre eigene Sammlung (smoke_neu, smoke_neu_poster) |
+| Food-Zine-Beispiele | ausgabe | ohne Doppel | da · seit 0.16 in die Sammlung „Meine Food-Zine-Bilder“, je Seite ein Bild, Prüfsumme nachgerechnet, ein zweites Laden bringt nichts doppelt (smoke_neu_poster) |

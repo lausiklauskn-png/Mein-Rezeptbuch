@@ -42,7 +42,7 @@ import { druckRezept, drucke } from '../kern/ausgabe/druck.mjs';
 import { teilLink, ausTeilLink, qrSvg, passtInQr } from '../kern/teilen/qr.mjs';
 import { rezeptIn } from '../kern/modell/einheiten.mjs';
 
-const FASSUNG = '0.15.5';
+const FASSUNG = '0.16.0';
 const breit = () => matchMedia('(min-width:1000px)').matches;
 const $ = (id) => document.getElementById(id);
 const esc = (t) => String(t ?? '').replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
@@ -78,7 +78,7 @@ function ergaenze() { Z.einkauf = { ...LEER_EINKAUF(), ...(Z.einkauf || {}) }; i
 
 /* ---------- Speichern ---------- */
 let schreibUhr = null;
-function sichern() { clearTimeout(schreibUhr); schreibUhr = setTimeout(() => lager.schreibe({ fassung: 1, zustand: Z, einstellungen: E }).catch(() => melde(L('Speichern ist fehlgeschlagen. Bitte eine Sicherung als Datei anlegen.', 'Saving failed. Please make a backup file.'))), 150); }
+function sichern() { if (Z.rezepte.some((r) => r && 'zine' in r)) ZI.nachziehen(); /* alte Food-Zine-Seiten am Rezept (bis 0.15, auch aus einer Sicherung) → Sammlung */ clearTimeout(schreibUhr); schreibUhr = setTimeout(() => lager.schreibe({ fassung: 1, zustand: Z, einstellungen: E }).catch(() => melde(L('Speichern ist fehlgeschlagen. Bitte eine Sicherung als Datei anlegen.', 'Saving failed. Please make a backup file.'))), 150); }
 const rezept = (uid) => Z.rezepte.find((r) => r.uid === uid);
 const zeig = (r) => (r && s.original !== r.uid ? sicht(r, spr()) : r);   // Anzeige: liegt eine Übersetzung in der App-Sprache am Rezept, gilt sie (außer „Original zeigen“); bearbeitet wird das Original
 const katName = (c) => beschriftung(c, spr(), Z.kategorien);
@@ -122,7 +122,7 @@ function kopfZeichnen() {
   const k = $('kopf');
   k.classList.toggle('zu', !!E.railZu);
   if (breit()) {
-    const n = (zu, i, t) => `<button class="rail-n" data-a="geh" data-zu="${zu}" ${(zu === 'start' ? ['start', 'rezept', 'kochen'].includes(s.ansicht) : s.ansicht === zu) ? 'aria-current="page"' : ''} title="${t}">${ic(i)}<span class="t">${t}</span></button>`;
+    const n = (zu, i, t) => `<button class="rail-n" data-a="geh" data-zu="${zu}" ${(zu === 'start' ? ['start', 'rezept', 'kochen'].includes(s.ansicht) : zu === 'kreativ' ? ['kreativ', 'zine'].includes(s.ansicht) : s.ansicht === zu) ? 'aria-current="page"' : ''} title="${t}">${ic(i)}<span class="t">${t}</span></button>`;
     k.innerHTML = `<div class="rail-oben"><img class="logo" src="${esc(seitenZeichen())}" alt="" width="30" height="30"><span class="name t">${esc(ausgabe.titel)}${kopfFassung()}</span>${kopfInstall()}<button class="rail-klapp" data-a="rail" aria-label="${E.railZu ? L('Leiste ausklappen', 'Expand bar') : L('Leiste einklappen', 'Collapse bar')}">${ic(E.railZu ? 'rechts' : 'links')}</button></div>
      <button class="knopf akz rail-neu" data-a="neu" aria-label="${L('Neues Rezept', 'New recipe')}">${ic('plus')}<span class="t">${L('Neues Rezept', 'New recipe')}</span></button>${NB.kopfKnopf(true)}${n('start', 'buch', L('Rezepte', 'Recipes'))}${n('baum', 'ordner', L('Ordner', 'Folders'))}${n('plan', 'plan', L('Planer', 'Planner'))}${n('einkauf', 'einkauf', L('Einkauf', 'Shopping')).replace('</button>', (ekOffen() ? `<span class="zahl">${ekOffen()}</span>` : '') + '</button>')}${n('kreativ', 'zine', L('Kreativbuch', 'Creative book'))}${n('werkstatt', 'einst', L('Einstellungen', 'Settings'))}
      <button class="rail-n" data-a="farbe" title="${L('Farbe', 'Colour')}"><span class="farbknopf"></span><span class="t">${L('Farbe', 'Colour')}</span></button>`;
@@ -268,7 +268,7 @@ const kiZeile = (a, i, t, was) => `<button class="zeile" data-a="${a}" title="${
 function rezeptMenue() {
   const r = rezept(s.uid); if (!r) return;
   fenster(`<h2 class="imp-kopf"><span>${esc(zeig(r).name)}</span></h2><div class="liste menue" id="rmenue">
-   ${zeile('drucken', 'drucken', L('Drucken', 'Print'))}${zeile('qr', 'qr', L('Teilen per QR-Code', 'Share by QR code'))}${zeile('einheiten', 'waage', L('Einheiten', 'Units'), einhName())}${zeile('zine', 'zine', L('Food-Zine', 'Food zine'), ZI.stand(r))}
+   ${zeile('drucken', 'drucken', L('Drucken', 'Print'))}${zeile('qr', 'qr', L('Teilen per QR-Code', 'Share by QR code'))}${zeile('einheiten', 'waage', L('Einheiten', 'Units'), einhName())}${zeile('zine', 'zine', L('Food-Zine', 'Food zine'), ZI.stand())}
    ${kiZeile('naehrwerte', 'flamme', L('Nährwerte schätzen', 'Estimate nutrition'), helferHinaus('naehrwerte', r, spr()))}${kiZeile('rechtschreibung', 'abc', L('Rechtschreibung prüfen', 'Check spelling'), helferHinaus('rechtschreibung', r, spr()))}${kiZeile('uebersetzen', 'welt', L('Übersetzen', 'Translate'), helferHinaus('uebersetzung', r, spr()))}</div>`);
 }
 /* Eine Übersetzung gilt für den Text, aus dem sie entstand: ändern sich Name, Zutaten oder Schritte, fällt sie weg – sonst stünde der alte Text weiter da. */
@@ -585,14 +585,14 @@ function katNameSetzen(id, wert) {
 /* ---------- Bilder-Ordner ---------- */
 function bilderHtml() {
   const B = s.bilder, mit = Z.rezepte.filter((r) => istInhalt(r) && r.img), ohne = Z.rezepte.filter((r) => istInhalt(r) && !r.img);
-  const zineF = B.filter === 'zine';   /* Food-Zine: jede Seite eine Kachel (neu/zine.mjs); gelöscht wird dort nur die Seite */
-  const gez = zineF ? ZI.galerie() : mit.filter((r) => B.filter === 'alle' || (B.filter === 'beispiele' ? r.beispiel : !r.beispiel));
+  if (!['alle', 'eigene', 'beispiele'].includes(B.filter)) B.filter = 'alle';   /* den Filter „Food-Zine“ gibt es seit 0.16 nicht mehr: die Food-Zine-Bilder haben ihre eigene Sammlung (Kreativbuch) */
+  const gez = mit.filter((r) => B.filter === 'alle' || (B.filter === 'beispiele' ? r.beispiel : !r.beispiel));
   for (const u of [...B.wahl]) if (!gez.some((r) => r.uid === u)) B.wahl.delete(u);
   return `<div class="ueber"><h2 style="font-size:19px">${L('Bilder', 'Pictures')}</h2><small>${fuelle(L('{0} Bilder · {1} Rezepte ohne Bild', '{0} pictures · {1} recipes without a picture'), mit.length, ohne.length)}</small></div>
-   <div class="laeden">${[['alle', L('Alle', 'All')], ['eigene', L('Eigene', 'Own')], ['beispiele', L('Beispiele', 'Examples')], ['zine', L('Food-Zine', 'Food zine')]].map(([f, t]) => `<button class="chip" data-a="bilder-filter" data-f="${f}" aria-pressed="${B.filter === f}">${t}</button>`).join('')}<button class="chip" data-a="bilder-gross" aria-pressed="${B.gross}">${ic('voll')}${B.gross ? L('Groß', 'Large') : L('Klein', 'Small')}</button>${frag(L('Tippe Bilder an, um sie auszuwählen. „Löschen“ entfernt nur das Bild; das Rezept mit seinem Text bleibt.', 'Tap pictures to select them. “Delete” removes only the picture; the recipe with its text stays.'))}</div>
-   <div class="reihe" style="margin-bottom:10px"><button class="knopf rot" data-a="bilder-weg" ${B.wahl.size ? '' : 'disabled'}>${ic('muell')}${fuelle(L('Löschen ({0})', 'Delete ({0})'), B.wahl.size)}</button><button class="knopf" data-a="bilder-alle-wahl">${B.wahl.size === gez.length && gez.length ? L('Auswahl aufheben', 'Clear selection') : L('Alle auswählen', 'Select all')}</button>${zineF ? '' : `<button class="knopf rot" data-a="bilder-alle-weg" ${mit.length ? '' : 'disabled'}>${L('Alle Bilder löschen', 'Delete all pictures')}</button>${ZU.sammelKnopf()}`}</div>
-   <div class="bildgitter ${B.gross ? 'gross' : ''}">${gez.map((r) => `<button class="bildkachel${r.hoch ? ' hoch' : ''}" data-a="bild-wahl" data-uid="${esc(r.uid)}" aria-pressed="${B.wahl.has(r.uid)}"><img src="${esc(r.img)}" alt="" loading="lazy"><span class="hk">${B.wahl.has(r.uid) ? ic('haken') : ''}</span><span class="bn">${esc(r.name)}${r.unter ? `<small>${esc(r.unter)}</small>` : ''}</span></button>`).join('') || `<p class="quelle">${L('Keine Bilder in dieser Auswahl.', 'No pictures in this selection.')}</p>`}</div>
-   ${ohne.length && !zineF ? `<div class="gruppe"><h3>${L('Rezepte ohne Bild', 'Recipes without a picture')}</h3><div class="liste">${ohne.map((r) => `<button class="zeile" data-a="bild-dazu" data-uid="${esc(r.uid)}">${ic('kamera')}<span>${esc(r.name)}<small>${L('Foto einfügen', 'Add photo')}</small></span></button>`).join('')}</div></div>` : ''}`;
+   <div class="laeden">${[['alle', L('Alle', 'All')], ['eigene', L('Eigene', 'Own')], ['beispiele', L('Beispiele', 'Examples')]].map(([f, t]) => `<button class="chip" data-a="bilder-filter" data-f="${f}" aria-pressed="${B.filter === f}">${t}</button>`).join('')}<button class="chip" data-a="bilder-gross" aria-pressed="${B.gross}">${ic('voll')}${B.gross ? L('Groß', 'Large') : L('Klein', 'Small')}</button>${frag(L('Tippe Bilder an, um sie auszuwählen. „Löschen“ entfernt nur das Bild; das Rezept mit seinem Text bleibt.', 'Tap pictures to select them. “Delete” removes only the picture; the recipe with its text stays.'))}</div>
+   <div class="reihe" style="margin-bottom:10px"><button class="knopf rot" data-a="bilder-weg" ${B.wahl.size ? '' : 'disabled'}>${ic('muell')}${fuelle(L('Löschen ({0})', 'Delete ({0})'), B.wahl.size)}</button><button class="knopf" data-a="bilder-alle-wahl">${B.wahl.size === gez.length && gez.length ? L('Auswahl aufheben', 'Clear selection') : L('Alle auswählen', 'Select all')}</button><button class="knopf rot" data-a="bilder-alle-weg" ${mit.length ? '' : 'disabled'}>${L('Alle Bilder löschen', 'Delete all pictures')}</button>${ZU.sammelKnopf()}</div>
+   <div class="bildgitter ${B.gross ? 'gross' : ''}">${gez.map((r) => `<button class="bildkachel" data-a="bild-wahl" data-uid="${esc(r.uid)}" aria-pressed="${B.wahl.has(r.uid)}"><img src="${esc(r.img)}" alt="" loading="lazy"><span class="hk">${B.wahl.has(r.uid) ? ic('haken') : ''}</span><span class="bn">${esc(r.name)}</span></button>`).join('') || `<p class="quelle">${L('Keine Bilder in dieser Auswahl.', 'No pictures in this selection.')}</p>`}</div>
+   ${ohne.length ? `<div class="gruppe"><h3>${L('Rezepte ohne Bild', 'Recipes without a picture')}</h3><div class="liste">${ohne.map((r) => `<button class="zeile" data-a="bild-dazu" data-uid="${esc(r.uid)}">${ic('kamera')}<span>${esc(r.name)}<small>${L('Foto einfügen', 'Add photo')}</small></span></button>`).join('')}</div></div>` : ''}`;
 }
 /* Bild anpassen: Ausschnitt ziehen, Zoom, schnelle Lagen. Gespeichert in r.imgCrop wie in der alten App. */
 let zs = null;
@@ -806,10 +806,10 @@ function werkstattHtml() {
 
 /* ---------- Kreativbuch (Klaus 25.11., R12): Bücher und Food-Zine als eigener Bereich in der Leiste, nicht mehr in den Einstellungen ---------- */
 function kreativHtml() {
-  const n = Z.rezepte.filter(istInhalt).length, zine = ZI.galerie().length;
-  return `<div class="ueber"><h2 style="font-size:19px">${L('Kreativbuch', 'Creative book')}</h2>${frag(L('Aus deinen Rezepten wird ein Buch: als PDF zum Drucken, als Datei zum Blättern, als Kreativbuch mit Texten von Claude in acht Stilen (mit Schlüssel oder über einen kopierten Auftrag ohne Schlüssel) oder aus eigenen Fotos und PDF-Seiten. Projekte heben ein angefangenes Buch auf. Food-Zine-Seiten entstehen am Rezeptbild; hier stehen alle beisammen.', 'Your recipes become a book: as a PDF to print, as a file to leaf through, as a creative book with texts by Claude in eight styles (with a key or via a copied request without a key), or from your own photos and PDF pages. Projects keep a book you started. Food zine pages are made at the recipe picture; here they are all together.'))}</div>
+  const n = Z.rezepte.filter(istInhalt).length, zine = ZI.anzahl();
+  return `<div class="ueber"><h2 style="font-size:19px">${L('Kreativbuch', 'Creative book')}</h2>${frag(L('Aus deinen Rezepten wird ein Buch: als PDF zum Drucken, als Datei zum Blättern, als Kreativbuch mit Texten von Claude in acht Stilen (mit Schlüssel oder über einen kopierten Auftrag ohne Schlüssel) oder aus eigenen Fotos und PDF-Seiten. Projekte heben ein angefangenes Buch auf. Food-Zine baut den Auftrag für ein Poster, das Claude oder ChatGPT zeichnet; die fertigen Bilder sammelst du unter „Meine Food-Zine-Bilder“.', 'Your recipes become a book: as a PDF to print, as a file to leaf through, as a creative book with texts by Claude in eight styles (with a key or via a copied request without a key), or from your own photos and PDF pages. Projects keep a book you started. Food zine builds the request for a poster that Claude or ChatGPT draws; you collect the finished pictures under “My food zine pictures”.'))}</div>
    <div class="gruppe kr-teil" data-g="buch"><h3>${L('Bücher', 'Books')}</h3><div class="liste">${KB.zeile(zeile)}${zeile('eb-auf', 'bild', L('Buch aus Bildern', 'Book from pictures'), L('eigene Fotos und PDF-Seiten', 'own photos and PDF pages'))}${zeile('kbp-auf', 'ordner', L('Projekte', 'Projects'), L('angefangene Bücher', 'books in progress'))}${zeile('buch', 'drucken', L('Als PDF drucken', 'Print as a PDF'), String(n), 'data-art="pdf"')}${zeile('buch', 'buch', L('Zum Blättern', 'To leaf through'), L('als Datei', 'as a file'), 'data-art="blaettern"')}</div></div>
-   <div class="gruppe kr-teil" data-g="zine"><h3>${L('Food-Zine', 'Food zine')}</h3><div class="liste">${zeile('kreativ-zine', 'zine', L('Meine Food-Zine-Bilder', 'My food zine pictures'), String(zine))}</div><p class="quelle">${L('Eine Food-Zine-Seite machst du am Rezept: Tipp aufs Rezeptbild, dann „Food-Zine“.', 'You make a food zine page at the recipe: tap the recipe picture, then “Food zine”.')}</p></div>`;
+   <div class="gruppe kr-teil" data-g="zine"><h3>${L('Food-Zine', 'Food zine')}</h3><div class="liste">${zeile('zine-auf', 'zine', L('Food-Zine', 'Food zine'), ZI.stand())}${zeile('kreativ-zine', 'bild', L('Meine Food-Zine-Bilder', 'My food zine pictures'), String(zine))}</div></div>`;
 }
 
 /* ---------- Fenster ---------- */
@@ -844,7 +844,7 @@ function bildBlatt(uid) {
    ${zeile('bild-dazu', 'kamera', r.img ? L('Bild ersetzen', 'Replace picture') : L('Bild einfügen', 'Add picture'), L('Foto aufnehmen oder Datei wählen', 'Take a photo or choose a file'), `data-uid="${esc(uid)}"`)}
    ${zeile('ki-bild', 'funken', L('Bild von der KI erzeugen', 'Create picture with AI'), 'OpenAI, ' + kostenBild(), `data-uid="${esc(uid)}"`)}
    ${zeile('gratis-bild', 'bild', L('Foto über Pollinations', 'Photo via Pollinations'), SK.pollinations ? L('mit deinem Pollinations-Schlüssel', 'with your Pollinations key') : L('braucht einen eigenen Pollinations-Schlüssel', 'needs your own Pollinations key'), `data-uid="${esc(uid)}"`)}
-   ${zeile('zine', 'zine', L('Food-Zine', 'Food zine'), ZI.stand(r))}</div>
+   ${zeile('zine', 'zine', L('Food-Zine', 'Food zine'), ZI.stand())}</div>
    <div class="reihe" style="margin-top:10px"><button class="knopf" data-a="fenster-zu">${L('Schließen', 'Close')}</button>${frag(L('Ein Bild löschst du in den Einstellungen unter „Bilder“.', 'You delete a picture in the settings under “Pictures”.'))}</div>`);
 }
 const kostenBild = () => Lk(KOSTEN.de, KOSTEN.en);
@@ -933,7 +933,7 @@ function leisteZeichnen() {
   const k = (a, i, t, x = '') => `<button role="menuitem" data-a="${a}" ${x}>${i}${t}</button>`;
   o.innerHTML = `<div class="fl-knoepfe" role="menu"><button class="fl-zu" data-a="leiste-zu" aria-label="${L('Schließen', 'Close')}">${ic('x')}</button>`
     + k('geh', ic('buch'), L('Rezepte', 'Recipes'), `data-zu="start" ${s.ansicht === 'start' ? 'aria-current="page"' : ''}`) + k('geh', ic('ordner'), L('Ordner', 'Folders'), `data-zu="baum" ${s.ansicht === 'baum' ? 'aria-current="page"' : ''}`) + k('geh', ic('plan'), L('Planer', 'Planner'), `data-zu="plan" ${s.ansicht === 'plan' ? 'aria-current="page"' : ''}`)
-    + k('geh', ic('einkauf'), L('Einkauf', 'Shopping') + (ekOffen() ? ` <span class="zahl">${ekOffen()}</span>` : ''), `data-zu="einkauf" ${s.ansicht === 'einkauf' ? 'aria-current="page"' : ''}`) + k('geh', ic('zine'), L('Kreativbuch', 'Creative book'), `data-zu="kreativ" ${s.ansicht === 'kreativ' ? 'aria-current="page"' : ''}`) + k('geh', ic('einst'), L('Einstellungen', 'Settings'), `data-zu="werkstatt" ${s.ansicht === 'werkstatt' ? 'aria-current="page"' : ''}`)
+    + k('geh', ic('einkauf'), L('Einkauf', 'Shopping') + (ekOffen() ? ` <span class="zahl">${ekOffen()}</span>` : ''), `data-zu="einkauf" ${s.ansicht === 'einkauf' ? 'aria-current="page"' : ''}`) + k('geh', ic('zine'), L('Kreativbuch', 'Creative book'), `data-zu="kreativ" ${s.ansicht === 'kreativ' || s.ansicht === 'zine' ? 'aria-current="page"' : ''}`) + k('geh', ic('einst'), L('Einstellungen', 'Settings'), `data-zu="werkstatt" ${s.ansicht === 'werkstatt' ? 'aria-current="page"' : ''}`)
     + '<hr>' + k('nach-oben', ic('hoch'), L('Nach oben', 'To top')) + k('zurueck', ic('zurueck'), L('Zurück', 'Back'))
     + `<hr><div class="fl-werk" role="group" aria-label="${L('Werkzeuge', 'Tools')}">${k('ton', ic('sonne'), L('Hell', 'Light'), `data-ton="hell" aria-pressed="${!istDunkel(E.farbe, E.ton)}"`)}${k('ton', ic('mond'), L('Dunkel', 'Dark'), `data-ton="dunkel" aria-pressed="${istDunkel(E.farbe, E.ton)}"`)}${k('farbe', '<span class="farbknopf"></span>', L('Farbe', 'Colour'))}${k('schrift', '<span class="aa" aria-hidden="true">A<b>A</b></span>', L('Schrift', 'Text'))}${k('sichern', ic('tresor'), L('Sichern', 'Backup'), `class="breit"
  title="${L('Sicherung als Datei speichern', 'Save a backup file')}"`)}</div></div>`;
@@ -964,7 +964,7 @@ function zeichne(einzug = false) {
     const alt = m.querySelector('.md-liste')?.scrollTop || 0;
     m.innerHTML = `<div class="md ${s.nurDies ? 'nur' : ''}"><div class="md-liste">${startHtml()}</div><div class="md-detail">${rezept(s.uid) ? rezeptHtml() : ''}</div></div>`;
     const l = m.querySelector('.md-liste'); if (l) l.scrollTop = alt;
-  } else m.innerHTML = s.ansicht === 'rezept' || s.ansicht === 'kochen' ? rezeptHtml() : s.ansicht === 'form' ? formHtml() : s.ansicht === 'werkstatt' ? werkstattHtml() : s.ansicht === 'einkauf' ? einkaufHtml() : s.ansicht === 'plan' ? planHtml() : s.ansicht === 'kategorien' ? kategorienHtml() : s.ansicht === 'ordner' ? baumHtml() : s.ansicht === 'baum' ? baumHtml() : s.ansicht === 'kreativ' ? kreativHtml() : s.ansicht === 'bilder' ? bilderHtml() : startHtml();
+  } else m.innerHTML = s.ansicht === 'rezept' || s.ansicht === 'kochen' ? rezeptHtml() : s.ansicht === 'form' ? formHtml() : s.ansicht === 'werkstatt' ? werkstattHtml() : s.ansicht === 'einkauf' ? einkaufHtml() : s.ansicht === 'plan' ? planHtml() : s.ansicht === 'kategorien' ? kategorienHtml() : s.ansicht === 'ordner' ? baumHtml() : s.ansicht === 'baum' ? baumHtml() : s.ansicht === 'kreativ' ? kreativHtml() : s.ansicht === 'zine' ? ZI.html() : s.ansicht === 'bilder' ? bilderHtml() : startHtml();
   katInSicht(); m.classList.toggle('einzug', einzug); document.body.dataset.ansicht = s.ansicht; document.body.classList.toggle('nur', breit() && (lesen || s.ansicht === 'baum') && s.nurDies);
   if (s.ansicht !== 'kochen') { wachAus(); weckerAus(); }
   kochZeichnen();
@@ -982,7 +982,6 @@ const A = {
   'baum-alle': () => { const g = baumGruppen(), keys = [...g.kats, ...g.ords].map((x) => bzKey(x.art, x.id)); if (keys.every((k) => s.baum.auf.has(k))) s.baum.auf.clear(); else keys.forEach((k) => s.baum.auf.add(k)); zeichne(); },
   'baum-rezept': (e) => { if (Date.now() - bzGezogen < 400) return; const u = e.dataset.uid; if (s.baum.wahl) { A['baum-haken'](e); return; } E.zuletzt = u; s.rleiste = false; s.original = null; sichern();
     if (breit()) { s.uid = u; history.pushState({ ansicht: 'baum', uid: u }, ''); zeichne(); document.querySelector('.md-detail')?.scrollTo(0, 0); } else geh('rezept', { uid: u }); },
-  'kreativ-zine': () => { s.bilder.filter = 'zine'; s.bilder.wahl.clear(); geh('bilder'); },
   'baum-leere': () => { s.baum.leere = !s.baum.leere; zeichne(); },
   'baum-wahl': () => { s.baum.wahl = s.baum.wahl ? null : new Set(); zeichne(); },
   'baum-haken': (e) => { const w = s.baum.wahl; if (!w) return; if (w.has(e.dataset.uid)) w.delete(e.dataset.uid); else w.add(e.dataset.uid); zeichne(); },
@@ -1056,7 +1055,7 @@ const A = {
   'bilder-gross': () => { s.bilder.gross = !s.bilder.gross; zeichne(); },
   'bild-wahl': (e) => { const w = s.bilder.wahl; if (w.has(e.dataset.uid)) w.delete(e.dataset.uid); else w.add(e.dataset.uid); zeichne(); },
   'bilder-alle-wahl': () => { const w = s.bilder.wahl, alle = [...document.querySelectorAll('.bildkachel')].map((b) => b.dataset.uid); if (w.size === alle.length) w.clear(); else alle.forEach((u) => w.add(u)); zeichne(); },
-  'bilder-weg': () => { const w = new Set(s.bilder.wahl), vorher = Z.rezepte; if (s.bilder.filter === 'zine') { s.bilder.wahl.clear(); ZI.galerieWeg(w); return; } Z.rezepte = Z.rezepte.map((r) => (w.has(r.uid) ? { ...r, img: '' } : r)); s.bilder.wahl.clear(); sichern(); zeichne(); melde(fuelle(L('−{0} Bilder', '−{0} pictures'), w.size), L('Rückgängig', 'Undo'), () => { Z.rezepte = vorher; sichern(); zeichne(); }); },
+  'bilder-weg': () => { const w = new Set(s.bilder.wahl), vorher = Z.rezepte; Z.rezepte = Z.rezepte.map((r) => (w.has(r.uid) ? { ...r, img: '' } : r)); s.bilder.wahl.clear(); sichern(); zeichne(); melde(fuelle(L('−{0} Bilder', '−{0} pictures'), w.size), L('Rückgängig', 'Undo'), () => { Z.rezepte = vorher; sichern(); zeichne(); }); },
   'bilder-alle-weg': () => { const n = Z.rezepte.filter((r) => r.img).length; frage(L('Alle Bilder löschen?', 'Delete all pictures?'), fuelle(L('{0} Bilder werden entfernt. Die Rezepte mit ihrem Text bleiben.', '{0} pictures will be removed. The recipes with their text stay.'), n), L('Alle Bilder löschen', 'Delete all pictures'), () => { const vorher = Z.rezepte; Z.rezepte = Z.rezepte.map((r) => (r.img ? { ...r, img: '' } : r)); s.bilder.wahl.clear(); sichern(); zeichne(); melde(fuelle(L('−{0} Bilder', '−{0} pictures'), n), L('Rückgängig', 'Undo'), () => { Z.rezepte = vorher; sichern(); zeichne(); }); }); },
   'bild-dazu': (e) => { s.bildZiel = e.dataset.uid; fensterZu(); $('datei-bild').click(); },
   zuschnitt: () => zuschnittFenster(s.uid),
@@ -1150,15 +1149,27 @@ const A = {
 const ZU = zusatz({ L, spr, esc, ic, A, s, SK, W, Z: () => Z, setzeZ: (z) => { Z = z; }, E: () => E, fenster, fensterZu, beiZu: (f) => { zuTun = f; }, melde, sichern, zeichne, rezept, istInhalt, schluesselFenster, bildAusDatei, tresorAuto, sinnTreffer,
   zeichneStart: () => { if (s.ansicht === 'start' && $('start-rest')) $('start-rest').innerHTML = startRest(); }, katNamen: () => new Map(alleKategorien(Z.rezepte, Z.kategorien).map((c) => [c.id, katName(c)])), katVon: katVonRezept,
   tr: () => tr, ausgabe: () => ausgabe, planTage: () => woche(s.planTag).tage, einkaufZeilen: einkaufDruckZeilen });
-/* Food-Zine (neu/zine.mjs): drei Magazin-Seiten am Rezept, Galerie im Bilder-Ordner, Beispiel-Sätze. */
-const ZI = zine({ L, spr, esc, ic, A, s, SK, W, Z: () => Z, setzeZ: (z) => { Z = z; }, E: () => E, fenster, fensterZu, melde, sichern, zeichne, rezept, zeig, schluesselFenster, geh: (zu) => geh(zu, { uid: null, form: null }), bildAusDatei, fehlerText, tresorAuto,
-  wahl: ZU.wahl, stellenHtml: ZU.stellenHtml, katalog: () => katalog, ausgabe: () => ausgabe });
+/* Rezepte gruppiert wie in der alten App (Schritt 1 des KI-Kreativbuchs, Lieblingsrezept des Food-Zines): je Kategorie die Rezepte ohne
+   Ordner, dann je Ordner seine Rezepte, der Rest unter „Sonstiges“. Jede Gruppe trägt Zeichen und Namen. */
+function rezeptGruppen() {
+  const alle = Z.rezepte.filter(istInhalt).sort((a, b) => zeig(a).name.localeCompare(zeig(b).name, spr())), gruppen = [], drin = new Set();
+  for (const c of alleKategorien(Z.rezepte, Z.kategorien)) { const rs = alle.filter((r) => !ordnerVonRezept(r, Z.ordner) && katVonRezept(r) === c.id); if (rs.length) { gruppen.push({ titel: [katSymbol(c), katName(c)].filter(Boolean).join(' '), rezepte: rs }); rs.forEach((r) => drin.add(r.uid)); } }
+  for (const o of Z.ordner) { const rs = alle.filter((r) => String(ordnerVonRezept(r, Z.ordner) || '') === String(o.id)); if (rs.length) { gruppen.push({ titel: '📁 ' + ordTitel(o), rezepte: rs }); rs.forEach((r) => drin.add(r.uid)); } }
+  const rest = alle.filter((r) => !drin.has(r.uid)); if (rest.length) gruppen.push({ titel: '📝 ' + L('Sonstiges', 'Other'), rezepte: rest });
+  return gruppen;
+}
+const katSymbol = (c) => Z.kategorien.namen?.[c.id]?.emoji || c.emoji || c.emojiAlt || '';
+/** Kategorie eines Rezepts für den Food-Zine-Auftrag: Kennung, Name und Zeichen, wie die App sie zeigt. */
+const katInfo = (r) => { const c = alleKategorien(Z.rezepte, Z.kategorien).find((x) => x.id === katVonRezept(r)); return c ? { id: c.id, name: c.art === 'ohne' ? '' : katName(c), symbol: katSymbol(c) } : null; };
+/* Food-Zine (neu/zine.mjs): der Poster-Auftrag der alten App als eigene Ansicht, die Sammlung „Meine Food-Zine-Bilder“, Beispiel-Sätze. */
+const ZI = zine({ L, spr, esc, ic, A, s, W, Z: () => Z, setzeZ: (z) => { Z = z; }, fenster, fensterZu, melde, sichern, zeichne, rezept, zeig, geh, lager: () => lager, istInhalt,
+  gruppen: rezeptGruppen, katInfo, bildAusDatei, frag, katalog: () => katalog, ausgabe: () => ausgabe, tresorAuto });
 /* Notizbuch (neu/notizbuch.mjs): unterwegs Foto oder Notiz festhalten; später lesen, vorschlagen, planen, in den Kalender. Knopf im Kopf. */
 const NB = notizbuch({ L, spr, esc, ic, A, s, W, SK, Z: () => Z, setzeZ: (z) => { Z = z; }, E: () => E, fenster, fensterZu, melde, sichern, zeichne, kopfZeichnen: () => { kopfZeichnen(); leisteZeichnen(); }, rezept, istInhalt, geh,
   geb, mik, bildAusDatei, schluesselFenster, befehlFrage, scanGewaehlt, scanKats, formAus, titel: () => ausgabe?.titel || '' });
 /* Kreativbuch (neu/kreativbuch.mjs): aus den Rezepten ein gestaltetes Buch, Texte von Claude im gewählten Stil; Einstellungen → Buch. */
 const KB = kreativbuch({ L, spr, esc, ic, A, W, SK, Z: () => Z, setzeZ: (z) => { Z = z; }, E: () => E, lager: () => lager, fenster, fensterZu, beiZu: (f) => { zuTun = f; }, melde, sichern, zeichne, zeig, istInhalt, schluesselFenster,
-  katNamen: () => new Map(alleKategorien(Z.rezepte, Z.kategorien).map((c) => [c.id, katName(c)])), katVon: katVonRezept, wahl: ZU.wahl, stellenHtml: ZU.stellenHtml, ausgabe: () => ausgabe });
+  katNamen: () => new Map(alleKategorien(Z.rezepte, Z.kategorien).map((c) => [c.id, katName(c)])), katVon: katVonRezept, gruppen: rezeptGruppen, wahl: ZU.wahl, stellenHtml: ZU.stellenHtml, ausgabe: () => ausgabe });
 /* Klaus 25.11.: die Erklärung hinter „?“ war nur teilweise zu lesen – sie hing rechtsbündig am Knopf und das Fenster schnitt sie
    ab. Jetzt steht sie als eigene Blase am Seitenkörper (#frag-blase), ganz im Bild, unter oder über dem „?“; nur eine ist offen. */
 function fragLegen(d) {
@@ -1273,6 +1284,7 @@ async function start() {
   if (geteilteAdresse) { s.web = { adresse: geteilteAdresse, text: '', stand: '', seitentext: '' }; neuFenster('web'); }
   if (geteiltesRezept) { try { const r = await ausTeilLink(geteiltesRezept); if (r && r.name) { s.form = { ...formAus(null), name: r.name, cat: alleKategorien(Z.rezepte, Z.kategorien).some((c) => c.id === r.cat) ? r.cat : '', servings: r.servings || 4, prepTime: r.prepTime ?? '', ings: (r.ings || []).map(zutatZeile).join('\n'), steps: (r.steps || []).map((x) => x.txt).join('\n\n'), flavors: r.flavors || [] }; geh('form'); melde(L('Geteiltes Rezept. Bitte prüfen.', 'Shared recipe. Please check.')); } } catch { melde(L('Der geteilte Link ließ sich nicht lesen', 'The shared link could not be read')); } }
   NB.beimStart();   /* heute fällige Notizen: eine Meldung beim Öffnen */
+  ZI.laden(); ZI.nachziehen();   /* die Sammlung „Meine Food-Zine-Bilder“; alte Seiten am Rezept wandern einmal hinein */
   lager.dauerhaft();
   ZU.altTresor().catch(() => {});   /* Tresor-Stände der bisherigen App, einmal */
   if ('serviceWorker' in navigator) navigator.serviceWorker.register('./sw.js').catch(() => {});   // Offline-Vorrat; ohne ihn läuft die App genauso, nur nicht ohne Netz

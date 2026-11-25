@@ -3,13 +3,13 @@
 # Die Probe nimmt ihre Erwartungen aus dem Kern NEBEN sich (dem echten Baum); eine Sabotage im Kern der Kopie verschiebt sie nicht mit.
 import subprocess, shutil, os, tempfile, sys
 U='neu/kreativbuch.mjs'; K='kern/ausgabe/kreativbuch.mjs'; E='kern/ausgabe/eigenbuch.mjs'; BI='kern/oberflaeche/bild.mjs'
-F=[('fenster-mit-erklaertext', '     <select class="feld" id="kb-wahl"', '     <p>Hier wird aus deinen Rezepten ein Buch.</p><select class="feld" id="kb-wahl"', U, 'kein Erklärtext auf dem Fenster'),
+F=[('fenster-mit-erklaertext', '     ${schnellwahl(rs, gew)}', '     <p>Hier wird aus deinen Rezepten ein Buch.</p>${schnellwahl(rs, gew)}', U, 'kein Erklärtext auf dem Fenster'),
    ('fenster-knopf-ohne-kosten', " · ${esc(ko.preis)}</small>", "</small>", U, 'im Knopf steht kurz, was an wen geht und was es kostet'),
    ('fenster-zeile-fehlt', "ZU.buchThema(zeile, '#b07a4a', KB.zeile(zeile))", "ZU.buchThema(zeile, '#b07a4a')", 'neu/app.mjs', 'im Thema „Buch“ steht die Zeile „Kreativbuch“'),
    ('fenster-stand-falsch', "mit = liste.filter((r) => t[r.uid]).length", "mit = liste.length", U, 'oben steht, wie viele Rezepte schon Text haben'),
    ('fenster-390-quer', ".kb-wege .knopf small{font-size:11px;", ".kb-wege .knopf small{font-size:30px;", 'neu/app.css', 'am Handy (390 px) läuft nichts quer'),
    ('stil-eigen-vergessen', "const stilOpt = () => ({ stil: K().stil, eigen: K().eigen, sprache: spr() });", "const stilOpt = () => ({ stil: K().stil, sprache: spr() });", U, 'der eigene Text steht als Stil im Auftrag'),
-   ('kopieren-stil-egal', "const t = kbSammelAuftrag(rs.map(app.zeig), { ...stilOpt(), kategorie: katName });", "const t = kbSammelAuftrag(rs.map(app.zeig), { sprache: spr(), kategorie: katName });", U, 'im gewählten Stil'),
+   ('kopieren-stil-egal', "return rs.length ? kbSammelAuftrag(rs.map(app.zeig), { ...stilOpt(), kategorie: katName }) : '';", "return rs.length ? kbSammelAuftrag(rs.map(app.zeig), { sprache: spr(), kategorie: katName }) : '';", U, 'im gewählten Stil'),
    ('einsetzen-falscher-stil', "k.texte[uid] = { ...(k.texte[uid] || {}), [k.stil]: t };", "k.texte[uid] = { ...(k.texte[uid] || {}), auto: t };", U, 'im Stil des Auftrags'),
    ('einsetzen-zuordnung-stelle', "    let k = Number.isInteger(nr) && frei.has(nr)", "    let k = false && frei.has(nr)", K, 'jeder Text liegt am richtigen Rezept'),
    ('erzeugen-ohne-schluesselfenster', "    if (!SK.anthropic) { app.schluesselFenster('anthropic', 'kb-erzeugen'); return; }\n", "", U, 'ohne Anthropic-Schlüssel kommt das Schlüssel-Fenster'),
@@ -29,7 +29,7 @@ F=[('fenster-mit-erklaertext', '     <select class="feld" id="kb-wahl"', '     <
    ('ausgabe-pdf-mit-skript', "return blatt(k.kopf, sp, DRUCK_RICHTLINIE, '', k.stil, k.rumpf.join('\\n'));", "return blatt(k.kopf, sp, DRUCK_RICHTLINIE, '', k.stil, [...k.rumpf, ...blaetterLeiste(sp)].join('\\n'));", K, 'PDF geht an den Druck des Browsers, ohne Skript'),
    ('ausgabe-texte-fehlen', "kasten('oeko', 'Ökologie und Saison', 'Ecology and season', x.eco)", "''", K, 'HTML speichert eine eigenständige Datei mit allen Texten'),
    ('sprache-zeile-deutsch', "zeile('kreativ', 'funken', L('Kreativbuch', 'Creative book')", "zeile('kreativ', 'funken', 'Kreativbuch'", U, 'auf Französisch kommt die Zeile aus der Tabelle'),
-   ('handbuch-fehlt', "    L('„Kreativbuch“ unter „Buch“:", "    ('„Kreativbuch“ unter „Buch“:", 'neu/handbuch.mjs', 'das Handbuch erklärt das Kreativbuch'),
+   ('handbuch-fehlt', "    L('„Kreativbuch“: aus den Rezepten", "    ('„Kreativbuch“: aus den Rezepten", 'neu/handbuch.mjs', 'das Handbuch erklärt das Kreativbuch'),
    ('handbuch-bilder-fehlt', "    L('Im Kreativbuch macht „Aus Bildern“", "    ('Im Kreativbuch macht „Aus Bildern“", 'neu/handbuch.mjs', 'das Handbuch nennt „Aus Bildern“'),
    # Teil 2: Aus Bildern, Rezeptbild, Projekte
    ('eb-knopf-fehlt', "${L('Aus Bildern', 'From pictures')}${bilder.length ? ` · ${bilder.length}` : ''}</button>", "${bilder.length ? ` · ${bilder.length}` : ''}</button>", U, 'im Kreativbuch stehen „Aus Bildern“ und „Projekte“'),

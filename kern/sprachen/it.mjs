@@ -212,18 +212,6 @@ export default {
   'Zurück': 'Indietro',
   'Weiter': 'Avanti',
   'Notizen': 'Note',
-  // ausgabe/zine.mjs
-  'etwa 8 Cent': 'circa 8 centesimi',
-  'Titelseite': 'Copertina',
-  'Schritt für Schritt': 'Passo dopo passo',
-  'Gesundheit und Tipps': 'Salute e consigli',
-  'Collage': 'Collage',
-  'Aquarell': 'Acquerello',
-  'Zeitung': 'Giornale',
-  'Retro': 'Retrò',
-  'Modern': 'Moderno',
-  'Name und Zutaten': 'nome e ingredienti',
-  'Name und Schritte': 'nome e passaggi',
   // ausgabe/kreativbuch.mjs
   'Geschmack und Aroma': 'Gusto e aroma',
   'KI entscheidet': 'Decide l’IA',

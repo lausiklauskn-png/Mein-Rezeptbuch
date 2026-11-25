@@ -1,127 +1,290 @@
-// Mein Rezeptbuch · Food-Zine: drei Magazin-Seiten zu einem Rezept (Kern: ausgabe/zine.mjs).
-// Fenster am Rezept („Mehr“ → Food-Zine): je Seite den Auftrag kopieren (ohne Schlüssel), ein fertiges Bild einsetzen oder die Seite mit
-// dem eigenen OpenAI-Schlüssel erzeugen. Der Stil gilt für alle drei Aufträge. Die Seiten liegen am Rezept (r.zine) und damit in Sicherung
-// und Tresor. Galerie: Filter „Food-Zine“ im Bilder-Ordner. Beispiel-Sätze kommen aus dem Paket „foodzine-beispiele“.
-// Die Hauptdatei (app.mjs) reicht ihre Werkzeuge herein und ruft die Stücke an wenigen, benannten Stellen (wie bei zusatz.mjs).
-import { zineAuftraege, zineLiest, zineSeiten, zineAnzahl, setzeSeite, entferneSeite, seitenName, ZINE_STILE, zineStil, stilName, ZINE_SEITEN, ZINE_GROESSE, ZINE_KOSTEN, ZINE_FOTO_HINWEIS, pruefeZineAuftrag, zineGalerie, zineSaetzeEinlesen } from '../kern/ausgabe/zine.mjs';
-import { kiBild } from '../kern/ki/bild.mjs';
-import { kiAnweisungen } from '../kern/pruefung/datei.mjs';
-import { fuelle, text as spText } from '../kern/oberflaeche/sprache.mjs';
+// Mein Rezeptbuch · Food-Zine: der Poster-Auftrag der alten App (Fluss A) und die Sammlung „Meine Food-Zine-Bilder“ (Kern: ausgabe/zine.mjs).
+// Eine eigene Ansicht (`zine`), erreichbar am Rezept („Mehr“ und Bild-Blatt → Food-Zine, dann mit diesem Rezept) und im Bereich Kreativbuch.
+// Oben die Einstellungen der alten App: Lieblingsrezept, Bild für die KI, Format, Extras, Trend-Knopf. Darunter das Auftragsfeld: es lässt
+// sich ändern; eine eigene Änderung überschreibt die App nicht, sie bietet „Auftrag neu bauen“ an. Kopieren legt Auftrag und Bild in EINEN
+// Eintrag der Zwischenablage; „Claude“ und „ChatGPT“ kopieren und öffnen den Chat in einem neuen Tab. Die App ruft dabei keine KI auf und
+// braucht keinen Schlüssel – das Bild zeichnet die KI im Chat. Es kostet nichts, was der Chat nicht ohnehin kostet.
+// Die Sammlung liegt im Speicher des Geräts (Kern: zineSammlung), nicht in der Sicherung: Bilder samt Original sind groß, und die
+// Projekte des Kreativbuchs halten es genauso. Der Weg nach draußen ist „Als Buch“ (Blättern, PDF, HTML-Datei).
+// Die Seiten, die bis Fassung 0.15 am Rezept lagen (`r.zine`), und die Beispiel-Sätze wandern einmal in die Sammlung, ohne Doppel.
+// Die Hauptdatei (app.mjs) reicht ihre Werkzeuge herein (wie bei zusatz.mjs).
+import { ZINE_FORMATE, ZINE_FORMAT_VORGABE, zineFormat, ZINE_EXTRAS, zinePoster, zineTrend, zineFotoHinweis, ZINE_CHAT, ZINE_EIGEN_KANTE, ZINE_EIGEN_GUETE, ZINE_PNG_KANTE,
+  ZS_KANTE, ZS_KLEIN, ZS_GUETE, zsVerschiebe, zsDateienTeilen, ZS_DATEI_MAX, zineSammlung, zineAusRezepten, zineSaetzeBilder, zineDruck } from '../kern/ausgabe/zine.mjs';
+import { ebBlaettern, ebPdf } from '../kern/ausgabe/eigenbuch.mjs';
+import { buchGroesse, buchGroesseText } from '../kern/ausgabe/buch.mjs';
+import { drucke } from '../kern/ausgabe/druck.mjs';
+import { bildGroessen } from '../kern/oberflaeche/bild.mjs';
+import { fuelle } from '../kern/oberflaeche/sprache.mjs';
 import { bytesMitAnteil } from '../kern/oberflaeche/warten.mjs';
 
-/** app: { L, spr, esc, ic, A, s, SK, W, Z(), setzeZ(z), E(), fenster, fensterZu, melde, sichern, zeichne, rezept(uid), zeig(r), schluesselFenster(a, danach),
- *         bildAusDatei(blob), fehlerText(f, sonst), wahl(titel, html, a, b), stellenHtml(stellen), tresorAuto(), katalog(), ausgabe() } */
+/** app: { L, spr, esc, ic, A, s, W, Z(), setzeZ(z), fenster, fensterZu, melde, sichern, zeichne, rezept(uid), zeig(r), geh(ansicht, extra),
+ *         lager(), istInhalt, gruppen() → [{ titel, rezepte }], katInfo(r) → { id, name, symbol }, bildAusDatei(blob, kante, guete),
+ *         frag(text), katalog(), ausgabe(), tresorAuto() } */
 export function zine(app) {
-  const { L, spr, esc, ic, A, s, SK, W, fenster, fensterZu, melde, sichern, zeichne } = app;
-  const WASSER = ['#e0695a', '#d39a2e', '#48a878'];   /* Wasserfarben der drei Platzfelder */
-  const TRENNER = '#z';                               /* Kennung einer Seite in der Galerie: uid + '#z' + Nummer */
-  let offen = null, ziel = -1, warte = -1;            /* Rezept des Fensters · Seite, für die eine Datei gewählt wird · Seite, die auf den Schlüssel wartet */
+  const { L, spr, esc, ic, A, W, fenster, fensterZu, melde } = app;
   const $ = (id) => document.getElementById(id);
-  const stil = () => zineStil(app.E().zineStil);
-  const kosten = () => spText(spr(), ZINE_KOSTEN.de, ZINE_KOSTEN.en);
-  /* Was an wen geht und was es kostet: steht im Hinweis des Knopfs und noch einmal sichtbar vor dem Senden. Je Seite genau das, was ihr Auftrag liest. */
-  const hinaus = (i) => ['OpenAI', zineLiest(i, spr()), kosten()].join(' · ');
-  const auftrag = (r, i) => zineAuftraege(app.zeig(r), { stil: stil(), sprache: spr() })[i];   /* aus dem Text, der dasteht (auch eine Übersetzung) */
-  /** Ändert ein Rezept und gibt zurück, was „Rückgängig“ tut. */
-  const aendere = (uid, f) => { const vorher = app.Z().rezepte; app.setzeZ({ ...app.Z(), rezepte: vorher.map((x) => (x.uid === uid ? f(x) : x)) }); sichern(); return () => { app.setzeZ({ ...app.Z(), rezepte: vorher }); sichern(); frisch(); }; };
-  const frisch = () => { zeichne(); if ($('zine')) zineFenster(offen); };
+  /* Der Stand der Ansicht. Wie in der alten App nur im Speicher der Seite (Format, Extras, Bild): ein neuer Auftrag beginnt bei der Vorgabe. */
+  const Zs = { rid: '', bild: 'rezept', eigen: '', format: ZINE_FORMAT_VORGABE, extras: new Set(), text: '', hand: false, trend: false };
+  let liste = [], geladen = null, offen = null, ziel = '', gezogen = 0;
+  const SM = () => zineSammlung(app.lager());
 
-  /* ── Das Fenster: Stil als Chips, darunter die drei Seiten. Kein Erklärtext; jeder Knopf sagt im Hinweis, was er tut. ── */
-  const rund = (a, i, sym, titel, kl = '') => `<button class="rund ${kl}" data-a="${a}" data-i="${i}" aria-label="${esc(titel)}" title="${esc(titel)}">${ic(sym)}</button>`;
-  function seiteHtml(r, bild, i) {
-    const n = seitenName(i, spr());
-    return `<div class="zine-seite" data-i="${i}">${bild ? `<button class="zine-blatt" data-a="zine-gross" data-i="${i}" aria-label="${esc(fuelle(L('{0} groß ansehen', 'View {0} large'), n))}"><img src="${esc(bild)}" alt="${esc(n)}"></button>` : `<span class="zine-blatt leer" style="--kc:${WASSER[i % WASSER.length]}">${ic('zine')}</span>`}
-     <div class="zine-rand"><b>${esc(n)}</b><div class="reihe zine-werk">${rund('zine-kopieren', i, 'kopieren', L('Auftrag kopieren', 'Copy request'))}${r.img ? rund('zine-beides', i, 'bild', L('Auftrag und Rezeptfoto kopieren', 'Copy request and recipe photo')) : ''}${rund('zine-einsetzen', i, 'kamera', bild ? L('Bild ersetzen', 'Replace picture') : L('Bild einsetzen', 'Insert picture'))}${rund('zine-erzeugen', i, 'funken', L('Erzeugen', 'Create') + ': ' + hinaus(i))}${bild ? rund('zine-weg', i, 'muell', L('Seite entfernen', 'Remove page'), 'rot') : ''}</div></div></div>`;
-  }
-  function zineFenster(uid) {
-    const r = app.rezept(uid); if (!r) return;
-    const st = stil();
-    fenster(`<h2 class="imp-kopf">${ic('zine')}<span>${esc(app.zeig(r).name)}</span></h2>
-     <div class="laeden" id="zine-stile" role="radiogroup" aria-label="${esc(L('Stil', 'Style'))}">${Object.keys(ZINE_STILE).map((id) => `<button class="chip" role="radio" aria-checked="${id === st}" data-a="zine-stil" data-stil="${esc(id)}">${esc(stilName(id, spr()))}</button>`).join('')}</div>
-     <div class="zine-seiten" id="zine">${zineSeiten(r).map((bild, i) => seiteHtml(r, bild, i)).join('')}</div><input type="file" id="zine-datei" accept="image/*" hidden>
-     <div class="reihe"><button class="knopf" data-a="fenster-zu">${L('Schließen', 'Close')}</button><button class="knopf" data-a="zine-zum-buch" title="${esc(L('Alle Food-Zine-Bilder und die Bücher', 'All food zine pictures and the books'))}">${ic('buch')}${L('Zum Kreativbuch', 'To the creative book')}</button></div>`);
-    offen = uid;
-    if (r.img) pngVon(r.img).catch(() => {});   /* das Rezeptfoto für die Zwischenablage schon jetzt umrechnen: beim Tipp muss es fertig sein */
-  }
-  A.zine = () => zineFenster(s.uid);   /* aus dem Menü am Rezept und aus dem Bild-Blatt: beide gehören zum offenen Rezept */
-  A['zine-auf'] = () => zineFenster(offen);
-  A['zine-zum-buch'] = () => { fensterZu(); app.geh('kreativ'); };   /* R12: vom Food-Zine direkt zum Kreativbuch */
-  A['zine-stil'] = (e) => { app.E().zineStil = zineStil(e.dataset.stil); sichern(); zineFenster(offen); };
-  A['zine-gross'] = (e) => { const r = app.rezept(offen), i = +e.dataset.i, bild = r && zineSeiten(r)[i]; if (!bild) return; const n = app.zeig(r).name + ' · ' + seitenName(i, spr());
-    $('fensterort').innerHTML = `<div class="vollbild" data-a="zine-auf" role="dialog" aria-modal="true" aria-label="${esc(n)}"><img src="${esc(bild)}" alt="${esc(n)}"><button class="voll-x" data-a="zine-auf" aria-label="${esc(L('Schließen', 'Close'))}">${ic('x')}</button><p>${esc(n)}</p></div>`; };
+  /* ── Namen der Formate und Extras (die Kennungen und Auftragstexte stehen im Kern) ── */
+  const FORMAT = () => ({ poster: ['📄', L('Poster', 'Poster'), L('Querformat · Standard', 'Landscape · standard')], a4: ['📋', L('DIN A4', 'DIN A4'), L('Hochformat', 'Portrait')],
+    insta: ['📱', L('Instagram', 'Instagram'), L('1:1 · Quadrat', '1:1 · square')], zeitung: ['📰', L('Zeitungsseite', 'Newspaper page'), L('Zweispaltig · Hochformat', 'Two columns · portrait')],
+    karte: ['🎴', L('Rezeptkarte', 'Recipe card'), L('A5 · Kompakt', 'A5 · compact')], panorama: ['🖼️', L('Panorama', 'Panorama'), L('16:9 · Breitformat', '16:9 · widescreen')] });
+  const EXTRA = () => ({ nutr: L('Nährwert-Infografik', 'Nutrition infographic'), steps: L('Step-by-Step Diagramm', 'Step-by-step diagram'), shop: L('Einkaufslisten-Block', 'Shopping list block'),
+    retro: L('Vintage/Retro-Stil', 'Vintage/retro style'), qr: L('QR-Code Platzhalter', 'QR code placeholder') });
 
-  /* ── Kopieren: der Auftrag der Seite, auf Wunsch mit dem Rezeptfoto als Vorlage im selben Eintrag der Zwischenablage. ── */
-  /* Die Zwischenablage nimmt verlässlich nur PNG; jedes Bild geht deshalb über die Leinwand. Gemerkt wird nur das letzte. */
-  const pngLager = { von: '', png: null };
-  const pngVon = (src) => { if (pngLager.von !== src) { pngLager.von = src; pngLager.png = alsPng(src); } return pngLager.png; };
+  /* ── Der Auftrag: aus den Einstellungen gebaut, solange niemand das Feld selbst geändert hat ── */
+  const rz = () => (Zs.rid ? app.rezept(Zs.rid) : null);
+  const bau = () => { if (Zs.trend) return zineTrend(spr()); const r = rz(); return r ? zinePoster(app.zeig(r), { format: Zs.format, extras: [...Zs.extras], sprache: spr(), kategorie: app.katInfo(r) }) : ''; };
+  const aktuell = () => { if (!Zs.hand) Zs.text = bau(); return Zs.text; };
+  /** Eine Einstellung hat sich geändert: der Trend-Auftrag gilt nicht mehr; ein eigener Text bleibt stehen. */
+  const geaendert = () => { Zs.trend = false; frisch(); };
+
+  /* ── Bild für die KI: aus dem Rezept (Vorgabe), ein eigenes (lange Kante 1200 px) oder keins. Das PNG für die Zwischenablage wird schon
+        beim Wählen umgerechnet: beim Tipp auf „Claude“ öffnet sofort ein neuer Tab, eine Umrechnung erst dann käme zu spät. ── */
+  const quelle = () => (Zs.bild === 'eigen' ? Zs.eigen : Zs.bild === 'rezept' ? rz()?.img || '' : '');
+  const png = { von: '', blob: null, warte: null };
+  function pngVorbereiten() {
+    const q = Zs.trend ? '' : quelle(); if (q === png.von) return png.warte; png.von = q; png.blob = null; png.warte = null; if (!q) return null;
+    png.warte = alsPng(q).then((b) => { if (png.von === q) png.blob = b; return b; }).catch(() => null);
+    return png.warte;
+  }
   async function alsPng(src) {
-    const bmp = await createImageBitmap(await (await fetch(src)).blob()), f = Math.min(1, 1600 / Math.max(bmp.width, bmp.height));
-    const c = document.createElement('canvas'); c.width = Math.round(bmp.width * f); c.height = Math.round(bmp.height * f); c.getContext('2d').drawImage(bmp, 0, 0, c.width, c.height); bmp.close?.();
+    const bmp = await createImageBitmap(await (await fetch(src)).blob()), f = Math.min(1, ZINE_PNG_KANTE / Math.max(bmp.width, bmp.height));
+    const c = document.createElement('canvas'); c.width = Math.max(1, Math.round(bmp.width * f)); c.height = Math.max(1, Math.round(bmp.height * f)); c.getContext('2d').drawImage(bmp, 0, 0, c.width, c.height); bmp.close?.();
     return new Promise((ja, nein) => c.toBlob((b) => (b ? ja(b) : nein(new Error('png'))), 'image/png'));
   }
-  async function kopiere(i, mitFoto) {
-    const r = app.rezept(offen); if (!r) return; const t = auftrag(r, i);
-    if (mitFoto && r.img && navigator.clipboard?.write && globalThis.ClipboardItem) {
-      try { const png = await pngVon(r.img); await navigator.clipboard.write([new ClipboardItem({ 'text/plain': new Blob([t + '\n\n' + ZINE_FOTO_HINWEIS], { type: 'text/plain' }), 'image/png': png })]); melde(L('Auftrag und Foto kopiert', 'Request and photo copied')); return; } catch { /* dieser Browser nimmt kein Bild: dann nur der Auftrag, und das wird gesagt */ }
-    }
-    try { await navigator.clipboard.writeText(t); melde(mitFoto ? L('Nur der Auftrag kopiert – dieser Browser nimmt kein Bild', 'Only the request copied – this browser takes no picture') : L('Auftrag kopiert', 'Request copied')); }
-    catch { melde(L('Kopieren ging nicht', 'Copying failed')); }
-  }
-  A['zine-kopieren'] = (e) => kopiere(+e.dataset.i, false);
-  A['zine-beides'] = (e) => kopiere(+e.dataset.i, true);
 
-  /* ── Bild einsetzen: eine Datei wählen; sie wird verkleinert wie jedes andere Bild (ohne Aufnahmedaten). ── */
-  A['zine-einsetzen'] = (e) => { ziel = +e.dataset.i; $('zine-datei')?.click(); };
+  /* ── Die Ansicht ── */
+  function bildHtml() {
+    const q = quelle(), r = rz(), opt = (w, t) => `<button class="chip" role="radio" aria-checked="${Zs.bild === w}" data-a="zn-bild" data-w="${w}">${esc(t)}</button>`;
+    const vor = q ? `<img class="zn-mini" src="${esc(q)}" alt="">${Zs.bild === 'eigen' ? `<button class="knopf" data-a="zn-eigen">${L('Anderes Bild …', 'Other picture …')}</button>` : ''}`
+      : Zs.bild === 'eigen' ? `<button class="knopf" data-a="zn-eigen">${ic('bild')}${L('Bild wählen …', 'Choose a picture …')}</button>`
+      : Zs.bild === 'rezept' && r ? `<span class="zn-leise">${L('Dieses Rezept hat noch kein Bild.', 'This recipe has no picture yet.')}</span>` : '';
+    return `<div class="laeden" role="radiogroup" aria-label="${esc(L('Bild für die KI', 'Picture for the AI'))}">${opt('rezept', L('📷 Bild aus Rezept', '📷 Picture from recipe'))}${opt('eigen', L('📎 Eigenes Bild', '📎 Own picture'))}${opt('ohne', L('Ohne Bild', 'No picture'))}</div>
+     <div class="zn-vorschau" id="zn-vorschau">${vor}</div><input type="file" id="zn-eigen-datei" accept="image/*" hidden>`;
+  }
+  function rezeptWahl() {
+    const g = app.gruppen();
+    return `<select class="feld" id="zn-rezept" aria-label="${esc(L('Wähle ein Lieblingsrezept', 'Choose a favourite recipe'))}"><option value="">${esc(L('– Kein Lieblingsrezept –', '– No favourite recipe –'))}</option>${g.map((x) => `<optgroup label="${esc(x.titel)}">${x.rezepte.map((r) => `<option value="${esc(r.uid)}" ${r.uid === Zs.rid ? 'selected' : ''}>${esc(app.zeig(r).name)}</option>`).join('')}</optgroup>`).join('')}</select>`;
+  }
+  function auftragHtml() {
+    const t = aktuell(), neu = Zs.hand && t !== bau();
+    return `<textarea class="feld zn-auftrag" id="zn-auftrag" aria-label="${esc(L('Auftrag kopieren oder selber schreiben', 'Copy the request or write your own'))}" placeholder="${esc(L('Wähle ein Lieblingsrezept oder tippe auf die KI-Überraschung.', 'Choose a favourite recipe or tap the AI surprise.'))}">${esc(t)}</textarea>
+     <div class="reihe zn-wege"><button class="knopf akz" data-a="zn-kopieren">${ic('kopieren')}${L('Kopieren', 'Copy')}</button><button class="knopf" data-a="zn-claude" title="${esc(L('Kopiert den Auftrag und öffnet Claude in einem neuen Tab', 'Copies the request and opens Claude in a new tab'))}">${ic('link')}Claude</button><button class="knopf" data-a="zn-chatgpt" title="${esc(L('Kopiert den Auftrag und öffnet ChatGPT in einem neuen Tab', 'Copies the request and opens ChatGPT in a new tab'))}">${ic('link')}ChatGPT</button>
+      <button class="knopf" data-a="zn-neu" id="zn-neu" ${neu ? '' : 'hidden'} title="${esc(L('Verwirft deine Änderung im Feld und baut den Auftrag aus den Einstellungen', 'Discards your change in the field and builds the request from the settings'))}">${ic('pfeile')}${L('Auftrag neu bauen', 'Rebuild request')}</button></div>`;
+  }
+  function sammlungHtml() {
+    const n = liste.length;
+    return `<div class="gruppe zs" id="zs" data-g="sammlung"><h3>${L('Meine Food-Zine-Bilder', 'My food zine pictures')} · <span id="zs-zahl">${n}</span></h3>
+     <div class="zs-gitter" id="zs-gitter">${liste.map((e) => `<div class="zs-kachel" role="button" tabindex="0" data-a="zs-gross" data-id="${esc(e.id)}" title="${esc(e.name)}"><img src="${esc(e.klein)}" alt="${esc(e.name)}" draggable="false"><button class="zs-x" data-a="zs-weg" data-id="${esc(e.id)}" aria-label="${esc(L('Entfernen', 'Remove'))}" title="${esc(L('Entfernen', 'Remove'))}">${ic('x')}</button></div>`).join('')}<button class="zs-kachel zs-dazu" data-a="zs-dazu" aria-label="${esc(L('Bilder hinzufügen', 'Add pictures'))}" title="${esc(fuelle(L('Bilder hinzufügen, bis {0} MB je Datei', 'Add pictures, up to {0} MB per file'), ZS_DATEI_MAX / 1048576))}">${ic('plus')}</button></div>
+     <input type="file" id="zs-datei" accept="image/*" multiple hidden>
+     ${n ? `<div class="reihe zs-buch" id="zs-buch"><span class="zn-leise">${L('Als Buch', 'As a book')}</span><button class="knopf" data-a="zs-blaettern">${ic('buch')}${L('Blättern', 'Leaf through')}</button><button class="knopf" data-a="zs-pdf">${ic('drucken')}PDF</button><button class="knopf" data-a="zs-html">${ic('laden')}HTML</button></div>` : ''}
+     ${n > 1 ? `<p class="quelle">${L('Lange drücken oder mit der Maus ziehen ordnet die Bilder. Tippen zeigt ein Bild groß.', 'Long-press or drag with the mouse to order the pictures. Tap shows a picture large.')}</p>` : ''}</div>`;
+  }
+  function innen() {
+    const F = FORMAT(), E = EXTRA();
+    return `<div class="gruppe" data-g="rezept"><h3>${L('Wähle ein Lieblingsrezept', 'Choose a favourite recipe')}</h3>${rezeptWahl()}</div>
+     <div class="gruppe" data-g="bild"><h3>${L('Bild für die KI', 'Picture for the AI')}</h3>${bildHtml()}</div>
+     <div class="gruppe" data-g="format"><h3>${L('Format wählen', 'Choose a format')}</h3><div class="zn-formate" role="radiogroup" aria-label="${esc(L('Format wählen', 'Choose a format'))}">${ZINE_FORMATE.map((id) => `<button class="zn-format" role="radio" aria-checked="${id === Zs.format}" data-a="zn-format" data-f="${id}"><span class="zn-sym" aria-hidden="true">${F[id][0]}</span><b>${esc(F[id][1])}</b><small>${esc(F[id][2])}</small></button>`).join('')}</div></div>
+     <div class="gruppe" data-g="extras"><h3>${L('Extras (optional)', 'Extras (optional)')}</h3><div class="liste zn-extras">${ZINE_EXTRAS.map((id) => `<label class="zeile"><input type="checkbox" data-extra="${id}" ${Zs.extras.has(id) ? 'checked' : ''}><span>${esc(E[id])}</span></label>`).join('')}</div></div>
+     <button class="knopf zn-trend" data-a="zn-trend">${L('🔥 KI-Überraschung: Trendrezepte entdecken!', '🔥 AI surprise: discover trend recipes!')}</button>
+     <div class="gruppe" data-g="auftrag"><h3>${L('Auftrag kopieren oder selber schreiben', 'Copy the request or write your own')}</h3>${auftragHtml()}</div>
+     ${sammlungHtml()}`;
+  }
+  /** Die Ansicht `zine` (app.mjs zeichnet sie). */
+  function html() {
+    if (!geladen) laden();
+    pngVorbereiten();
+    return `<div class="ueber"><h2 style="font-size:19px">${ic('zine')}${L('Food-Zine', 'Food zine')}</h2>${app.frag(L('Hier entsteht der Auftrag für ein Food-Zine-Poster: Rezept, Bild, Format und Extras wählen, den Auftrag kopieren und in Claude oder ChatGPT einfügen; das Bild zeichnet die KI im Chat. Die App sendet dabei nichts und braucht keinen Schlüssel. Das fertige Bild legst du unter „Meine Food-Zine-Bilder“ ab: dort bleibt es in diesem Gerät, lässt sich ordnen, drucken, als Rezeptbild setzen oder mit allen anderen als Buch ausgeben.', 'Here you build the request for a food zine poster: choose recipe, picture, format and extras, copy the request and paste it into Claude or ChatGPT; the AI draws the picture in the chat. The app sends nothing and needs no key. You keep the finished picture under “My food zine pictures”: it stays on this device and can be ordered, printed, set as a recipe picture or output with all the others as a book.'))}</div>
+     <div class="zine-ansicht" id="zine-ansicht">${innen()}</div>`;
+  }
+  /** Nur die Ansicht neu zeichnen (das Feld bleibt, wo es war; die Seite springt nicht). */
+  function frisch() { const z = $('zine-ansicht'); if (!z) return; const y = scrollY; z.innerHTML = innen(); pngVorbereiten(); scrollTo(0, y); }
+
+  /* ── Einstieg ── */
+  const auf = (zuSammlung = false) => { app.geh('zine', { uid: app.s.uid }); if (zuSammlung) requestAnimationFrame(() => $('zs')?.scrollIntoView({ block: 'start' })); };
+  A.zine = () => { if (app.s.uid && app.rezept(app.s.uid)) { if (Zs.rid !== app.s.uid) { Zs.rid = app.s.uid; Zs.trend = false; } } fensterZu(); auf(); };   /* am Rezept: mit diesem Rezept */
+  A['zine-auf'] = () => auf();
+  A['kreativ-zine'] = () => auf(true);
+  A['zn-bild'] = (e) => { Zs.bild = e.dataset.w; frisch(); if (Zs.bild === 'eigen' && !Zs.eigen) $('zn-eigen-datei')?.click(); };   /* erst neu zeichnen, dann wählen: sonst hinge die Wahl an einem Feld, das es nicht mehr gibt */
+  A['zn-eigen'] = () => $('zn-eigen-datei')?.click();
+  A['zn-format'] = (e) => { Zs.format = zineFormat(e.dataset.f); geaendert(); };
+  A['zn-trend'] = () => { Zs.trend = true; Zs.hand = false; frisch(); $('zn-auftrag')?.scrollIntoView({ block: 'nearest', behavior: 'smooth' }); };
+  A['zn-neu'] = () => { Zs.hand = false; frisch(); };
   document.addEventListener('change', async (ev) => {
-    if (ev.target.id !== 'zine-datei') return;
-    const d = ev.target.files[0], i = ziel, uid = offen; ev.target.value = ''; ziel = -1; if (!d || !(i >= 0) || !app.rezept(uid)) return;
-    try {
-      const bild = await W.mit(L('Foto wird aufbereitet …', 'Preparing the photo …'), () => app.bildAusDatei(d)), hatte = !!zineSeiten(app.rezept(uid))[i];
-      const zurueck = aendere(uid, (x) => setzeSeite(x, i, bild)); frisch();
-      melde(hatte ? L('Seite ersetzt', 'Page replaced') : L('Seite eingesetzt', 'Page inserted'), L('Rückgängig', 'Undo'), zurueck);
-    } catch { melde(L('Das Bild konnte nicht gelesen werden.', 'The picture could not be read.')); }
+    const t = ev.target;
+    if (t.id === 'zn-rezept') { Zs.rid = t.value; Zs.bild = Zs.bild === 'eigen' ? 'eigen' : 'rezept'; geaendert(); return; }
+    if (t.dataset?.extra && t.closest?.('#zine-ansicht')) { if (t.checked) Zs.extras.add(t.dataset.extra); else Zs.extras.delete(t.dataset.extra); geaendert(); return; }
+    if (t.id === 'zn-eigen-datei') {
+      const d = t.files[0]; t.value = ''; if (!d) { if (!Zs.eigen) { Zs.bild = 'rezept'; frisch(); } return; }
+      try { Zs.eigen = await W.mit(L('Foto wird aufbereitet …', 'Preparing the photo …'), () => app.bildAusDatei(d, ZINE_EIGEN_KANTE, ZINE_EIGEN_GUETE)); Zs.bild = 'eigen'; frisch(); }
+      catch { melde(L('Das Bild konnte nicht gelesen werden.', 'The picture could not be read.')); }
+    }
   });
-  A['zine-weg'] = (e) => { const i = +e.dataset.i, zurueck = aendere(offen, (x) => entferneSeite(x, i)); frisch(); melde(L('Seite entfernt', 'Page removed'), L('Rückgängig', 'Undo'), zurueck); };
+  document.addEventListener('input', (ev) => {
+    if (ev.target.id !== 'zn-auftrag') return;
+    Zs.text = ev.target.value; Zs.hand = Zs.text !== bau();
+    const k = $('zn-neu'); if (k) k.hidden = !Zs.hand;
+  });
 
-  /* ── Erzeugen mit dem eigenen OpenAI-Schlüssel. Ohne Schlüssel erst das Schlüssel-Fenster, danach geht es hier weiter.
-        Vor dem Senden steht in einer Zeile, was an wen geht und was es kostet (ein Tipp kostet Geld; ein Hinweis allein ist am Handy zu wenig).
-        Steht im Auftrag ein Befehl an eine KI, wird die Stelle gezeigt und entschieden. ── */
-  A['zine-erzeugen'] = (e) => {
-    const i = +e.dataset.i; if (!app.rezept(offen) || !(i >= 0 && i < ZINE_SEITEN)) return;
-    if (!SK.openai) { warte = i; app.schluesselFenster('openai', 'zine-weiter'); return; }
-    fenster(`<h2>${esc(seitenName(i, spr()))}</h2><p id="zine-hinaus">${esc(hinaus(i))}</p><div class="reihe"><button class="knopf akz" data-a="zine-los" data-i="${i}">${ic('funken')}${L('Erzeugen', 'Create')}</button><button class="knopf" data-a="zine-auf">${L('Abbrechen', 'Cancel')}</button></div>`);
-  };
-  A['zine-weiter'] = () => { const i = warte; warte = -1; if (i >= 0) A['zine-erzeugen']({ dataset: { i } }); };
-  A['zine-los'] = async (e) => {
-    const i = +e.dataset.i, uid = offen, r = app.rezept(uid); if (!r) return;
-    const da = app.zeig(r), p = await pruefeZineAuftrag(da, kiAnweisungen, i); let frei = da;   /* geprüft wird, was der Auftrag DIESER Seite liest */
-    if (p.stellen.length) {
-      const w = await app.wahl(L('Befehl an eine KI im Bildauftrag', 'Instruction to an AI in the picture request'), app.stellenHtml(p.stellen), L('Ohne senden', 'Send without'), L('Mit senden', 'Send with'));
-      if (!w) { zineFenster(uid); return; }
-      frei = w === 'a' ? p.sauber : da;
-    } else fensterZu();
-    const st = stil(), sprache = spr();
+  /* ── Kopieren und in den Chat. Mit Bild: Auftrag samt Satz zum Foto und das PNG in EINEM Eintrag der Zwischenablage. ── */
+  async function kopiere() {
+    const feld = $('zn-auftrag'), t = feld ? feld.value : aktuell();
+    if (!t.trim()) { melde(L('Wähle zuerst ein Lieblingsrezept.', 'Choose a favourite recipe first.')); return false; }
+    const mitBild = !Zs.trend && !!quelle();
+    if (mitBild && navigator.clipboard?.write && globalThis.ClipboardItem) {
+      try {
+        const b = png.blob || (await pngVorbereiten()); if (!b) throw new Error('png');
+        await navigator.clipboard.write([new ClipboardItem({ 'text/plain': new Blob([t + '\n\n' + zineFotoHinweis(spr())], { type: 'text/plain' }), 'image/png': b })]);
+        melde(L('Text und Bild kopiert – im Chat einfach einfügen', 'Text and picture copied – just paste them in the chat')); return true;
+      } catch { /* dieser Browser nimmt kein Bild: dann nur der Text, und das wird gesagt */ }
+    }
     try {
-      const bild = await W.mit(L('Seite wird erzeugt (etwa 30 s) …', 'Creating the page (about 30 s) …'), async (w) => { const roh = await kiBild(SK.openai, frei, { groesse: ZINE_GROESSE, auftrag: (x) => zineAuftraege(x, { stil: st, sprache })[i] }); w.text(L('Bild wird gespeichert …', 'Saving the picture …')); return app.bildAusDatei(await (await fetch(roh)).blob()); });
-      const zurueck = aendere(uid, (x) => setzeSeite(x, i, bild)); zeichne(); zineFenster(uid);
-      melde(L('Seite erzeugt', 'Page created'), L('Rückgängig', 'Undo'), zurueck);
-    } catch (f) { zineFenster(uid); melde(app.fehlerText(f, L('Es kam kein Bild zurück.', 'No picture came back.'))); }
+      await navigator.clipboard.writeText(t);
+      melde(mitBild ? L('Nur der Text ist kopiert – dieser Browser nimmt kein Bild in die Zwischenablage', 'Only the text is copied – this browser takes no picture into the clipboard') : L('Auftrag kopiert', 'Request copied'));
+      return true;
+    } catch { melde(L('Kopieren ging nicht', 'Copying failed')); return false; }
+  }
+  /* Erst kopieren (das Dokument hat noch den Fokus), dann im selben Tipp den Tab öffnen (sonst hält ihn der Browser auf). */
+  const zumChat = (adresse) => { const k = kopiere(); window.open(adresse, '_blank', 'noopener'); return k; };
+  A['zn-kopieren'] = () => kopiere();
+  A['zn-claude'] = () => zumChat(ZINE_CHAT.claude);
+  A['zn-chatgpt'] = () => zumChat(ZINE_CHAT.chatgpt);
+
+  /* ── Die Sammlung ── */
+  async function laden() { geladen = (async () => { try { liste = await SM().liste(); } catch { liste = []; } sammlungFrisch(); })(); return geladen; }
+  const sammlungFrisch = () => { const z = $('zs'); if (z) z.outerHTML = sammlungHtml(); const k = document.querySelector('.kr-teil [data-a=kreativ-zine] small'); if (k) k.textContent = String(liste.length); };
+  const anzahl = () => liste.length;
+  A['zs-dazu'] = () => $('zs-datei')?.click();
+  document.addEventListener('change', async (ev) => {
+    if (ev.target.id !== 'zs-datei') return;
+    const alle = [...ev.target.files]; ev.target.value = ''; if (!alle.length) return;
+    const { gut, zuGross } = zsDateienTeilen(alle.filter((d) => /^image\//.test(d.type))), fremd = alle.filter((d) => !/^image\//.test(d.type)).length; let kaputt = 0;
+    const neue = [];
+    await W.mit(L('Bilder werden verkleinert …', 'Reducing the pictures …'), async (w) => {
+      for (let i = 0; i < gut.length; i++) {
+        w.anteil(i / gut.length); const d = gut[i];
+        try { const [gross, klein] = await bildGroessen(d, [ZS_KANTE, ZS_KLEIN], ZS_GUETE); neue.push({ name: d.name.replace(/\.[^.]+$/, ''), gross, klein, orig: /^image\/(jpeg|png|webp|gif)$/.test(d.type) ? d : null }); }
+        catch { kaputt++; }
+      }
+    });
+    let dazu = [];
+    try { dazu = await SM().dazu(neue); } catch { melde(L('Speichern ist fehlgeschlagen.', 'Saving failed.')); return; }
+    liste = await SM().liste(); sammlungFrisch();
+    melde([dazu.length === 1 ? L('+1 Bild', '+1 picture') : fuelle(L('+{0} Bilder', '+{0} pictures'), dazu.length), zuGross.length ? fuelle(L('{0} über {1} MB', '{0} over {1} MB'), zuGross.length, ZS_DATEI_MAX / 1048576) : '', kaputt + fremd ? fuelle(L('{0} nicht lesbar', '{0} unreadable'), kaputt + fremd) : ''].filter(Boolean).join(' · '));
+  });
+  /** Entfernen mit Rückgängig (aus der Kachel und aus der Großansicht). */
+  async function weg(id) {
+    const x = await SM().weg(id); if (!x) return; liste = await SM().liste(); if (document.querySelector('.zs-voll')) fensterZu(); sammlungFrisch();
+    melde(L('Bild entfernt', 'Picture removed'), L('Rückgängig', 'Undo'), async () => { await SM().zurueck(x); liste = await SM().liste(); sammlungFrisch(); });
+  }
+  A['zs-weg'] = (e) => weg(e.dataset.id);
+  A['zs-weg-voll'] = () => offen && weg(offen.id);
+
+  /* Großansicht: das Original (sonst das große Bild), darunter Drucken, Als Rezeptbild, Entfernen. */
+  let objUrl = '';
+  A['zs-gross'] = async (e) => {
+    if (Date.now() - gezogen < 400) return;
+    const ein = liste.find((x) => x.id === e.dataset.id), b = ein && (await SM().hol(ein.id)); if (!b) return;
+    if (objUrl) URL.revokeObjectURL(objUrl); objUrl = b.orig instanceof Blob ? URL.createObjectURL(b.orig) : '';
+    offen = { ...ein, ...b };
+    $('fensterort').innerHTML = `<div class="vollbild zs-voll" data-a="zs-zu" role="dialog" aria-modal="true" aria-label="${esc(ein.name)}"><img src="${esc(objUrl || b.gross)}" alt="${esc(ein.name)}"><button class="voll-x" data-a="zs-zu" aria-label="${esc(L('Schließen', 'Close'))}">${ic('x')}</button>
+      <div class="zs-leiste" data-a="nichts"><b>${esc(ein.name)}</b><div class="reihe"><button class="knopf" data-a="zs-druck">${ic('drucken')}${L('Drucken / PDF', 'Print / PDF')}</button><button class="knopf" data-a="zs-rezeptbild">${ic('bild')}${L('Als Rezeptbild', 'As recipe picture')}</button><button class="knopf rot" data-a="zs-weg-voll">${ic('muell')}${L('Entfernen', 'Remove')}</button></div></div></div>`;
+  };
+  A.nichts = () => {};
+  A['zs-zu'] = () => { fensterZu(); if (objUrl) { URL.revokeObjectURL(objUrl); objUrl = ''; } };
+  const alsDaten = (blob) => new Promise((ja, nein) => { const f = new FileReader(); f.onload = () => ja(f.result); f.onerror = () => nein(f.error); f.readAsDataURL(blob); });
+  A['zs-druck'] = async () => {
+    if (!offen) return; let bild = offen.gross;
+    if (offen.orig instanceof Blob) { try { bild = await alsDaten(offen.orig); } catch { /* dann das große Bild */ } }
+    drucke(zineDruck(bild, { titel: offen.name, sprache: spr() }), { sprache: spr() }).catch((f) => melde(f.message));
+  };
+  A['zs-rezeptbild'] = () => {
+    if (!offen) return; ziel = offen.id;
+    const rs = app.Z().rezepte.filter(app.istInhalt).map((r) => [r.uid, app.zeig(r).name]).sort((a, b) => a[1].localeCompare(b[1], spr()));
+    if (!rs.length) { melde(L('Kein Rezept da', 'No recipe yet')); return; }
+    fenster(`<h2>${L('Als Rezeptbild', 'As recipe picture')}</h2><img class="eb-vorschau" src="${esc(offen.klein)}" alt="${esc(offen.name)}">
+     <select class="feld" id="zs-rezept" aria-label="${esc(L('Rezept', 'Recipe'))}" style="width:100%">${rs.map(([u, n]) => `<option value="${esc(u)}" ${u === Zs.rid ? 'selected' : ''}>${esc(n)}</option>`).join('')}</select>
+     <div class="reihe"><button class="knopf akz" data-a="zs-rezeptbild-los">${ic('haken')}${L('Setzen', 'Set')}</button><button class="knopf" data-a="fenster-zu">${L('Abbrechen', 'Cancel')}</button></div>`);
+  };
+  A['zs-rezeptbild-los'] = async () => {
+    const uid = $('zs-rezept')?.value, b = await SM().hol(ziel), r = uid && app.rezept(uid); if (!b || !r) return;
+    const vorher = app.Z().rezepte;
+    app.setzeZ({ ...app.Z(), rezepte: vorher.map((x) => (x.uid === uid ? { ...x, img: b.gross, imgCrop: { x: 50, y: 50, scale: 1 } } : x)) }); app.sichern(); fensterZu(); app.zeichne();
+    melde(fuelle(L('Rezeptbild · {0}', 'Recipe picture · {0}'), app.zeig(r).name), L('Rückgängig', 'Undo'), () => { app.setzeZ({ ...app.Z(), rezepte: vorher }); app.sichern(); app.zeichne(); });
   };
 
-  /* ── Zeile im Menü am Rezept: sagt, wie viele Seiten schon da sind. ── */
-  const stand = (r) => { const n = zineAnzahl(r); return n ? fuelle(L('{0} von {1} Seiten', '{0} of {1} pages'), n, ZINE_SEITEN) : ''; };
+  /* Als Buch: die ganze Sammlung in ihrer Reihenfolge (Kern: eigenbuch.mjs). */
+  async function buchBilder() { const aus = []; for (const e of liste) { const b = await SM().hol(e.id); if (b) aus.push({ name: e.name, klein: e.klein, gross: b.gross }); } return aus; }
+  const buchOpt = () => ({ titel: L('Meine Food-Zine-Bilder', 'My food zine pictures'), sprache: spr() });
+  A['zs-blaettern'] = async () => {
+    const bilder = await W.mit(L('Buch wird gebaut …', 'Building the book …'), buchBilder);
+    $('fensterort').innerHTML = `<div class="kb-vorschau" role="dialog" aria-modal="true" aria-label="${esc(L('Meine Food-Zine-Bilder', 'My food zine pictures'))}"><iframe id="zs-rahmen" sandbox="allow-scripts" title="${esc(L('Meine Food-Zine-Bilder', 'My food zine pictures'))}"></iframe><button class="voll-x" data-a="fenster-zu" aria-label="${esc(L('Schließen', 'Close'))}">${ic('x')}</button></div>`;
+    $('zs-rahmen').srcdoc = ebBlaettern(bilder, buchOpt());
+  };
+  A['zs-pdf'] = async () => { const bilder = await buchBilder(); drucke(ebPdf(bilder, buchOpt()), { sprache: spr() }).catch((f) => melde(f.message)); };
+  A['zs-html'] = async () => {
+    const o = buchOpt(), html = ebBlaettern(await buchBilder(), o), a = document.createElement('a');
+    a.href = URL.createObjectURL(new Blob([html], { type: 'text/html' })); a.download = o.titel.replace(/[^\p{L}\p{N} _-]+/gu, '').trim().replace(/\s+/g, '-') + '.html';
+    document.body.appendChild(a); a.click(); a.remove(); setTimeout(() => URL.revokeObjectURL(a.href), 5000);
+    melde(fuelle(L('Buch gespeichert · {0}', 'Book saved · {0}'), buchGroesseText(buchGroesse(html), spr())));
+  };
 
-  /* ── Galerie (Bilder-Ordner, Filter „Food-Zine“): jede Seite eine Kachel mit Rezeptname und Seite. Löschen nimmt nur die Seite. ── */
-  const galerie = () => zineGalerie(app.Z().rezepte).map((x) => ({ uid: x.uid + TRENNER + x.seite, img: x.bild, name: app.zeig(app.rezept(x.uid)).name, unter: seitenName(x.seite, spr()), hoch: true }));
-  function galerieWeg(wahl) {
-    const vorher = app.Z().rezepte, weg = new Map();
-    for (const k of wahl) { const p = String(k).lastIndexOf(TRENNER); if (p < 0) continue; const uid = k.slice(0, p); weg.set(uid, [...(weg.get(uid) || []), +k.slice(p + TRENNER.length)]); }
-    app.setzeZ({ ...app.Z(), rezepte: vorher.map((r) => (weg.has(r.uid) ? weg.get(r.uid).reduce((x, i) => entferneSeite(x, i), r) : r)) }); sichern(); zeichne();
-    melde(fuelle(L('−{0} Seiten', '−{0} pages'), wahl.size), L('Rückgängig', 'Undo'), () => { app.setzeZ({ ...app.Z(), rezepte: vorher }); sichern(); zeichne(); });
+  /* ── Ordnen: Finger lange drücken (400 ms), Maus ziehen. Ein Strich zeigt das Ziel; losgelassen wird die neue Folge gespeichert. ── */
+  let zg = null;
+  const zielUnter = (x, y) => document.elementFromPoint(x, y)?.closest?.('.zs-kachel[data-id]') || null;
+  const zgAn = () => { if (!zg || zg.an) return; zg.an = true; zg.el.classList.add('zieht'); navigator.vibrate?.(15); };
+  document.addEventListener('pointerdown', (ev) => {
+    const el = ev.target.closest?.('.zs-kachel[data-id]'); if (!el || ev.target.closest('.zs-x') || (ev.pointerType === 'mouse' && ev.button !== 0)) return;
+    zg = { el, id: el.dataset.id, x: ev.clientX, y: ev.clientY, maus: ev.pointerType === 'mouse', an: false, ziel: null, uhr: ev.pointerType === 'mouse' ? null : setTimeout(zgAn, 400) };
+  });
+  document.addEventListener('pointermove', (ev) => {
+    if (!zg) return; const weit = Math.hypot(ev.clientX - zg.x, ev.clientY - zg.y);
+    if (!zg.an) { if (zg.maus && weit > 6) zgAn(); else if (!zg.maus && weit > 10) { clearTimeout(zg.uhr); zg = null; return; } else return; }   /* der Finger rollt die Seite, bevor der lange Druck greift */
+    ev.preventDefault();
+    zg.el.style.transform = `translate(${ev.clientX - zg.x}px,${ev.clientY - zg.y}px)`;
+    const z = zielUnter(ev.clientX, ev.clientY); document.querySelectorAll('.zs-kachel.ziel').forEach((k) => k !== z && k.classList.remove('ziel'));
+    if (z && z !== zg.el) { z.classList.add('ziel'); zg.ziel = z.dataset.id; } else zg.ziel = null;
+  });
+  const zgLos = async () => {
+    if (!zg) return; const g = zg; zg = null; clearTimeout(g.uhr); if (!g.an) return;
+    gezogen = Date.now(); g.el.classList.remove('zieht'); g.el.style.transform = ''; document.querySelectorAll('.zs-kachel.ziel').forEach((k) => k.classList.remove('ziel'));
+    if (!g.ziel) return;
+    const ids = liste.map((e) => e.id), von = ids.indexOf(g.id), nach = ids.indexOf(g.ziel); if (von < 0 || nach < 0) return;
+    liste = zsVerschiebe(liste, von, nach); sammlungFrisch();
+    try { await SM().ordnen(liste.map((e) => e.id)); } catch { melde(L('Speichern ist fehlgeschlagen.', 'Saving failed.')); }
+  };
+  document.addEventListener('pointerup', zgLos); document.addEventListener('pointercancel', () => { if (zg && !zg.an) { clearTimeout(zg.uhr); zg = null; } else zgLos(); });
+  document.addEventListener('touchmove', (ev) => { if (zg?.an) ev.preventDefault(); }, { passive: false });   /* beim Ziehen rollt die Seite nicht mit */
+  document.addEventListener('contextmenu', (ev) => { if (ev.target.closest?.('.zs-kachel')) ev.preventDefault(); });   /* der lange Druck öffnet kein Bildmenü */
+
+  /* ── Einmal: die alten Seiten am Rezept (r.zine) wandern in die Sammlung. Doppeltes (gleiche Prüfsumme) und schon einmal
+        Übernommenes kommt nicht noch einmal. Die Rezepte verlieren das Feld erst, wenn die Bilder sicher abgelegt sind. ── */
+  const summe = async (t) => [...new Uint8Array(await crypto.subtle.digest('SHA-256', new TextEncoder().encode(t)))].map((b) => b.toString(16).padStart(2, '0')).join('');
+  async function uebernimm(bilder) {
+    const sm = SM(), schon = await sm.uebernommen(), neue = [], gesehen = new Set();
+    for (const b of bilder) {
+      const s = await summe(b.gross); if (schon.has(s) || gesehen.has(s)) continue; gesehen.add(s);
+      try { const [klein] = await bildGroessen(await (await fetch(b.gross)).blob(), [ZS_KLEIN], ZS_GUETE); neue.push({ ...b, klein, summe: s }); } catch { /* ein Bild, das sich nicht lesen lässt, bleibt draußen */ }
+    }
+    const dazu = neue.length ? await sm.dazu(neue) : [];
+    liste = await sm.liste(); sammlungFrisch(); return { dazu: dazu.length, schonDa: bilder.length - neue.length };
+  }
+  let zieht = false;
+  async function nachziehen() {
+    if (zieht || !app.Z().rezepte.some((r) => r && 'zine' in r)) return; zieht = true;
+    try {
+      const e = zineAusRezepten(app.Z().rezepte), u = await uebernimm(e.bilder);
+      const jetzt = zineAusRezepten(app.Z().rezepte);   /* inzwischen geändert? dann den neuesten Stand ohne das Feld */
+      app.setzeZ({ ...app.Z(), rezepte: jetzt.rezepte }); app.sichern();
+      if (u.dazu) melde(u.dazu === 1 ? L('1 Food-Zine-Seite liegt jetzt unter „Meine Food-Zine-Bilder“', '1 food zine page is now under “My food zine pictures”') : fuelle(L('{0} Food-Zine-Seiten liegen jetzt unter „Meine Food-Zine-Bilder“', '{0} food zine pages are now under “My food zine pictures”'), u.dazu));
+    } catch { /* beim nächsten Speichern noch einmal; das Feld bleibt bis dahin am Rezept */ } finally { zieht = false; }
   }
 
-  /* ── Beispiel-Sätze: das Paket „foodzine-beispiele“ der Ausgabe, auf Tippen geladen, Prüfsumme nachgerechnet.
-        Ein Satz kommt nur vollständig und nur an sein Rezept; fehlt das Rezept, wird das gesagt. ── */
+  /* ── Beispiel-Sätze: das Paket „foodzine-beispiele“ der Ausgabe, auf Tippen geladen, Prüfsumme nachgerechnet; die Seiten kommen in die Sammlung. ── */
   const paket = () => app.katalog()?.pakete?.find((p) => p.art === 'foodzine' && (app.ausgabe().beispiele || []).includes(p.id));
   const beispielZeile = (zeile) => { const p = paket(); return p ? zeile('zine-beispiele', 'zine', L('Food-Zine-Beispiele laden', 'Load food zine examples'), fuelle(L('{0} Sätze, {1} MB', '{0} sets, {1} MB'), p.anzahl, (p.bytes / 1e6).toFixed(0))) : ''; };
   A['zine-beispiele'] = async () => {
@@ -130,12 +293,13 @@ export function zine(app) {
       const roh = await W.mit(L('Food-Zine-Beispiele werden geladen …', 'Loading the food zine examples …'), async (w) => { const ant = await fetch('../beispiele/' + p.datei); if (!ant.ok) throw new Error(String(ant.status)); return bytesMitAnteil(ant, (a) => w.anteil(a)); });
       const sum = [...new Uint8Array(await crypto.subtle.digest('SHA-256', roh))].map((b) => b.toString(16).padStart(2, '0')).join('');
       if (sum !== p.sha256) { melde(L('Food-Zine-Beispiele beschädigt, nicht eingelesen', 'Food zine examples damaged, not imported')); return; }
-      const vorher = app.Z().rezepte, e = zineSaetzeEinlesen(vorher, JSON.parse(new TextDecoder().decode(roh)));
-      if (e.dazu) { app.tresorAuto(); app.setzeZ({ ...app.Z(), rezepte: e.rezepte }); sichern(); zeichne(); }
-      melde([e.dazu === 1 ? L('+1 Food-Zine', '+1 food zine') : fuelle(L('+{0} Food-Zines', '+{0} food zines'), e.dazu), e.schonDa ? fuelle(L('{0} schon da', '{0} already there'), e.schonDa) : '', e.ohneRezept ? fuelle(L('{0} ohne Rezept', '{0} without a recipe'), e.ohneRezept) : ''].filter(Boolean).join(' · '),
-        e.dazu ? L('Rückgängig', 'Undo') : '', () => { app.setzeZ({ ...app.Z(), rezepte: vorher }); sichern(); zeichne(); });
+      const u = await W.mit(L('Food-Zine-Beispiele werden abgelegt …', 'Storing the food zine examples …'), () => uebernimm(zineSaetzeBilder(JSON.parse(new TextDecoder().decode(roh)))));
+      melde([u.dazu === 1 ? L('+1 Food-Zine-Bild', '+1 food zine picture') : fuelle(L('+{0} Food-Zine-Bilder', '+{0} food zine pictures'), u.dazu), u.schonDa ? fuelle(L('{0} schon da', '{0} already there'), u.schonDa) : ''].filter(Boolean).join(' · '));
     } catch { melde(L('Food-Zine-Beispiele nicht geladen. Netz?', 'Food zine examples not loaded. Network?')); }
   };
 
-  return { stand, galerie, galerieWeg, beispielZeile, fenster: zineFenster };
+  /* ── Zeile im Menü am Rezept und im Bild-Blatt ── */
+  const stand = () => L('Poster-Auftrag für Claude oder ChatGPT', 'Poster request for Claude or ChatGPT');
+
+  return { html, stand, anzahl, laden, nachziehen, beispielZeile };
 }

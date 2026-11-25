@@ -103,3 +103,13 @@ test('buchBlaettern ist durch das Teilen der Leiste unverändert (Skript, Leiste
   const h = buchBlaettern([R('a', 'Gulasch')], { titel: 'X', datum: '1. Januar 2026' });
   assert.equal(h.match(/<script>/g).length, 1); assert.ok(h.includes('<nav id="leiste" hidden=""') && h.includes('id="zum-inhalt"') && h.indexOf('</main>') < h.indexOf('<nav id="leiste"'));
 });
+test('eine Antwort im Format der alten App ({"kreativbuch":[{name,intro,tip,serve}]}) wird ganz gelesen: tip → Kochtipp, serve → Servier-Idee', () => {
+  assert.deepEqual(kbTexte({ name: 'X', intro: 'Hallo', tip: 'Scharf anbraten', serve: 'Mit Brot' }), { intro: 'Hallo', cookTip: 'Scharf anbraten', servingIdea: 'Mit Brot' });
+  assert.deepEqual(kbTexte({ cookTip: 'neu', tip: 'alt' }), { cookTip: 'neu' }, 'ein neues Feld gewinnt');
+  assert.equal(kbTexte({ tip: 42, serve: '' }), null);
+  const rs = [R('u1', 'Gulasch'), R('u2', 'Brot')];
+  const alt = 'Hier:\n```json\n{"kreativbuch":[\n  {"name":"Brot","intro":"Warm und knusprig.","tip":"Mit Dampf backen.","serve":"Mit Butter."},\n  {"name":"Gulasch","intro":"Deftig.","tip":"Lange schmoren.","serve":"Mit Knödeln."}\n]}\n```';
+  const e = kbAntwortLesen(alt, rs);
+  assert.equal(e.zugeordnet, 2); assert.equal(e.ohne, 0);
+  assert.deepEqual(e.texte.u1, { intro: 'Deftig.', cookTip: 'Lange schmoren.', servingIdea: 'Mit Knödeln.' }); assert.deepEqual(e.texte.u2, { intro: 'Warm und knusprig.', cookTip: 'Mit Dampf backen.', servingIdea: 'Mit Butter.' });
+});

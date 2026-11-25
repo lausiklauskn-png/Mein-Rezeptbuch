@@ -94,7 +94,8 @@ try {
   const brot = await p.locator('#kb-wahl option', { hasText: ' · 1' }).first().getAttribute('value'); await p.selectOption('#kb-wahl', brot);
   await p.waitForFunction(() => /0 von 1/.test(document.querySelector('#kb-stand')?.textContent || ''), null, { timeout: 5000 }).catch(() => {});
   ok((await p.locator('#kb-stand').innerText()).trim() === '0 von 1 mit Text', 'eine Kategorie als Auswahl: der Stand zählt nur ihre Rezepte', await p.locator('#kb-stand').innerText());
-  await bestandWenn(p, (b) => b?.einstellungen?.kreativ?.stil === 'nordisch' && b.einstellungen.kreativ.wahl === brot);
+  /* seit 0.16: die Schnellwahl setzt Häkchen; gemerkt werden die abgewählten Rezepte (ab), hier alle außer dem Brot */
+  await bestandWenn(p, (b) => b?.einstellungen?.kreativ?.stil === 'nordisch' && (b.einstellungen.kreativ.ab || []).length === 2 && !b.einstellungen.kreativ.ab.includes('r-2'));
   await p.reload(); await p.waitForSelector('.gruss'); await zumKb(p);
   ok(await p.locator('#kb-stile [data-stil=nordisch]').getAttribute('aria-checked') === 'true' && await p.inputValue('#kb-wahl') === brot, 'Stil und Auswahl bleiben nach dem Neuladen gewählt');
   ok(await p.locator('#kb-eigen').count() === 0, 'ohne „Eigener Stil“ kein Eingabefeld');

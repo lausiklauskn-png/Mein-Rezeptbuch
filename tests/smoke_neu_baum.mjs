@@ -143,7 +143,7 @@ try {
   ok(punkte.indexOf('Kreativbuch') > punkte.indexOf('Einkauf') && punkte.indexOf('Kreativbuch') < punkte.indexOf('Einstellungen'), 'fliegende Leiste: „Kreativbuch“ zwischen Einkauf und Einstellungen', punkte.join('|'));
   await p.click('#leiste [data-zu=kreativ]'); await p.waitForSelector('.kr-teil');
   ok(await p.locator('.kr-teil [data-a=kreativ]').count() === 1 && await p.locator('.kr-teil [data-a=eb-auf]').count() === 1 && await p.locator('.kr-teil [data-a=kbp-auf]').count() === 1 && await p.locator('.kr-teil [data-a=buch]').count() === 2 && await p.locator('.kr-teil [data-a=kreativ-zine]').count() === 1, 'der Bereich hat Kreativbuch, Buch aus Bildern, Projekte, PDF, Blättern und die Food-Zine-Bilder');
-  await p.click('[data-a=kreativ-zine]'); await p.waitForSelector('.laeden'); ok(await p.locator('.laeden [aria-pressed=true]', { hasText: 'Food-Zine' }).count() === 1, '„Meine Food-Zine-Bilder“ öffnet die Bilder mit dem Filter Food-Zine');
+  await p.click('[data-a=kreativ-zine]'); await p.waitForSelector('#zs-gitter'); ok(await p.locator('#zine-ansicht #zs').count() === 1, '„Meine Food-Zine-Bilder“ öffnet die Sammlung (seit 0.16 eine eigene, nicht mehr der Bilder-Filter)');
   await p.click('#leiste .fl-griff'); await p.click('#leiste [data-zu=werkstatt]'); ok(await p.locator('.gruppe[data-g=buch]').count() === 0, 'in den Einstellungen steht kein Buch mehr');
   await k.close();
   ok(fehler.length === 0, 'keine Fehler in der Konsole, kein Netz nach draußen', fehler.join(' · '));

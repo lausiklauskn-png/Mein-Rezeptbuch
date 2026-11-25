@@ -212,18 +212,6 @@ export default {
   'Zurück': 'Назад',
   'Weiter': 'Далее',
   'Notizen': 'Заметки',
-  // ausgabe/zine.mjs
-  'etwa 8 Cent': 'около 8 центов',
-  'Titelseite': 'Обложка',
-  'Schritt für Schritt': 'Шаг за шагом',
-  'Gesundheit und Tipps': 'Здоровье и советы',
-  'Collage': 'Коллаж',
-  'Aquarell': 'Акварель',
-  'Zeitung': 'Газета',
-  'Retro': 'Ретро',
-  'Modern': 'Модерн',
-  'Name und Zutaten': 'название и ингредиенты',
-  'Name und Schritte': 'название и шаги',
   // ausgabe/kreativbuch.mjs
   'Geschmack und Aroma': 'Вкус и аромат',
   'KI entscheidet': 'Решает ИИ',
