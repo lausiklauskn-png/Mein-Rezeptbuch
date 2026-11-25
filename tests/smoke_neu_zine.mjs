@@ -83,6 +83,7 @@ try {
   const zeile = await p.locator('#rmenue [data-a=zine]').evaluate((b) => ({ wort: b.querySelector('span').firstChild.textContent, klein: b.querySelector('small')?.innerText || '', ki: !!b.querySelector('.ki-marke') }));
   ok(zeile.wort === 'Food-Zine' && zeile.klein === '' && !zeile.ki, 'im Menü am Rezept steht die Zeile „Food-Zine“ (ohne KI-Marke: das Öffnen sendet nichts)', JSON.stringify(zeile));
   await p.click('#rmenue [data-a=zine]'); await p.waitForSelector('#zine');
+  ok(await p.locator('.fenster [data-a=zine-zum-buch]').count() === 1, 'R12: im Food-Zine-Fenster führt ein Knopf zum Kreativbuch');
   const namen = await p.locator('.zine-seite b').allInnerTexts();
   ok(await p.locator('.zine-seite').count() === 3 && namen.join('|') === NAMEN.join('|') && (await p.locator('.fenster h2').innerText()).trim() === 'Rindergulasch', 'das Fenster zeigt drei Seiten mit ihren Namen unter dem Namen des Rezepts', namen.join('|'));
   ok(await p.locator('.fenster p').count() === 0 && await p.locator('.fenster details').count() === 0, 'kein Erklärtext auf dem Fenster');

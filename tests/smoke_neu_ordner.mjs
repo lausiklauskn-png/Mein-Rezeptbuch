@@ -23,12 +23,12 @@ try {
   let { p, k } = await seite();
   await p.click('[data-a=beispiel]'); await p.waitForSelector('.karte', { timeout: 20000 });
   ok(await p.locator('.fotokat .ord').count() === 0, 'ohne Ordner steht in der Leiste kein Ordner');
-  await zurWerkstatt(p); ok((await p.locator('.zeile[data-zu=ordner]').innerText()).includes('Ordner') && (await p.locator('.zeile[data-zu=ordner] small').innerText()).trim() === '0', 'Einstellungen → Ordnung nennt die Ordner mit ihrer Zahl');
-  await p.click('.zeile[data-zu=ordner]'); await p.waitForSelector('#ord-leer'); ok(await p.locator('.ueber .frag').count() === 1, 'leere Ordner-Ansicht sagt „Noch kein Ordner“, Erklärung hinter „?“');
-  await p.click('[data-a=ordner-neu]'); ok(await p.evaluate(() => document.activeElement?.classList.contains('ord-name')), 'ein neuer Ordner: der Zeiger steht gleich im Namensfeld');
-  await p.keyboard.type('Für Gäste'); await p.keyboard.press('Tab');
-  await p.click('[data-a=ordner-neu]'); await p.keyboard.type('Sommer <b>'); await p.keyboard.press('Tab');
-  ok(await p.locator('.ord-zeile').count() === 2 && await p.inputValue('.ord-zeile:nth-child(1) .ord-name') === 'Für Gäste' && await p.locator('.ord-auf:disabled').count() === 2, 'zwei Ordner, noch leer');
+  await zurWerkstatt(p); ok(await p.locator('.zeile[data-zu=ordner]').count() === 0 && await p.locator('.zeile[data-zu=baum]').count() === 1, 'Einstellungen → Ordnung führt in den Baum (die alte Ordner-Liste ist weg, Klaus 25.11.)');
+  await p.click('.zeile[data-zu=baum]'); await p.waitForSelector('#bz-ord-leer'); ok(await p.locator('.ueber .frag').count() === 1, 'ohne Ordner sagt der Baum „Noch kein Ordner“, Erklärung hinter „?“');
+  await p.click('[data-a=baum-ordner-neu]'); ok(await p.evaluate(() => document.activeElement?.name === 'n'), 'ein neuer Ordner: der Zeiger steht gleich im Namensfeld');
+  await p.keyboard.type('Für Gäste'); await p.keyboard.press('Enter');
+  await p.click('[data-a=baum-ordner-neu]'); await p.keyboard.type('Sommer <b>'); await p.keyboard.press('Enter');
+  ok(await p.locator('.bz-gruppe[data-art=ord]').count() === 2 && await p.locator('.bz-gruppe[data-art=ord]').first().getAttribute('data-name') === 'Für Gäste' && (await p.locator('.bz-gruppe[data-art=ord]').locator('.bz-zahl').allInnerTexts()).every((t) => t.startsWith('0 ')), 'zwei Ordner, noch leer');
 
   console.log('2 · Rezept in einen Ordner legen: die Kategorie bleibt');
   await zumStart(p); const vorSushi = (await leiste(p)).find((t) => t.startsWith('Sushi'));
@@ -66,24 +66,25 @@ try {
   ok(await p.locator('.rezept-held .im-ordner').count() === 0 && (await p.locator('#toast').innerText()).includes('Aus dem Ordner genommen'), '„aus dem Ordner nehmen“ nimmt es heraus');
 
   console.log('5 · Umbenennen, ordnen, Neuladen, Sicherung');
-  await zurWerkstatt(p); ok((await p.locator('.zeile[data-zu=ordner] small').innerText()).trim() === '3', 'die Einstellungen zählen drei Ordner'); await p.click('.zeile[data-zu=ordner]'); await p.waitForSelector('.ord-zeile');
-  ok((await p.locator('.ord-auf').allInnerTexts()).join(',') === '1,0,1' && await p.locator('.ord-zeile .sticker').count() === 2, 'Ordner-Ansicht: Anzahl je Ordner, Bild aus dem Ordner', (await p.locator('.ord-auf').allInnerTexts()).join(','));
-  await p.fill('.ord-zeile:nth-child(1) .ord-name', 'Für liebe Gäste'); await p.keyboard.press('Tab');
-  const g = await p.locator('.ord-zeile:nth-child(3) .griff').boundingBox(), z = await p.locator('.ord-zeile:nth-child(1)').boundingBox();
-  await p.mouse.move(g.x + g.width / 2, g.y + g.height / 2); await p.mouse.down(); await p.mouse.move(g.x + g.width / 2, g.y - 20, { steps: 4 }); await p.mouse.move(g.x + g.width / 2, z.y + 4, { steps: 8 }); await p.mouse.up();
-  const folge = await p.locator('.ord-name').evaluateAll((l) => l.map((x) => x.value)); ok(folge.join('|') === 'Weihnachten|Für liebe Gäste|Sommer <b>', 'ziehen am Griff ordnet die Ordner um', folge.join('|'));
+  await zurWerkstatt(p); await p.click('.zeile[data-zu=baum]'); await p.waitForSelector('.bz-gruppe[data-art=ord]');
+  const zahlO = (await p.locator('.bz-gruppe[data-art=ord]').locator('.bz-zahl').allInnerTexts()).map((t) => t.match(/^(\d+)/)[1]).join(',');
+  ok(zahlO === '1,0,1' && await p.locator('.bz-gruppe[data-art=ord]').locator('.bz-kopf .sticker').count() === 2, 'Baum: Anzahl je Ordner, Bild aus dem Ordner', zahlO);
+  await p.locator('.bz-gruppe[data-art=ord]').first().locator('.ord-name').fill('Für liebe Gäste'); await p.keyboard.press('Tab');
+  await p.locator('.bz-gruppe[data-art=ord]').nth(2).locator('.bz-ggriff').scrollIntoViewIfNeeded(); const g = await p.locator('.bz-gruppe[data-art=ord]').nth(2).locator('.bz-ggriff').boundingBox(), z = await p.locator('.bz-gruppe[data-art=ord]').first().boundingBox();
+  await p.mouse.move(g.x + g.width / 2, g.y + g.height / 2); await p.mouse.down(); await p.mouse.move(g.x + g.width / 2, g.y - 20, { steps: 4 }); await p.mouse.move(g.x + g.width / 2, z.y + 8, { steps: 8 }); await p.waitForTimeout(100); await p.mouse.up(); await p.waitForTimeout(150);
+  const folge = await p.locator('.bz-gruppe[data-art=ord] .ord-name').evaluateAll((l) => l.map((x) => x.value)); ok(folge.join('|') === 'Weihnachten|Für liebe Gäste|Sommer <b>', 'ziehen am Griff ordnet die Ordner um', folge.join('|'));
   await p.waitForTimeout(350); await p.reload(); await p.waitForSelector('.gruss'); l = await leiste(p);
   ok(l.indexOf('Weihnachten 1') > 0 && l.indexOf('Weihnachten 1') < l.indexOf('Für liebe Gäste 1'), 'nach dem Neuladen: neuer Name, neue Reihenfolge in der Leiste', l.slice(-3).join(' | '));
   await zurWerkstatt(p); const [dl] = await Promise.all([p.waitForEvent('download'), p.click('[data-a=sichern]')]); const sich = JSON.parse(await readFile(await dl.path(), 'utf8'));
   ok(sich.folders.length === 3 && sich.folders.some((o) => o.name === 'Für liebe Gäste') && sich.recipes.filter((r) => r.folder).length === 2 && sich.recipes.find((r) => r.name.startsWith('Dragon Roll')).cat, 'die Sicherung trägt die Ordner und die Zuordnung; die Kategorie steht daneben');
 
   console.log('6 · Ordner löschen: die Rezepte bleiben');
-  await p.click('.zeile[data-zu=ordner]'); await p.waitForSelector('.ord-zeile'); const vor = (await zustand(p)).rezepte.length;
-  await p.locator('.ord-zeile', { has: p.locator('.ord-name[value="Weihnachten"]') }).locator('[data-a=ordner-weg]').click();
-  ok(await p.locator('.ord-zeile').count() === 2 && (await p.locator('#toast').innerText()).includes('1 Rezepte bleiben'), 'gelöscht: der Ordner ist weg, die Meldung sagt, dass das Rezept bleibt');
+  await p.click('.zeile[data-zu=baum]'); await p.waitForSelector('.bz-gruppe[data-art=ord]'); const vor = (await zustand(p)).rezepte.length;
+  await p.locator('.bz-gruppe[data-art=ord][data-name="Weihnachten"] [data-a=ordner-weg]').click();
+  ok(await p.locator('.bz-gruppe[data-art=ord]').count() === 2 && (await p.locator('#toast').innerText()).includes('1 Rezepte bleiben'), 'gelöscht: der Ordner ist weg, die Meldung sagt, dass das Rezept bleibt');
   await p.waitForTimeout(350); let z2 = await zustand(p); ok(z2.rezepte.length === vor && z2.rezepte.find((r) => r.name === zweites).folder === '' && z2.rezepte.find((r) => r.name === zweites).cat, 'das Rezept ist noch da, mit seiner Kategorie, ohne Ordner');
   await p.click('#toast [data-a=toast-tun]'); await p.waitForTimeout(350); z2 = await zustand(p); ok(z2.ordner.length === 3 && z2.rezepte.find((r) => r.name === zweites).folder, 'Rückgängig holt Ordner und Zuordnung zurück');
-  await p.locator('.ord-auf', { hasText: '1' }).first().click(); await p.waitForSelector('.fotokat'); ok(await p.locator('.karte').count() === 1 && await p.locator('.fotokat .ord[aria-pressed=true]').count() === 1, 'die Zahl am Ordner öffnet ihn auf der Startseite');
+  await zumStart(p); await p.locator('.fotokat .ord').first().click(); ok(await p.locator('.karte').count() === 1 && await p.locator('.fotokat .ord[aria-pressed=true]').count() === 1, 'der Ordner in der Leiste der Startseite zeigt sein Rezept');
   await k.close();
 
   console.log('7 · Übernahme aus der alten App; ein Ordner, den es nicht gibt');

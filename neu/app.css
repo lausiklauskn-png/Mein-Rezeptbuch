@@ -841,3 +841,6 @@ a.knopf{text-decoration:none}
 .bz-hier{padding:40px 20px;color:var(--mut)}
 .bz-platz{width:36px;flex:none}
 .bz-name .feld::placeholder{color:var(--ink);opacity:1}
+.bz-alle{flex:none;margin:0 2px;font-size:12.5px;white-space:nowrap}
+.bz-leere{display:flex;align-items:center;gap:8px;margin:8px 2px 0;padding:6px 8px;color:var(--mut);font-size:13.5px;border-radius:10px}
+.bz-leere[aria-expanded="true"] .bz-pf{transform:rotate(90deg)}

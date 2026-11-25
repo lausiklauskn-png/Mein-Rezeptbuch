@@ -51,13 +51,16 @@ try {
   await p.click('#leiste [data-zu=baum]'); await p.waitForSelector('.bz-gruppe');
   let z = await zustand(p); const nRez = z.rezepte.filter((r) => r.name && !r.blank).length;
   const zahlen = await p.locator('.bz-baum[data-teil=kat] .bz-zahl').allInnerTexts(), summe = zahlen.reduce((n, t) => n + +t.match(/^(\d+)/)[1], 0);
-  ok(summe === nRez && zahlen.length >= 10, 'jede Kategorie steht als Gruppe da; zusammen zählen sie alle Rezepte', `${summe} von ${nRez}, ${zahlen.length} Gruppen`);
+  ok(summe === nRez && zahlen.length >= 5 && zahlen.every((t) => !/^0 /.test(t)), 'jede Kategorie mit Rezepten steht als Gruppe da; zusammen zählen sie alle Rezepte', `${summe} von ${nRez}, ${zahlen.length} Gruppen`);
+  const leerN = +((await p.locator('[data-a=baum-leere]').innerText()).match(/(\d+)/) || [])[1];
+  ok(leerN > 0 && await p.locator('.bz-baum[data-teil=kat] .bz-zahl', { hasText: /^0 Rezepte/ }).count() === 0, 'leere Kategorien stehen eingeklappt hinter „+ N leere Kategorien“ (Klaus 25.11.)', String(leerN));
+  await p.click('[data-a=baum-leere]'); ok(await p.locator('.bz-baum[data-teil=kat] .bz-zahl', { hasText: /^0 Rezepte/ }).count() === leerN, 'ein Tipp zeigt sie (zum Hineinziehen)'); await p.click('[data-a=baum-leere]');
   ok(await p.locator('.bz-rezepte').count() === 0 && await p.locator('#bz-ord-leer').count() === 1, 'zu Beginn eingeklappt; unter „Ordner“ steht „Noch kein Ordner“');
   ok(await p.locator('.bz-knoepfe [data-a=baum-ordner-neu]').count() === 1 && await p.locator('.bz-knoepfe [data-zu=kategorien]').count() === 1 && await p.locator('.bz-knoepfe [data-a=baum-alle]').count() === 1 && await p.locator('#baumfeld').count() === 1, 'Kopf wie „Meine Ordner“: Suche, Neuer Ordner, Kategorien umbenennen, Alle aufklappen');
   const sushiN = await zahlIn(p, 'Sushi'), sushiId = await gruppe(p, 'Sushi').getAttribute('data-id');
   await gruppe(p, 'Sushi').locator('.bz-auf').click();
   ok(await gruppe(p, 'Sushi').locator('.bz-zeile').count() === sushiN && sushiN > 1, 'aufgeklappt: die Rezepte der Kategorie, jedes mit Bild oder Zeichen und Griff', String(sushiN));
-  ok(await gruppe(p, 'Sushi').locator('.bz-auf[aria-expanded=true]').count() === 1 && await gruppe(p, 'Sushi').locator('input.kat-name').count() === 1 && await gruppe(p, 'Sushi').locator('button.kat-zeichen[data-a=kat-emoji]').count() === 1 && await gruppe(p, 'Sushi').locator('[data-a=kat-alle]').count() === 1 && await gruppe(p, 'Sushi').locator('[data-a=kat-weg]').count() === 1 && await p.locator('[data-a=baum-stift]').count() === 0, 'an der Kategorie direkt (Klaus): Namensfeld, Bild-Knopf, Alle zuordnen, Papierkorb – kein Zwischenfenster');
+  ok(await gruppe(p, 'Sushi').locator('.bz-auf[aria-expanded=true]').count() === 1 && await gruppe(p, 'Sushi').locator('input.kat-name').count() === 1 && await gruppe(p, 'Sushi').locator('button.kat-zeichen[data-a=kat-emoji]').count() === 1 && await gruppe(p, 'Sushi').locator('[data-a=kat-alle]').count() === 0 && await gruppe(p, 'Sushi').locator('[data-a=kat-weg]').count() === 1 && await p.locator('[data-a=baum-stift]').count() === 0, 'an der Kategorie direkt (Klaus): Namensfeld, Bild-Knopf, Papierkorb – kein Zwischenfenster, kein Pfeilkreuz (nur „Ohne Kategorie“ hat „Alle zuordnen →“)');
   const erstes = (await gruppe(p, 'Sushi').locator('.bz-rname').first().innerText()).trim();
   await gruppe(p, 'Sushi').locator('.bz-r').first().click(); await p.waitForSelector('.rezept-held h1');
   ok((await p.locator('.rezept-held h1').innerText()).trim() === erstes, 'ein Tipp auf das Rezept öffnet es', erstes);
@@ -122,10 +125,10 @@ try {
   console.log('6 · Breiter Schirm: Baum links, Rezept rechts; ohne Kategorie');
   ({ p, k } = await seite(() => { localStorage.setItem('mrz9m', JSON.stringify([{ id: 1, name: 'Ohne alles', cat: '' }, { id: 2, name: 'Braten', cat: 'fleisch' }, { id: 3, name: 'Fremdes', cat: 'xyz' }])); }, 1280));
   await p.waitForSelector('.karte'); await zumBaum(p);
-  ok(await p.locator('.rail-n[data-zu=baum][aria-current=page]').count() === 1 && await p.locator('.md .md-liste .bz-gruppe').count() > 3 && await p.locator('.md-detail .bz-hier').count() === 1, 'Leiste links: „Ordner“; der Baum steht links, rechts ein Hinweis');
-  await gruppe(p, 'Ohne Kategorie').locator('.bz-auf').click(); ok(await gruppe(p, 'Ohne Kategorie').locator('[data-a=kat-weg]').count() === 0 && await gruppe(p, 'Ohne Kategorie').locator('input').count() === 0 && await gruppe(p, 'Ohne Kategorie').locator('[data-a=kat-alle]').count() === 1, '„Ohne Kategorie“: nicht löschbar, aber „alle zuordnen“');
+  ok(await p.locator('.rail-n[data-zu=baum][aria-current=page]').count() === 1 && await p.locator('.md .md-liste .bz-gruppe').count() >= 3 && await p.locator('.md-detail .bz-hier').count() === 1, 'Leiste links: „Ordner“; der Baum steht links, rechts ein Hinweis');
+  await gruppe(p, 'Ohne Kategorie').locator('.bz-auf').click(); ok(await gruppe(p, 'Ohne Kategorie').locator('[data-a=kat-weg]').count() === 0 && await gruppe(p, 'Ohne Kategorie').locator('input').count() === 0 && (await gruppe(p, 'Ohne Kategorie').locator('[data-a=kat-alle]').innerText()).includes('Alle zuordnen') && (await gruppe(p, 'Xyz').locator('[data-a=kat-alle]').count() + await p.locator('.bz-gruppe[data-id=xyz] [data-a=kat-alle]').count()) >= 1, '„Ohne Kategorie“: nicht löschbar, aber „alle zuordnen“');
   await gruppe(p, 'Ohne Kategorie').locator('.bz-r').click(); await p.waitForSelector('.md-detail h1');
-  ok((await p.locator('.md-detail h1').innerText()).trim() === 'Ohne alles' && await p.locator('.md-liste .bz-gruppe').count() > 3 && await p.locator('.bz-zeile[aria-current=true]').count() === 1, 'ein Tipp zeigt das Rezept rechts, der Baum bleibt links, die Zeile ist markiert');
+  ok((await p.locator('.md-detail h1').innerText()).trim() === 'Ohne alles' && await p.locator('.md-liste .bz-gruppe').count() >= 3 && await p.locator('.bz-zeile[aria-current=true]').count() === 1, 'ein Tipp zeigt das Rezept rechts, der Baum bleibt links, die Zeile ist markiert');
   await mausZieh(p, gruppe(p, 'Ohne Kategorie').locator('.bz-rgriff'), gruppe(p, 'Fleisch').locator('.bz-kopf'));
   z = await zustand(p); ok(z.rezepte.find((r) => r.name === 'Ohne alles').cat === 'fleisch' && await gruppe(p, 'Ohne Kategorie').count() === 0, 'aus „Ohne Kategorie“ auf Fleisch gezogen: zugeordnet; der leere Sammel-Eimer verschwindet');
   ok((await p.locator('.md-detail .meta').innerText()).includes('Fleisch'), 'das offene Rezept rechts zeigt die neue Kategorie gleich');
@@ -133,8 +136,15 @@ try {
 
   console.log('7 · Einstellungen zeigen auf den Explorer');
   ({ p, k } = await seite());
-  await p.click('#leiste .fl-griff'); await p.click('#leiste [data-zu=werkstatt]'); ok(await p.locator('.zeile[data-zu=baum]').count() === 1, 'Einstellungen → Ordnung: „Alle Ordner und Kategorien als Baum“');
+  await p.click('#leiste .fl-griff'); await p.click('#leiste [data-zu=werkstatt]'); ok(await p.locator('.zeile[data-zu=baum]').count() === 1 && await p.locator('.zeile[data-zu=ordner]').count() === 0, 'Einstellungen → Ordnung: „Alle Ordner und Kategorien als Baum“; die alte Ordner-Liste ist weg (Klaus 25.11.)');
   await p.click('.zeile[data-zu=baum]'); await p.waitForSelector('#baumfeld'); ok(await p.locator('.bz-baum').count() === 2, 'führt in den Explorer');
+  console.log('8 · R12: Kreativbuch als eigener Bereich in der Leiste');
+  await p.click('#leiste .fl-griff'); const punkte = (await p.locator('#leiste [role=menuitem]').allInnerTexts()).map((t) => t.trim());
+  ok(punkte.indexOf('Kreativbuch') > punkte.indexOf('Einkauf') && punkte.indexOf('Kreativbuch') < punkte.indexOf('Einstellungen'), 'fliegende Leiste: „Kreativbuch“ zwischen Einkauf und Einstellungen', punkte.join('|'));
+  await p.click('#leiste [data-zu=kreativ]'); await p.waitForSelector('.kr-teil');
+  ok(await p.locator('.kr-teil [data-a=kreativ]').count() === 1 && await p.locator('.kr-teil [data-a=eb-auf]').count() === 1 && await p.locator('.kr-teil [data-a=kbp-auf]').count() === 1 && await p.locator('.kr-teil [data-a=buch]').count() === 2 && await p.locator('.kr-teil [data-a=kreativ-zine]').count() === 1, 'der Bereich hat Kreativbuch, Buch aus Bildern, Projekte, PDF, Blättern und die Food-Zine-Bilder');
+  await p.click('[data-a=kreativ-zine]'); await p.waitForSelector('.laeden'); ok(await p.locator('.laeden [aria-pressed=true]', { hasText: 'Food-Zine' }).count() === 1, '„Meine Food-Zine-Bilder“ öffnet die Bilder mit dem Filter Food-Zine');
+  await p.click('#leiste .fl-griff'); await p.click('#leiste [data-zu=werkstatt]'); ok(await p.locator('.gruppe[data-g=buch]').count() === 0, 'in den Einstellungen steht kein Buch mehr');
   await k.close();
   ok(fehler.length === 0, 'keine Fehler in der Konsole, kein Netz nach draußen', fehler.join(' · '));
 } catch (e) { rot++; console.log('  ✗ ROT: Probe abgebrochen — ' + e.message.split('\n')[0]); }

@@ -126,10 +126,10 @@ try {
   ok(/^Week \d+ \d/.test(planKopf) && !/ bis /.test(planKopf) && tage === 'Mon Tue Wed Thu Fri Sat Sun', 'Plan: Woche, Spanne und Wochentage auf Englisch', planKopf + ' | ' + tage);
   await p.locator('[data-a=plan-waehlen]').first().click(); await p.waitForSelector('.wahl-liste'); await merke(p, 'Fenster Gericht planen'); await zu(p);
   await zuEinst(p); await merke(p, 'Einstellungen, alle Themen offen');
-  ok((await p.locator('.gkopf').allInnerTexts()).map(glatt).join(' | ') === 'Backup | AI keys | Order | Appearance | Examples | Book | Help | Clean up', 'Einstellungen: die acht Themen auf Englisch', (await p.locator('.gkopf').allInnerTexts()).map(glatt).join(' | '));
+  ok((await p.locator('.gkopf').allInnerTexts()).map(glatt).join(' | ') === 'Backup | AI keys | Order | Appearance | Examples | Help | Clean up', 'Einstellungen: die sieben Themen auf Englisch', (await p.locator('.gkopf').allInnerTexts()).map(glatt).join(' | '));
   for (const [sel, warte, wo] of [['[data-a=schluessel][data-anbieter=anthropic]', '[data-form=schluessel]', 'Schlüssel-Fenster'], ['.themen [data-a=farbe]', '.fleckliste', 'Farbe'], ['.themen [data-a=schrift]', '#schriftregler', 'Schrift'], ['.themen [data-a=tresor]', '[data-form=tresor]', 'Tresor'], ['.themen [data-a=sprache]', '#sprach-wahl', 'Sprache'], ['.themen [data-a=alle-uebersetzen]', '#alle-ueb-wahl', 'Alle übersetzen']]) {
     await p.click(sel); await p.waitForSelector(warte); if (wo === 'Schlüssel-Fenster') await p.click('.fenster .frag summary'); if (wo === 'Alle übersetzen') { await p.click('#alle-ueb-wahl [data-s=fr]'); await p.waitForSelector('#alle-ueb-was'); } await merke(p, 'Fenster ' + wo); await zu(p); }
-  for (const [ziel, warte] of [['kategorien', '#kat-liste'], ['ordner', '#ord-liste'], ['bilder', '.bildgitter']]) { await p.click(`.zeile[data-zu=${ziel}]`); await p.waitForSelector(warte); await merke(p, 'Ansicht ' + ziel);
+  for (const [ziel, warte] of [['kategorien', '#kat-liste'], ['baum', '.bz-baum'], ['bilder', '.bildgitter']]) { await p.click(`.zeile[data-zu=${ziel}]`); await p.waitForSelector(warte); await merke(p, 'Ansicht ' + ziel);
     if (ziel === 'kategorien') { await p.locator('[data-a=kat-emoji]').first().click(); await p.waitForSelector('.emoji-raster'); await merke(p, 'Fenster Bild oder Zeichen'); await zu(p); } await zuEinst(p); }
   await p.click('.themen [data-a=tresor]'); await p.waitForSelector('[data-form=tresor]'); await p.click('[data-form=tresor] button[type=submit]'); await p.waitForSelector('.tr-liste .zeile'); await merke(p, 'Tresor mit Stand'); await zu(p);
   await p.setInputFiles('#datei-sicherung', { name: 'kaputt.json', mimeType: 'application/json', buffer: Buffer.from('kein json') }); await toast(p, /backup|Sicherung/); await merke(p, 'Meldung: Datei ist keine Sicherung');
@@ -139,7 +139,7 @@ try {
   await menue(p); await p.click('#rmenue [data-a=qr]'); await p.waitForSelector('#qr-bild svg'); await merke(p, 'QR-Code'); await zu(p);
   await k.close();
   ({ p, k } = await seite({ ort: 'en-GB', breite: 1280 })); await merke(p, 'Monitor mit Seitenleiste');
-  ok((await p.locator('.rail-n .t').allInnerTexts()).map(glatt).join(' | ') === 'Notebook | Recipes | Folders | Planner | Shopping | Settings | Colour', 'Monitor: die Seitenleiste auf Englisch', (await p.locator('.rail-n .t').allInnerTexts()).map(glatt).join(' | ')); await k.close();
+  ok((await p.locator('.rail-n .t').allInnerTexts()).map(glatt).join(' | ') === 'Notebook | Recipes | Folders | Planner | Shopping | Creative book | Settings | Colour', 'Monitor: die Seitenleiste auf Englisch', (await p.locator('.rail-n .t').allInnerTexts()).map(glatt).join(' | ')); await k.close();
   ({ p, k } = await seite({ ort: 'en-GB', bestand: null })); await p.waitForSelector('.leer.einladung'); await merke(p, 'leeres Buch');
   ok((await p.locator('.leer-text h2').innerText()).trim() === 'No recipes yet', 'leeres Buch: die Einladung auf Englisch'); await k.close();
   const funde = gesehen.flatMap(([wo, l]) => reste(l).map((r) => `${wo}: ${r}`));
@@ -149,7 +149,7 @@ try {
   console.log('2 · Gerät Deutsch: Deutsch. Eine Sprache, die die App nicht kennt: Englisch');
   ({ p, k } = await seite({ ort: 'de-DE' }));
   ok(await p.evaluate(() => document.documentElement.lang) === 'de' && (await p.locator('.gruss').innerText()).startsWith('Was kochen wir heute?') && glatt(await p.locator('.fotokat button').first().innerText()) === 'Alle 4', 'Gerät Deutsch: lang="de", Begrüßung und Kategorien auf Deutsch');
-  await zuEinst(p); ok((await p.locator('.gkopf').allInnerTexts()).map(glatt).join(' | ') === 'Sichern | KI-Schlüssel | Ordnung | Darstellung | Beispiele | Buch | Hilfe | Aufräumen' && await zeileText(p, '.themen [data-a=sprache]') === 'Sprache · wie das Gerät' && await p.locator('.gruppe[data-g=aussehen] [data-a=sprache]').count() === 1, 'Einstellungen auf Deutsch; unter Darstellung steht „Sprache · wie das Gerät“', await zeileText(p, '.themen [data-a=sprache]'));
+  await zuEinst(p); ok((await p.locator('.gkopf').allInnerTexts()).map(glatt).join(' | ') === 'Sichern | KI-Schlüssel | Ordnung | Darstellung | Beispiele | Hilfe | Aufräumen' && await zeileText(p, '.themen [data-a=sprache]') === 'Sprache · wie das Gerät' && await p.locator('.gruppe[data-g=aussehen] [data-a=sprache]').count() === 1, 'Einstellungen auf Deutsch; unter Darstellung steht „Sprache · wie das Gerät“', await zeileText(p, '.themen [data-a=sprache]'));
   await k.close();
   ({ p, k } = await seite({ ort: 'de-DE', bestand: null, start: ORT, alt: { mrz9m: JSON.stringify([{ id: 1, name: 'Linsensuppe', cat: 'suppe', ings: [], steps: [] }]), mlang9m: 'en' } }));
   ok(await p.evaluate(() => document.documentElement.lang) === 'en' && (await p.locator('.gruss').innerText()).startsWith('What are we cooking today?') && (await p.locator('.karte strong').allInnerTexts()).includes('Linsensuppe'), 'wer in der bisherigen App eine Sprache gewählt hatte, bekommt sie mit den Rezepten übernommen'); await k.close();
