@@ -39,7 +39,7 @@ test('Schlüssel: ein Schlüssel der alten App gilt, wird nie geändert; gelösc
   await S.setz('anthropic', '  sk-ant-neu-1111111111111111  '); assert.equal(await S.hol('anthropic'), 'sk-ant-neu-1111111111111111', 'getrimmt, der neue gilt');
   await S.weg('anthropic'); assert.equal(await S.hol('anthropic'), '', 'nach dem Löschen kommt der alte NICHT zurück');
   assert.equal(altDaten.claudeKey9m, 'sk-ant-alt-0000000000000000', 'der Speicher der alten App ist unberührt');
-  assert.deepEqual((await S.liste()).map((x) => [x.id, x.da]), [['anthropic', false], ['openai', false], ['mistral', false]]);
+  assert.deepEqual((await S.liste()).map((x) => [x.id, x.da]), [['anthropic', false], ['openai', false], ['mistral', false], ['pollinations', false]]);
   const ohne = schluessel(lagerAus(), { alt: { getItem() { throw new Error('gesperrt'); } }, altNamen: { mistral: ['mistralKey9m'] } });
   assert.equal(await ohne.hol('mistral'), '', 'gesperrter Speicher ist kein Absturz');
 });

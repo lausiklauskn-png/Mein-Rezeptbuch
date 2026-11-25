@@ -208,7 +208,7 @@ try {
   ({ p, k } = await seite(() => { localStorage.setItem('claudeKey9m', 'sk-ant-alt-aus-der-alten-app-0000'); localStorage.setItem('mistralKey9', 'muttis-schluessel-0000000000'); }));
   await zurWerkstatt(p);
   const zeilen = await p.locator('#schl-liste .zeile').allInnerTexts();
-  ok(zeilen.length === 3 && /Anthropic/.test(zeilen[0]) && /OpenAI/.test(zeilen[1]) && /Mistral/.test(zeilen[2]), 'Einstellungen → KI-Schlüssel: Anthropic, OpenAI, Mistral', zeilen.join(' | ').replace(/\n/g, ' '));
+  ok(zeilen.length === 4 && /Anthropic/.test(zeilen[0]) && /OpenAI/.test(zeilen[1]) && /Mistral/.test(zeilen[2]) && /Pollinations/.test(zeilen[3]), 'Einstellungen → KI-Schlüssel: Anthropic, OpenAI, Mistral, Pollinations', zeilen.join(' | ').replace(/\n/g, ' '));
   ok(/gespeichert/.test(zeilen[0]) && /noch keiner/.test(zeilen[1]) && /noch keiner/.test(zeilen[2]), 'ein Schlüssel der bisherigen App gilt; Muttis Schlüssel (andere Endung) nicht');
   await p.click('#schl-liste [data-anbieter=anthropic]');
   { const l = p.locator('#schl-holen'); ok(await l.getAttribute('href') === 'https://platform.claude.com/settings/keys' && await l.getAttribute('target') === '_blank' && (await l.getAttribute('rel')).includes('noopener') && (await l.innerText()).includes('Schlüssel holen'), 'Schlüssel-Fenster: Direktlink zur Schlüssel-Seite von Anthropic, in einem neuen Fenster', await l.getAttribute('href')); }

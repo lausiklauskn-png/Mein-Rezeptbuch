@@ -250,4 +250,5 @@ export default {
   'Zu dieser Notiz fiel Claude kein Rezept ein.': 'O Claude não encontrou nenhuma receita para esta nota.',
   'Foto-Notiz ({0})': 'Nota com fotografia ({0})',
   'Foto-Notiz': 'Nota com fotografia',
+  'Fotos über den Dienst Pollinations (eigenes Konto dort)': 'Fotos via o serviço Pollinations (conta própria lá)',
 };
