@@ -63,9 +63,9 @@ for (const code of SPRACHEN) {
     assert.deepEqual(anders, [], `Platzhalter weichen ab in ${code}: ` + kurz(anders));
   });
   test(`Tabelle ${code}: kein Wert gleicht dem deutschen Schlüssel, außer den begründeten Ausnahmen`, () => {
-    /* Gleich lautet nur, was in der Zielsprache wirklich so heißt: „Standard“ (fr, it: dasselbe Wort), „Liste“ (fr: la liste) und die
-       Zine-Stile „Collage“ (es, fr, it: el/le/il collage) und „Retro“ (es, pt: retro). */
-    const AUSNAHME = { es: ['Collage', 'Retro'], fr: ['Standard', 'Liste', 'Collage'], it: ['Standard', 'Collage'], pt: ['Retro'] }[code] || [];
+    /* Gleich lautet nur, was in der Zielsprache wirklich so heißt: „Standard“ (fr, it: dasselbe Wort) und „Liste“ (fr: la liste).
+       Die Zine-Stile „Collage“ und „Retro“ gibt es seit Kern 0.28 nicht mehr (der Poster-Auftrag hat Formate statt Stile). */
+    const AUSNAHME = { fr: ['Standard', 'Liste'], it: ['Standard'] }[code] || [];
     const gleich = werte.filter(([k, v]) => v === k).map(([k]) => k);
     assert.deepEqual(gleich.filter((k) => !AUSNAHME.includes(k)), [], `unübersetzt in ${code}: ` + kurz(gleich));
     assert.deepEqual(AUSNAHME.filter((k) => !gleich.includes(k)), [], 'eine Ausnahme, die es nicht mehr braucht');

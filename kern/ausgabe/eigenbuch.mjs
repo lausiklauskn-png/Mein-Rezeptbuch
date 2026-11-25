@@ -10,7 +10,7 @@
 //    (.kreativbuch, { v:1, images:[{ name, thumbUrl, exportUrl }] }), dazu ein Block `kreativ`; die alte App liest davon die Bilder.
 // Anders als die alte App:
 //  - ihr Projekt war nur eine heruntergeladene Datei; hier liegt es im Gerät, die Datei gibt es zusätzlich;
-//  - ihr Projekt trug nur die Bilder; hier auch Auswahl, Stil und Texte des Kreativbuchs;
+//  - ihr Projekt trug nur die Bilder; hier auch Auswahl (die abgewählten Rezepte), Stil und Texte des Kreativbuchs;
 //  - ein PDF ohne lesbare Seiten wurde ein Platzhalter („bitte separat drucken“); hier wird es gemeldet und bleibt draußen.
 import { text, fuelle } from '../oberflaeche/sprache.mjs';
 import { esc, druckBild, druckFarbe, druckDatum, DRUCK_RICHTLINIE } from './druck.mjs';
@@ -54,11 +54,14 @@ function texteLesen(t) {
   }
   return aus;
 }
-/** Bringt ein Projekt in Form (auch eines aus einer Datei): { id, name, stand, wahl, stil, eigen, texte, bilder }. */
+/** Die abgewählten Rezepte (Kennungen) einer Auswahl aus fremder Hand: nur kurze Texte, ohne Doppel, höchstens 5000. */
+export const kbAbgewaehlt = (v) => [...new Set((Array.isArray(v) ? v : []).filter((u) => typeof u === 'string' && u && u.length <= 80))].slice(0, 5000);
+/** Bringt ein Projekt in Form (auch eines aus einer Datei): { id, name, stand, wahl, ab, stil, eigen, texte, bilder }.
+ *  `ab`: die abgewählten Rezepte (Vorgabe: alle gewählt); `wahl` (k:/o:) ist die Auswahl älterer Projekte. */
 export function kbProjekt(o = {}, { jetzt = new Date() } = {}) {
   const id = /^[a-z0-9-]{4,60}$/.test(String(o.id || '')) ? String(o.id) : 'p-' + jetzt.getTime().toString(36) + '-' + Math.random().toString(36).slice(2, 6);
   const wahl = /^[ko]:[^\n]{1,120}$/.test(String(o.wahl || '')) ? String(o.wahl) : '';
-  return { id, name: str(o.name).slice(0, NAME_MAX), stand: typeof o.stand === 'string' && !Number.isNaN(Date.parse(o.stand)) ? o.stand : jetzt.toISOString(), wahl, stil: kbStil(o.stil),
+  return { id, name: str(o.name).slice(0, NAME_MAX), stand: typeof o.stand === 'string' && !Number.isNaN(Date.parse(o.stand)) ? o.stand : jetzt.toISOString(), wahl, ab: kbAbgewaehlt(o.ab), stil: kbStil(o.stil),
     eigen: str(o.eigen).slice(0, KB_EIGEN_MAX), texte: texteLesen(o.texte), bilder: ebDazu([], o.bilder).liste };
 }
 /** Wie viele Rezepte Texte tragen und wie viele Bilder es sind: für die Zeile in der Liste. */
@@ -66,8 +69,8 @@ export const kbProjektZahlen = (p) => ({ bilder: (p.bilder || []).length, texte:
 
 /** Das Projekt als Datei (.kreativbuch): das Format der alten App, dazu `kreativ`. */
 export function kbProjektDatei(p) {
-  const { name, stand, wahl, stil, eigen, texte } = kbProjekt(p);
-  return JSON.stringify({ v: 1, images: (p.bilder || []).map(ebBild).filter(Boolean).map((b) => ({ name: b.name, thumbUrl: b.klein, exportUrl: b.gross })), kreativ: { name, stand, wahl, stil, eigen, texte } });
+  const { name, stand, wahl, ab, stil, eigen, texte } = kbProjekt(p);
+  return JSON.stringify({ v: 1, images: (p.bilder || []).map(ebBild).filter(Boolean).map((b) => ({ name: b.name, thumbUrl: b.klein, exportUrl: b.gross })), kreativ: { name, stand, wahl, ab, stil, eigen, texte } });
 }
 /** Liest eine .kreativbuch-Datei (alte App oder diese). Wirft mit Klartext, wenn nichts zu lesen ist. Die Kennung ist immer neu. */
 export function kbProjektAusDatei(roh, { sprache = 'de', name = '', jetzt = new Date() } = {}) {

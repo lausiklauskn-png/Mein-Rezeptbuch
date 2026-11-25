@@ -75,3 +75,9 @@ test('die .kreativbuch-Datei: das Format der alten App (v:1, images) plus kreati
   assert.equal(alt.name, 'mein-kreativbuch'); assert.equal(alt.bilder.length, 1, 'der PDF-Platzhalter der alten App kommt nicht mit'); assert.equal(alt.bilder[0].gross, BILD(3));
   assert.throws(() => kbProjektAusDatei('{"recipes":[]}'), /kein Kreativbuch/); assert.throws(() => kbProjektAusDatei('kaputt', { sprache: 'en' }), /not a creative book/);
 });
+test('ein Projekt trägt die abgewählten Rezepte (ab): nur kurze Kennungen, ohne Doppel; die Datei nimmt sie mit', () => {
+  const p = kbProjekt({ name: 'X', ab: ['u1', 'u2', 'u1', 42, '', 'x'.repeat(81)] });
+  assert.deepEqual(p.ab, ['u1', 'u2']); assert.deepEqual(kbProjekt({}).ab, []);
+  assert.deepEqual(kbProjektAusDatei(kbProjektDatei(p)).ab, ['u1', 'u2']);
+  assert.deepEqual(kbProjektAusDatei(JSON.stringify({ v: 1, images: [] })).ab, [], 'eine Datei der alten App: alle gewählt');
+});

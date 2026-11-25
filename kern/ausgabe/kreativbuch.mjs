@@ -12,7 +12,8 @@
 //    Einleitung, Zutaten · 2 Zubereitung mit Tipps · 3 Gesundheit und Ökologie (nur mit Text dafür). Deckblatt im Stil, Inhalt, Schluss.
 // Anders als die alte App:
 //  - ihr Fortschritt zeigte „Bild 1/3 … 3/3“, ohne ein Bild zu erzeugen; hier steht nur, was wirklich geschieht;
-//  - ihr Kopier-Weg schrieb nur Einleitung, Tipp und Servier-Idee; hier schreiben beide Wege dieselben sechs Texte;
+//  - ihr Kopier-Weg schrieb nur Einleitung, Tipp und Servier-Idee; hier schreiben beide Wege dieselben sechs Texte (eine Antwort im
+//    alten Format wird trotzdem ganz gelesen: tip → Kochtipp, serve → Servier-Idee);
 //  - die Kosten rechnen mit den Preisen aus ki/helfer.mjs statt mit einer festen Zahl je Rezept.
 import { text, fuelle, gebiet } from '../oberflaeche/sprache.mjs';
 import { normalisiere, sicht } from '../modell/rezept.mjs';
@@ -91,10 +92,15 @@ Recipes:
 ${liste}`;
 }
 
-/** Die sechs Texte aus einer Antwort, bereinigt: nur Text, gekürzt. null, wenn keiner da ist. */
+/* Felder der alten App (KI-Kreativbuch · Prompt: {"kreativbuch":[{name,intro,tip,serve}]}) und wohin sie gehören. */
+const ALTE_FELDER = { tip: 'cookTip', serve: 'servingIdea' };
+/** Die sechs Texte aus einer Antwort, bereinigt: nur Text, gekürzt. null, wenn keiner da ist.
+ *  Eine Antwort im Format der alten App wird ganz gelesen: `tip` wird der Kochtipp, `serve` die Servier-Idee (ein neues Feld gewinnt). */
 export function kbTexte(o) {
   if (!o || typeof o !== 'object') return null;
-  const t = {}; for (const f of KB_FELDER) { const v = typeof o[f] === 'string' ? o[f].replace(/\s+/g, ' ').trim().slice(0, KB_TEXT_MAX) : ''; if (v) t[f] = v; }
+  const t = {}, lies = (v) => (typeof v === 'string' ? v.replace(/\s+/g, ' ').trim().slice(0, KB_TEXT_MAX) : '');
+  for (const f of KB_FELDER) { const v = lies(o[f]); if (v) t[f] = v; }
+  for (const [alt, f] of Object.entries(ALTE_FELDER)) { const v = lies(o[alt]); if (v && !t[f]) t[f] = v; }
   return Object.keys(t).length ? t : null;
 }
 const nameGleich = (a, b) => str(a).toLowerCase() === str(b).toLowerCase() && !!str(a);
