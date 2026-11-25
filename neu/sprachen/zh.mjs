@@ -853,4 +853,5 @@ export default {
   'nach unten': '向下',
   'nach links': '向左',
   'nach rechts': '向右',
+  'Pers.': '人',
 };

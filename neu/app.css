@@ -1045,3 +1045,13 @@ a.knopf{text-decoration:none}
 .fl-knoepfe .fl-fertig{border:1px solid var(--vl-rand)}
 .fl-knoepfe.fl-nur-pos{background:var(--bg)}
 .fl-knoepfe .fl-pos button{background:color-mix(in srgb,var(--akz) 12%,var(--bg))}
+/* Klaus 25.11.: Portionen halb so breit – kleines − und +, Personen-Zeichen mit Zahl, darunter „Pers.“ */
+.portion.kompakt{padding:4px 5px}
+.portion.kompakt .st{gap:3px}
+.portion.kompakt .st button{width:24px;height:24px}
+.portion.kompakt .st button .ic{width:14px;height:14px}
+.portion.kompakt .pz{display:inline-flex;align-items:center;gap:2px}
+.portion.kompakt .pz .ic{width:15px;height:15px;color:var(--mut)}
+.portion.kompakt .st b{min-width:14px}
+.portion.kompakt small b{font-weight:700;color:var(--ink);font-variant-numeric:tabular-nums}
+.portion.kompakt .pz .ic{width:18px;height:18px}

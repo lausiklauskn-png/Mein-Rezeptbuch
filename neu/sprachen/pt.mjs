@@ -853,4 +853,5 @@ export default {
   'nach unten': 'para baixo',
   'nach links': 'para a esquerda',
   'nach rechts': 'para a direita',
+  'Pers.': 'pess.',
 };

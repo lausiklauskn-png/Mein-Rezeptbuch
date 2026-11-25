@@ -853,4 +853,5 @@ export default {
   'nach unten': 'вниз',
   'nach links': 'влево',
   'nach rechts': 'вправо',
+  'Pers.': 'чел.',
 };
