@@ -14,15 +14,19 @@ Klaus 23.11.2026: „Brief lesen, bevor gebaut wird. Und dann Brief ergänzen, s
 
 ---
 
-## Runde J · 25.11.2026 spätabends · Kern 0.30.1, PWA 0.18.1 (R6 Doppelungen, Merkmale einer Variante)
+## Runde J · 25.11.2026 spätabends · Kern 0.31.0, PWA 0.19.0 (R6 Doppelungen, Merkmale einer Variante)
 
 | Kern | neu |
 |---|---|
+| 0.31.0 | `modell/rezept.mjs`: `rezeptVerschieben(rezepte, uid, zielUid, nach)` (eigene Reihenfolge, R5) |
 | 0.30.0 | `modell/doppel.mjs`: `vergleiche`, `findeDoppel(alle, neue, { hash })` (Name bereinigt, Zutaten mit Wortformen, Bild-Fingerabdruck dHash 9×8 von der App), `wendeAn(alt, neu, wahl)` mit `meins · bild · text · ganz · beide`; `alkoholArt`, `sindVarianten`; `MERKMALE` (vegan, laktosefrei, glutenfrei), `merkmaleVon`, `merkmalUmschalten` |
 
 - **Klaus' Regeln (25.11.):** „mit Alkohol“ und „alkoholfrei“ sind **nie** ein Doppel (Feld `alcohol` oder Wörter wie alkoholfrei, Virgin,
   Mocktail); ebenso zwei Rezepte mit **verschiedenen Merkmalen** (die laktosefreie Variante bleibt neben dem Original). Gezeigt werden „sicher“
   (Vorgabe „Meins behalten“) und „vielleicht“ (Vorgabe „Beide behalten“).
+- **R5 (PWA 0.19.0, nur `neu/`):** Karte lange drücken und ziehen (umsortieren, auf Kategorie/Event-Ordner) und Wischen zwischen den
+  Bildschirmen am Handy. ⚠ Fürs Mixarium prüfen: zeigt es die Getränke noch als Karussell (eine Karte sichtbar), passt das Umsortieren
+  dort nicht, und das Wischen zwischen Bildschirmen stieße sich mit dem Wischen im Karussell.
 - **Fürs Mixarium (beim nächsten `kern-nachziehen`):** neu, nichts Bestehendes ändert sich. Das Getränke-Feld `alcohol` wird schon gelesen;
   gemessen über alle 2072 Paare der Beispielbücher beider Apps: kein falscher Treffer. Die App-Seite (`neu/app.mjs`: `bildFingerabdruck`,
   `doppelPruefen` nach dem Einlesen und dem Stapel-Scan, `formDoppelBand` im Formular) ist übernehmbar. **Die Merkmal-Leiste NICHT** – Klaus

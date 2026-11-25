@@ -892,4 +892,5 @@ export default {
   '{0} Doppel zusammengeführt': '{0} doublons fusionnés',
   '{0} Schritte': '{0} étapes',
   '{0} Zutaten': '{0} ingrédients',
+  'Reihenfolge geändert': 'Ordre modifié',
 };

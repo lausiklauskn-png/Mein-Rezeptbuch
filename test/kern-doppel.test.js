@@ -102,3 +102,11 @@ test('Merkmale sind ein Hinweis, der mitreist: Wortsuche (de, en, Oberfläche), 
   const zurueck = await ausTeilLink(await teilLink(a, 'https://x.example/neu/'));
   assert.deepEqual(zurueck.merkmale, ['vegan', 'laktosefrei'], 'über den Teil-Link kommen die Merkmale an');
 });
+test('R5 rezeptVerschieben: vor, hinter, unbekannt, auf sich selbst', async () => {
+  const { rezeptVerschieben } = await import('../kern/modell/rezept.mjs');
+  const l = ['a', 'b', 'c', 'd'].map((u) => ({ uid: u })), u = (x) => x.map((r) => r.uid).join('');
+  assert.equal(u(rezeptVerschieben(l, 'd', 'b')), 'adbc'); assert.equal(u(rezeptVerschieben(l, 'a', 'c', true)), 'bcad');
+  assert.equal(u(rezeptVerschieben(l, 'a', 'd', true)), 'bcda'); assert.equal(rezeptVerschieben(l, 'a', 'x'), l); assert.equal(rezeptVerschieben(l, 'b', 'b'), l);
+  assert.equal(rezeptVerschieben(l, 'a', 'b'), l, 'steht schon davor: dieselbe Liste'); assert.equal(rezeptVerschieben(l, 'b', 'a', true), l);
+  assert.equal(u(l), 'abcd', 'das Original bleibt unverändert');
+});

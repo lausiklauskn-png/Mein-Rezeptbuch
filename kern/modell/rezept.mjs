@@ -82,3 +82,13 @@ export function sicht(r, sprache = 'de') {
     ings: zn.length === ings.length ? ings.map((z, i) => ({ ...z, name: typeof zn[i] === 'string' && zn[i] ? zn[i] : z.name, unit: za[i] && typeof za[i] === 'object' && za[i].unit ? za[i].unit : z.unit })) : ings,
     steps: st.length === steps.length ? steps.map((x, i) => ({ ...x, txt: typeof st[i] === 'string' && st[i] ? st[i] : x.txt })) : steps };
 }
+
+/** Verschiebt ein Rezept vor (nach = false) oder hinter (nach = true) ein anderes. Die Reihenfolge der Liste ist die eigene Reihenfolge
+ *  der Rezepte (R5, wie in Muttis Rezeptbuch: Karte lange drücken und ziehen). Gibt es eins der beiden nicht, bleibt die Liste, wie sie ist. */
+export function rezeptVerschieben(rezepte, uid, zielUid, nach = false) {
+  const r = (rezepte || []).find((x) => x.uid === uid);
+  if (!r || uid === zielUid || !rezepte.some((x) => x.uid === zielUid)) return rezepte;
+  const rest = rezepte.filter((x) => x.uid !== uid), i = rest.findIndex((x) => x.uid === zielUid) + (nach ? 1 : 0);
+  const neu = [...rest.slice(0, i), r, ...rest.slice(i)];
+  return neu.every((x, j) => x === rezepte[j]) ? rezepte : neu;   // steht es schon dort: dieselbe Liste, keine Meldung „geändert“
+}

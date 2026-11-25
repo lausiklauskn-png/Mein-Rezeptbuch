@@ -1,6 +1,6 @@
 // Mein Rezeptbuch – neue PWA (Ausgabe „rezeptbuch“ des Küchen-Kerns). Erste Fassung: Start, Rezept, Anlegen/Bearbeiten,
 // Kategorien, Suche, Sicherung ein/aus, Beispielbuch, Übernahme aus der alten App. Netz nur auf Knopfdruck.
-import { normalisiere, istInhalt, katVonRezept, ordnerVonRezept, neueUid, KAT_OHNE, sicht } from '../kern/modell/rezept.mjs';
+import { normalisiere, istInhalt, katVonRezept, ordnerVonRezept, neueUid, KAT_OHNE, sicht, rezeptVerschieben } from '../kern/modell/rezept.mjs';
 import { anlegen as ordAnlegen, umbenennen as ordUmbenennen, loeschen as ordLoeschen, legeIn, umsortieren as ordUmsortieren, imOrdner, uebersicht as ordUebersicht, findeOrdner, ordnerName, istEvent, eventSetzen, eventWeg, gaenge as ordGaenge, inKalender, abgleich as evAbgleich, abgleichAnwenden, eventEinkauf } from '../kern/modell/ordner.mjs';
 import { alleKategorien, beschriftung, anzahl, leereKategorien, KATEGORIEN_FEST, anlegen as katAnlegen, umbenennen as katUmbenennen, loeschen as katLoeschen, umsortieren as katUmsortieren, katBild, bildWaehlen } from '../kern/modell/kategorien.mjs';
 import { suche } from '../kern/modell/suche.mjs';
@@ -43,7 +43,7 @@ import { teilLink, ausTeilLink, qrSvg, passtInQr } from '../kern/teilen/qr.mjs';
 import { rezeptIn } from '../kern/modell/einheiten.mjs';
 import { findeDoppel, wendeAn, dHash, MERKMALE, merkmaleVon, merkmalUmschalten } from '../kern/modell/doppel.mjs';
 
-const FASSUNG = '0.18.1';
+const FASSUNG = '0.19.0';
 const breit = () => matchMedia('(min-width:1000px)').matches;
 const $ = (id) => document.getElementById(id);
 const esc = (t) => String(t ?? '').replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
@@ -762,6 +762,68 @@ const bzLos = (ev) => {
 };
 document.addEventListener('pointerup', bzLos); document.addEventListener('pointercancel', bzLos);
 document.addEventListener('contextmenu', (ev) => { if (ev.target.closest?.('.bz-rgriff, .bz-ggriff')) ev.preventDefault(); });
+
+/* ---------- R5 (Klaus 25.11., Vorbild Muttis `_rcardHdStart`): eine Rezeptkarte lange drücken (Finger 350 ms, Maus nach 6 px) und ziehen.
+   Vor oder hinter eine andere Karte derselben Gruppe: eigene Reihenfolge. Auf ein Kategorie- oder Event-Ordner-Foto oben: zuordnen.
+   Bewegt sich der Finger vor dem Langdruck, wird normal gerollt oder gewischt. Beides mit Rückgängig. ---------- */
+let kz = null, kzGezogen = 0;
+const kzGruppe = (k) => { const r = rezept(k?.dataset.uid); return !r ? '' : k.closest('.gitter.alle') ? 'kat:' + katVonRezept(r) : 'eins'; };
+function kzAn() {
+  if (!kz || kz.weit) return; kz.weit = true; kz.el.classList.add('kz-zieht');
+  const g = document.createElement('div'); g.className = 'bz-geist'; g.textContent = zeig(rezept(kz.uid))?.name || ''; document.body.appendChild(g); kz.geist = g; kzSetze(); navigator.vibrate?.(15);
+  kz.roll = setInterval(() => { if (!kz) return; const d = kz.y < 70 ? -14 : kz.y > innerHeight - 70 ? 14 : 0; if (d) { scrollBy(0, d); kzZiel(); } }, 30);
+}
+function kzSetze() { if (kz?.geist) { kz.geist.style.left = kz.x + 'px'; kz.geist.style.top = kz.y + 'px'; } }
+const kzMarkenWeg = () => document.querySelectorAll('.kz-ziel,.ziel-vor,.ziel-nach').forEach((e) => e.classList.remove('kz-ziel', 'ziel-vor', 'ziel-nach'));
+function kzZiel() {
+  kzMarkenWeg(); kz.ziel = null;
+  for (const e of document.elementsFromPoint(kz.x, kz.y)) {
+    const f = e.closest('.fotokat button[data-kat]'); if (f && f.dataset.kat !== 'alle') { f.classList.add('kz-ziel'); kz.ziel = { art: 'kat', kat: f.dataset.kat }; return; }
+    const k = e.closest('.gitter .karte'); if (k && k !== kz.el) { if (kzGruppe(k) !== kz.gruppe) return;
+      const r = k.getBoundingClientRect(), quer = r.width < k.parentElement.clientWidth * 0.6, nach = quer ? kz.x > r.left + r.width / 2 : kz.y > r.top + r.height / 2;
+      k.classList.add(nach ? 'ziel-nach' : 'ziel-vor'); kz.ziel = { art: 'karte', uid: k.dataset.uid, nach }; return; }
+    if (e.closest('.fenster, #leiste, #kopf')) return;
+  }
+}
+document.addEventListener('pointerdown', (ev) => {
+  const k = ev.target.closest?.('.gitter .karte'); if (!k || ev.button > 0 || kz || !k.closest('#start-rest')) return;
+  kz = { el: k, uid: k.dataset.uid, gruppe: kzGruppe(k), x: ev.clientX, y: ev.clientY, x0: ev.clientX, y0: ev.clientY, maus: ev.pointerType === 'mouse', weit: false, ziel: null };
+  if (kz.maus) ev.preventDefault(); else kz.uhr = setTimeout(kzAn, 350);   /* Maus: kein Bild-Ziehen des Browsers; ein Klick bleibt ein Klick */
+});
+document.addEventListener('pointermove', (ev) => {
+  if (!kz) return; kz.x = ev.clientX; kz.y = ev.clientY;
+  if (!kz.weit) { if (Math.hypot(ev.clientX - kz.x0, ev.clientY - kz.y0) < (kz.maus ? 6 : 8)) return; if (!kz.maus) { clearTimeout(kz.uhr); kz = null; return; } kzAn(); }
+  kzSetze(); kzZiel();
+});
+document.addEventListener('touchmove', (ev) => { if (kz?.weit) ev.preventDefault(); }, { passive: false });   // während des Ziehens rollt der Finger die Seite nicht
+const kzLos = (ev) => {
+  if (!kz) return; const b = kz; kz = null; clearTimeout(b.uhr); clearInterval(b.roll); b.geist?.remove(); b.el.classList.remove('kz-zieht'); kzMarkenWeg();
+  if (!b.weit) return; kzGezogen = Date.now(); if (ev?.type === 'pointercancel' || !b.ziel) return;
+  if (b.ziel.art === 'kat') { const k = b.ziel.kat; if (k.startsWith('ordner:')) baumAblegen([b.uid], 'ord', k.slice(7)); else baumAblegen([b.uid], 'kat', k); return; }
+  const vorher = Z.rezepte; Z.rezepte = rezeptVerschieben(Z.rezepte, b.uid, b.ziel.uid, b.ziel.nach); if (Z.rezepte === vorher) return;
+  sichern(); zeichne(); melde(L('Reihenfolge geändert', 'Order changed'), L('Rückgängig', 'Undo'), () => { Z.rezepte = vorher; sichern(); zeichne(); });
+};
+document.addEventListener('pointerup', kzLos); document.addEventListener('pointercancel', kzLos);
+document.addEventListener('contextmenu', (ev) => { if (ev.target.closest?.('.gitter .karte')) ev.preventDefault(); });   // langer Druck öffnet kein Menü des Browsers
+document.addEventListener('dragstart', (ev) => { if (ev.target.closest?.('.gitter .karte')) ev.preventDefault(); });
+
+/* ---------- Wischen zwischen den Bildschirmen (Klaus 25.11., wie Muttis): am Handy nach links/rechts zum nächsten Punkt der Leiste.
+   Nicht in Fenstern, nicht in der Kochansicht (die wischt zwischen den Schritten), nicht auf waagerecht rollenden Leisten, in Feldern,
+   an der fliegenden Leiste oder während eines Ziehens. Mindestens 55 px, deutlich waagerechter als senkrecht. ---------- */
+const WISCH_FOLGE = ['start', 'baum', 'plan', 'einkauf', 'kreativ', 'werkstatt'];
+let sw = null;
+const rolltQuer = (el) => { for (let e = el; e && e !== document.body; e = e.parentElement) { if (e.scrollWidth > e.clientWidth + 2 && /(auto|scroll)/.test(getComputedStyle(e).overflowX)) return true; } return false; };
+document.addEventListener('touchstart', (ev) => {
+  const t = ev.target; sw = null;
+  if (breit() || ev.touches.length > 1 || $('fensterort').innerHTML || document.querySelector('.vollbild, .bildvoll') || t.closest?.('input, textarea, select, #leiste, #zs-rahmen, .koch, .bz-rgriff, .bz-ggriff, .griff') || rolltQuer(t)) return;
+  sw = { x: ev.touches[0].clientX, y: ev.touches[0].clientY };
+}, { passive: true });
+document.addEventListener('touchend', (ev) => {
+  if (!sw) return; const a = sw; sw = null; if (kz || bz || Date.now() - kzGezogen < 400) return;
+  const dx = ev.changedTouches[0].clientX - a.x, dy = ev.changedTouches[0].clientY - a.y; if (Math.abs(dx) < 55 || Math.abs(dx) < Math.abs(dy) * 1.5) return;
+  const jetzt = ['rezept', 'kochen', 'form'].includes(s.ansicht) ? null : s.ansicht === 'zine' ? 'kreativ' : s.ansicht, i = WISCH_FOLGE.indexOf(jetzt); if (i < 0) return;
+  const ziel = WISCH_FOLGE[i + (dx < 0 ? 1 : -1)]; if (ziel) geh(ziel, { uid: null, form: null });
+}, { passive: true });
 /** Name einer Kategorie setzen (Kategorien-Liste und Stift im Baum): eigene Kategorien tragen ihren Namen selbst, feste bekommen einen eigenen Namen. */
 function katNameSetzen(id, wert) {
   const eig = Z.kategorien.eigene.some((c) => c.id === id);
@@ -1287,7 +1349,7 @@ function zeichne(einzug = false) {
 /* ---------- Handlungen ---------- */
 const A = {
   geh: (e) => geh(e.dataset.zu, { uid: null, form: null }),
-  rezept: (e) => { E.zuletzt = e.dataset.uid; s.rleiste = false; s.original = null; /* ein anderes Rezept beginnt mit eingeklappten Werkzeugen */ sichern(); if (breit()) { s.ansicht = 'rezept'; s.uid = e.dataset.uid; history.pushState({ ansicht: 'rezept', uid: s.uid }, ''); zeichne(); document.querySelector('.md-detail')?.scrollTo(0, 0); } else geh('rezept', { uid: e.dataset.uid }); },
+  rezept: (e) => { if (Date.now() - kzGezogen < 400) return; E.zuletzt = e.dataset.uid; s.rleiste = false; s.original = null; /* ein anderes Rezept beginnt mit eingeklappten Werkzeugen */ sichern(); if (breit()) { s.ansicht = 'rezept'; s.uid = e.dataset.uid; history.pushState({ ansicht: 'rezept', uid: s.uid }, ''); zeichne(); document.querySelector('.md-detail')?.scrollTo(0, 0); } else geh('rezept', { uid: e.dataset.uid }); },
   zurueck: () => { s.form = null; if (history.state && history.length > 1) history.back(); else geh('start', {}, true); },
   kat: (e) => { s.kat = e.dataset.kat; if (e.dataset.geh) geh('start'); else zeichne(); },
   'ordner-zuordnen': () => ordnerWahlFenster(s.uid),

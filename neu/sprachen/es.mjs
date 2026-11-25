@@ -892,4 +892,5 @@ export default {
   '{0} Doppel zusammengeführt': '{0} duplicados unidos',
   '{0} Schritte': '{0} pasos',
   '{0} Zutaten': '{0} ingredientes',
+  'Reihenfolge geändert': 'Orden cambiado',
 };

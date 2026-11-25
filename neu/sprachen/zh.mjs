@@ -889,4 +889,5 @@ export default {
   '{0} Doppel zusammengeführt': '已合并 {0} 个重复项',
   '{0} Schritte': '{0} 个步骤',
   '{0} Zutaten': '{0} 种配料',
+  'Reihenfolge geändert': '顺序已更改',
 };
