@@ -39,6 +39,21 @@ try {
   ok(kurz.u > 4 || kurz.c === '', 'ein Rezept, das ohne Spalten passt, bekommt keine', JSON.stringify(kurz)); await k.close();
   k = await browser.newContext({ locale: 'de-DE', viewport: { width: 390, height: 800 }, serviceWorkers: 'block' }); p = await k.newPage(); p.on('pageerror', (e) => fehler.push(e.message));
   await zuRezept(p, 'Gyoza'); ok(await p.locator('.spalten').count() === 0, 'am Handy keine Spalten'); await k.close();
+  console.log('4 · Handy: die fliegende Leiste mit Pfeilen verschieben (Klaus 25.11.: der Griff ist schwer zu fassen)');
+  k = await browser.newContext({ locale: 'de-DE', viewport: { width: 390, height: 800 }, serviceWorkers: 'block' }); p = await k.newPage(); p.on('pageerror', (e) => fehler.push(e.message));
+  await p.goto(URL0); await p.waitForSelector('.gruss');
+  const lage = () => p.evaluate(() => { const o = document.getElementById('leiste'); return { seite: ['l', 'r', 'u'].find((c) => o.classList.contains(c)), r: o.getBoundingClientRect().toJSON() }; });
+  await p.click('#leiste .fl-griff'); await p.click('#leiste [data-a=fl-pos]');
+  ok(await p.locator('#leiste .fl-pos button').count() === 4 && (await p.locator('#leiste .fl-pos').innerText()).trim() === '', 'ein Tipp auf „Leiste verschieben“ zeigt vier Pfeile ohne Text');
+  await p.click('#leiste [data-a=fl-schieb][data-r=links]'); let l = await lage();
+  ok(l.seite === 'l' && l.r.left <= 1 && await p.locator('#leiste .fl-pos').count() === 1 && await p.locator('#leiste [data-zu=start]').count() === 0, '← setzt die Leiste sichtbar an den linken Rand; nur die Pfeile stehen da (das Menü ist klein)', JSON.stringify(l));
+  const y0 = l.r.y; await p.click('#leiste [data-a=fl-schieb][data-r=hoch]'); ok((await lage()).r.y < y0, '↑ bewegt sie sichtbar nach oben');
+  for (let i = 0; i < 8 && (await lage()).seite !== 'u'; i++) await p.click('#leiste [data-a=fl-schieb][data-r=runter]');
+  l = await lage(); ok(l.seite === 'u' && l.r.bottom >= 799, '↓ wandert nach unten und setzt sie zuletzt an den unteren Rand', JSON.stringify(l));
+  const x0 = l.r.x; await p.click('#leiste [data-a=fl-schieb][data-r=rechts]'); l = await lage(); ok(l.seite === 'u' && l.r.x > x0, 'am unteren Rand schiebt → sie nach rechts');
+  ok(await p.locator('#leiste .fl-fertig, #leiste [data-a=fl-pos]').count() === 0 && (await p.locator('#leiste .fl-pos').evaluate((e) => { const b = e.getBoundingClientRect(); return b.width < 110 && b.height < 110; })), 'kein Bestätigen-Knopf; die vier Pfeile stehen als kleines Viereck (Klaus 25.11.)');
+  await p.mouse.click(200, 300); await p.waitForTimeout(300); ok(await p.locator('#leiste .fl-griff').count() === 1 && (await lage()).seite === 'u', 'ein Tipp daneben schließt: die Leiste steht als Griff an ihrem neuen Platz'); await p.reload(); await p.waitForSelector('.gruss');
+  ok((await lage()).seite === 'u', 'die Lage bleibt nach dem Neuladen'); await k.close();
   ok(fehler.length === 0, 'keine Fehler in der Konsole', fehler.join(' · '));
 } catch (e) { rot++; console.log('  ✗ ROT: Probe abgebrochen — ' + e.message.split('\n')[0]); }
 await browser.close(); srv.close();

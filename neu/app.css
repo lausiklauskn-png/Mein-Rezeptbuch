@@ -1030,3 +1030,18 @@ a.knopf{text-decoration:none}
 .portion.kompakt small{display:flex;align-items:center;gap:3px;font-size:11.5px;color:var(--mut);line-height:1.1}
 .portion.kompakt small .ic{width:13px;height:13px}
 .portion.kompakt .st button{width:28px;height:28px}
+/* Leiste mit Pfeilen verschieben (Handy) */
+.fl-pos{display:grid;grid-template-columns:repeat(4,1fr);gap:4px;padding:4px 6px}
+.fl-knoepfe .fl-pos button{display:grid;place-items:center;min-width:0;height:40px;padding:0;border-radius:10px;background:var(--fl2)}
+.fl-pos .dreh .ic{transform:rotate(180deg)}
+.fl-nur-pos{display:grid;gap:4px;padding:6px;width:auto!important;grid-template-columns:auto!important}
+.fl-nur-pos .fl-pos{grid-template-columns:repeat(2,44px);padding:0}
+.fl.u .fl-nur-pos .fl-pos{grid-template-columns:repeat(2,44px)}
+.fl-knoepfe .fl-fertig{display:grid;place-items:center;height:40px;border-radius:10px;background:var(--vl);color:var(--vl-schrift);padding:0}
+.fl-knoepfe.fl-nur-pos{background:var(--fl);box-shadow:0 6px 22px rgba(0,0,0,.18);-webkit-backdrop-filter:none;backdrop-filter:none}
+.fl-knoepfe .fl-pos button{background:var(--fl2);border:1px solid var(--line);color:var(--ink)}
+.fl-pos .ic,.fl-fertig .ic{width:22px;height:22px}
+.fl-pos .ic [opacity],.fl-fertig .ic [opacity]{opacity:0}
+.fl-knoepfe .fl-fertig{border:1px solid var(--vl-rand)}
+.fl-knoepfe.fl-nur-pos{background:var(--bg)}
+.fl-knoepfe .fl-pos button{background:color-mix(in srgb,var(--akz) 12%,var(--bg))}

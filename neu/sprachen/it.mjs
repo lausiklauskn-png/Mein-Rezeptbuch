@@ -852,4 +852,8 @@ export default {
   'Geändert und im Gerät neu übersetzt': 'Modificata e tradotta di nuovo sul dispositivo',
   'Zurück zur ganzen App': 'Torna a tutta l’app',
   'Nur das Rezept, im Vollbild': 'Solo la ricetta, a schermo intero',
+  'nach oben': 'in alto',
+  'nach unten': 'in basso',
+  'nach links': 'a sinistra',
+  'nach rechts': 'a destra',
 };

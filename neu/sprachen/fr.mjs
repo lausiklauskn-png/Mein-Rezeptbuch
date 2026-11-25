@@ -852,4 +852,8 @@ export default {
   'Geändert und im Gerät neu übersetzt': 'Modifiée et retraduite sur l’appareil',
   'Zurück zur ganzen App': 'Revenir à toute l’app',
   'Nur das Rezept, im Vollbild': 'Seulement la recette, en plein écran',
+  'nach oben': 'vers le haut',
+  'nach unten': 'vers le bas',
+  'nach links': 'vers la gauche',
+  'nach rechts': 'vers la droite',
 };

@@ -42,7 +42,7 @@ import { druckRezept, drucke, druckMenuekarte } from '../kern/ausgabe/druck.mjs'
 import { teilLink, ausTeilLink, qrSvg, passtInQr } from '../kern/teilen/qr.mjs';
 import { rezeptIn } from '../kern/modell/einheiten.mjs';
 
-const FASSUNG = '0.17.4';
+const FASSUNG = '0.17.5';
 const breit = () => matchMedia('(min-width:1000px)').matches;
 const $ = (id) => document.getElementById(id);
 const esc = (t) => String(t ?? '').replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
@@ -1136,12 +1136,18 @@ function leisteZeichnen() {
   const o = $('leiste'), lage = E.leiste, u = lage.seite === 'u';
   o.className = 'fl ' + lage.seite; document.body.dataset.fl = lage.seite; o.setAttribute('aria-label', L('Bereiche', 'Sections'));
   o.style.top = u ? '' : (s.leisteAuf ? Math.min(70, Math.max(30, lage.pos)) : lage.pos) + '%'; o.style.left = u ? (s.leisteAuf ? 50 : lage.pos) + '%' : '';
+  /* Verschieben mit Pfeilen: nur vier Pfeile im Viereck, genau dort, wo die Leiste sitzt – jeder Tipp bewegt sichtbar. Kein Bestätigen (Klaus):
+     ein Tipp daneben schließt, die Leiste steht dann als Griff an ihrem neuen Platz. */
+  if (s.leisteAuf && s.flPos) { o.style.top = u ? '' : `clamp(110px, ${lage.pos}%, calc(100% - 110px))`; o.style.left = u ? `clamp(110px, ${lage.pos}%, calc(100% - 110px))` : '';
+    o.innerHTML = `<div class="fl-knoepfe fl-nur-pos" role="group" aria-label="${L('Leiste verschieben', 'Move the bar')}"><div class="fl-pos">${[['hoch', 'hoch', L('nach oben', 'up')], ['runter', 'hoch', L('nach unten', 'down')], ['links', 'links', L('nach links', 'left')], ['rechts', 'rechts', L('nach rechts', 'right')]].map(([r, i, t]) => `<button data-a="fl-schieb" data-r="${r}" class="${r === 'runter' ? 'dreh' : ''}" aria-label="${esc(t)}" title="${esc(t)}">${ic(i)}</button>`).join('')}</div></div>`; return; }
   if (!s.leisteAuf) { o.innerHTML = `<button class="fl-griff" data-a="leiste-auf" aria-label="${L('Leiste öffnen: Rezepte, Planer, Einkauf, Einstellungen. Lange drücken oder ziehen verschiebt sie.', 'Open bar: recipes, planner, shopping, settings. Long-press or drag to move it.')}"><span></span></button>`; return; }
   const k = (a, i, t, x = '') => `<button role="menuitem" data-a="${a}" ${x}>${i}${t}</button>`;
   o.innerHTML = `<div class="fl-knoepfe" role="menu"><button class="fl-zu" data-a="leiste-zu" aria-label="${L('Schließen', 'Close')}">${ic('x')}</button>`
     + k('geh', ic('buch'), L('Rezepte', 'Recipes'), `data-zu="start" ${s.ansicht === 'start' ? 'aria-current="page"' : ''}`) + k('geh', ic('ordner'), L('Ordner', 'Folders'), `data-zu="baum" ${s.ansicht === 'baum' ? 'aria-current="page"' : ''}`) + k('geh', ic('plan'), L('Planer', 'Planner'), `data-zu="plan" ${s.ansicht === 'plan' ? 'aria-current="page"' : ''}`)
     + k('geh', ic('einkauf'), L('Einkauf', 'Shopping') + (ekOffen() ? ` <span class="zahl">${ekOffen()}</span>` : ''), `data-zu="einkauf" ${s.ansicht === 'einkauf' ? 'aria-current="page"' : ''}`) + k('geh', ic('zine'), L('Kreativbuch', 'Creative book'), `data-zu="kreativ" ${s.ansicht === 'kreativ' || s.ansicht === 'zine' ? 'aria-current="page"' : ''}`) + k('geh', ic('einst'), L('Einstellungen', 'Settings'), `data-zu="werkstatt" ${s.ansicht === 'werkstatt' ? 'aria-current="page"' : ''}`)
     + '<hr>' + k('nach-oben', ic('hoch'), L('Nach oben', 'To top')) + k('zurueck', ic('zurueck'), L('Zurück', 'Back'))
+    + k('fl-pos', ic('pfeile'), L('Leiste verschieben', 'Move the bar'), `aria-expanded="${!!s.flPos}"`)
+
     + `<hr><div class="fl-werk" role="group" aria-label="${L('Werkzeuge', 'Tools')}">${k('ton', ic('sonne'), L('Hell', 'Light'), `data-ton="hell" aria-pressed="${!istDunkel(E.farbe, E.ton)}"`)}${k('ton', ic('mond'), L('Dunkel', 'Dark'), `data-ton="dunkel" aria-pressed="${istDunkel(E.farbe, E.ton)}"`)}${k('farbe', '<span class="farbknopf"></span>', L('Farbe', 'Colour'))}${k('schrift', '<span class="aa" aria-hidden="true">A<b>A</b></span>', L('Schrift', 'Text'))}${k('sichern', ic('tresor'), L('Sichern', 'Backup'), `class="breit"
  title="${L('Sicherung als Datei speichern', 'Save a backup file')}"`)}</div></div>`;
 }
@@ -1430,7 +1436,13 @@ const A = {
   'fenster-zu': (e, ev) => { if (ev.target.closest('.fenster') && !ev.target.closest('[data-a="fenster-zu"]:not(.schleier)')) return; fensterZu(); },
   'toast-tun': () => { const t = toastTun; toastTun = null; $('toast').innerHTML = ''; t?.(); },
   'leiste-auf': () => { if (Date.now() - gezogen < 500) return; s.leisteAuf = true; leisteZeichnen(); },
-  'leiste-zu': () => { s.leisteAuf = false; leisteZeichnen(); },
+  'leiste-zu': () => { s.leisteAuf = false; s.flPos = false; leisteZeichnen(); },
+  /* Klaus 25.11.: am Handy ist der Griff schwer zu fassen – die Leiste lässt sich auch mit Pfeilen verschieben (ein Schritt je Tipp, Menü bleibt offen) */
+  'fl-pos': () => { s.flPos = true; leisteZeichnen(); },
+  'fl-schieb': (e) => { const r = e.dataset.r, l = { ...E.leiste }, k = (v) => Math.min(88, Math.max(12, v)), SCHRITT = 15;
+    if (l.seite === 'u') { if (r === 'links') l.pos = k(l.pos - SCHRITT); else if (r === 'rechts') l.pos = k(l.pos + SCHRITT); else if (r === 'hoch') { l.seite = l.pos < 50 ? 'l' : 'r'; l.pos = 75; } }
+    else { if (r === 'hoch') l.pos = k(l.pos - SCHRITT); else if (r === 'runter') { if (l.pos >= 85) { l.pos = l.seite === 'l' ? 15 : 85; l.seite = 'u'; } else l.pos = k(l.pos + SCHRITT); } else if (r === 'links') l.seite = 'l'; else if (r === 'rechts') l.seite = 'r'; }
+    E.leiste = l; sichern(); leisteZeichnen(); },
   'nach-oben': () => { s.leisteAuf = false; leisteZeichnen(); scrollTo({ top: 0, behavior: 'smooth' }); },
 };
 /* Zusätze (neu/zusatz.mjs): KI-Richter der Suche, KI-Bilder für alle, Prüfung des Bildauftrags, alte Tresor-Stände, Wochenplan-Vorschlag, Buch, Handbuch. */
@@ -1475,7 +1487,7 @@ addEventListener('resize', fragZu); document.addEventListener('scroll', (ev) => 
 document.addEventListener('click', (ev) => {
   if (Date.now() - railGezogen < 400 && ev.target.closest?.('#kopf')) return;   /* der Zug an der Seitenleiste ist kein Tipp */
   const e = ev.target.closest('[data-a]');
-  if (s.leisteAuf && !ev.target.closest('#leiste')) { s.leisteAuf = false; leisteZeichnen(); }
+  if (s.leisteAuf && !ev.target.closest('#leiste')) { s.leisteAuf = false; s.flPos = false; leisteZeichnen(); }
   if (e && A[e.dataset.a]) A[e.dataset.a](e, ev);
   if (e && s.leisteAuf && e.closest('.fl-werk')) { s.leisteAuf = false; leisteZeichnen(); }   /* ein Werkzeug aus der Leiste gewählt: Leiste zu */
 });
