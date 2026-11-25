@@ -768,8 +768,6 @@ export default {
   'Nein, nur die Übersetzung': 'Non, seulement la traduction',
   'Sprache des Originals': 'Langue de l’original',
   'In welcher Sprache ist das bisherige Original geschrieben?': 'Dans quelle langue l’original actuel est-il écrit ?',
-  'Vollbild beenden': 'Quitter le plein écran',
-  'Vollbild': 'Plein écran',
   'im Gerät · es geht nichts hinaus': 'sur l’appareil · rien n’est envoyé',
   'Weg': 'Méthode',
   'Im Gerät': 'Sur l’appareil',
@@ -789,7 +787,6 @@ export default {
   'Event-Ordner (optional)': 'Dossier d’événement (facultatif)',
   'Neuer Event-Ordner, z. B. Hochzeit von Jonas und Lisa': 'Nouveau dossier d’événement, p. ex. Mariage de Jonas et Lisa',
   'Bild entfernen': 'Retirer l’image',
-  'Vollbild ist hier nicht möglich.': 'Le plein écran n’est pas possible ici.',
   'Der Winkel neben dem Namen klappt die Werkzeuge auf: Einordnen (Kategorie und Event-Ordner in einem Fenster), Bild, Übersetzen, mehr, bearbeiten, löschen.': 'L’angle à côté du nom ouvre les outils : classer (catégorie et dossier d’événement dans une fenêtre), image, traduire, plus, modifier, supprimer.',
   'Der Stift an „Zutaten“ und „Zubereitung“ macht genau diesen Teil an Ort und Stelle bearbeitbar. Die Nummern der Schritte stehen nur daneben, nicht im Text. Am großen Schirm öffnet „Bearbeiten“ das ganze Formular rechts; die Liste bleibt links stehen.': 'Le crayon à « Ingrédients » et « Préparation » rend exactement cette partie modifiable sur place. Les numéros des étapes sont seulement à côté, pas dans le texte. Sur grand écran, « Modifier » ouvre tout le formulaire à droite ; la liste reste à gauche.',
   'Wird eine Übersetzung gezeigt, bearbeitest du die Übersetzung. Beim Speichern fragt die App einmal: als Hauptfassung übernehmen (dann bleibt das bisherige Original als Übersetzung erhalten) oder nur die Übersetzung ändern.': 'Si une traduction est affichée, vous modifiez la traduction. À l’enregistrement, l’app demande une fois : l’adopter comme version principale (l’original actuel reste alors comme traduction) ou ne modifier que la traduction.',
@@ -853,4 +850,6 @@ export default {
   'Original': 'Original',
   'Geändert: die Fassung {0} ist neu zu übersetzen': 'Modifiée : la version {0} est à retraduire',
   'Geändert und im Gerät neu übersetzt': 'Modifiée et retraduite sur l’appareil',
+  'Zurück zur ganzen App': 'Revenir à toute l’app',
+  'Nur das Rezept, im Vollbild': 'Seulement la recette, en plein écran',
 };

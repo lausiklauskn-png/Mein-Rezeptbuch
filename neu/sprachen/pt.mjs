@@ -765,8 +765,6 @@ export default {
   'Nein, nur die Übersetzung': 'Não, só a tradução',
   'Sprache des Originals': 'Idioma do original',
   'In welcher Sprache ist das bisherige Original geschrieben?': 'Em que idioma está escrito o original atual?',
-  'Vollbild beenden': 'Sair do ecrã inteiro',
-  'Vollbild': 'Ecrã inteiro',
   'im Gerät · es geht nichts hinaus': 'no dispositivo · nada é enviado',
   'Weg': 'Via',
   'Im Gerät': 'No dispositivo',
@@ -786,7 +784,6 @@ export default {
   'Event-Ordner (optional)': 'Pasta de eventos (opcional)',
   'Neuer Event-Ordner, z. B. Hochzeit von Jonas und Lisa': 'Nova pasta de eventos, p. ex. Casamento de Jonas e Lisa',
   'Bild entfernen': 'Remover imagem',
-  'Vollbild ist hier nicht möglich.': 'O ecrã inteiro não é possível aqui.',
   'Der Winkel neben dem Namen klappt die Werkzeuge auf: Einordnen (Kategorie und Event-Ordner in einem Fenster), Bild, Übersetzen, mehr, bearbeiten, löschen.': 'O ângulo ao lado do nome abre as ferramentas: organizar (categoria e pasta de eventos numa janela), imagem, traduzir, mais, editar, apagar.',
   'Der Stift an „Zutaten“ und „Zubereitung“ macht genau diesen Teil an Ort und Stelle bearbeitbar. Die Nummern der Schritte stehen nur daneben, nicht im Text. Am großen Schirm öffnet „Bearbeiten“ das ganze Formular rechts; die Liste bleibt links stehen.': 'O lápis em «Ingredientes» e «Preparação» torna exatamente essa parte editável no próprio lugar. Os números dos passos ficam só ao lado, não no texto. No ecrã grande, «Editar» abre o formulário inteiro à direita; a lista fica à esquerda.',
   'Wird eine Übersetzung gezeigt, bearbeitest du die Übersetzung. Beim Speichern fragt die App einmal: als Hauptfassung übernehmen (dann bleibt das bisherige Original als Übersetzung erhalten) oder nur die Übersetzung ändern.': 'Se for mostrada uma tradução, edita a tradução. Ao guardar, a app pergunta uma vez: usar como versão principal (o original atual fica então como tradução) ou mudar só a tradução.',
@@ -850,4 +847,6 @@ export default {
   'Original': 'Original',
   'Geändert: die Fassung {0} ist neu zu übersetzen': 'Alterada: a versão em {0} tem de ser traduzida de novo',
   'Geändert und im Gerät neu übersetzt': 'Alterada e traduzida de novo no dispositivo',
+  'Zurück zur ganzen App': 'Voltar à app completa',
+  'Nur das Rezept, im Vollbild': 'Só a receita, em ecrã inteiro',
 };

@@ -768,8 +768,6 @@ export default {
   'Nein, nur die Übersetzung': 'No, solo la traducción',
   'Sprache des Originals': 'Idioma del original',
   'In welcher Sprache ist das bisherige Original geschrieben?': '¿En qué idioma está escrito el original actual?',
-  'Vollbild beenden': 'Salir de pantalla completa',
-  'Vollbild': 'Pantalla completa',
   'im Gerät · es geht nichts hinaus': 'en el dispositivo · no se envía nada',
   'Weg': 'Vía',
   'Im Gerät': 'En el dispositivo',
@@ -789,7 +787,6 @@ export default {
   'Event-Ordner (optional)': 'Carpeta de eventos (opcional)',
   'Neuer Event-Ordner, z. B. Hochzeit von Jonas und Lisa': 'Nueva carpeta de eventos, p. ej. Boda de Jonas y Lisa',
   'Bild entfernen': 'Quitar la imagen',
-  'Vollbild ist hier nicht möglich.': 'Aquí no es posible la pantalla completa.',
   'Der Winkel neben dem Namen klappt die Werkzeuge auf: Einordnen (Kategorie und Event-Ordner in einem Fenster), Bild, Übersetzen, mehr, bearbeiten, löschen.': 'El ángulo junto al nombre abre las herramientas: clasificar (categoría y carpeta de eventos en una ventana), imagen, traducir, más, editar, borrar.',
   'Der Stift an „Zutaten“ und „Zubereitung“ macht genau diesen Teil an Ort und Stelle bearbeitbar. Die Nummern der Schritte stehen nur daneben, nicht im Text. Am großen Schirm öffnet „Bearbeiten“ das ganze Formular rechts; die Liste bleibt links stehen.': 'El lápiz en «Ingredientes» y «Preparación» hace editable justo esa parte en su sitio. Los números de los pasos están solo al lado, no en el texto. En pantalla grande, «Editar» abre todo el formulario a la derecha; la lista sigue a la izquierda.',
   'Wird eine Übersetzung gezeigt, bearbeitest du die Übersetzung. Beim Speichern fragt die App einmal: als Hauptfassung übernehmen (dann bleibt das bisherige Original als Übersetzung erhalten) oder nur die Übersetzung ändern.': 'Si se muestra una traducción, editas la traducción. Al guardar, la app pregunta una vez: usarla como versión principal (el original actual queda entonces como traducción) o cambiar solo la traducción.',
@@ -853,4 +850,6 @@ export default {
   'Original': 'Original',
   'Geändert: die Fassung {0} ist neu zu übersetzen': 'Modificada: hay que volver a traducir la versión en {0}',
   'Geändert und im Gerät neu übersetzt': 'Modificada y traducida de nuevo en el dispositivo',
+  'Zurück zur ganzen App': 'Volver a toda la app',
+  'Nur das Rezept, im Vollbild': 'Solo la receta, a pantalla completa',
 };
