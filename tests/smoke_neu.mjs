@@ -367,7 +367,7 @@ try {
     ok(await q.locator('[data-a=sicherung-teilen]').count() === 0, 'ohne Teilen im Browser steht „Sicherung teilen“ nicht da');
     await q.addInitScript(() => { navigator.canShare = () => true; navigator.share = async (d) => { window.__geteilt = d.files.map((f) => f.name + '|' + f.type + '|' + f.size); }; });
     await q.reload(); await q.waitForSelector('.gruss'); await q.click('#leiste .fl-griff'); await q.click('#leiste [data-zu=werkstatt]');
-    await q.click('[data-a=sicherung-teilen]'); const geteilt = await q.waitForFunction(() => window.__geteilt, null, { timeout: 5000 }).then((h) => h.jsonValue()).catch(() => null);
+    if (await q.locator('[data-a=sicherung-teilen]').count()) await q.click('[data-a=sicherung-teilen]'); const geteilt = await q.waitForFunction(() => window.__geteilt, null, { timeout: 5000 }).then((h) => h.jsonValue()).catch(() => null);
     ok(geteilt && geteilt.length === 1 && /\.json\|application\/json\|\d{3,}$/.test(geteilt[0]), '„Sicherung teilen“ gibt die Sicherung als JSON-Datei ans Teilen', JSON.stringify(geteilt));
     await q.click('#leiste .fl-griff'); await q.click('#leiste [data-zu=start]'); await q.locator('.karte', { hasText: 'Forelle' }).click(); await q.click('.rezept-held');
     ok(/Pollinations-Schlüssel/.test(await q.locator('.fenster [data-a=gratis-bild]').innerText()), 'Bild-Blatt: das Foto über Pollinations nennt den eigenen Schlüssel');

@@ -5,7 +5,7 @@ import subprocess, shutil, os, tempfile, sys
 F=[('kein-alle-knopf', "${n && ['ohne', 'unbekannt', 'fremd'].includes(c.art) ?", "${n && false ?", 'neu/app.mjs', 'tragen den Knopf „alle zuordnen“'),
    ('zuordnen-tut-nichts', "(n++, { ...r, cat: ziel })", "(n++, { ...r })", 'neu/app.mjs', 'die unbekannte Kategorie ist leer'),
    ('kein-hinweis', "return offen ? `<p class=\"hinweis\" id=\"kat-offen\">", "return false ? `<p class=\"hinweis\" id=\"kat-offen\">", 'neu/app.mjs', 'ein Hinweis nennt die Rezepte'),
-   ('kein-teilen', "(navigator.canShare ? zeile('sicherung-teilen'", "(false ? zeile('sicherung-teilen'", 'neu/app.mjs', '„Sicherung teilen“ steht da'),
+   ('kein-teilen', "(navigator.canShare ? zeile('sicherung-teilen'", "(false ? zeile('sicherung-teilen'", 'neu/app.mjs', '„Sicherung teilen“ gibt die Sicherung'),
    ('ohne-schluessel-los', "if (!SK.pollinations) { schluesselFenster('pollinations', 'gratis:' + uid); return; }", "", 'neu/app.mjs', 'fragt die App zuerst nach dem Pollinations-Schlüssel'),
    ('schluessel-fehlt-im-abruf', "await gratisBild(frei, { schluessel: SK.pollinations })", "await gratisBild(frei)", 'neu/app.mjs', 'das Bild kommt von gen.pollinations.ai')]
 nur=os.environ.get('NUR_FALL'); gefangen=0; durch=0; tot=0
