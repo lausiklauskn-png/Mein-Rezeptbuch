@@ -35,23 +35,24 @@ const [G1, G1b, G2] = await bp.evaluate(() => { const mal = (spiegel, q) => { co
 await bk.close();
 ok(G1 !== G1b && G1 !== G2, 'Selbst-Riegel: die drei Bilder sind verschiedene Dateien');
 
-const BESTAND = [R(1, 'Gulasch'), R(2, 'Bauernbrot', { cat: 'backen', ings: Z('Roggenmehl', 'Sauerteig', 'Salz'), img: G1 }), R(3, 'Mojito', { cat: 'getraenke', ings: Z('Rum', 'Minze', 'Limette', 'Rohrzucker'), alcohol: true }), R(4, 'Pfannkuchen', { cat: 'dessert', ings: Z('Mehl', 'Milch', 'Eier', 'Salz') })];
+const BESTAND = [R(1, 'Gulasch'), R(2, 'Bauernbrot', { cat: 'backen', ings: Z('Roggenmehl', 'Sauerteig', 'Salz'), img: G1 }), R(3, 'Mojito', { cat: 'getraenke', ings: Z('Rum', 'Minze', 'Limette', 'Rohrzucker'), alcohol: true }), R(4, 'Pfannkuchen', { cat: 'dessert', ings: Z('Mehl', 'Milch', 'Eier', 'Salz') }), R(5, 'Tomatensoße', { cat: 'saucen', ings: Z('Tomaten', 'Zwiebel', 'Knoblauch', 'Olivenöl') })];
 const DATEI = [R(11, 'Gulasch', { ings: Z('Rindfleisch', 'Zwiebel', 'Paprika', 'Brühe', 'Kümmel'), steps: [{ txt: 'Anbraten.' }, { txt: 'Zwei Stunden schmoren.' }], cat: 'eintopf' }),
   R(12, 'Sonntagsbrot', { cat: 'backen', ings: Z('Dinkelmehl', 'Hefe', 'Wasser'), img: G1b }),
   R(13, 'Virgin Mojito', { cat: 'getraenke', ings: Z('Minze', 'Limette', 'Rohrzucker', 'Soda'), alcohol: false }),
   R(14, 'Pfannkuchen', { cat: 'dessert', ings: Z('Mehl', 'Haferdrink', 'Eier', 'Salz'), merkmale: ['laktosefrei'] }),
   R(15, 'Helles Brot', { cat: 'backen', ings: Z('Weizenmehl', 'Hefe', 'Milch'), img: G2 }),
-  R(16, 'Apfelkuchen', { cat: 'backen', ings: Z('Äpfel', 'Mehl', 'Butter', 'Zucker') })];
+  R(16, 'Apfelkuchen', { cat: 'backen', ings: Z('Äpfel', 'Mehl', 'Butter', 'Zucker') }),
+  R(17, 'Tomatensosse', { cat: 'saucen', ings: Z('Passata', 'Sahne', 'Basilikum') })];
 
 try {
   for (const breite of [390, 1280]) {
     console.log(`1 · Einlesen mit Doppeln (${breite} px)`);
     const { p, k } = await seite(BESTAND, breite);
-    await einlesen(p, DATEI); await p.waitForSelector('#doppel-liste', { timeout: 15000 });
-    let z = await bestandWenn(p, (b) => b.rezepte.length === 10);
-    ok(z.rezepte.length === 10, 'alles kommt zuerst herein (4 + 6), nichts geht verloren, solange nicht gewählt ist', String(z.rezepte.length));
+    await einlesen(p, DATEI); await p.waitForSelector('#doppel-liste', { timeout: 15000 }).catch(() => {});
+    let z = await bestandWenn(p, (b) => b.rezepte.length === 12);
+    ok(z.rezepte.length === 12, 'alles kommt zuerst herein (5 + 7), nichts geht verloren, solange nicht gewählt ist', String(z.rezepte.length));
     const paare = await p.locator('.dp').evaluateAll((l) => l.map((e) => [e.dataset.neu, e.querySelector('.dp-stufe').className.split(' ')[1], e.querySelector('[aria-pressed=true]')?.dataset.w]));
-    ok(JSON.stringify(paare) === JSON.stringify([['r-11', 'sicher', 'meins'], ['r-12', 'vielleicht', 'beide']]), 'genau zwei Paare: Gulasch sicher (Vorgabe „Meins behalten“), Sonntagsbrot über das gleiche Bild vielleicht (Vorgabe „Beide“)', JSON.stringify(paare));
+    ok(JSON.stringify(paare) === JSON.stringify([['r-11', 'sicher', 'meins'], ['r-12', 'vielleicht', 'beide'], ['r-17', 'vielleicht', 'beide']]), 'genau drei Paare: Gulasch sicher (Vorgabe „Meins behalten“), Sonntagsbrot über das gleiche Bild und Tomatensoße mit gleichem Namen, aber anderen Zutaten vielleicht (Vorgabe „Beide“)', JSON.stringify(paare));
     ok(!paare.some(([u]) => ['r-13', 'r-14', 'r-15', 'r-16'].includes(u)), 'kein Doppel: Virgin Mojito (alkoholfrei), laktosefreie Pfannkuchen (Merkmal), Helles Brot (anderes Bild), Apfelkuchen');
     ok(/gleiches Bild/.test(await p.locator('.dp[data-neu="r-12"] .dp-kopf').innerText()) && /Name gleich/.test(await p.locator('.dp[data-neu="r-11"] .dp-kopf').innerText()), 'je Paar steht der Grund da (Name gleich · Zutaten … · gleiches Bild)');
     ok(await p.locator('.dp[data-neu="r-11"] [data-w=bild]').count() === 0 && await p.locator('.dp[data-neu="r-12"] [data-w=bild]').count() === 1, '„Bild vom neuen“ nur, wenn das neue ein Bild hat');
@@ -60,24 +61,24 @@ try {
     await p.click('.dp[data-neu="r-11"] [data-w=ganz]'); await p.click('.dp[data-neu="r-12"] [data-w=bild]');
     ok(await p.locator('.dp[data-neu="r-11"] [aria-pressed=true]').getAttribute('data-w') === 'ganz' && await p.locator('.dp[data-neu="r-11"] [aria-pressed=true]').count() === 1, 'je Paar ist genau eine Wahl gedrückt');
     await p.click('[data-a=dp-fertig]');
-    z = await bestandWenn(p, (b) => b.rezepte.length === 8);
+    z = await bestandWenn(p, (b) => b.rezepte.length === 10);
     const g = z.rezepte.find((r) => r.uid === 'r-1'), b = z.rezepte.find((r) => r.uid === 'r-2');
-    ok(z.rezepte.length === 8 && !z.rezepte.some((r) => r.uid === 'r-11' || r.uid === 'r-12'), 'die beiden neuen sind nach der Wahl weg, alle anderen bleiben', String(z.rezepte.length));
+    ok(z.rezepte.length === 10 && !z.rezepte.some((r) => r.uid === 'r-11' || r.uid === 'r-12'), 'die beiden neuen sind nach der Wahl weg, alle anderen bleiben', String(z.rezepte.length));
     ok(g.ings.length === 5 && g.steps.length === 2 && g.cat === 'fleisch' && g.id === 1, '„Ganz das neue“: Zutaten und Schritte vom neuen, Kategorie und Platz von meinem', JSON.stringify([g.ings.length, g.steps.length, g.cat, g.id]));
     ok(b.img === G1b && b.name === 'Bauernbrot' && b.ings.length === 3, '„Bild vom neuen“: nur das Bild wechselt, Name und Zutaten bleiben');
     ok(/2 Doppel zusammengeführt/.test(await toast(p)), 'die Meldung sagt es und bietet Rückgängig', await toast(p));
-    await p.click('#toast [data-a=toast-tun]'); z = await bestandWenn(p, (x) => x.rezepte.length === 10);
-    ok(z.rezepte.length === 10 && z.rezepte.find((r) => r.uid === 'r-1').ings.length === 4, 'Rückgängig: beide wieder da, mein Gulasch wie vorher');
+    await p.click('#toast [data-a=toast-tun]'); z = await bestandWenn(p, (x) => x.rezepte.length === 12);
+    ok(z.rezepte.length === 12 && z.rezepte.find((r) => r.uid === 'r-1').ings.length === 4, 'Rückgängig: beide wieder da, mein Gulasch wie vorher');
     await k.close();
   }
 
   console.log('2 · „Später“ behält beide; ein zweites Einlesen derselben Datei fragt nicht (gleiche Kennungen)');
   { const { p, k } = await seite(BESTAND);
     await einlesen(p, DATEI); await p.waitForSelector('#doppel-liste', { timeout: 15000 });
-    await p.click('.fenster [data-a=fenster-zu]'); let z = await bestandWenn(p, (b) => b.rezepte.length === 10); await p.waitForTimeout(300);
-    ok(z.rezepte.length === 10 && await p.locator('.fenster').count() === 0, '„Später“ schließt, beide bleiben');
+    await p.click('.fenster [data-a=fenster-zu]'); await p.waitForTimeout(600); let z = await bestand(p);
+    ok(z.rezepte.length === 12 && await p.locator('.fenster').count() === 0, '„Später“ schließt, beide bleiben');
     await einlesen(p, DATEI); await p.waitForTimeout(1500);
-    ok(await p.locator('#doppel-liste').count() === 0 && /6 schon da/.test(await toast(p)), 'dieselbe Datei noch einmal: „6 schon da“, kein Doppel-Fenster', await toast(p));
+    ok(await p.locator('#doppel-liste').count() === 0 && /7 schon da/.test(await toast(p)), 'dieselbe Datei noch einmal: „7 schon da“, kein Doppel-Fenster', await toast(p));
     await k.close(); }
 
   console.log('3 · Hinweis im Formular beim einzelnen Anlegen');
@@ -86,18 +87,18 @@ try {
     await neuForm('Gulasch nach Omas Art', '500 g Rind\n2 Zwiebeln\nPaprika\nBrühe');
     await p.waitForSelector('#form-doppel', { timeout: 8000 }).catch(() => {});
     let z = await bestand(p);
-    ok(await p.locator('#form-doppel').count() === 1 && z.rezepte.length === 4, 'ähnliches Rezept: ein Band im Formular statt Speichern, kein Zwischenfenster', String(z.rezepte.length));
+    ok(await p.locator('#form-doppel').count() === 1 && z.rezepte.length === 5, 'ähnliches Rezept: ein Band im Formular statt Speichern, kein Zwischenfenster', String(z.rezepte.length));
     ok(/Gulasch/.test(await p.locator('#form-doppel').innerText()) && await p.locator('#form-doppel [data-w=bild]').count() === 0, 'das Band nennt das vorhandene Rezept; ohne Foto kein „Nur das Bild“');
     ok(await p.inputValue('[name=name]') === 'Gulasch nach Omas Art', 'die Eingaben bleiben im Formular stehen');
     await p.click('#form-doppel [data-w=text]'); await p.waitForSelector('.rezept-held h1');
     z = await bestandWenn(p, (b) => b.rezepte.find((r) => r.uid === 'r-1').name !== 'Gulasch');
-    ok(z.rezepte.length === 4 && z.rezepte.find((r) => r.uid === 'r-1').name === 'Gulasch nach Omas Art', '„Nur den Text übernehmen“: kein neues Rezept, mein Gulasch trägt den neuen Text', JSON.stringify(z.rezepte.map((r) => r.name)));
+    ok(z.rezepte.length === 5 && z.rezepte.find((r) => r.uid === 'r-1').name === 'Gulasch nach Omas Art', '„Nur den Text übernehmen“: kein neues Rezept, mein Gulasch trägt den neuen Text', JSON.stringify(z.rezepte.map((r) => r.name)));
     ok(/übernommen/.test(await toast(p)), 'die Meldung sagt es', await toast(p));
     await neuForm('Mojito', 'Rum\nMinze\nLimette\nRohrzucker'); await p.waitForSelector('#form-doppel', { timeout: 8000 });
     await p.click('#form-doppel [data-w=eigen]'); await p.waitForSelector('.rezept-held h1');
-    z = await bestandWenn(p, (b) => b.rezepte.length === 5); ok(z.rezepte.length === 5, '„Als eigenes Rezept speichern“ legt es an');
+    z = await bestandWenn(p, (b) => b.rezepte.length === 6); ok(z.rezepte.length === 6, '„Als eigenes Rezept speichern“ legt es an');
     await neuForm('Linsensuppe', 'Linsen\nKarotten\nSpeck'); await p.waitForSelector('.rezept-held h1', { timeout: 8000 });
-    z = await bestandWenn(p, (b) => b.rezepte.length === 6); ok(z.rezepte.length === 6, 'ohne Ähnliches wird sofort gespeichert, ohne Band');
+    z = await bestandWenn(p, (b) => b.rezepte.length === 7); ok(z.rezepte.length === 7, 'ohne Ähnliches wird sofort gespeichert, ohne Band');
 
     console.log('4 · Merkmale einer Variante');
     ok(await p.locator('.merkmale .merk').count() === 3 && await p.locator('.merkmale [aria-pressed=true]').count() === 0, 'drei Merkmale an der Leiste, keins gesetzt');
