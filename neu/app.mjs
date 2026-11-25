@@ -42,7 +42,7 @@ import { druckRezept, drucke, druckMenuekarte } from '../kern/ausgabe/druck.mjs'
 import { teilLink, ausTeilLink, qrSvg, passtInQr } from '../kern/teilen/qr.mjs';
 import { rezeptIn } from '../kern/modell/einheiten.mjs';
 
-const FASSUNG = '0.17.2';
+const FASSUNG = '0.17.3';
 const breit = () => matchMedia('(min-width:1000px)').matches;
 const $ = (id) => document.getElementById(id);
 const esc = (t) => String(t ?? '').replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
@@ -329,7 +329,10 @@ function rezeptMenue() {
 /* Eine Übersetzung gilt für den Text, aus dem sie entstand: ändern sich Name, Zutaten oder Schritte, fällt sie weg – sonst stünde der alte Text weiter da. */
 const textKern = (r) => JSON.stringify([r.name, (r.ings || []).map((z) => z.name), (r.steps || []).map((x) => x.txt)]);
 const ohneAlteUebersetzung = (alt, neu, textBlieb = false) => { if (textBlieb || !alt?.translations || neu.translations !== alt.translations || textKern(alt) === textKern(neu)) return neu; const { translations, ...rest } = neu; return rest; };
-const rezeptSetzen = (neu) => { Z.rezepte = Z.rezepte.map((x) => (x.uid === neu.uid ? { ...ohneAlteUebersetzung(x, neu), modified: new Date().toISOString() } : x)); sichern(); };
+/* Klaus 25.11.: ändert sich der Text eines übersetzten Rezepts, fällt die alte Fassung weg (sie stimmt nicht mehr) – und wird neu übersetzt,
+   wie bei neuen Rezepten (R23): im Gerät gratis und still, sonst eine Meldung mit „Übersetzen“. */
+const neuUebersetzen = (alt, neu) => { const weg = Object.keys(alt?.translations || {}).filter((c) => sprKennt(c) && !neu?.translations?.[c]); if (weg.length) setTimeout(() => nachEinlesen([neu.uid], weg, true), 3600); };
+const rezeptSetzen = (neu) => { let vorher = null; Z.rezepte = Z.rezepte.map((x) => { if (x.uid !== neu.uid) return x; vorher = x; return { ...ohneAlteUebersetzung(x, neu), modified: new Date().toISOString() }; }); sichern(); neuUebersetzen(vorher, rezept(neu.uid)); };
 
 /* ---------- Übersetzen (Kern: ki/helfer.mjs). Die Fassung liegt unter r.translations[ziel] (wie in der alten App) und wird gezeigt, wenn die Oberfläche
    diese Sprache spricht. Die eigene Sprache steht vorn. Gesendet wird erst beim Tipp auf eine Sprache; was hinausgeht, steht darüber. ---------- */
@@ -401,8 +404,8 @@ async function uebersetzeEins(ziel) {
 /* Sprachname im Satz, in der Sprache der Oberfläche („noch nicht auf Französisch“); ohne Intl der Eigenname. */
 const sprachImSatz = (c) => { try { const n = new Intl.DisplayNames([geb()], { type: 'language' }).of(c); return n && n !== c ? n.charAt(0).toLocaleUpperCase(geb()) + n.slice(1) : sprachName(c); } catch { return sprachName(c); } };
 const buchZiele = () => { const m = new Map(); for (const r of Z.rezepte) if (istInhalt(r)) for (const c of Object.keys(r.translations || {})) if (sprKennt(c) && hatUebersetzung(r, c)) m.set(c, (m.get(c) || 0) + 1); return [...m.keys()]; };
-async function nachEinlesen(uids) {
-  const ziele = buchZiele(); if (!uids?.length || !ziele.length) return;
+async function nachEinlesen(uids, ziele = buchZiele(), geaendert = false) {
+  if (!uids?.length || !ziele.length) return;
   let imGeraet = 0; const rest = new Map();
   for (const ziel of ziele) for (const uid of uids) {
     const r = rezept(uid); if (!r || !istInhalt(r) || hatUebersetzung(r, ziel)) continue;
@@ -417,8 +420,8 @@ async function nachEinlesen(uids) {
   }
   if (imGeraet) zeichne();
   const [ziel, n] = [...rest][0] || [];
-  if (n) melde(fuelle(L('{0} neue Rezepte noch nicht auf {1}', '{0} new recipes not yet in {1}'), n, sprachImSatz(ziel)) + (imGeraet ? ' · ' + fuelle(L('{0} im Gerät übersetzt', '{0} translated on the device'), imGeraet) : ''), L('Übersetzen', 'Translate'), () => alleUebFenster(ziel));
-  else if (imGeraet) melde(fuelle(L('{0} neue Übersetzungen im Gerät angelegt', '{0} new translations made on the device'), imGeraet));
+  if (n) melde(geaendert ? fuelle(L('Geändert: die Fassung {0} ist neu zu übersetzen', 'Changed: the {0} version needs translating again'), sprachImSatz(ziel)) : fuelle(L('{0} neue Rezepte noch nicht auf {1}', '{0} new recipes not yet in {1}'), n, sprachImSatz(ziel)) + (imGeraet ? ' · ' + fuelle(L('{0} im Gerät übersetzt', '{0} translated on the device'), imGeraet) : ''), L('Übersetzen', 'Translate'), () => (geaendert && s.uid === uids[0] ? uebersetzFenster() : alleUebFenster(ziel)));   /* geändert: nur dieses Rezept, mit Kosten im Fenster */
+  else if (imGeraet) melde(geaendert ? L('Geändert und im Gerät neu übersetzt', 'Changed and translated again on the device') : fuelle(L('{0} neue Übersetzungen im Gerät angelegt', '{0} new translations made on the device'), imGeraet));
 }
 const uebOffen = (ziel) => Z.rezepte.filter((r) => istInhalt(r) && !hatUebersetzung(r, ziel));
 const rezepteText = (n) => (n === 1 ? L('1 Rezept', '1 recipe') : fuelle(L('{0} Rezepte', '{0} recipes'), n));
@@ -974,7 +977,7 @@ function formSpeichern(form) {
   const neu = ohneAlteUebersetzung(alt, alt && (f.ueb || textBlieb) ? { ...roh, name: alt.name, ings: alt.ings, steps: alt.steps } : roh, textBlieb);   /* Text unverändert: Name, Zutaten und Schritte bleiben, wie sie waren (nichts wird neu zerlegt, etwa „1 kleine Zwiebel“) */
   delete neu.beispiel; if (f.neu && f.flavors?.length) neu.flavors = f.flavors; if (f.neu && f.source) neu.source = f.source; if (f.kiEntfernt?.length) vermerken(neu, f.kiEntfernt, 'scan');   /* was vor der KI herausgenommen wurde, steht am Rezept */
   Z.rezepte = alt ? Z.rezepte.map((r) => (r.uid === alt.uid ? neu : r)) : [...Z.rezepte, neu];
-  sichern(); danach(neu.uid); if (!alt) setTimeout(() => nachEinlesen([neu.uid]), 3600);   /* nach der Meldung „Gespeichert“ */
+  sichern(); danach(neu.uid); if (!alt) setTimeout(() => nachEinlesen([neu.uid]), 3600); else neuUebersetzen(alt, neu);   /* nach der Meldung „Gespeichert“ */
 
 }
 
