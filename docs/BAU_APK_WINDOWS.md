@@ -260,3 +260,30 @@ Die dritte Zeile hat einen blinden Punkt der Probe gezeigt: die Nachfrage im Bro
 - Die Doku-Seiten von Capacitor, Electron und Tauri waren aus der Sitzung nicht erreichbar. Die Angaben oben stammen aus der
   npm-Registry und aus den Paketen selbst (Quelltext, Typ-Beschreibungen, Schema, Vorlage).
 - Die Arbeitskopien beider Repos waren während der Arbeit in Bewegung; gemessen ist an festen Ständen (siehe Abschnitt 6).
+
+## 8 · Was die Hüllen mehr können als die PWA (Klaus 25.11.2026: „mach das genau so“)
+
+Gilt für beide Apps. Grundsatz: **eine** App. Kern und Oberfläche bleiben gleich; die Hülle bietet eine Fähigkeit über eine
+kleine Brücke an (z. B. `window.huelle?.teilenEmpfangen`), und die PWA nutzt an derselben Stelle ihren heutigen Weg weiter.
+Keine laufenden Kosten (alles im Gerät oder ohne Dienst). Reihenfolge = Reihenfolge des Baus.
+
+**Zuerst (größter Nutzen, wenig Aufwand)**
+
+| | Android (Capacitor) | Windows (Electron) | PWA heute |
+|---|---|---|---|
+| 1 | **Teilen → App** aus jeder App (Chrome, Instagram, Galerie, WhatsApp): Webseite → Web-Import, Foto → Scan, Text → Text-Import (Intent-Filter `SEND`/`SEND_MULTIPLE`) | Adresse oder Dateien aus Browser/Explorer in das Fenster ziehen | `share_target` nur eingeschränkt |
+| 2 | **Web-Import ohne Umweg**: natives HTTP ohne CORS, viele Seiten ohne KI und ohne Schlüssel | dasselbe über den Hauptprozess (`net.fetch`) | viele Seiten blockiert |
+| 3 | **Sicherung in einen Ordner**, still und täglich (Dokumente, Google Drive; wie „Kopie einrichten“ in Private Akte); Android leert den Speicher nicht wie ein Browser | Ordner frei wählbar (z. B. OneDrive), bei jeder Änderung oder täglich | nur Datei von Hand, Tresor im Browser |
+
+**Danach**
+
+| | Android | Windows |
+|---|---|---|
+| 4 | **Dokumentenscanner + Texterkennung im Gerät** (Google ML Kit: zuschneiden, entzerren, OCR offline, kostenlos); Aufteilen in Zutaten/Schritte über `rezeptAusText`, KI nur auf Wunsch | Texterkennung wie heute (Tesseract im Paket) |
+| 5 | **Food-Zine an die ChatGPT-/Claude-App übergeben**: Teilen mit Bild **und** Auftrag in einem Schritt statt kopieren/wechseln/einfügen | Zwischenablage mit Text + Bild über `clipboard.write` der Hülle, immer verlässlich |
+| 6 | **Kochwecker und Erinnerungen als echte Benachrichtigung**, auch bei gesperrtem Schirm (Local Notifications); Notizbuch ohne `.ics`-Umweg | Benachrichtigung des Systems |
+| 7 | **Diktat offline** über den Sprach-Baustein der Familienakte (ProSpeech) | Diktat des Systems, sonst wie heute |
+| 8 | **Verknüpfungen am App-Zeichen** (langer Druck: Neues Rezept, Einkaufsliste, Notiz); später ein Widget „Einkaufsliste“ | **Bücher direkt als PDF-Datei** (`printToPDF`, ohne Druckdialog) · **zweites Fenster** (Kochansicht auf zweitem Bildschirm) · Tastenkürzel (Strg+N, Strg+F) |
+
+Je Punkt beim Bau: eine Probe, die mit **und** ohne Hülle läuft (ohne Hülle muss der PWA-Weg unverändert grün bleiben), und
+ein Satz im Handbuch, der nur erscheint, wo die Fähigkeit da ist. Nicht gemessen: alles (nichts davon ist gebaut).
