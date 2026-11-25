@@ -1,7 +1,7 @@
 {
   "id": "/Mein-Rezeptbuch/neu/index.html",
-  "name": "Mein Rezeptbuch (neu)",
-  "short_name": "Rezeptbuch neu",
+  "name": "Mein Rezeptbuch neu",
+  "short_name": "Mein Rezeptbuch neu",
   "description": "Rezepte sammeln, kochen, planen. Läuft im Gerät, ohne Konto.",
   "lang": "de",
   "start_url": "./index.html",

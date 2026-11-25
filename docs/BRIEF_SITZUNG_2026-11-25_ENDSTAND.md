@@ -16,6 +16,13 @@ Apps durch sind, sagt die Sitzung ausdrücklich „Rezeptbuch fertig“ und „M
 
 Beide Fassungen liegen auf derselben Adresse (github.io) und haben getrennte Speicher; die neue liest die Daten der alten nur.
 
+**Getrennt installierbar (25.11., Klaus):** Im Mixarium legte sich die alte PWA über die neue (nur ein Symbol). Der Bereich
+(`scope`) der **alten** PWAs ist deshalb auf `./index.html` verengt (`manifest.json` bzw. `app-manifest.json`, Cache erhöht;
+die alten Seiten selbst unverändert), damit `/neu/` nicht mehr dazugehört. Die neuen PWAs heißen auf dem Startbildschirm
+„Mein Rezeptbuch neu“ / „Mein Mixarium neu“. Alte App zum Installieren über `…/index.html` öffnen. Am Tablet noch nicht
+bestätigt; bei Problemen `chrome://webapks` (Manifest Id, Start Url, Scope) ansehen lassen. Klaus vergleicht erst in den
+PWAs und zieht Änderungen danach in die APK (deren Bau dauert lange).
+
 ## Stand auf `main`
 
 | | Mein Rezeptbuch | Mein Mixarium |
