@@ -31,7 +31,7 @@
   "kern/modell/notiz.mjs": "3089f492a4a5d8fa4d62760e1b2c75ef59be3298d2758d497f47093192ff3c38",
   "kern/modell/ordner.mjs": "b8c41ba658c3458bfaf563d187aebdbda3a60d84f40a48e70433de301ae64dc7",
   "kern/modell/plan.mjs": "8d869ca697b60ae847e8d50db5e209dacd322bc05886ae7539feadfa04925e97",
-  "kern/modell/rezept.mjs": "8cc88571ad250f3aa4c89d15b8e248a7aa2ed2830f4c3a72aa46ff900670460b",
+  "kern/modell/rezept.mjs": "0270cf8a8f26807164f7bde534417a2c4f85af3c2e7a0b13dca229dc16727d80",
   "kern/modell/suche.mjs": "d39f441123febbfb088c504a8c35ae269b4d607b031f6dc3e85333cfffa0f4e3",
   "kern/modell/warengruppen.mjs": "668839e24e2ce7052da008161392553892958d940ae9a209fc8b8af9c2e52d15",
   "kern/modell/zustand.mjs": "f3e7db34eb49f3dd5a5755e4f39bb0528e237328142bc9a4967bec5caed3508b",

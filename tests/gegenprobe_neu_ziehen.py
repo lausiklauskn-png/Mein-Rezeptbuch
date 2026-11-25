@@ -1,16 +1,17 @@
 # Gegenprobe zu tests/smoke_neu_ziehen.mjs (R5 Ziehen und Wischen): je Fall eine Sabotage in einer Wegwerf-Kopie; die Probe muss
-# ROT werden, und die rote Zeile muss den Namen der Zusicherung tragen. Aufruf: python3 -u tests/gegenprobe_neu_doppel.py   (NUR_FALL=a,b · NUR_ANKER=1)
+# ROT werden, und die rote Zeile muss den Namen der Zusicherung tragen. Aufruf: python3 -u tests/gegenprobe_neu_ziehen.py   (NUR_FALL=a,b · NUR_ANKER=1)
+# Benannte Grenze: für „eine Bewegung vor dem Langdruck bricht ab“ steht kein Fall. Chrome schickt bei einem Rollen selbst pointercancel;
+# ohne die 8-px-Prüfung ändert sich dort nichts Sichtbares (nachgestellt 25.11.). Die Prüfung bleibt für Browser, die das nicht tun.
 import subprocess, shutil, os, tempfile, sys
 D='kern/modell/doppel.mjs'; APP='neu/app.mjs'
-F=[('langdruck-sofort', "else kz.uhr = setTimeout(kzAn, 350);", "else kz.uhr = setTimeout(kzAn, 0);", APP, 'eine Bewegung vor dem Langdruck zieht nichts'),
-   ('kein-langdruck', "else kz.uhr = setTimeout(kzAn, 350);", "else kz.uhr = null;", APP, 'Apfelkuchen steht hinter der Cremetorte'),
-   ('klick-nach-zug', "  rezept: (e) => { if (Date.now() - kzGezogen < 400) return; E.zuletzt", "  rezept: (e) => { E.zuletzt", APP, 'nach dem Ziehen öffnet sich das Rezept nicht'),
-   ('nach-falsch', "  return [...rest.slice(0, i), r, ...rest.slice(i)];", "  return [r, ...rest];", 'kern/modell/rezept.mjs', 'Apfelkuchen steht hinter der Cremetorte'),
+F=[('kein-langdruck', "else kz.uhr = setTimeout(kzAn, 350);", "else kz.uhr = null;", APP, 'Apfelkuchen steht hinter der Cremetorte'),
+   ('klick-nach-zug', "  rezept: (e) => { if (Date.now() - kzGezogen < 400) return; E.zuletzt", "  rezept: (e) => { E.zuletzt", APP, 'das Rezept geht nicht auf'),
+   ('nach-falsch', "  const neu = [...rest.slice(0, i), r, ...rest.slice(i)];", "  const neu = [r, ...rest];", 'kern/modell/rezept.mjs', 'Apfelkuchen steht hinter der Cremetorte'),
    ('gruppen-gemischt', "if (kzGruppe(k) !== kz.gruppe) return;", "", APP, 'Gulasch auf eine Backen-Karte'),
    ('foto-kein-ziel', "if (f && f.dataset.kat !== 'alle') {", "if (false) {", APP, 'Dinkelbrötchen liegt jetzt unter'),
    ('ordner-als-kategorie', "if (k.startsWith('ordner:')) baumAblegen([b.uid], 'ord', k.slice(7)); else", "", APP, 'auf den Event-Ordner'),
    ('ohne-rueckgaengig', "melde(L('Reihenfolge geändert', 'Order changed'), L('Rückgängig', 'Undo'), () => { Z.rezepte = vorher; sichern(); zeichne(); });", "melde(L('Reihenfolge geändert', 'Order changed'));", APP, 'Rückgängig stellt'),
-   ('marken-bleiben', "b.el.classList.remove('kz-zieht'); kzMarkenWeg();", "b.el.classList.remove('kz-zieht');", APP, 'danach bleibt kein Strich'),
+   ('marken-bleiben', "b.el.classList.remove('kz-zieht'); kzMarkenWeg();", "b.el.classList.remove('kz-zieht');", APP, 'lässt keinen Strich stehen'),
    ('wisch-falsch-herum', "const ziel = WISCH_FOLGE[i + (dx < 0 ? 1 : -1)];", "const ziel = WISCH_FOLGE[i + (dx < 0 ? -1 : 1)];", APP, 'nach links wischen'),
    ('wisch-ohne-schwelle', "if (Math.abs(dx) < 55 ||", "if (Math.abs(dx) < 5 ||", APP, 'ein kurzer Wisch'),
    ('wisch-auf-leiste', " || rolltQuer(t)) return;\n  sw = {", ") return;\n  sw = {", APP, 'waagerecht rollenden Kategorie-Leiste'),

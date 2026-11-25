@@ -89,5 +89,6 @@ export function rezeptVerschieben(rezepte, uid, zielUid, nach = false) {
   const r = (rezepte || []).find((x) => x.uid === uid);
   if (!r || uid === zielUid || !rezepte.some((x) => x.uid === zielUid)) return rezepte;
   const rest = rezepte.filter((x) => x.uid !== uid), i = rest.findIndex((x) => x.uid === zielUid) + (nach ? 1 : 0);
-  return [...rest.slice(0, i), r, ...rest.slice(i)];
+  const neu = [...rest.slice(0, i), r, ...rest.slice(i)];
+  return neu.every((x, j) => x === rezepte[j]) ? rezepte : neu;   // steht es schon dort: dieselbe Liste, keine Meldung „geändert“
 }

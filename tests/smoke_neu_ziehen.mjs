@@ -28,9 +28,9 @@ const folge = (z, cat) => z.rezepte.filter((r) => r.cat === cat).map((r) => r.na
 const mitte = (p, sel) => p.locator(sel).first().evaluate((e) => { e.scrollIntoView({ block: 'center' }); const r = e.getBoundingClientRect(); return { x: r.left + r.width / 2, y: r.top + r.height / 2, l: r.left, r: r.right, t: r.top, b: r.bottom }; });
 const finger = (cdp, type, x, y) => cdp.send('Input.dispatchTouchEvent', { type, touchPoints: type === 'touchEnd' ? [] : [{ x, y }] });
 /* Finger: aufsetzen, warten, in Schritten ziehen, loslassen. */
-async function fingerZug(p, cdp, von, nach, warte = 450) {
+async function fingerZug(p, cdp, von, nach, warte = 450, schritt = 25) {
   await finger(cdp, 'touchStart', von.x, von.y); await p.waitForTimeout(warte);
-  for (let i = 1; i <= 8; i++) { await finger(cdp, 'touchMove', von.x + (nach.x - von.x) * i / 8, von.y + (nach.y - von.y) * i / 8); await p.waitForTimeout(25); }
+  for (let i = 1; i <= 8; i++) { await finger(cdp, 'touchMove', von.x + (nach.x - von.x) * i / 8, von.y + (nach.y - von.y) * i / 8); await p.waitForTimeout(schritt); }
   await finger(cdp, 'touchEnd'); await p.waitForTimeout(150);
 }
 const toast = (p) => p.locator('#toast').innerText().catch(() => '');
@@ -48,13 +48,14 @@ try {
   ok(await p.locator('.rezept-held').count() === 0, 'nach dem Ziehen öffnet sich das Rezept nicht');
   ok(/Reihenfolge geändert/.test(await toast(p)), 'die Meldung sagt es und bietet Rückgängig', await toast(p));
   ok(JSON.stringify(await p.locator('.gitter.eins .karte strong').allInnerTexts()) === JSON.stringify(['Brot', 'Cremetorte', 'Apfelkuchen', 'Dinkelbrötchen']), 'die Liste zeigt die neue Reihenfolge');
-  await p.click('#toast [data-a=toast-tun]'); z = await bestandWenn(p, (b) => folge(b, 'backen') === 'Apfelkuchen,Brot,Cremetorte,Dinkelbrötchen');
+  await p.click('#toast [data-a=toast-tun]', { timeout: 3000 }).catch(() => {}); z = await bestandWenn(p, (b) => folge(b, 'backen') === 'Apfelkuchen,Brot,Cremetorte,Dinkelbrötchen');
   ok(folge(z, 'backen') === 'Apfelkuchen,Brot,Cremetorte,Dinkelbrötchen', 'Rückgängig stellt die Reihenfolge wieder her');
 
   console.log('2 · Finger: sofort bewegen = rollen, kein Ziehen; kurzer Tipp öffnet das Rezept');
-  const a2 = await mitte(p, '.karte[data-uid=r-1]');
-  await fingerZug(p, cdp, a2, { x: a2.x, y: a2.y - 150 }, 30);
-  z = await bestand(p); ok(folge(z, 'backen') === 'Apfelkuchen,Brot,Cremetorte,Dinkelbrötchen' && await p.locator('.kz-zieht, .bz-geist').count() === 0, 'eine Bewegung vor dem Langdruck zieht nichts (die Seite rollt)');
+  await p.waitForTimeout(500); const a2 = await mitte(p, '.karte[data-uid=r-1]'), c2 = await mitte(p, '.karte[data-uid=r-3]');
+  await fingerZug(p, cdp, a2, { x: quer ? c2.r - 8 : c2.x, y: quer ? c2.y : c2.b - 8 }, 30, 90); await p.waitForTimeout(300);   /* 8 × 90 ms: der Finger ist noch unterwegs, wenn die 350 ms ablaufen */
+  z = await bestand(p); ok(folge(z, 'backen') === 'Apfelkuchen,Brot,Cremetorte,Dinkelbrötchen' && await p.locator('.kz-zieht, .bz-geist').count() === 0, 'eine Bewegung vor dem Langdruck zieht nichts (die Seite rollt), auch nicht über eine andere Karte', folge(z, 'backen'));
+  await p.waitForTimeout(500);
   const a3 = await mitte(p, '.karte[data-uid=r-2]'); await finger(cdp, 'touchStart', a3.x, a3.y); await p.waitForTimeout(60); await finger(cdp, 'touchEnd');   /* ein echter kurzer Fingertipp, kein Klick der Probe */
   await p.waitForSelector('.rezept-held h1', { timeout: 5000 }).catch(() => {});
   ok((await p.locator('.rezept-held h1').innerText().catch(() => '')) === 'Brot', 'ein kurzer Tipp öffnet das Rezept wie bisher');
@@ -106,6 +107,15 @@ try {
   await p.mouse.up(); z = await bestandWenn(p, (b) => folge(b, 'backen') !== 'Apfelkuchen,Brot,Cremetorte,Dinkelbrötchen');
   ok(folge(z, 'backen') === 'Dinkelbrötchen,Apfelkuchen,Brot,Cremetorte', 'mit der Maus vor den Apfelkuchen gezogen', folge(z, 'backen'));
   ok(await p.locator('.kz-zieht, .bz-geist, .ziel-vor, .ziel-nach').count() === 0 && (await p.locator('.md-detail .rezept-held h1').innerText().catch(() => '')) === rechtsVorher, 'danach bleibt kein Strich und kein Schattenbild stehen, kein Rezept geht auf');
+  await p.waitForTimeout(500);
+  /* ein Zug, der nichts ändert (Dinkelbrötchen steht schon vor dem Apfelkuchen): kein Strich bleibt, keine Meldung */
+  const n1 = await mitte(p, '.karte[data-uid=r-4]'), n2 = await mitte(p, '.karte[data-uid=r-1]');
+  await p.mouse.move(n1.x, n1.y); await p.mouse.down(); for (let i = 1; i <= 8; i++) await p.mouse.move(n1.x + (n2.l + 10 - n1.x) * i / 8, n1.y + (n2.y - n1.y) * i / 8); await p.mouse.up(); await p.waitForTimeout(200);
+  ok(await p.locator('.ziel-vor, .ziel-nach, .kz-zieht').count() === 0, 'ein Zug, der nichts ändert, lässt keinen Strich stehen');
+  /* gezogen und auf derselben Karte losgelassen: der Browser schickt einen Klick, das Rezept geht trotzdem nicht auf */
+  const vor2 = await p.locator('.md-detail .rezept-held h1').innerText().catch(() => ''), q = await mitte(p, '.karte[data-uid=r-3]');
+  await p.mouse.move(q.x, q.y); await p.mouse.down(); await p.mouse.move(q.x + 40, q.y, { steps: 4 }); await p.mouse.move(q.x, q.y, { steps: 4 }); await p.mouse.up(); await p.waitForTimeout(250);
+  ok((await p.locator('.md-detail .rezept-held h1').innerText().catch(() => '')) === vor2 && vor2 !== 'Cremetorte', 'gezogen und auf derselben Karte losgelassen: das Rezept geht nicht auf', vor2);
   await p.waitForTimeout(450); await p.locator('.karte[data-uid=r-2]').click(); await p.waitForTimeout(300);
   ok(/Brot/.test(await p.locator('.md-detail .rezept-held h1').innerText().catch(() => '')), 'ein Klick öffnet das Rezept rechts wie bisher');
   await k.close();

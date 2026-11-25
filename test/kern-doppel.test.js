@@ -107,5 +107,6 @@ test('R5 rezeptVerschieben: vor, hinter, unbekannt, auf sich selbst', async () =
   const l = ['a', 'b', 'c', 'd'].map((u) => ({ uid: u })), u = (x) => x.map((r) => r.uid).join('');
   assert.equal(u(rezeptVerschieben(l, 'd', 'b')), 'adbc'); assert.equal(u(rezeptVerschieben(l, 'a', 'c', true)), 'bcad');
   assert.equal(u(rezeptVerschieben(l, 'a', 'd', true)), 'bcda'); assert.equal(rezeptVerschieben(l, 'a', 'x'), l); assert.equal(rezeptVerschieben(l, 'b', 'b'), l);
+  assert.equal(rezeptVerschieben(l, 'a', 'b'), l, 'steht schon davor: dieselbe Liste'); assert.equal(rezeptVerschieben(l, 'b', 'a', true), l);
   assert.equal(u(l), 'abcd', 'das Original bleibt unverändert');
 });
