@@ -31,7 +31,7 @@ F=[('kopf-ohne-knopf', "${NB.kopfKnopf()}<button class=\"rund akz\" data-a=\"neu
    ('zahl-fehlt', "z = n ? `<span class=\"zahl nz-zahl\"", "z = 0 ? `<span class=\"zahl nz-zahl\"", NB, 'am Knopf im Kopf steht die Zahl', 7),
    ('haken-nicht-ans-ende', "const rang = (n) => (n.erledigt ? 2 : n.tag ? 0 : 1);", "const rang = (n) => (n.tag ? 0 : 1);", 'kern/modell/notiz.mjs', 'abgehakt: durchgestrichen und ans Ende', 8),
    ('loeschen-ohne-rueckgaengig', "notizTitel(n, spr(), 30)), L('Rückgängig', 'Undo'), () => { setze(vorher); frisch(); }); };", "notizTitel(n, spr(), 30)), L('Rückgängig', 'Undo'), () => {}); };", NB, '„Rückgängig“ holt sie zurück', 8),
-   ('sicherung-ohne-notizen', ", plan: zustand.plan || null, notizen: notizListe(zustand.notizen) };", ", plan: zustand.plan || null };", 'kern/sicherung/sicherung.mjs', 'die Sicherung als Datei trägt die Notizen', 8),
+   ('sicherung-ohne-notizen', ", planPortionen: zustand.planPortionen || {}, notizen: notizListe(zustand.notizen) };", ", planPortionen: zustand.planPortionen || {} };", 'kern/sicherung/sicherung.mjs', 'die Sicherung als Datei trägt die Notizen', 8),
    ('feld-zu-breit', ".nz-feld{display:flex;gap:8px;align-items:flex-end}", ".nz-feld{display:flex;gap:8px;align-items:flex-end;min-width:360px}", 'neu/app.css', 'bei 320 px: das Notizbuch läuft nicht quer', 9)]
 nur=os.environ.get('NUR_FALL'); nur=nur.split(',') if nur else None; gefangen=0; durch=0; anders=0; tot=0
 if os.environ.get('NUR_ANKER'):

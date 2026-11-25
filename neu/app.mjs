@@ -41,8 +41,9 @@ import { naehrwerte, naehrwerteAnRezept, naehrwertZeilen, rechtschreibung, recht
 import { druckRezept, drucke, druckMenuekarte } from '../kern/ausgabe/druck.mjs';
 import { teilLink, ausTeilLink, qrSvg, passtInQr } from '../kern/teilen/qr.mjs';
 import { rezeptIn } from '../kern/modell/einheiten.mjs';
+import { findeDoppel, wendeAn, dHash, MERKMALE, merkmaleVon, merkmalUmschalten } from '../kern/modell/doppel.mjs';
 
-const FASSUNG = '0.17.6';
+const FASSUNG = '0.18.0';
 const breit = () => matchMedia('(min-width:1000px)').matches;
 const $ = (id) => document.getElementById(id);
 const esc = (t) => String(t ?? '').replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
@@ -145,7 +146,7 @@ const ausschnitt = (r) => { const c = r.imgCrop; if (!c || (c.x === 50 && c.y ==
 const bildOder = (r, gr = '') => (r.img ? `<img src="${esc(r.img)}" alt="" loading="lazy" ${ausschnitt(r)} ${gr}>` : ic('karte'));
 /* Klaus 23.11.: ein Kochbuch ist ein Bilderbuch. Unter dem Bild steht nur der Name; die Kategorie wird nicht auf jeder Karte wiederholt
    (sie steht in der Leiste und über dem Abschnitt), nur in gemischten Trefferlisten (mitKat). */
-const karte = (r0, c, mitKat = false, r = zeig(r0)) => { const unter = [r.prepTime ? ic('uhr') + esc(minText(r.prepTime)) : '', mitKat && c ? esc(katName(c)) : ''].filter(Boolean).join(' · '); return `<button class="karte" data-a="rezept" data-uid="${esc(r.uid)}"><span class="bild">${bildOder(r)}</span><span class="text"><strong>${esc(r.name)}</strong>${unter ? `<small>${unter}</small>` : ''}</span></button>`; };
+const karte = (r0, c, mitKat = false, r = zeig(r0)) => { const unter = [r.prepTime ? ic('uhr') + esc(minText(r.prepTime)) : '', mitKat && c ? esc(katName(c)) : ''].filter(Boolean).join(' · '); return `<button class="karte" data-a="rezept" data-uid="${esc(r.uid)}"><span class="bild">${bildOder(r)}</span><span class="text"><strong>${esc(r.name)}${merkZeichen(r0)}</strong>${unter ? `<small>${unter}</small>` : ''}</span></button>`; };
 
 function startHtml() {
   const heute = new Date().toLocaleDateString(geb(), { weekday: 'long', day: 'numeric', month: 'long' });
@@ -254,7 +255,7 @@ function rezeptHtml() {
     ${vollKnopf()}<div class="verlauf"><div class="tzeile">${s.rleiste ? `<div class="rwerk" role="toolbar">${wk('einordnen', 'ordner', L('Einordnen: Kategorie und Event-Ordner', 'Organise: category and event folder'))}${wk('bild-blatt', 'bild', L('Bild', 'Picture'))}${wk('uebersetzen', 'welt', L('Übersetzen', 'Translate'))}${wk('rmenue', 'mehr', L('Mehr: Drucken, Teilen, Nährwerte …', 'More: print, share, nutrition …'))}${wk('bearbeiten', 'stift', L('Bearbeiten', 'Edit'))}${wk('loeschen', 'muell', L('Rezept löschen', 'Delete recipe'), 'rot')}</div>` : ''}<button class="wk-pf zur" data-a="zurueck" aria-label="${L('Zurück', 'Back')}">${winkel('M15 5l-7 7 7 7')}</button><h1>${esc(r.name)}</h1><button class="wk-pf" data-a="rleiste" aria-expanded="${s.rleiste}" aria-label="${L('Werkzeuge für Rezept und Bild', 'Tools for recipe and picture')}">${winkel(s.rleiste ? 'M5 9l7 7 7-7' : 'M5 15l7-7 7 7')}</button></div><div class="meta">${r.prepTime ? `<span>${ic('uhr')}${esc(minText(r.prepTime))}</span>` : ''}<span>${ic('karte')}${esc(c ? katName(c) : '')}</span>${ordnerVonRezept(r, Z.ordner) ? `<span class="im-ordner">${ic('ordner')}${esc(ordTitel(findeOrdner(Z.ordner, r.folder)))}</span>` : ''}${sterneHtml(roh)}${uebUm}</div></div></div>
    <div class="bogen"><div class="zweispalt"><div>
     <div class="rz-aktion">${r.steps.length ? `<button class="sym akz" data-a="kochen">${ic('koch')}<small>${L('Kochen', 'Cook')}</small></button>` : ''}<button class="sym" data-a="auf-liste">${ic('einkauf')}<small>${L('Einkaufen', 'Shop')}</small></button><button class="sym" data-a="planen" aria-label="${L('In den Wochenplan', 'Into the week plan')}">${ic('plan')}<small>${L('Planen', 'Plan')}</small></button>
-    <div class="portion kompakt" role="group" aria-label="${L('Portionen', 'Servings')}"><span class="st"><button data-a="portion" data-d="-1" aria-label="${L('Weniger', 'Fewer')}">${ic('minus')}</button><span class="pz" aria-hidden="true">${ic('leute')}</span><button data-a="portion" data-d="1" aria-label="${L('Mehr', 'More')}">${ic('plus')}</button></span><small><b id="portionen">${n}</b> ${L('Pers.', 'ppl')}</small></div></div>
+    <div class="portion kompakt" role="group" aria-label="${L('Portionen', 'Servings')}"><span class="st"><button data-a="portion" data-d="-1" aria-label="${L('Weniger', 'Fewer')}">${ic('minus')}</button><span class="pz" aria-hidden="true">${ic('leute')}</span><button data-a="portion" data-d="1" aria-label="${L('Mehr', 'More')}">${ic('plus')}</button></span><small><b id="portionen">${n}</b> ${L('Pers.', 'ppl')}</small></div></div>${merkLeiste(roh)}
     ${abschnittKopf('ings', L('Zutaten', 'Ingredients'))}${s.abschnitt?.uid === roh.uid && s.abschnitt.teil === 'ings' ? abschnittForm(roh, 'ings') : `<ul class="zut">${r.ings.map((z) => `<li><b>${esc([skaliere(z.amt, f), z.unit].filter(Boolean).join(' '))}</b><span>${esc(z.name)}${z.note ? `<small>${esc(z.note)}</small>` : ''}</span></li>`).join('')}</ul>`}${naehrHtml(r, n)}${geraeteVon(r).length ? `<h2 class="h">${L('Geräte', 'Equipment')}</h2><div class="gr-liste">${geraeteVon(r).map((g) => `<span class="gr-chip">${geraetSvg(g)}${esc(geraetName(g))}</span>`).join('')}</div>` : ''}</div>
     <div>${abschnittKopf('steps', L('Zubereitung', 'Method'))}${s.abschnitt?.uid === roh.uid && s.abschnitt.teil === 'steps' ? abschnittForm(roh, 'steps') : `<ol class="schritte">${r.steps.map((x) => `<li><span>${esc(x.txt)}${x.note ? `<small>${esc(x.note)}</small>` : ''}</span></li>`).join('')}</ol>`}
     ${r.source ? `<p class="quelle">${fuelle(L('Quelle: {0}', 'Source: {0}'), esc(r.source))}</p>` : ''}${vermerkHtml(r, spr())}</div></div></div>`;
@@ -930,8 +931,8 @@ async function scanSenden() {
   });
   sichern(); s.scan = null; s.kat = 'alle'; s.frage = ''; geh('start', {}, s.ansicht === 'start');
   melde(fuelle(L('{0} von {1} gelesen', '{0} of {1} read'), ok, n) + (entfernt ? ' · ' + fuelle(L('{0} versteckt entfernt', '{0} hidden removed'), entfernt) : ''), ok ? L('Rückgängig', 'Undo') : '', () => { Z.rezepte = vorher; sichern(); zeichne(true); });
-  if (fehler.length) fenster(`<h2>${L('Nicht gelesen', 'Not read')}</h2><ul class="ki-liste" id="scan-fehler">${fehler.map(([name, grund]) => `<li><b>${esc(name)}</b><br>${esc(grund)}</li>`).join('')}</ul><div class="reihe"><button class="knopf" data-a="fenster-zu">${L('Schließen', 'Close')}</button></div>`);
-  if (neuIds.length) setTimeout(() => nachEinlesen(neuIds), 7200);   /* nach der Meldung mit „Rückgängig“ */
+  if (fehler.length) { fenster(`<h2>${L('Nicht gelesen', 'Not read')}</h2><ul class="ki-liste" id="scan-fehler">${fehler.map(([name, grund]) => `<li><b>${esc(name)}</b><br>${esc(grund)}</li>`).join('')}</ul><div class="reihe"><button class="knopf" data-a="fenster-zu">${L('Schließen', 'Close')}</button></div>`); zuTun = () => setTimeout(() => doppelPruefen(neuIds), 0); } else doppelPruefen(neuIds);   /* R6: das Fenster „Nicht gelesen“ zuerst */
+  if (neuIds.length) setTimeout(() => nachEinlesen(neuIds.filter((u) => rezept(u))), 7200);   /* nach der Meldung mit „Rückgängig“ */
 }
 
 /* ---------- Anlegen und Bearbeiten ---------- */
@@ -941,20 +942,20 @@ function formHtml() {
   <form class="felder" data-form="rezept">
    <label>${L('Name', 'Name')}<input class="feld" name="name" value="${esc(f.name)}" required autocomplete="off"></label>
    <div class="zwei"><label>${L('Kategorie', 'Category')}<select class="feld" name="cat"><option value="">${L('ohne Kategorie', 'no category')}</option>${kats.map((c) => `<option value="${esc(c.id)}" ${f.cat === c.id ? 'selected' : ''}>${esc(katName(c))}</option>`).join('')}</select></label>
-   <label>${L('Neue Kategorie (statt Auswahl)', 'New category (instead of choosing)')}<input class="feld" name="katneu" placeholder="${L('z. B. Sushi', 'e.g. sushi')}" autocomplete="off"></label></div>
+   <label>${L('Neue Kategorie (statt Auswahl)', 'New category (instead of choosing)')}<input class="feld" name="katneu" value="${esc(f.katneu || '')}" placeholder="${L('z. B. Sushi', 'e.g. sushi')}" autocomplete="off"></label></div>
    ${Z.ordner.length ? `<label>${L('Event-Ordner', 'Event folder')}<select class="feld" name="folder"><option value="">${L('kein Event-Ordner', 'no event folder')}</option>${Z.ordner.map((o) => `<option value="${esc(o.id)}" ${String(o.id) === String(f.folder || '') ? 'selected' : ''}>${esc(ordTitel(o))}</option>`).join('')}</select></label>` : ''}
    <div class="zwei"><label>${L('Portionen', 'Servings')}<input class="feld" name="servings" type="number" min="1" max="99" value="${esc(f.servings)}"></label><label>${L('Zeit in Minuten', 'Time in minutes')}<input class="feld" name="prepTime" type="number" min="0" max="999" value="${esc(f.prepTime ?? '')}"></label></div>
    <label>${L('Zutaten, eine je Zeile (z. B. „200 g Mehl“)', 'Ingredients, one per line (e.g. “200 g flour”)')}<span class="mitmik"><textarea class="feld" name="ings" id="f-ings">${esc(f.ings)}</textarea>${mik('#f-ings')}</span></label>
    <label>${L('Schritte, einer je Absatz', 'Steps, one per paragraph')}<span class="mitmik"><textarea class="feld" name="steps" id="f-steps" style="min-height:170px">${esc(f.steps)}</textarea>${mik('#f-steps')}</span></label>
    <div class="formbild">${f.img ? `<img src="${esc(f.img)}" alt="">` : ''}<button type="button" class="knopf" data-a="bild-waehlen">${ic('kamera')}${f.img ? L('Anderes Foto', 'Other photo') : L('Foto dazu', 'Add a photo')}</button>${f.img ? `<button type="button" class="knopf" data-a="bild-weg">${L('Foto entfernen', 'Remove photo')}</button>` : ''}</div>
-   <div class="reihe"><button class="knopf akz" type="submit">${ic('haken')}${L('Speichern', 'Save')}</button><button class="knopf" type="button" data-a="zurueck">${L('Abbrechen', 'Cancel')}</button></div>
+   ${formDoppelBand(f)}<div class="reihe"><button class="knopf akz" type="submit">${ic('haken')}${L('Speichern', 'Save')}</button><button class="knopf" type="button" data-a="zurueck">${L('Abbrechen', 'Cancel')}</button></div>
   </form>`;
 }
 function formAus(r) {
   return { neu: !r, uid: r?.uid || null, name: r?.name || '', cat: r?.cat || (s.kat !== 'alle' && s.kat !== KAT_OHNE && !s.kat.startsWith('ordner:') ? s.kat : ''), folder: r ? ordnerVonRezept(r, Z.ordner) : (s.kat.startsWith('ordner:') ? s.kat.slice(7) : ''), servings: r?.servings || 4, prepTime: r?.prepTime ?? '', img: r?.img || '',
     ings: (r?.ings || []).map(zutatZeile).join('\n'), steps: (r?.steps || []).map((x) => x.txt).join('\n\n') };
 }
-function formLesen(form) { const d = new FormData(form); for (const k of ['name', 'cat', 'servings', 'prepTime', 'ings', 'steps']) s.form[k] = d.get(k); if (d.has('folder')) s.form.folder = d.get('folder'); return d; }
+function formLesen(form) { const d = new FormData(form); for (const k of ['name', 'cat', 'servings', 'prepTime', 'ings', 'steps', 'katneu']) s.form[k] = d.get(k); if (d.has('folder')) s.form.folder = d.get('folder'); return d; }
 /* Das Formular kennt nur den Text der Schritte. Was ein Schritt sonst trägt (seine Notiz), bleibt: zuerst am gleichen Text;
    bleiben danach gleich viele alte und neue Schritte übrig, der Reihe nach (ein umgeschriebener Schritt behält seine Notiz). */
 function schritteMitNotiz(texte, alte) {
@@ -963,7 +964,7 @@ function schritteMitNotiz(texte, alte) {
   const offen = rest.filter((y) => y.frei), paaren = aus.filter((x) => !x).length === offen.length; let j = 0;
   return aus.map((x, i) => x || (paaren ? { ...offen[j++].x, txt: texte[i] } : { txt: texte[i] }));
 }
-function formSpeichern(form) {
+async function formSpeichern(form, wahl = '') {
   const d = formLesen(form), f = s.form;
   if (!String(f.name).trim()) { melde(L('Bitte einen Namen eintragen.', 'Please enter a name.')); return; }
   let cat = f.cat; const katneu = String(d.get('katneu') || '').trim();
@@ -975,6 +976,12 @@ function formSpeichern(form) {
   const textBlieb = !!vor && ['name', 'ings', 'steps'].every((k) => zeilen(vor[k]) === zeilen(f[k]));   /* nur Kategorie, Portionen, Zeit oder Foto geändert: eine Übersetzung bleibt */
   const roh = normalisiere({ ...(alt || { id: Z.rezepte.reduce((m, r) => Math.max(m, +r.id || 0), 0) + 1, uid: neueUid(), created: new Date().toISOString() }), name: f.name, cat, ...(findeOrdner(Z.ordner, f.folder) || f.folder === '' ? { folder: f.folder || '' } : {}), servings: f.servings, prepTime: f.prepTime === '' ? undefined : +f.prepTime, img: f.img,
     ings: String(f.ings).split('\n').filter((t) => t.trim()).map(zutatAusZeile), steps: schritteMitNotiz(String(f.steps).split(/\n\s*\n|\n/).filter((t) => t.trim()), alt ? alt.steps : []), modified: new Date().toISOString() });
+  if (!alt && !f.doppelOk && wahl !== 'eigen') {   /* R6: ein neues Rezept, das es ähnlich schon gibt – Hinweis im Formular, kein Zwischenfenster */
+    if (wahl && f.doppel && rezept(f.doppel.alt)) { const ziel = rezept(f.doppel.alt), zus = wendeAn(ziel, { ...roh, translations: undefined }, wahl); delete zus.beispiel; s.form = null; rezeptSetzen(zus); if (!(f.notiz && NB.uebernommen(f.notiz, ziel.uid))) melde(fuelle(L('In „{0}“ übernommen', 'Merged into “{0}”'), ziel.name));   /* aus einer Notiz: „Notiz abhaken“ wie beim Speichern */ geh(s.formVon === 'baum' && breit() ? 'baum' : 'rezept', { uid: ziel.uid }, true); return; }
+    const hash = await fingerabdruecke([...Z.rezepte, roh]).catch(() => new Map()), p = findeDoppel([...Z.rezepte, roh], [roh], { hash })[0];
+    if (s.form !== f) return;
+    if (p) { f.doppel = p; zeichne(); document.getElementById('form-doppel')?.scrollIntoView({ block: 'center' }); return; }
+  }
   const danach = (uid) => { s.form = null; if (!(f.notiz && NB.uebernommen(f.notiz, uid))) melde(L('Gespeichert', 'Saved')); geh(s.formVon === 'baum' && breit() ? 'baum' : 'rezept', { uid }, true); };
   if (alt && f.ueb && !textBlieb) { fassungFrage(alt, roh, f.ueb, () => danach(alt.uid)); return; }   /* eine Übersetzung bearbeitet: einmal fragen */
   const neu = ohneAlteUebersetzung(alt, alt && (f.ueb || textBlieb) ? { ...roh, name: alt.name, ings: alt.ings, steps: alt.steps } : roh, textBlieb);   /* Text unverändert: Name, Zutaten und Schritte bleiben, wie sie waren (nichts wird neu zerlegt, etwa „1 kleine Zwiebel“) */
@@ -1095,8 +1102,64 @@ function einfuegen(eingang, beispiel = false) {
   const vorher = Z; Z = m.zustand; ergaenze(); sichern(); s.kat = 'alle'; s.frage = '';
   melde((m.neu === 1 ? L('+1 Rezept', '+1 recipe') : fuelle(L('+{0} Rezepte', '+{0} recipes'), m.neu)) + (m.doppelt ? ' · ' + fuelle(L('{0} schon da', '{0} already there'), m.doppelt) : '') + (h.ohneKategorie ? ' · ' + fuelle(L('{0} ohne Kategorie', '{0} without category'), h.ohneKategorie) : ''), m.neu ? L('Rückgängig', 'Undo') : '', () => { Z = vorher; sichern(); zeichne(true); });
   geh('start', {}, s.ansicht === 'start');
-  const alt = new Set(vorher.rezepte.map((r) => r.uid)), neuIds = Z.rezepte.filter((r) => !alt.has(r.uid)).map((r) => r.uid); if (neuIds.length) setTimeout(() => nachEinlesen(neuIds), 7200);   /* R23: nach der Meldung mit „Rückgängig“ */
+  const alt = new Set(vorher.rezepte.map((r) => r.uid)), neuIds = Z.rezepte.filter((r) => !alt.has(r.uid)).map((r) => r.uid); if (neuIds.length) { doppelPruefen(neuIds); setTimeout(() => nachEinlesen(neuIds.filter((u) => rezept(u))), 7200); }   /* R6 Doppel, R23: nach der Meldung mit „Rückgängig“ */
 }
+
+/* ---------- R6 Doppelungen (Klaus 25.11.): nach Inhalt und Bild, je Paar „Meins · Bild vom neuen · Text vom neuen · Ganz das neue · Beide“.
+   Erkannt wird im Kern (modell/doppel.mjs); hier entsteht nur der Bild-Fingerabdruck (9×8 Graustufen), einmal je Bild und Sitzung. ---------- */
+const fpVorrat = new Map();
+async function bildFingerabdruck(src) {
+  if (!src) return ''; if (fpVorrat.has(src)) return fpVorrat.get(src);
+  let h = '';
+  try {
+    const bm = await createImageBitmap(await (await fetch(src)).blob(), { resizeWidth: 9, resizeHeight: 8, resizeQuality: 'medium' });
+    const c = document.createElement('canvas'); c.width = 9; c.height = 8; const g = c.getContext('2d', { willReadFrequently: true }); g.drawImage(bm, 0, 0, 9, 8); bm.close?.();
+    const px = g.getImageData(0, 0, 9, 8).data, grau = []; for (let i = 0; i < px.length; i += 4) grau.push(0.299 * px[i] + 0.587 * px[i + 1] + 0.114 * px[i + 2]);
+    h = dHash(grau);
+  } catch { h = ''; }   /* ein Bild, das sich nicht lesen lässt, wird nur an seiner Adresse verglichen */
+  fpVorrat.set(src, h); return h;
+}
+async function fingerabdruecke(rs) { const m = new Map(); for (const r of rs) if (istInhalt(r) && r.img) m.set(r.uid, await bildFingerabdruck(r.img)); return m; }
+let dopp = null;
+const dpGrund = (p) => [p.name === 1 ? L('Name gleich', 'Same name') : p.name >= 0.5 ? L('Name ähnlich', 'Similar name') : '', p.zutaten ? fuelle(L('Zutaten zu {0} % gleich', 'Ingredients {0} % the same'), Math.round(p.zutaten * 100)) : '', p.bild ? L('gleiches Bild', 'same picture') : ''].filter(Boolean).join(' · ');
+const dpSeite = (r, titel) => `<figure class="dp-seite"><span class="dp-bild">${r.img ? `<img src="${esc(r.img)}" alt="" loading="lazy">` : ic('karte')}</span><figcaption><small>${esc(titel)}</small><b>${esc(r.name)}</b><small>${fuelle(L('{0} Zutaten', '{0} ingredients'), r.ings.length)} · ${fuelle(L('{0} Schritte', '{0} steps'), r.steps.length)}</small></figcaption></figure>`;
+function dpWahlKnoepfe(p, w, akt, extra = '') {
+  const neu = rezept(p.neu) || p.neuR, opt = [['meins', L('Meins behalten', 'Keep mine')], ...(neu?.img ? [['bild', L('Bild vom neuen', 'Picture from the new one')]] : []), ['text', L('Text vom neuen', 'Text from the new one')], ['ganz', L('Ganz das neue', 'All of the new one')], ['beide', L('Beide behalten', 'Keep both')]];
+  return opt.map(([k, t]) => `<button type="button" class="chip" data-a="${akt}" data-w="${k}" ${extra} aria-pressed="${w === k}">${esc(t)}</button>`).join('');
+}
+function dpStufe(p) { return `<span class="dp-stufe ${p.stufe}">${p.stufe === 'sicher' ? L('sicher doppelt', 'surely a duplicate') : L('vielleicht doppelt', 'maybe a duplicate')}</span>`; }
+async function doppelPruefen(neuIds) {
+  if (!neuIds?.length) return;
+  const hash = await W.mit(L('Doppelte Rezepte werden gesucht …', 'Looking for duplicate recipes …'), () => fingerabdruecke(Z.rezepte)).catch(() => new Map());
+  const paare = findeDoppel(Z.rezepte, neuIds.filter((u) => rezept(u)), { hash });
+  if (!paare.length) return;
+  dopp = { paare, wahl: new Map(paare.map((p) => [p.neu, p.stufe === 'sicher' ? 'meins' : 'beide'])) };
+  fenster(`<h2>${fuelle(L('Mögliche Doppel ({0})', 'Possible duplicates ({0})'), paare.length)}</h2><p>${L('Links steht dein Rezept, rechts das neue. Wähle je Paar, was bleibt. „Später“ behält beide.', 'Your recipe is on the left, the new one on the right. Choose what stays for each pair. “Later” keeps both.')}</p>
+   <div class="dp-liste" id="doppel-liste">${paare.map((p) => `<div class="dp" data-neu="${esc(p.neu)}"><div class="dp-kopf">${dpStufe(p)}<small>${esc(dpGrund(p))}</small></div><div class="dp-paar">${dpSeite(rezept(p.alt), L('Meins', 'Mine'))}${dpSeite(rezept(p.neu), L('Neu', 'New'))}</div><div class="dp-wahl" role="group" aria-label="${L('Was bleibt', 'What stays')}">${dpWahlKnoepfe(p, dopp.wahl.get(p.neu), 'dp-wahl', `data-neu="${esc(p.neu)}"`)}</div></div>`).join('')}</div>
+   <div class="reihe"><button class="knopf akz" data-a="dp-fertig">${ic('haken')}${L('Übernehmen', 'Apply')}</button><button class="knopf" data-a="fenster-zu">${L('Später', 'Later')}</button></div>`);
+  zuTun = () => { dopp = null; };
+}
+function doppelAnwenden() {
+  if (!dopp) return; const vorher = Z.rezepte; let n = 0; const neuUeb = [];
+  for (const p of dopp.paare) {
+    const w = dopp.wahl.get(p.neu), alt = rezept(p.alt), neu = rezept(p.neu); if (!alt || !neu || w === 'beide') continue;
+    const zus = wendeAn(alt, neu, w); if (w !== 'meins') delete zus.beispiel;
+    Z.rezepte = Z.rezepte.filter((r) => r.uid !== neu.uid).map((r) => (r.uid === alt.uid ? zus : r)); n++;
+    if (w === 'text' || w === 'ganz') neuUeb.push([alt, zus]);
+  }
+  dopp = null; fensterZu(); if (!n) return;
+  sichern(); zeichne(true); neuUeb.forEach(([a, b]) => neuUebersetzen(a, b));
+  melde(n === 1 ? L('1 Doppel zusammengeführt', '1 duplicate merged') : fuelle(L('{0} Doppel zusammengeführt', '{0} duplicates merged'), n), L('Rückgängig', 'Undo'), () => { Z.rezepte = vorher; sichern(); zeichne(true); });
+}
+function formDoppelBand(f) {
+  const p = f.doppel, alt = p && rezept(p.alt); if (!alt) return '';
+  return `<div class="dp-band" id="form-doppel" role="status">${dpSeite(alt, L('Gibt es schon', 'Already there'))}<div class="dp-kopf">${dpStufe(p)}<small>${esc(dpGrund(p))}</small></div><div class="dp-wahl" role="group" aria-label="${L('Was tun', 'What to do')}">${[...(f.img ? [['bild', L('Nur das Bild übernehmen', 'Take only the picture')]] : []), ['text', L('Nur den Text übernehmen', 'Take only the text')], ['ganz', L('Ganz übernehmen', 'Take all of it')], ['eigen', L('Als eigenes Rezept speichern', 'Save as a recipe of its own')]].map(([k, t]) => `<button type="button" class="chip" data-a="form-doppel" data-w="${k}">${esc(t)}</button>`).join('')}</div></div>`;
+}
+/* ---------- Merkmale einer Variante (Klaus 25.11.): vegan, laktosefrei, glutenfrei – direkt am Rezept umschaltbar.
+   Zwei Rezepte mit verschiedenen Merkmalen sind nie ein Doppel: die laktosefreie Variante bleibt neben dem Original. ---------- */
+const MERK = { vegan: ['🌱', () => L('vegan', 'vegan')], laktosefrei: ['🥛', () => L('laktosefrei', 'lactose-free')], glutenfrei: ['🌾', () => L('glutenfrei', 'gluten-free')] };
+const merkZeichen = (r) => { const m = merkmaleVon(r); return m.length ? ` <span class="merk-z" title="${esc(m.map((x) => MERK[x][1]()).join(', '))}">${m.map((x) => MERK[x][0]).join('')}</span>` : ''; };
+const merkLeiste = (r) => `<div class="merkmale" role="group" aria-label="${L('Variante', 'Variant')}">${MERKMALE.map((m) => { const an = merkmaleVon(r).includes(m); return `<button class="chip merk" data-a="merkmal" data-m="${m}" aria-pressed="${an}" title="${esc(an ? fuelle(L('Als {0} markiert. Tippen nimmt es weg.', 'Marked as {0}. Tap to remove.'), MERK[m][1]()) : fuelle(L('Als {0} markieren', 'Mark as {0}'), MERK[m][1]()))}"><span aria-hidden="true">${MERK[m][0]}</span>${esc(MERK[m][1]())}</button>`; }).join('')}</div>`;
 /* Klaus 24.11.: nach dem Wählen einer Datei die Wahl „Hinzufügen“ (wie bisher, vorne) oder „Ersetzen“. Beispielpakete fragen nicht. */
 let dateiEingang = null;
 function dateiFrage(eingang) {
@@ -1388,6 +1451,10 @@ const A = {
   'scan-kamera': () => { s.tellerWahl = false; $('datei-kamera').click(); },
   'scan-datei': () => { s.tellerWahl = false; $('datei-scan').click(); },
   'scan-teller': () => { s.tellerWahl = true; $('datei-kamera').click(); },
+  merkmal: (e) => { const r0 = rezept(s.uid); if (!r0) return; Z.rezepte = Z.rezepte.map((x) => (x.uid === r0.uid ? { ...merkmalUmschalten(x, e.dataset.m), modified: new Date().toISOString() } : x)); sichern(); zeichne(); },
+  'dp-wahl': (e) => { if (!dopp) return; dopp.wahl.set(e.dataset.neu, e.dataset.w); e.parentElement.querySelectorAll('button').forEach((b) => b.setAttribute('aria-pressed', String(b === e))); },
+  'dp-fertig': () => doppelAnwenden(),
+  'form-doppel': (e) => { const f = document.querySelector('form[data-form="rezept"]'); if (!f || !s.form) return; if (e.dataset.w === 'eigen') s.form.doppelOk = true; formSpeichern(f, e.dataset.w); },
   stern: (e) => { const r0 = rezept(s.uid); if (!r0) return; const n = +e.dataset.n, alt = Math.round(Number(r0.rating?.stars) || 0); Z.rezepte = Z.rezepte.map((x) => (x.uid === r0.uid ? { ...x, rating: { ...(x.rating || {}), stars: n === alt ? 0 : n } } : x)); sichern(); zeichne(); },
   kontrast: () => { E.kontrast = !E.kontrast; farbeSetzen(document.documentElement, E.farbe, E.ton, { kontrast: E.kontrast }); sichern(); zeichne(); },
   'scan-anbieter': (e) => { E.scan = { ...E.scan, anbieter: e.dataset.w }; s.scanMehr = true; sichern(); neuFenster('scan'); },

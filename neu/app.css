@@ -1055,3 +1055,26 @@ a.knopf{text-decoration:none}
 .portion.kompakt .st b{min-width:14px}
 .portion.kompakt small b{font-weight:700;color:var(--ink);font-variant-numeric:tabular-nums}
 .portion.kompakt .pz .ic{width:18px;height:18px}
+/* R6 Doppelungen und Merkmale einer Variante (0.18.0) */
+.merkmale{display:flex;flex-wrap:wrap;gap:6px;margin:4px 0 8px}
+.chip.merk{min-height:32px;color:var(--mut);border-style:dashed}
+.chip.merk[aria-pressed="true"]{border-style:solid;color:var(--vl-schrift);font-weight:650}
+.chip.merk span{font-size:15px}
+.merk-z{font-size:.85em;font-weight:400;white-space:nowrap}
+.dp-liste{display:grid;gap:12px;max-height:min(60vh,640px);overflow:auto;margin:8px 0 12px;padding-right:2px}
+.dp,.dp-band{border:1px solid var(--line);border-radius:12px;padding:10px;background:var(--fl);display:grid;gap:8px}
+.dp-band{margin:4px 0 10px;border-color:var(--akz)}
+.dp-kopf{display:flex;flex-wrap:wrap;align-items:center;gap:8px}
+.dp-kopf small{color:var(--mut)}
+.dp-stufe{font-size:12px;font-weight:700;padding:2px 8px;border-radius:99px;background:var(--fl2)}
+.dp-stufe.sicher{background:var(--akz);color:var(--akz-ink)}
+.dp-paar{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.dp-seite{display:flex;gap:8px;align-items:center;margin:0;min-width:0}
+.dp-bild{flex:none;width:56px;height:56px;border-radius:9px;overflow:hidden;display:grid;place-items:center;background:var(--fl2);color:var(--akz)}
+.dp-bild img{width:100%;height:100%;object-fit:cover}
+.dp-seite figcaption{display:grid;min-width:0}
+.dp-seite figcaption b{overflow:hidden;text-overflow:ellipsis;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical}
+.dp-seite small{color:var(--mut);font-size:12px}
+.dp-wahl{display:flex;flex-wrap:wrap;gap:6px}
+.dp-wahl .chip{min-height:34px}
+@media (max-width:420px){.dp-paar{grid-template-columns:1fr}}
