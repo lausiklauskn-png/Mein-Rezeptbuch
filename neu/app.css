@@ -342,6 +342,10 @@ body:has(.koch) .fl{display:none}
 .w-auf span small{display:block;font-weight:400;color:var(--mut);font-size:12px}
 .w-weg{width:36px;height:36px;display:grid;place-items:center;color:var(--mut);flex:none}
 .w-weg .ic{width:15px;height:15px}
+/* Portionen im Plan (R19): klein und leise; eine eigene Zahl (z. B. Gäste eines Anlasses) steht in der Akzentfarbe */
+.w-port{display:inline-flex;align-items:center;gap:3px;height:36px;padding:0 6px;color:var(--mut);font-size:12.5px;font-weight:650;flex:none;font-variant-numeric:tabular-nums}
+.w-port .ic{width:15px;height:15px}
+.w-port.eig{color:var(--akz)}
 .w-leer{display:flex;align-items:center;gap:8px;border:1.5px dashed var(--line);border-radius:12px;padding:6px 10px;color:var(--mut);font-size:13px;min-height:38px}
 .w-leer .ic{width:17px;height:17px}
 .tagwahl{display:flex;flex-wrap:wrap;gap:6px}
@@ -359,6 +363,8 @@ body:has(.koch) .fl{display:none}
  .w-auf span{padding:7px 10px 9px;font-size:13px}
  .w-weg{position:absolute;top:6px;right:6px;width:28px;height:28px;border-radius:50%;background:rgba(255,255,255,.9);color:#241c15}
  .w-leer{justify-content:center}
+ .w-port{position:absolute;top:6px;left:6px;height:28px;border-radius:14px;background:rgba(255,255,255,.9);color:#241c15}
+ .w-port.eig{color:#8a3b12}
 }
 .quelle-chip .ic [opacity],.w-weg .ic [opacity],.w-leer .ic [opacity],.fl-zu .ic [opacity],.suche button .ic [opacity],.laeden .ic [opacity],.k-klapp .ic [opacity],.k-kopf .rund .ic [opacity]{opacity:0}
 .w-leer.mehr{border:0;min-height:26px;padding:0 6px;font-size:12px;justify-self:start}
@@ -967,3 +973,16 @@ a.knopf{text-decoration:none}
 .wahl-liste .zeile[aria-pressed="true"]{font-weight:650}
 .mitmik .nz-leer{position:absolute;right:6px;top:6px;width:28px;height:28px;border-radius:50%;display:grid;place-items:center;background:var(--fl);color:var(--mut)}
 .mitmik .nz-leer .ic{width:15px;height:15px}
+
+/* Event-Ordner (R19): das Band unter der Kopfzeile eines Ordners – Datum und Gäste ändert man da, wo sie stehen */
+.bz-event{border-top:1px solid var(--line);padding:8px 10px 10px;display:grid;gap:8px}
+.bz-event.aus{padding:6px 10px 8px}
+.ev-felder{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.ev-feld{display:flex;align-items:center;gap:6px;font-size:12.5px;color:var(--mut)}
+.ev-feld .feld{padding:5px 8px;font-size:14px;min-height:36px}
+.ev-gaeste{width:5.5em}
+.ev-felder .rund{margin-left:auto;background:none;color:var(--mut);width:36px;height:36px}
+.ev-knoepfe{gap:6px}
+.ev-knoepfe .chip{min-height:34px}
+.ev-knoepfe .chip:disabled{opacity:.5}
+.chip.akz{background:var(--vl);color:var(--vl-schrift);border-color:var(--vl-rand);font-weight:650}

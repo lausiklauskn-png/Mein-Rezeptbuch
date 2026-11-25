@@ -194,3 +194,30 @@ export function drucke(html, { dokument: dok = globalThis.document, nachlauf = 1
     dok.body.appendChild(rahmen);
   });
 }
+
+/** Eine Menükarte als druckfertiges HTML-Dokument (A4, R19 Event-Ordner): Anlass, Datum, darunter die Gänge mit ihren Gerichten,
+ *  mittig gesetzt wie eine Karte auf dem Tisch. menue: { titel, datum ('JJJJ-MM-TT' oder Date), gaenge: [{ titel, gerichte: [{ name, text }] }] }.
+ *  Die Gästezahl steht bewusst NICHT darauf: die Karte ist für die Gäste. Kein Bild (eine Karte soll auch schwarz-weiß gut aussehen). */
+export function druckMenuekarte(menue, { sprache = 'de', farbe, fuss = '' } = {}) {
+  const m = menue || {}, titel = String(m.titel ?? '').trim() || text(sprache, 'Menü', 'Menu');
+  const d = typeof m.datum === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(m.datum) ? new Date(m.datum + 'T12:00') : m.datum;
+  const tag = d instanceof Date && !Number.isNaN(d.getTime()) ? d.toLocaleDateString(gebiet(sprache), { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' }) : '';
+  const gaenge = (Array.isArray(m.gaenge) ? m.gaenge : []).map((g) => ({ titel: String(g?.titel ?? '').trim(), gerichte: (Array.isArray(g?.gerichte) ? g.gerichte : []).map((x) => ({ name: String(x?.name ?? '').trim(), text: String(x?.text ?? '').trim() })).filter((x) => x.name) })).filter((g) => g.gerichte.length);
+  const rumpf = [`<div class="karte"><p class="oben">${esc(text(sprache, 'Menü', 'Menu'))}</p><h1>${esc(titel)}</h1>`, tag ? `<p class="datum">${esc(tag)}</p>` : '', '<div class="zier"></div>',
+    ...gaenge.map((g, i) => `<section>${g.titel ? `<h2>${esc(g.titel)}</h2>` : ''}${g.gerichte.map((x) => `<p class="g">${esc(x.name)}</p>${x.text ? `<p class="t">${esc(x.text)}</p>` : ''}`).join('')}</section>${i < gaenge.length - 1 ? '<div class="stern">✦</div>' : ''}`),
+    gaenge.length ? '' : `<p>${esc(text(sprache, 'Noch kein Gericht im Menü.', 'No dish in the menu yet.'))}</p>`, '</div>', fuss ? `<p class="fussk">${esc(fuss)}</p>` : ''].filter(Boolean).join('\n');
+  return dokument(titel, sprache, farbe, MENUE_STIL, rumpf);
+}
+const MENUE_STIL = `body{text-align:center}
+.karte{border:1.5pt solid var(--f);outline:0.5pt solid var(--f);outline-offset:3pt;padding:28pt 30pt 30pt;margin-top:6pt}
+.oben{font-size:8pt;letter-spacing:.35em;text-transform:uppercase;color:var(--f);margin:0 0 6pt}
+h1{font-size:24pt;font-weight:400;font-style:italic;margin:0 0 6pt}
+.datum{font-size:10pt;color:#555;margin:0}
+.zier{width:60pt;border-top:1pt solid var(--f);margin:16pt auto 18pt}
+section{break-inside:avoid;page-break-inside:avoid}
+h2{border:0;margin:0 0 8pt;padding:0;font-size:8pt;letter-spacing:.25em}
+.g{font-size:13pt;margin:0 0 2pt}
+.t{font-size:9pt;color:#666;font-style:italic;margin:0 auto 8pt;max-width:12cm}
+.stern{color:var(--f);font-size:9pt;margin:12pt 0}
+.fussk{font-size:7.5pt;color:#999;margin-top:12pt}
+`;

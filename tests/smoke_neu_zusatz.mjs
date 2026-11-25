@@ -20,7 +20,7 @@ const MODELL = `(function(){const v=(t)=>{const a=new Float32Array(384);const s=
 async function seite({ rezepte = [], einstellungen = {}, schluessel = {}, vorher = null, ordner = [], ohneBestand = false, start = URL0, plan = {}, kategorien = {} } = {}) {
   const k = await browser.newContext({ viewport: { width: 390, height: 800 }, serviceWorkers: 'block', locale: 'de-DE' }), p = mitThemen(await k.newPage());
   const netz = { claude: [], bild: [], claudeAntwort: () => ({}), bildWarte: 0, bildStatus: 200 };
-  p.on('pageerror', (e) => fehler.push(e.message)); p.on('console', (m) => m.type() === 'error' && !/Failed to load resource/.test(m.text()) && fehler.push(m.text()));
+  p.on('pageerror', (e) => { fehler.push(e.message); if (process.env.DBG) console.log(e.stack); }); p.on('console', (m) => m.type() === 'error' && !/Failed to load resource/.test(m.text()) && fehler.push(m.text()));
   await p.route(/^https?:\/\/(?!localhost)/, (r) => { fehler.push('Netz nach draußen: ' + r.request().url()); r.abort(); });
   await p.route('https://api.anthropic.com/**', (r) => { netz.claude.push(JSON.parse(r.request().postData())); r.fulfill({ contentType: 'application/json', body: JSON.stringify({ content: [{ type: 'text', text: JSON.stringify(netz.claudeAntwort()) }], stop_reason: 'end_turn' }) }); });
   await p.route('https://api.openai.com/**', (r) => { netz.bild.push(JSON.parse(r.request().postData())); setTimeout(() => (netz.bildStatus === 200 ? r.fulfill({ contentType: 'application/json', body: JSON.stringify({ data: [{ b64_json: PNG }] }) }) : r.fulfill({ status: netz.bildStatus, contentType: 'application/json', body: '{}' })), netz.bildWarte); });
@@ -330,6 +330,12 @@ try {
   await p.click('[data-a=rleiste]'); await p.click('.rwerk [data-a=bearbeiten]'); await p.waitForSelector('[data-form=rezept]'); await p.fill('[name=name]', 'Kartoffelgulasch'); await p.click('[data-form=rezept] button[type=submit]'); await p.waitForSelector('.rezept-held h1');
   await geh(p, 'start'); await p.fill('#suchfeld', 'eintopf'); await p.waitForFunction(() => document.querySelectorAll('#sinn-treffer .karte').length === 2, null, { timeout: 15000 }).catch(() => {});
   ok((await nachBedeutung()).sort().join('|') === 'Kartoffelgulasch|Rindergulasch', 'ein Rezept wird bearbeitet (gleiche Kennung, neuer Inhalt): der Bedeutungs-Index rechnet es neu und findet es', (await nachBedeutung()).join('|'));
+  /* R24 (Klaus 25.11.): neu eingelesene Rezepte kommen bei der nächsten Suche in den Bedeutungs-Index, ohne Neustart */
+  await p.fill('#suchfeld', ''); await geh(p, 'werkstatt');
+  await p.setInputFiles('#datei-sicherung', { name: 'neu.json', mimeType: 'application/json', buffer: Buffer.from(JSON.stringify({ version: 11, exported: '2026-11-25T20:00:00.000Z', recipes: [R(7, 'Szegediner Gulasch')], menu: [], folders: [] })) });
+  await p.waitForSelector('[data-a=datei-dazu]', { timeout: 8000 }); await p.click('[data-a=datei-dazu]'); await p.waitForTimeout(400);
+  await geh(p, 'start'); await p.fill('#suchfeld', 'eintopf'); await p.waitForFunction(() => document.querySelectorAll('#sinn-treffer .karte').length === 3, null, { timeout: 15000 }).catch(() => {});
+  ok((await nachBedeutung()).sort().join('|') === 'Kartoffelgulasch|Rindergulasch|Szegediner Gulasch', 'ein neu eingelesenes Rezept wird bei der nächsten Suche eingelesen und gefunden (R24)', (await nachBedeutung()).join('|'));
   await k.close();
   }
   if (will(13)) {

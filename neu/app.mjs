@@ -1,7 +1,7 @@
 // Mein Rezeptbuch – neue PWA (Ausgabe „rezeptbuch“ des Küchen-Kerns). Erste Fassung: Start, Rezept, Anlegen/Bearbeiten,
 // Kategorien, Suche, Sicherung ein/aus, Beispielbuch, Übernahme aus der alten App. Netz nur auf Knopfdruck.
 import { normalisiere, istInhalt, katVonRezept, ordnerVonRezept, neueUid, KAT_OHNE, sicht } from '../kern/modell/rezept.mjs';
-import { anlegen as ordAnlegen, umbenennen as ordUmbenennen, loeschen as ordLoeschen, legeIn, umsortieren as ordUmsortieren, imOrdner, uebersicht as ordUebersicht, findeOrdner, ordnerName } from '../kern/modell/ordner.mjs';
+import { anlegen as ordAnlegen, umbenennen as ordUmbenennen, loeschen as ordLoeschen, legeIn, umsortieren as ordUmsortieren, imOrdner, uebersicht as ordUebersicht, findeOrdner, ordnerName, istEvent, eventSetzen, eventWeg, gaenge as ordGaenge, inKalender, abgleich as evAbgleich, abgleichAnwenden, eventEinkauf } from '../kern/modell/ordner.mjs';
 import { alleKategorien, beschriftung, anzahl, leereKategorien, KATEGORIEN_FEST, anlegen as katAnlegen, umbenennen as katUmbenennen, loeschen as katLoeschen, umsortieren as katUmsortieren, katBild, bildWaehlen } from '../kern/modell/kategorien.mjs';
 import { suche } from '../kern/modell/suche.mjs';
 import { skaliere } from '../kern/modell/mengen.mjs';
@@ -29,7 +29,7 @@ import { zine } from './zine.mjs';
 import { kreativbuch } from './kreativbuch.mjs';
 import { notizbuch } from './notizbuch.mjs';
 import { ladeBausteine, korpus as semKorpus, sucheBedeutung, passage as semPassage } from '../kern/suche/bedeutung.mjs';
-import { woche, planen, entplanen, ausAltemMenu, tagIso } from '../kern/modell/plan.mjs';
+import { woche, planen, ausAltemMenu, tagIso, portionenIm, portionenSetzen, entplanenMit } from '../kern/modell/plan.mjs';
 import { text as spText, fuelle, sprache as sprWahl, kennt as sprKennt, sprachName, SPRACHEN, gebiet, ladeTabelle } from '../kern/oberflaeche/sprache.mjs';
 import { schluessel as schluesselLager, ANBIETER, erklaerung as schlErklaerung, formPasst, pruefeSchluessel, schluesselAdresse } from '../kern/ki/schluessel.mjs';
 import { STUFEN } from '../kern/ki/claude.mjs';
@@ -38,11 +38,11 @@ import { vermerken, vermerkHtml, fundeZumEntscheiden, fundName, meldung as kiMel
 import { dateiPruefen, pruefHtml, kiAnweisungen } from '../kern/pruefung/datei.mjs';
 import { webAdresse, holeSeite, ausEingefuegtem, ohneKi, fuerKi, mitKi, holeBild } from '../kern/import/web.mjs';
 import { naehrwerte, naehrwerteAnRezept, naehrwertZeilen, rechtschreibung, rechtschreibungAnwenden, uebersetze, uebersetzungAnRezept, uebersetzungPasst, uebersetzeMit, rateSprache, alsUebersetzung, alsHauptfassung, SPRACH_CODES, kostenSchaetzung, wasGehtHinaus as helferHinaus } from '../kern/ki/helfer.mjs';
-import { druckRezept, drucke } from '../kern/ausgabe/druck.mjs';
+import { druckRezept, drucke, druckMenuekarte } from '../kern/ausgabe/druck.mjs';
 import { teilLink, ausTeilLink, qrSvg, passtInQr } from '../kern/teilen/qr.mjs';
 import { rezeptIn } from '../kern/modell/einheiten.mjs';
 
-const FASSUNG = '0.16.1';
+const FASSUNG = '0.17.0';
 const breit = () => matchMedia('(min-width:1000px)').matches;
 const $ = (id) => document.getElementById(id);
 const esc = (t) => String(t ?? '').replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
@@ -74,7 +74,7 @@ let Z = leererZustand();                     // Rezepte, Wochenplan, Ordner, Kat
 let E = { sprache: null, farbe: 'braun', leiste: { seite: 'r', pos: 64 }, zuletzt: null, ton: 'geraet', schrift: 100, railZu: false, sinn: false };   // Einstellungen dieses Geräts
 const s = { ansicht: 'start', uid: null, frage: '', kat: 'alle', portion: {}, werkzeug: false, leisteAuf: false, form: null, nurDies: false, planTag: new Date(), bilder: { gross: false, filter: 'alle', wahl: new Set() }, bildZiel: null, rleiste: false, scan: null, web: null, scanMehr: false, werkAuf: new Set(), original: null, baum: { q: '', auf: new Set(), wahl: null } };
 const LEER_EINKAUF = () => ({ posten: [], haken: {}, eigene: [], laeden: { Supermarkt: [] }, laden: 'Supermarkt' });
-function ergaenze() { Z.einkauf = { ...LEER_EINKAUF(), ...(Z.einkauf || {}) }; if (!Z.einkauf.laeden[Z.einkauf.laden]) Z.einkauf.laden = Object.keys(Z.einkauf.laeden)[0] || 'Supermarkt'; if (!Z.einkauf.laeden[Z.einkauf.laden]) Z.einkauf.laeden[Z.einkauf.laden] = []; if (!Z.plan) Z.plan = ausAltemMenu(Z.menu, Z.rezepte); }
+function ergaenze() { Z.einkauf = { ...LEER_EINKAUF(), ...(Z.einkauf || {}) }; if (!Z.einkauf.laeden[Z.einkauf.laden]) Z.einkauf.laden = Object.keys(Z.einkauf.laeden)[0] || 'Supermarkt'; if (!Z.einkauf.laeden[Z.einkauf.laden]) Z.einkauf.laeden[Z.einkauf.laden] = []; if (!Z.plan) Z.plan = ausAltemMenu(Z.menu, Z.rezepte); if (!Z.planPortionen || typeof Z.planPortionen !== 'object') Z.planPortionen = {}; }
 
 /* ---------- Speichern ---------- */
 let schreibUhr = null;
@@ -506,6 +506,10 @@ const ladenName = (l) => (l === 'Supermarkt' ? L('Supermarkt', 'Supermarket') : 
 /* ---------- Wochenplan ---------- */
 const WT = ['Mo', 'Di', 'Mi', 'Do', 'Fr', 'Sa', 'So'];
 const wtName = (t, i) => (spr() === 'de' ? WT[i] : t.toLocaleDateString(geb(), { weekday: 'short' }));
+/* Portionen im Plan (R19): ohne Eintrag gilt die Zahl des Rezepts; ein Event-Ordner trägt die Gästezahl ein. Ein Tipp ändert sie. */
+const planPort = (tag, r) => portionenIm(Z.planPortionen, tag, r.uid) || r.servings;
+const planPortKnopf = (tag, r) => { const eig = portionenIm(Z.planPortionen, tag, r.uid), n = eig || r.servings;
+  return `<button class="w-port ${eig ? 'eig' : ''}" data-a="plan-port" data-tag="${tag}" data-uid="${esc(r.uid)}" aria-label="${esc(fuelle(L('Portionen für „{0}“: {1}. Ändern', 'Servings for “{0}”: {1}. Change'), r.name, n))}">${ic('leute')}<span>${n}</span></button>`; };
 function planHtml() {
   const w = woche(s.planTag), heute = tagIso(new Date());
   const von = w.tage[0].toLocaleDateString('de-DE', { day: 'numeric', month: w.tage[0].getMonth() === w.tage[6].getMonth() ? undefined : 'long' }), bis = w.tage[6].toLocaleDateString('de-DE', { day: 'numeric', month: 'long' });
@@ -513,7 +517,7 @@ function planHtml() {
   const anzahlW = w.tage.reduce((n, t) => n + (Z.plan[tagIso(t)] || []).filter(rezept).length, 0);
   return `<div class="w-kopf"><button class="rund" data-a="plan-woche" data-d="-7" aria-label="${L('Vorige Woche', 'Previous week')}">${ic('links')}</button><strong>${fuelle(L('Woche {0}', 'Week {0}'), w.kw)}<small>${esc(spanne)}</small></strong><button class="rund" data-a="plan-woche" data-d="7" aria-label="${L('Nächste Woche', 'Next week')}">${ic('rechts')}</button></div>
    <div class="w-tage">${w.tage.map((t, i) => { const tag = tagIso(t), rz = (Z.plan[tag] || []).map(rezept).filter(Boolean);
-     return `<div class="w-tag ${tag === heute ? 'heute' : ''}"><div class="d"><small>${esc(wtName(t, i))}</small><b>${t.getDate()}</b></div><div class="w-slots">${rz.map((r) => `<div class="w-slot"><button class="w-auf" data-a="rezept" data-uid="${esc(r.uid)}">${r.img ? `<img src="${esc(r.img)}" alt="" loading="lazy">` : `<span class="w-ohne">${ic('karte')}</span>`}<span>${esc(r.name)}${r.prepTime ? `<small>${esc(minText(r.prepTime))}</small>` : ''}</span></button><button class="w-weg" data-a="plan-weg" data-tag="${tag}" data-uid="${esc(r.uid)}" aria-label="${esc(fuelle(L('{0} aus dem Plan nehmen', 'Remove {0} from the plan'), r.name))}">${ic('x')}</button></div>`).join('')}<button class="w-leer ${rz.length ? 'mehr' : ''}" data-a="plan-waehlen" data-tag="${tag}">${ic('plus')}${rz.length ? L('noch eins', 'one more') : L('Gericht planen', 'Plan a dish')}</button></div></div>`; }).join('')}</div>
+     return `<div class="w-tag ${tag === heute ? 'heute' : ''}"><div class="d"><small>${esc(wtName(t, i))}</small><b>${t.getDate()}</b></div><div class="w-slots">${rz.map((r) => `<div class="w-slot"><button class="w-auf" data-a="rezept" data-uid="${esc(r.uid)}">${r.img ? `<img src="${esc(r.img)}" alt="" loading="lazy">` : `<span class="w-ohne">${ic('karte')}</span>`}<span>${esc(r.name)}${r.prepTime ? `<small>${esc(minText(r.prepTime))}</small>` : ''}</span></button>${planPortKnopf(tag, r)}<button class="w-weg" data-a="plan-weg" data-tag="${tag}" data-uid="${esc(r.uid)}" aria-label="${esc(fuelle(L('{0} aus dem Plan nehmen', 'Remove {0} from the plan'), r.name))}">${ic('x')}</button></div>`).join('')}<button class="w-leer ${rz.length ? 'mehr' : ''}" data-a="plan-waehlen" data-tag="${tag}">${ic('plus')}${rz.length ? L('noch eins', 'one more') : L('Gericht planen', 'Plan a dish')}</button></div></div>`; }).join('')}</div>
    <div class="reihe" style="margin-top:14px"><button class="knopf ${anzahlW ? 'akz' : ''}" data-a="plan-einkauf" ${anzahlW ? '' : 'disabled'}>${ic('einkauf')}${L('Einkaufsliste für die Woche', 'Shopping list for the week')}</button><button class="knopf" data-a="plan-heute">${L('Heute', 'Today')}</button>${anzahlW ? ZU.druckKnopf('plan-drucken') : ''}${ZU.planKnopf()}</div>`;
 }
 function planWahlFenster(tag, uidFest) {
@@ -602,8 +606,8 @@ function baumRest(g = baumGruppen()) {
 function baumGruppe(x, q) {
   /* Klaus 25.11.: wie die alte Liste – gleich da ändern, wo es steht: Name im Feld, Tipp aufs Bild ändert das Bild, Müll löscht, Pfeile ordnen zu. Kein Zwischenfenster. */
   const k = bzKey(x.art, x.id), auf = !!q || s.baum.auf.has(k), kat = x.art === 'kat', n = x.alle.length;
-  const zeichen = kat ? katSticker(x.c) : x.o.bild ? `<img class="sticker" src="${esc(x.o.bild)}" alt="" loading="lazy">` : x.o.ico ? `<span aria-hidden="true">${esc(x.o.ico)}</span>` : ic('ordner');
-  const zahl = (n === 1 ? L('1 Rezept', '1 recipe') : fuelle(L('{0} Rezepte', '{0} recipes'), n)) + (kat && x.imOrdner ? ' · ' + fuelle(L('+{0} in Ordnern', '+{0} in folders'), x.imOrdner) : '');
+  const zeichen = kat ? katSticker(x.c) : istEvent(x.o) ? ic('plan') : x.o.bild ? `<img class="sticker" src="${esc(x.o.bild)}" alt="" loading="lazy">` : x.o.ico ? `<span aria-hidden="true">${esc(x.o.ico)}</span>` : ic('ordner');
+  const zahl = (n === 1 ? L('1 Rezept', '1 recipe') : fuelle(L('{0} Rezepte', '{0} recipes'), n)) + (kat && x.imOrdner ? ' · ' + fuelle(L('+{0} in Ordnern', '+{0} in folders'), x.imOrdner) : '') + (!kat && istEvent(x.o) ? evKurz(x.o.event) : '');
   const eig = kat ? Z.kategorien.namen?.[x.id]?.name || '' : '';
   const feld = !kat ? `<input class="feld ord-name" data-oid="${esc(x.id)}" value="${esc(ordnerName(x.o))}" placeholder="${L('Name des Ordners', 'Folder name')}" aria-label="${L('Name des Ordners', 'Folder name')}" autocomplete="off">`
     : x.c.art === 'ohne' ? `<span class="kat-fest">${esc(x.name)}</span>` : `<input class="feld kat-name" data-kid="${esc(x.id)}" value="${esc(x.c.art === 'eigen' && !eig ? x.c.de : eig)}" placeholder="${esc(jeSprache(x.c) || x.c.id)}" aria-label="${esc(fuelle(L('Name der Kategorie {0}', 'Name of the category {0}'), x.name))}" autocomplete="off">`;
@@ -612,8 +616,47 @@ function baumGruppe(x, q) {
     ? (n + x.imOrdner && ['ohne', 'unbekannt', 'fremd'].includes(x.c.art) ? `<button class="chip bz-alle" data-a="kat-alle" data-kid="${esc(x.id)}" aria-label="${esc(fuelle(L('Alle {0} Rezepte aus „{1}“ einer Kategorie zuordnen', 'Assign all {0} recipes from “{1}” to a category'), n + x.imOrdner, x.name))}">${esc(L('Alle zuordnen →', 'Assign all →'))}</button>` : '')
       + (x.c.art === 'ohne' ? '<span class="bz-platz"></span>' : `<button class="rund" data-a="kat-weg" data-kid="${esc(x.id)}" aria-label="${esc(fuelle(L('Kategorie {0} löschen', 'Delete category {0}'), x.name))}">${ic('muell')}</button>`)
     : `<button class="rund" data-a="ordner-weg" data-oid="${esc(x.id)}" aria-label="${esc(fuelle(L('Ordner „{0}“ löschen', 'Delete folder “{0}”'), x.name))}">${ic('muell')}</button>`;
-  return `<section class="bz-gruppe" data-art="${x.art}" data-id="${esc(x.id)}" data-g="${esc(k)}" data-name="${esc(x.name)}"><div class="bz-kopf">${q ? '' : `<span class="griff bz-ggriff" aria-hidden="true" title="${L('Zum Verschieben lange drücken oder ziehen', 'Long-press or drag to move')}">${ic('griff')}</span>`}${bild}<span class="bz-name">${feld}<button class="bz-zahl" data-a="baum-auf" data-g="${esc(k)}" tabindex="-1">${esc(zahl)}</button></span><button class="bz-auf" data-a="baum-auf" data-g="${esc(k)}" aria-expanded="${auf}" aria-label="${esc(auf ? fuelle(L('„{0}“ zuklappen', 'Collapse “{0}”'), x.name) : fuelle(L('„{0}“ aufklappen', 'Expand “{0}”'), x.name))}">${ic('rechts', 'bz-pf')}</button>${knoepfe}</div>
+  return `<section class="bz-gruppe" data-art="${x.art}" data-id="${esc(x.id)}" data-g="${esc(k)}" data-name="${esc(x.name)}"><div class="bz-kopf">${q ? '' : `<span class="griff bz-ggriff" aria-hidden="true" title="${L('Zum Verschieben lange drücken oder ziehen', 'Long-press or drag to move')}">${ic('griff')}</span>`}${bild}<span class="bz-name">${feld}<button class="bz-zahl" data-a="baum-auf" data-g="${esc(k)}" tabindex="-1">${esc(zahl)}</button></span><button class="bz-auf" data-a="baum-auf" data-g="${esc(k)}" aria-expanded="${auf}" aria-label="${esc(auf ? fuelle(L('„{0}“ zuklappen', 'Collapse “{0}”'), x.name) : fuelle(L('„{0}“ aufklappen', 'Expand “{0}”'), x.name))}">${ic('rechts', 'bz-pf')}</button>${knoepfe}</div>${kat ? '' : evBand(x, auf && !q)}
    ${auf ? `<div class="bz-rezepte">${x.rz.map((r) => baumZeile(r)).join('') || `<p class="bz-leer">${L('Keine Rezepte. Zieh eines hierher.', 'No recipes. Drag one here.')}</p>`}</div>` : ''}</section>`;
+}
+/* ---------- Event-Ordner (Klaus 25.11., R19; Kern: modell/ordner.mjs) ----------
+   Ein Ordner wird zum Anlass, wenn er ein Datum und Gäste bekommt; der Name ist der Anlass („Hochzeit von Jonas und Lisa“).
+   Das Band steht direkt unter der Kopfzeile, auch zugeklappt: Datum und Gäste ändert man da, wo sie stehen. Daneben:
+   In den Kalender (alle Gerichte an dem Tag, in Gängen nach Kategorie, Portionen = Gäste) · Einkaufsliste (mit Gästezahl) ·
+   Menükarte drucken. Ändert sich der Ordner danach, bleibt der Kalender; am Band steht „Kalender abgleichen“. */
+const evStand = () => ({ rezepte: Z.rezepte, ordner: Z.ordner, plan: Z.plan, portionen: Z.planPortionen });
+const katFolge = () => alleKategorien(Z.rezepte, Z.kategorien).map((c) => c.id);
+const evTag = (iso, lang = false) => new Date(iso + 'T12:00').toLocaleDateString(geb(), lang ? { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' } : { weekday: 'short', day: 'numeric', month: 'numeric', year: 'numeric' });
+const gaesteText = (n) => (n === 1 ? L('1 Gast', '1 guest') : fuelle(L('{0} Gäste', '{0} guests'), n));
+const evKurz = (e) => (e.datum ? ' · ' + evTag(e.datum) : '') + (e.gaeste ? ' · ' + gaesteText(e.gaeste) : '');
+function evBand(x, auf) {
+  const o = x.o, id = esc(x.id), n = x.alle.length;
+  if (!istEvent(o)) return auf ? `<div class="bz-event aus"><button class="chip" data-a="ev-an" data-oid="${id}">${ic('plan')}${L('Als Anlass planen: Datum und Gäste', 'Plan as an occasion: date and guests')}</button></div>` : '';
+  const e = o.event, ab = evAbgleich(evStand(), x.id), drin = !!e.kalender;
+  const kal = ab?.offen ? `<button class="chip akz" data-a="ev-abgleich" data-oid="${id}">${ic('pfeile')}${L('Kalender abgleichen', 'Update calendar')}</button>`
+    : drin ? `<button class="chip" data-a="ev-zum-plan" data-oid="${id}">${ic('haken')}${L('Im Kalender · ansehen', 'In the calendar · view')}</button>`
+    : `<button class="chip ${e.datum && n ? 'akz' : ''}" data-a="ev-kalender" data-oid="${id}" ${e.datum && n ? '' : 'disabled'}>${ic('plan')}${L('In den Kalender übernehmen', 'Add to the calendar')}</button>`;
+  return `<div class="bz-event" data-oid="${id}"><div class="ev-felder"><label class="ev-feld"><span>${L('Datum', 'Date')}</span><input type="date" class="feld ev-datum" data-oid="${id}" value="${esc(e.datum || '')}"></label>
+    <label class="ev-feld"><span>${L('Gäste', 'Guests')}</span><input type="number" min="1" max="999" step="1" inputmode="numeric" class="feld ev-gaeste" data-oid="${id}" value="${e.gaeste || ''}" placeholder="–"></label>
+    <button class="rund" data-a="ev-weg" data-oid="${id}" aria-label="${esc(fuelle(L('„{0}“ ist kein Anlass mehr (der Kalender bleibt)', '“{0}” is no longer an occasion (the calendar stays)'), x.name))}" title="${esc(L('Kein Anlass mehr', 'No longer an occasion'))}">${ic('x')}</button></div>
+    <div class="reihe ev-knoepfe">${kal}<button class="chip" data-a="ev-einkauf" data-oid="${id}" ${n ? '' : 'disabled'}>${ic('einkauf')}${L('Einkaufsliste', 'Shopping list')}</button><button class="chip" data-a="ev-karte" data-oid="${id}" ${n ? '' : 'disabled'}>${ic('drucken')}${L('Menükarte', 'Menu card')}</button></div></div>`;
+}
+/* Datum oder Gäste geändert: speichern und neu zeichnen; der Fokus bleibt in dem Feld, in das man gerade gewechselt ist. */
+function evFeld(f) {
+  const id = f.dataset.oid; Z.ordner = eventSetzen(Z.ordner, id, f.classList.contains('ev-datum') ? { datum: f.value } : { gaeste: f.value }); sichern();
+  setTimeout(() => { const a = document.activeElement, sel = a?.matches?.('.ev-datum, .ev-gaeste') ? `.${a.classList.contains('ev-datum') ? 'ev-datum' : 'ev-gaeste'}[data-oid="${CSS.escape(a.dataset.oid)}"]` : null; zeichne(); if (sel) document.querySelector(sel)?.focus(); }, 0);
+}
+function evAbgleichFenster(id) {
+  const o = findeOrdner(Z.ordner, id), a = evAbgleich(evStand(), id); if (!o || !a) return;
+  if (!a.offen) { fensterZu(); zeichne(); melde(L('Kalender und Ordner stimmen überein', 'Calendar and folder match')); return; }
+  const nm = (u) => esc(zeig(rezept(u))?.name || u), zeile = (art, u, text) => `<label class="haken-zeile"><input type="checkbox" data-ab="${art}" value="${esc(u)}" checked> ${text}</label>`;
+  fenster(`<h2 class="imp-kopf"><span>${L('Kalender abgleichen', 'Update calendar')}<small>${esc(ordTitel(o))}</small></span><button class="rund" data-a="fenster-zu" aria-label="${L('Schließen', 'Close')}">${ic('x')}</button></h2>
+   <p class="ein-satz">${L('Der Ordner hat sich geändert, seit er im Kalender steht. Was angehakt ist, wird übernommen; der Rest bleibt, wie er im Kalender steht.', 'The folder has changed since it was added to the calendar. What is ticked is applied; the rest stays as it is in the calendar.')}</p>
+   ${a.neu.length ? `<h3 class="ein-h">${L('Neu im Ordner · in den Kalender', 'New in the folder · add to the calendar')}</h3>${a.neu.map((u) => zeile('neu', u, nm(u))).join('')}` : ''}
+   ${a.fehlt.length ? `<h3 class="ein-h">${L('Nicht mehr im Ordner · aus dem Kalender nehmen', 'No longer in the folder · remove from the calendar')}</h3>${a.fehlt.map((u) => zeile('fehlt', u, nm(u))).join('')}` : ''}
+   ${a.verschoben.length ? `<h3 class="ein-h">${L('Neues Datum', 'New date')}</h3>${zeile('verschieben', '1', esc(fuelle(L('{0} Gerichte vom {1} auf den {2} verschieben', 'Move {0} dishes from {1} to {2}'), a.verschoben.length, evTag(a.verschoben[0].von), evTag(a.verschoben[0].nach))))}` : ''}
+   ${a.gaeste ? `<h3 class="ein-h">${L('Gäste', 'Guests')}</h3>${zeile('gaeste', '1', esc(fuelle(L('Portionen im Kalender von {0} auf {1} ändern', 'Change servings in the calendar from {0} to {1}'), a.gaeste.von || '–', a.gaeste.nach)))}` : ''}
+   <div class="reihe" style="margin-top:12px"><button class="knopf akz" data-a="ev-abgleich-los" data-oid="${esc(id)}">${ic('haken')}${L('Übernehmen', 'Apply')}</button><button class="knopf" data-a="fenster-zu">${L('Abbrechen', 'Cancel')}</button></div>`);
 }
 function baumZeile(r0) {
   const r = zeig(r0), w = s.baum.wahl, an = w?.has(r0.uid), c = alleKategorien(Z.rezepte, Z.kategorien).find((x) => x.id === katVonRezept(r0));
@@ -1139,6 +1182,24 @@ const A = {
   'baum-ordner-neu': () => fenster(`<h2>${L('Neuer Ordner', 'New folder')}</h2><form class="suche" data-form="baum-ordner-neu">${ic('ordner')}<input name="n" placeholder="${L('Neuer Ordner, z. B. Hochzeit von Jonas und Lisa', 'New folder, e.g. Jonas and Lisa’s wedding')}" autocomplete="off" aria-label="${L('Name des Ordners', 'Folder name')}" required></form><div class="reihe" style="margin-top:10px"><button class="knopf akz" data-a="baum-form-ok">${L('Anlegen', 'Create')}</button><button class="knopf" data-a="fenster-zu">${L('Abbrechen', 'Cancel')}</button></div>`) || document.querySelector('#fensterort input[name=n]')?.focus(),
   'baum-form-ok': () => document.querySelector('#fensterort form')?.requestSubmit(),
   'ordner-setzen': (e) => { const o = findeOrdner(Z.ordner, e.dataset.oid); Z.rezepte = legeIn(Z.rezepte, Z.ordner, e.dataset.uid, e.dataset.oid); sichern(); fensterZu(); zeichne(); melde(o ? fuelle(L('Liegt jetzt im Ordner „{0}“', 'Now in the folder “{0}”'), ordTitel(o)) : L('Aus dem Ordner genommen', 'Taken out of the folder')); },
+  'ev-an': (e) => { const id = e.dataset.oid; Z.ordner = eventSetzen(Z.ordner, id, {}); s.baum.auf.add(bzKey('ord', id)); sichern(); zeichne(); document.querySelector(`.ev-datum[data-oid="${CSS.escape(id)}"]`)?.focus(); },
+  'ev-weg': (e) => { const vorher = Z.ordner, o = findeOrdner(Z.ordner, e.dataset.oid); Z.ordner = eventWeg(Z.ordner, e.dataset.oid); sichern(); zeichne();
+    melde(fuelle(L('„{0}“ ist wieder ein einfacher Ordner; der Kalender bleibt', '“{0}” is a plain folder again; the calendar stays'), ordTitel(o)), L('Rückgängig', 'Undo'), () => { Z.ordner = vorher; sichern(); zeichne(); }); },
+  'ev-kalender': (e) => { const id = e.dataset.oid, o = findeOrdner(Z.ordner, id), k = inKalender(evStand(), id, katFolge());
+    if (!k) { melde(o?.event?.datum ? L('Im Ordner ist noch kein Gericht', 'There is no dish in the folder yet') : L('Erst ein Datum wählen', 'Choose a date first')); return; }
+    const vorher = { p: Z.plan, pp: Z.planPortionen, o: Z.ordner }; Z.plan = k.plan; Z.planPortionen = k.portionen; Z.ordner = k.ordner; sichern(); zeichne();
+    melde(fuelle(o.event.gaeste ? L('{0} Gerichte am {1} im Kalender, je für {2}', '{0} dishes on {1} in the calendar, each for {2}') : L('{0} Gerichte am {1} im Kalender', '{0} dishes on {1} in the calendar'), k.neu + k.schon, evTag(o.event.datum), o.event.gaeste), L('Rückgängig', 'Undo'), () => { Z.plan = vorher.p; Z.planPortionen = vorher.pp; Z.ordner = vorher.o; sichern(); zeichne(); }); },
+  'ev-zum-plan': (e) => { const o = findeOrdner(Z.ordner, e.dataset.oid), t = o?.event?.datum || Object.values(o?.event?.kalender?.gerichte || {}).find(Boolean); if (t) s.planTag = new Date(t + 'T12:00'); geh('plan'); },
+  'ev-einkauf': (e) => { const id = e.dataset.oid, o = findeOrdner(Z.ordner, id), k = eventEinkauf(Z.einkauf.posten, Z.rezepte, Z.ordner, id); Z.einkauf = { ...Z.einkauf, posten: k.posten }; sichern(); kopfZeichnen(); leisteZeichnen();
+    const g = o?.event?.gaeste; melde(!k.neu && !k.angepasst ? L('Alles steht schon so auf der Einkaufsliste', 'Everything is already on the shopping list like this') : fuelle(g ? L('{0} Gerichte für {1} Gäste auf der Einkaufsliste', '{0} dishes for {1} guests on the shopping list') : L('{0} Gerichte auf der Einkaufsliste', '{0} dishes on the shopping list'), k.neu + k.angepasst, g), L('Zur Liste', 'To the list'), () => geh('einkauf')); },
+  'ev-karte': (e) => { const id = e.dataset.oid, o = findeOrdner(Z.ordner, id); if (!o) return; const kats = alleKategorien(Z.rezepte, Z.kategorien);
+    const gaengeL = ordGaenge(Z.rezepte, Z.ordner, id, kats.map((c) => c.id)).map((g) => { const c = kats.find((x) => x.id === g.kat); return { titel: c && c.art !== 'ohne' ? katName(c) : '', gerichte: g.rezepte.map((r) => ({ name: zeig(r).name })) }; });
+    drucke(druckMenuekarte({ titel: ordTitel(o), datum: o.event?.datum || '', gaenge: gaengeL }, { sprache: spr(), fuss: ausgabe?.titel || '' }), { sprache: spr() }).catch((f) => melde(f.message)); },
+  'ev-abgleich': (e) => evAbgleichFenster(e.dataset.oid),
+  'ev-abgleich-los': (e) => { const id = e.dataset.oid, wahl = (art) => [...document.querySelectorAll(`#fensterort [data-ab="${art}"]:checked`)].map((x) => x.value);
+    const j = abgleichAnwenden(evStand(), id, { neu: wahl('neu'), fehlt: wahl('fehlt'), verschieben: !!wahl('verschieben').length, gaeste: !!wahl('gaeste').length }); if (!j) return;
+    const vorher = { p: Z.plan, pp: Z.planPortionen, o: Z.ordner }; Z.plan = j.plan; Z.planPortionen = j.portionen; Z.ordner = j.ordner; sichern(); fensterZu(); zeichne();
+    melde(j.geaendert ? fuelle(L('Kalender abgeglichen · {0} Änderungen', 'Calendar updated · {0} changes'), j.geaendert) : L('Abgeglichen · der Kalender bleibt, wie er ist', 'Done · the calendar stays as it is'), L('Rückgängig', 'Undo'), () => { Z.plan = vorher.p; Z.planPortionen = vorher.pp; Z.ordner = vorher.o; sichern(); zeichne(); }); },
   'ordner-weg': (e) => { const vorher = { r: Z.rezepte, o: Z.ordner }, o = findeOrdner(Z.ordner, e.dataset.oid), l = ordLoeschen(Z.rezepte, Z.ordner, e.dataset.oid); Z.rezepte = l.rezepte; Z.ordner = l.ordner; sichern(); zeichne();
     melde(fuelle(l.betroffen ? L('Ordner „{0}“ gelöscht, {1} Rezepte bleiben', 'Folder “{0}” deleted, {1} recipes stay') : L('Ordner „{0}“ gelöscht', 'Folder “{0}” deleted'), ordTitel(o), l.betroffen), L('Rückgängig', 'Undo'), () => { Z.rezepte = vorher.r; Z.ordner = vorher.o; sichern(); zeichne(); }); },
   'zur-suche': () => { if (s.ansicht !== 'start') geh('start'); $('suchfeld')?.focus(); },
@@ -1190,11 +1251,15 @@ const A = {
   planen: () => planWahlFenster(null, s.uid),
   'plan-waehlen': (e) => planWahlFenster(e.dataset.tag),
   'plan-setzen': (e) => { Z.plan = planen(Z.plan, e.dataset.tag, e.dataset.uid); sichern(); fensterZu(); if (s.ansicht === 'plan') zeichne(); else melde(L('Im Wochenplan eingetragen', 'Added to the week plan'), L('Zum Plan', 'To the plan'), () => { s.planTag = new Date(e.dataset.tag + 'T12:00'); geh('plan'); }); },
-  'plan-weg': (e) => { Z.plan = entplanen(Z.plan, e.dataset.tag, e.dataset.uid); sichern(); zeichne(); },
+  'plan-weg': (e) => { ({ plan: Z.plan, portionen: Z.planPortionen } = entplanenMit(Z.plan, Z.planPortionen, e.dataset.tag, e.dataset.uid)); sichern(); zeichne(); },
+  'plan-port': (e) => { const r = rezept(e.dataset.uid); if (!r) return; const tag = e.dataset.tag, n = planPort(tag, r);
+    fenster(`<h2 class="imp-kopf"><span>${L('Portionen', 'Servings')}<small>${esc(zeig(r).name)} · ${esc(evTag(tag))}</small></span><button class="rund" data-a="fenster-zu" aria-label="${L('Schließen', 'Close')}">${ic('x')}</button></h2><form class="felder" data-form="plan-port" data-tag="${tag}" data-uid="${esc(r.uid)}"><label>${L('Für wie viele?', 'For how many?')}<input class="feld" name="n" type="number" min="1" max="999" step="1" inputmode="numeric" value="${n}" required></label><div class="reihe"><button class="knopf akz" type="submit">${ic('haken')}${L('Übernehmen', 'Apply')}</button>${portionenIm(Z.planPortionen, tag, r.uid) ? `<button class="knopf" type="button" data-a="plan-port-rezept" data-tag="${tag}" data-uid="${esc(r.uid)}">${esc(fuelle(L('Wie im Rezept ({0})', 'As in the recipe ({0})'), r.servings))}</button>` : ''}</div></form>`);
+    document.querySelector('[data-form="plan-port"] input')?.select(); },
+  'plan-port-rezept': (e) => { Z.planPortionen = portionenSetzen(Z.planPortionen, e.dataset.tag, e.dataset.uid, 0); sichern(); fensterZu(); zeichne(); },
   'plan-woche': (e) => { const d = new Date(s.planTag); d.setDate(d.getDate() + +e.dataset.d); s.planTag = d; zeichne(); },
   'plan-heute': () => { s.planTag = new Date(); zeichne(); },
   'plan-einkauf': () => { const w = woche(s.planTag); let posten = Z.einkauf.posten, n = 0;
-    for (const t of w.tage) for (const uid of Z.plan[tagIso(t)] || []) { const r = rezept(uid); if (r && !posten.some((p) => p.uid === uid)) { posten = [...posten, { uid, portionen: r.servings }]; n++; } }
+    for (const t of w.tage) for (const uid of Z.plan[tagIso(t)] || []) { const r = rezept(uid); if (r && !posten.some((p) => p.uid === uid)) { posten = [...posten, { uid, portionen: planPort(tagIso(t), r) }]; n++; } }
     Z.einkauf = { ...Z.einkauf, posten }; sichern(); kopfZeichnen(); leisteZeichnen(); melde(n ? fuelle(L('{0} Rezepte auf die Einkaufsliste gesetzt', '{0} recipes put on the shopping list'), n) : L('Alle Gerichte der Woche stehen schon auf der Liste', 'All dishes of the week are already on the list'), L('Zur Liste', 'To the list'), () => geh('einkauf')); },
   'kat-neu': () => { const a = katAnlegen(Z.kategorien, ''); Z.kategorien = a.kat; sichern(); zeichne(); document.querySelector(`.kat-name[data-kid="${a.id}"]`)?.focus(); },
   'kat-emoji': (e) => { const id = e.dataset.kid, bilder = Z.rezepte.filter((r) => istInhalt(r) && r.img && katVonRezept(r) === id), gew = Z.kategorien.namen?.[id]?.bild, jetzt = katBild(Z.rezepte, Z.kategorien, id)?.uid;
@@ -1365,6 +1430,7 @@ document.addEventListener('submit', (ev) => { ev.preventDefault(); const f = ev.
   else if (f === 'schluessel') { const a = ev.target.dataset.anbieter, k = $('schl-feld').value.trim(), danach = ev.target.dataset.danach;
     (k ? S.setz(a, k) : S.weg(a)).then(() => { SK[a] = k; fensterZu(); zeichne(); melde(!k ? L('Schlüssel gelöscht', 'Key deleted') : formPasst(a, k) ? L('Schlüssel gespeichert', 'Key saved') : L('Gespeichert. Der Schlüssel sieht ungewohnt aus, bitte prüfen.', 'Saved. The key looks unusual, please check it.')); if (k && danach === 'scan') neuFenster('scan'); else if (k && danach === 'web') neuFenster('web'); else if (k && danach === 'rmenue') rezeptMenue(); else if (k && danach === 'alle-ueb') alleUebFenster(); else if (k && A[danach]) A[danach]({ dataset: {} }); else if (k && danach.startsWith('gratis:')) A['gratis-bild']({ dataset: { uid: danach.slice(7) } }); else if (k && danach) A['ki-bild']({ dataset: { uid: danach } }); }).catch(() => melde(L('Der Schlüssel ließ sich nicht speichern.', 'The key could not be saved.'))); }
   else if (f === 'tresor') { const n = String(new FormData(ev.target).get('name') || '').trim(); tr.ablegen(schreibe(Z), 'benannt', n).then(() => { tresorFenster(); melde(L('Stand im Tresor gesichert', 'State saved in the vault')); }).catch(() => melde(L('Der Tresor ließ sich nicht beschreiben.', 'The vault could not be written.'))); }
+  else if (f === 'plan-port') { const n = +new FormData(ev.target).get('n'); const r = rezept(ev.target.dataset.uid); if (!r || !(n > 0)) return; Z.planPortionen = portionenSetzen(Z.planPortionen, ev.target.dataset.tag, r.uid, n === r.servings ? 0 : n); sichern(); fensterZu(); zeichne(); }
   else if (f === 'ek-eigen') { const t = String(new FormData(ev.target).get('t') || '').trim(); if (!t) return; Z.einkauf = { ...Z.einkauf, eigene: [...Z.einkauf.eigene, { id: Date.now().toString(36), text: t }] }; sichern(); zeichne(); document.querySelector('[data-form="ek-eigen"] input')?.focus(); }
   else if (f === 'baum-suche') { $('baumfeld')?.blur(); }
   else if (f === 'baum-ordner-neu') { const n = String(new FormData(ev.target).get('n') || '').trim(); if (!n) return; const a = ordAnlegen(Z.ordner, n); Z.ordner = a.ordner; s.baum.auf.add(bzKey('ord', a.id)); sichern(); fensterZu(); zeichne(); melde(a.neu ? fuelle(L('Ordner „{0}“ angelegt – zieh Rezepte hinein', 'Folder “{0}” created – drag recipes into it'), n) : fuelle(L('Den Ordner „{0}“ gibt es schon', 'The folder “{0}” already exists'), n)); }
@@ -1390,7 +1456,7 @@ const gzLos = () => { if (!gz) return; const g = gz; gz = null; clearTimeout(g.u
     sichern(); }
   zeichne(); };
 document.addEventListener('pointerup', gzLos); document.addEventListener('pointercancel', gzLos);
-document.addEventListener('change', (ev) => { const o = ev.target.closest?.('.ord-name'); if (o) { Z.ordner = ordUmbenennen(Z.ordner, o.dataset.oid, o.value); sichern(); return; } const f = ev.target.closest?.('.kat-name'); if (!f) return; katNameSetzen(f.dataset.kid, f.value);
+document.addEventListener('change', (ev) => { const evf = ev.target.closest?.('.ev-datum, .ev-gaeste'); if (evf) { evFeld(evf); return; } const o = ev.target.closest?.('.ord-name'); if (o) { Z.ordner = ordUmbenennen(Z.ordner, o.dataset.oid, o.value); sichern(); return; } const f = ev.target.closest?.('.kat-name'); if (!f) return; katNameSetzen(f.dataset.kid, f.value);
   sichern(); });
 document.addEventListener('input', (ev) => { if (ev.target.id === 'schriftregler') { E.schrift = schriftSetzen(document.documentElement, ev.target.value); $('schriftzahl').textContent = E.schrift + ' %'; sichern(); return; } if (ev.target.id === 'zs-zoom' && zs) { zs.z = +ev.target.value / 100; zsZeigen(); } });
 document.addEventListener('input', (ev) => {

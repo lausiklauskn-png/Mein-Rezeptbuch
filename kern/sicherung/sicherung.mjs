@@ -6,6 +6,8 @@ import { normalisiere, istInhalt } from '../modell/rezept.mjs';
 import { leereKategorien } from '../modell/kategorien.mjs';
 import { leererZustand } from '../modell/zustand.mjs';
 import { notizen as notizListe } from '../modell/notiz.mjs';
+import { portionenListe } from '../modell/plan.mjs';
+import { eventAusDatei } from '../modell/ordner.mjs';
 
 export const FASSUNG = 11;
 const SPR = ['de', 'en', 'ru', 'zh', 'es', 'fr', 'it', 'pt'];
@@ -42,17 +44,18 @@ export function lies(eingabe) {
     fassung: Number(d.version) || 0,
     rezepte,
     menu: Array.isArray(d.menu) ? d.menu : [],
-    ordner: (Array.isArray(d.folders) ? d.folders : []).filter((o) => o && o.id != null).map((o) => ({ ...o, id: String(o.id), name: String(o.name || '') })),
+    ordner: (Array.isArray(d.folders) ? d.folders : []).filter((o) => o && o.id != null).map(({ event, ...o }) => { const e = eventAusDatei(event); return { ...o, id: String(o.id), name: String(o.name || ''), ...(e ? { event: e } : {}) }; }),
     kategorien: liesKategorien(d.kategorien),
     einkauf: d.einkauf && typeof d.einkauf === 'object' ? d.einkauf : null,
     plan: d.plan && typeof d.plan === 'object' ? d.plan : null,
+    planPortionen: portionenListe(d.planPortionen),   // Portionen je Gericht und Tag (Event-Ordner); fehlt in älteren Dateien
     notizen: Array.isArray(d.notizen) ? notizListe(d.notizen) : null,   // null: die Datei kennt keine Notizen (älter als das Notizbuch)
   };
 }
 
 /** Schreibt den Zustand als Sicherung der Fassung 11. */
 export function schreibe(zustand, { knoten = '', jetzt = new Date() } = {}) {
-  return { version: FASSUNG, exported: jetzt.toISOString(), knoten, recipes: zustand.rezepte.filter(istInhalt), menu: zustand.menu || [], folders: zustand.ordner || [], kategorien: zustand.kategorien || leereKategorien(), einkauf: zustand.einkauf || null, plan: zustand.plan || null, notizen: notizListe(zustand.notizen) };
+  return { version: FASSUNG, exported: jetzt.toISOString(), knoten, recipes: zustand.rezepte.filter(istInhalt), menu: zustand.menu || [], folders: zustand.ordner || [], kategorien: zustand.kategorien || leereKategorien(), einkauf: zustand.einkauf || null, plan: zustand.plan || null, planPortionen: zustand.planPortionen || {}, notizen: notizListe(zustand.notizen) };
 }
 
 const namensSchluessel = (r) => String(r.name).trim().toLowerCase();
@@ -61,7 +64,7 @@ const namensSchluessel = (r) => String(r.name).trim().toLowerCase();
  *  Dubletten: an `uid`; trägt die Datei keine echte Kennung (alles vor Fassung 10), am Namen.
  *  Vorhandenes wird nie überschrieben: eigene Ordner, eigene Kategorien und eigene Namen gewinnen. */
 export function fuehreZusammen(zustand, eingang, weise = 'dazu') {
-  if (weise === 'ersetzen') return { zustand: { ...zustand, rezepte: eingang.rezepte, menu: eingang.menu, ordner: eingang.ordner, kategorien: eingang.kategorien, ...(eingang.einkauf ? { einkauf: eingang.einkauf } : {}), ...(eingang.plan ? { plan: eingang.plan } : {}), ...(eingang.notizen ? { notizen: eingang.notizen } : {}) }, neu: eingang.rezepte.length, doppelt: 0 };
+  if (weise === 'ersetzen') return { zustand: { ...zustand, rezepte: eingang.rezepte, menu: eingang.menu, ordner: eingang.ordner, kategorien: eingang.kategorien, ...(eingang.einkauf ? { einkauf: eingang.einkauf } : {}), ...(eingang.plan ? { plan: eingang.plan, planPortionen: eingang.planPortionen || {} } : {}), ...(eingang.notizen ? { notizen: eingang.notizen } : {}) }, neu: eingang.rezepte.length, doppelt: 0 };
   const z = { ...leererZustand(), ...zustand };
   const uids = new Set(z.rezepte.map((r) => r.uid)), namen = new Set(z.rezepte.filter(istInhalt).map(namensSchluessel));
   const dazu = []; let doppelt = 0;
@@ -75,7 +78,7 @@ export function fuehreZusammen(zustand, eingang, weise = 'dazu') {
   }
   const ordnerIds = new Set(z.ordner.map((o) => String(o.id)));
   const ordner = [...z.ordner, ...eingang.ordner.filter((o) => !ordnerIds.has(String(o.id)))];
-  const k = z.kategorien || leereKategorien(), e = eingang.kategorien || leereKategorien();
+  const k = { ...leereKategorien(), ...(z.kategorien || {}) }, e = { ...leereKategorien(), ...(eingang.kategorien || {}) };   // ein unvollständiger Stand (älterer Speicher) bricht das Hinzufügen nicht ab
   const eigIds = new Set(k.eigene.map((c) => c.id));
   const kategorien = { eigene: [...k.eigene, ...e.eigene.filter((c) => !eigIds.has(c.id))], namen: { ...e.namen, ...k.namen }, ausgeblendet: k.ausgeblendet, folge: k.folge.length ? k.folge : e.folge };
   const eigeneNotizen = notizListe(z.notizen), nIds = new Set(eigeneNotizen.map((n) => n.id)), notizenDazu = (eingang.notizen || []).filter((n) => !nIds.has(n.id));   /* Notizen der Datei kommen dazu, gleiche Kennung bleibt die eigene */

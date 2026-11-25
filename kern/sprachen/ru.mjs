@@ -242,4 +242,6 @@ export default {
   'Kein Übersetzer im Gerät.': 'На устройстве нет переводчика.',
   'Als Übersetzung braucht der Text so viele Zutaten und Schritte wie das Original ({0} und {1}). Als Hauptfassung geht es immer.': 'Как перевод текст должен содержать столько же ингредиентов и шагов, сколько оригинал ({0} и {1}). Как основная версия — всегда можно.',
   'Original und Übersetzung haben dieselbe Sprache.': 'Оригинал и перевод на одном языке.',
+  'Menü': 'Меню',
+  'Noch kein Gericht im Menü.': 'В меню пока нет блюд.',
 };
