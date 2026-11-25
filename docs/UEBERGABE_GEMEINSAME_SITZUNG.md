@@ -1,5 +1,8 @@
 # Übergabe der gemeinsamen Sitzung (Rezeptbuch + Mixarium)
 
+> **Neuester Stand (25.11.2026): `Mein-Rezeptbuch/docs/BRIEF_SITZUNG_2026-11-25_ENDSTAND.md`** – Rezeptbuch PWA 0.15.0 / Kern 0.27.0,
+> Mixarium PWA 10.0.0-vor30 / Kern-Pin 0.24.0, die Liste des Offenen und der Startauftrag. Die Abschnitte darunter sind älter.
+
 Stand **23.11.2026, 18:05 Uhr** (Europe/Berlin). Die gemeinsame Sitzung (Tag) übergibt an die Nacht-Sitzung. Diese Datei ist
 die Rezeptbuch-Seite und gilt für beide Apps; die Mixarium-Seite steht in `Mein-Mixarium/docs/UEBERGABE_GEMEINSAME_SITZUNG.md`.
 Der Auftrag für die Nacht steht in `docs/NACHTAUFTRAG.md`.
