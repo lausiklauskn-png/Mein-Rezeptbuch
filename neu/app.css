@@ -474,7 +474,15 @@ main{zoom:var(--z,1)}.koch .k-mitte,.koch .k-text{zoom:var(--z,1)}
 /* Monitor: Name und Winkel stehen UNTER dem Bild, nicht darauf (Klaus 23.11.); die Werkzeuge klappen als Zeile darunter auf. */
 @media(min-width:1000px){
  .md-detail .rezept-held,body[data-fl] .md-detail .rezept-held{height:auto;display:block;overflow:visible;background:none;cursor:default;margin:0;color:var(--ink)}
- .md-detail .rezept-held>img{height:min(58vh,520px);background:var(--fl2);cursor:zoom-in}
+ .md-detail .rezept-held>img{height:min(36vh,520px);background:var(--fl2);cursor:zoom-in}
+ /* Klaus 25.11.: der Bildbereich ist so hoch wie das Bild bei dieser Breite (keine leere Fläche über und unter dem Bild), höchstens
+    wie bisher; erst an der Obergrenze bleibt Rand links und rechts. Ein gewählter Ausschnitt (style) behält seinen festen Rahmen. */
+ .md-detail .rezept-held>img:not([style]){height:auto;max-height:min(36vh,520px)}
+ /* Klaus 25.11.: Bild und Text auf einem Bildschirm – das Bild höchstens gut ein Drittel der Höhe. Der Vollbild-Knopf sitzt an der
+    Unterkante des Bildes selbst (gleiche Rasterzelle), nicht an einer angenommenen Höhe. */
+ .md-detail .rezept-held:has(>img),body[data-fl] .md-detail .rezept-held:has(>img){display:grid;grid-template-columns:100%}
+ .md-detail .rezept-held:has(>img)>img,.md-detail .rezept-held:has(>img)>.held-voll{grid-area:1/1}
+ .md-detail .rezept-held:has(>img)>.held-voll{position:relative;top:auto;right:auto;bottom:auto;align-self:end;justify-self:end;margin:0 12px 12px 0}
  .md-detail .rezept-held>.ic{display:block;margin:28px auto;cursor:pointer}
  .md-detail .rezept-held .verlauf{position:relative;inset:auto;background:none;color:var(--ink);padding:16px 30px 0}
  .md-detail .rezept-held .meta{color:var(--mut)}
@@ -1002,3 +1010,23 @@ a.knopf{text-decoration:none}
 .ueb-fass{display:inline-flex;align-items:center;gap:4px;color:var(--mut)}
 .ueb-fass .ic{width:16px;height:16px}
 .ueb-fass .chip{min-height:26px;padding:0 8px;font-size:12px;font-weight:650}
+/* zweite Spalte für die Schritte, nur wenn das Rezept sonst nicht auf den Bildschirm passt (spaltenPruefen) */
+.md-detail.spalten .schritte{display:block;columns:2;column-gap:32px}
+.md-detail.spalten .schritte li{break-inside:avoid;margin-bottom:12px;max-width:none}
+.md-detail.spalten2 .zweispalt{grid-template-columns:minmax(0,1fr) minmax(0,1.5fr)}
+.md-detail.spalten2 .zut{columns:2;column-gap:24px}
+.md-detail.spalten2 .zut li{break-inside:avoid}
+.md-detail.spalten .schritte li{max-width:none}
+.md-detail.spalten3 .rezept-held>img{height:min(24vh,520px)}
+.md-detail.spalten3 .rezept-held>img:not([style]){height:auto;max-height:min(24vh,520px)}
+/* Klaus 25.11. abends: „mit Symbolen arbeiten ist besser … kleine Untertexte“ – Kochen, Einkaufen, Planen und Portionen in EINER Zeile */
+.rz-aktion{display:flex;align-items:stretch;gap:6px;margin:8px 0 4px;flex-wrap:wrap}
+.sym{display:grid;justify-items:center;align-content:center;gap:2px;min-width:60px;padding:6px 8px 5px;border-radius:12px;border:1px solid var(--line);background:var(--fl);color:var(--ink);cursor:pointer}
+.sym .ic{width:22px;height:22px}
+.sym small{font-size:11.5px;color:var(--mut);line-height:1.1}
+.sym.akz{background:var(--vl);color:var(--vl-schrift);border-color:var(--vl-rand)}
+.sym.akz small{color:inherit;font-weight:650}
+.portion.kompakt{flex-direction:column;align-items:center;justify-content:center;gap:2px;margin:0;padding:4px 8px}
+.portion.kompakt small{display:flex;align-items:center;gap:3px;font-size:11.5px;color:var(--mut);line-height:1.1}
+.portion.kompakt small .ic{width:13px;height:13px}
+.portion.kompakt .st button{width:28px;height:28px}

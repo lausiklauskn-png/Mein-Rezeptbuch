@@ -765,8 +765,6 @@ export default {
   'Nein, nur die Übersetzung': '否，只改译文',
   'Sprache des Originals': '原文语言',
   'In welcher Sprache ist das bisherige Original geschrieben?': '原来的原文是用哪种语言写的？',
-  'Vollbild beenden': '退出全屏',
-  'Vollbild': '全屏',
   'im Gerät · es geht nichts hinaus': '在设备上 · 不发送任何内容',
   'Weg': '方式',
   'Im Gerät': '在设备上',
@@ -786,7 +784,6 @@ export default {
   'Event-Ordner (optional)': '活动文件夹（可选）',
   'Neuer Event-Ordner, z. B. Hochzeit von Jonas und Lisa': '新活动文件夹，例如 Jonas 和 Lisa 的婚礼',
   'Bild entfernen': '移除图片',
-  'Vollbild ist hier nicht möglich.': '这里无法全屏。',
   'Der Winkel neben dem Namen klappt die Werkzeuge auf: Einordnen (Kategorie und Event-Ordner in einem Fenster), Bild, Übersetzen, mehr, bearbeiten, löschen.': '名称旁的角标打开工具：归类（类别和活动文件夹在同一窗口）、图片、翻译、更多、编辑、删除。',
   'Der Stift an „Zutaten“ und „Zubereitung“ macht genau diesen Teil an Ort und Stelle bearbeitbar. Die Nummern der Schritte stehen nur daneben, nicht im Text. Am großen Schirm öffnet „Bearbeiten“ das ganze Formular rechts; die Liste bleibt links stehen.': '「配料」和「做法」旁的铅笔让这一部分就地可编辑。步骤编号只显示在旁边，不在文本里。大屏幕上「编辑」在右侧打开整个表单；列表留在左侧。',
   'Wird eine Übersetzung gezeigt, bearbeitest du die Übersetzung. Beim Speichern fragt die App einmal: als Hauptfassung übernehmen (dann bleibt das bisherige Original als Übersetzung erhalten) oder nur die Übersetzung ändern.': '如果显示的是译文，你编辑的就是译文。保存时应用会问一次：设为主版本（原来的原文作为译文保留），还是只修改译文。',
@@ -850,4 +847,6 @@ export default {
   'Original': '原文',
   'Geändert: die Fassung {0} ist neu zu übersetzen': '已更改：{0}版本需要重新翻译',
   'Geändert und im Gerät neu übersetzt': '已更改，并已在设备上重新翻译',
+  'Zurück zur ganzen App': '返回完整应用',
+  'Nur das Rezept, im Vollbild': '只看菜谱，全屏',
 };

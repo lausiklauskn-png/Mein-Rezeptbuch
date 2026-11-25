@@ -78,21 +78,19 @@ try {
     console.log(`2 · Vollbild-Knopf im Bild (${breite} px)`);
     const held = await box(p, '.rezept-held>img'), vk = await box(p, '.rezept-held .held-voll');
     ok(vk.r <= held.r + 1 && vk.r > held.r - 70 && vk.b <= held.b + 1 && vk.y > held.y + held.h / 2, 'der Knopf sitzt unten rechts im Rezeptbild', JSON.stringify({ vk, held }));
-    ok((await p.locator('.held-voll').innerText()).trim() === '' && await p.locator('.held-voll').getAttribute('aria-label') === 'Vollbild' && await p.locator('.held-voll svg').count() === 1, 'ohne Text, mit Ecken-Zeichen und Namen „Vollbild“');
-    const svgAus = await p.locator('.held-voll path').getAttribute('d');
-    await p.click('.held-voll'); await p.waitForTimeout(100);
-    ok((await p.evaluate(() => window.__vollRuf)).join() === 'html' && await p.locator('.held-voll').getAttribute('aria-pressed') === 'true' && await p.locator('.held-voll').getAttribute('aria-label') === 'Vollbild beenden' && await p.locator('.held-voll path').getAttribute('d') !== svgAus, 'ein Tipp: die ganze App (documentElement) geht ins Vollbild; der Knopf heißt jetzt „Vollbild beenden“, Ecken nach innen');
-    ok(await p.locator('.bildvoll, .fenster').count() === 0, 'der Tipp auf den Knopf öffnet nicht „Bild anpassen“');
+    ok((await p.locator('.held-voll').innerText()).trim() === '' && await p.locator('.held-voll').getAttribute('aria-label') === 'Nur das Rezept, im Vollbild' && await p.locator('.held-voll svg').count() === 1, 'ohne Text, mit Ecken-Zeichen und Namen „Nur das Rezept, im Vollbild“');
+    const svgAus = await p.locator('.held-voll path').getAttribute('d'), titel = (await p.locator('.rezept-held h1').innerText()).trim();
+    await p.click('.held-voll'); await p.waitForTimeout(150);
+    ok((await p.evaluate(() => window.__vollRuf)).join() === 'html' && await p.locator('.held-voll').getAttribute('aria-pressed') === 'true' && await p.locator('.held-voll').getAttribute('aria-label') === 'Zurück zur ganzen App' && await p.locator('.held-voll path').getAttribute('d') !== svgAus, 'ein Tipp: der Browser geht ins Vollbild; der Knopf heißt jetzt „Zurück zur ganzen App“, Ecken nach innen');
+    ok(await p.locator('.bildvoll, .fenster').count() === 0 && (await p.locator('.rezept-held h1').innerText()).trim() === titel, 'der Tipp öffnet nicht „Bild anpassen“; dasselbe Rezept steht da');
     if (breite >= 1000) {
-      ok(await p.locator('.kopf').isVisible() && await p.locator('.md-liste').isVisible(), 'im Vollbild bleiben Seitenleiste und Liste stehen');
-      await p.locator('.md-liste .karte', { hasText: 'Gyoza' }).click(); await p.waitForTimeout(200);
-      ok((await p.locator('.md-detail h1').innerText()).includes('Gyoza') && await p.locator('.held-voll').getAttribute('aria-pressed') === 'true', 'die Liste ist im Vollbild bedienbar, der Knopf bleibt im Zustand');
-      await p.click('.rail-n[data-zu=plan]'); ok(await p.locator('.rail-n[data-zu=plan][aria-current]').count() === 1, 'die Seitenleiste ist im Vollbild bedienbar'); await p.click('.rail-n[data-zu=start]'); await p.waitForSelector('.md-detail .held-voll');
+      ok(!(await p.locator('.kopf').isVisible()) && !(await p.locator('.md-liste').isVisible()), 'Klaus 25.11. abends: nur das Rezept – Seitenleiste und Liste sind ausgeblendet (wie das alte „Nur dieses Rezept“; vorher blieben sie stehen)');
+      ok(await p.locator('.md-detail').evaluate((e) => e.getBoundingClientRect().width) > breite * 0.8, 'das Rezept nimmt die ganze Breite ein');
     }
-    await p.click('.held-voll'); await p.waitForTimeout(100);
-    ok(await p.evaluate(() => window.__vollAus) === 1 && await p.locator('.held-voll').getAttribute('aria-pressed') === 'false', 'der zweite Tipp beendet das Vollbild');
-    await p.click('.held-voll'); await p.evaluate(() => window.__vollEnde()); await p.waitForTimeout(100);
-    ok(await p.locator('.held-voll').getAttribute('aria-pressed') === 'false' && await p.locator('.held-voll').getAttribute('aria-label') === 'Vollbild', 'endet es über Esc oder das System, folgt der Knopf (fullscreenchange)');
+    await p.click('.held-voll'); await p.waitForTimeout(150);
+    ok(await p.evaluate(() => window.__vollAus) === 1 && await p.locator('.held-voll').getAttribute('aria-pressed') === 'false' && (breite < 1000 || (await p.locator('.kopf').isVisible() && await p.locator('.md-liste').isVisible())), 'derselbe Knopf führt zurück: Vollbild aus, Leiste und Liste wieder da');
+    await p.click('.held-voll'); await p.evaluate(() => window.__vollEnde()); await p.waitForTimeout(150);
+    ok(await p.locator('.held-voll').getAttribute('aria-pressed') === 'false' && await p.locator('.held-voll').getAttribute('aria-label') === 'Nur das Rezept, im Vollbild' && (breite < 1000 || await p.locator('.kopf').isVisible()), 'endet es über Esc oder das System, ist auch die ganze App wieder da (fullscreenchange)');
     await k.close();
   }
 

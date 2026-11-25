@@ -42,7 +42,7 @@ import { druckRezept, drucke, druckMenuekarte } from '../kern/ausgabe/druck.mjs'
 import { teilLink, ausTeilLink, qrSvg, passtInQr } from '../kern/teilen/qr.mjs';
 import { rezeptIn } from '../kern/modell/einheiten.mjs';
 
-const FASSUNG = '0.17.3';
+const FASSUNG = '0.17.4';
 const breit = () => matchMedia('(min-width:1000px)').matches;
 const $ = (id) => document.getElementById(id);
 const esc = (t) => String(t ?? '').replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
@@ -253,8 +253,8 @@ function rezeptHtml() {
   return `<div class="rezept-held" data-a="held" role="button" tabindex="0" aria-label="${r.img ? L('Bild groß ansehen', 'View picture large') : L('Bild einfügen', 'Add picture')}">${r.img ? `<img src="${esc(r.img)}" alt="${esc(r.name)}" ${ausschnitt(r)}>` : ic('karte')}
     ${vollKnopf()}<div class="verlauf"><div class="tzeile">${s.rleiste ? `<div class="rwerk" role="toolbar">${wk('einordnen', 'ordner', L('Einordnen: Kategorie und Event-Ordner', 'Organise: category and event folder'))}${wk('bild-blatt', 'bild', L('Bild', 'Picture'))}${wk('uebersetzen', 'welt', L('Übersetzen', 'Translate'))}${wk('rmenue', 'mehr', L('Mehr: Drucken, Teilen, Nährwerte …', 'More: print, share, nutrition …'))}${wk('bearbeiten', 'stift', L('Bearbeiten', 'Edit'))}${wk('loeschen', 'muell', L('Rezept löschen', 'Delete recipe'), 'rot')}</div>` : ''}<button class="wk-pf zur" data-a="zurueck" aria-label="${L('Zurück', 'Back')}">${winkel('M15 5l-7 7 7 7')}</button><h1>${esc(r.name)}</h1><button class="wk-pf" data-a="rleiste" aria-expanded="${s.rleiste}" aria-label="${L('Werkzeuge für Rezept und Bild', 'Tools for recipe and picture')}">${winkel(s.rleiste ? 'M5 9l7 7 7-7' : 'M5 15l7-7 7 7')}</button></div><div class="meta">${r.prepTime ? `<span>${ic('uhr')}${esc(minText(r.prepTime))}</span>` : ''}<span>${ic('karte')}${esc(c ? katName(c) : '')}</span>${ordnerVonRezept(r, Z.ordner) ? `<span class="im-ordner">${ic('ordner')}${esc(ordTitel(findeOrdner(Z.ordner, r.folder)))}</span>` : ''}${sterneHtml(roh)}${uebUm}</div></div></div>
    <div class="bogen"><div class="zweispalt"><div>
-    ${r.steps.length ? `<div class="reihe"><button class="knopf akz" data-a="kochen" style="flex:1.3">${ic('koch')}${L('Kochen', 'Cook')}</button><button class="knopf" data-a="auf-liste" style="flex:1">${ic('einkauf')}${L('Einkaufen', 'Shop')}</button><button class="knopf" data-a="planen" aria-label="${L('In den Wochenplan', 'Into the week plan')}">${ic('plan')}</button></div>` : `<div class="reihe"><button class="knopf" data-a="auf-liste">${ic('einkauf')}${L('Einkaufen', 'Shop')}</button><button class="knopf" data-a="planen">${ic('plan')}${L('Planen', 'Plan')}</button></div>`}
-    <div class="portion"><span>${L('Portionen', 'Servings')}</span><span class="st"><button data-a="portion" data-d="-1" aria-label="${L('Weniger', 'Fewer')}">${ic('minus')}</button><b id="portionen">${n}</b><button data-a="portion" data-d="1" aria-label="${L('Mehr', 'More')}">${ic('plus')}</button></span></div>
+    <div class="rz-aktion">${r.steps.length ? `<button class="sym akz" data-a="kochen">${ic('koch')}<small>${L('Kochen', 'Cook')}</small></button>` : ''}<button class="sym" data-a="auf-liste">${ic('einkauf')}<small>${L('Einkaufen', 'Shop')}</small></button><button class="sym" data-a="planen" aria-label="${L('In den Wochenplan', 'Into the week plan')}">${ic('plan')}<small>${L('Planen', 'Plan')}</small></button>
+    <div class="portion kompakt" role="group" aria-label="${L('Portionen', 'Servings')}"><span class="st"><button data-a="portion" data-d="-1" aria-label="${L('Weniger', 'Fewer')}">${ic('minus')}</button><b id="portionen">${n}</b><button data-a="portion" data-d="1" aria-label="${L('Mehr', 'More')}">${ic('plus')}</button></span><small>${ic('leute')}<span>${L('Portionen', 'Servings')}</span></small></div></div>
     ${abschnittKopf('ings', L('Zutaten', 'Ingredients'))}${s.abschnitt?.uid === roh.uid && s.abschnitt.teil === 'ings' ? abschnittForm(roh, 'ings') : `<ul class="zut">${r.ings.map((z) => `<li><b>${esc([skaliere(z.amt, f), z.unit].filter(Boolean).join(' '))}</b><span>${esc(z.name)}${z.note ? `<small>${esc(z.note)}</small>` : ''}</span></li>`).join('')}</ul>`}${naehrHtml(r, n)}${geraeteVon(r).length ? `<h2 class="h">${L('Geräte', 'Equipment')}</h2><div class="gr-liste">${geraeteVon(r).map((g) => `<span class="gr-chip">${geraetSvg(g)}${esc(geraetName(g))}</span>`).join('')}</div>` : ''}</div>
     <div>${abschnittKopf('steps', L('Zubereitung', 'Method'))}${s.abschnitt?.uid === roh.uid && s.abschnitt.teil === 'steps' ? abschnittForm(roh, 'steps') : `<ol class="schritte">${r.steps.map((x) => `<li><span>${esc(x.txt)}${x.note ? `<small>${esc(x.note)}</small>` : ''}</span></li>`).join('')}</ol>`}
     ${r.source ? `<p class="quelle">${fuelle(L('Quelle: {0}', 'Source: {0}'), esc(r.source))}</p>` : ''}${vermerkHtml(r, spr())}</div></div></div>`;
@@ -306,8 +306,11 @@ function quellSprache(r, ziel) {
    Derselbe Knopf beendet es; endet es über Esc oder das System, folgt der Knopf über `fullscreenchange`. Geht es nicht, passiert nichts. */
 const vollAn = () => !!document.fullscreenElement;
 const ecken = (innen) => `<svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="${innen ? 'M9 4v5H4M15 4v5h5M20 15h-5v5M4 15h5v5' : 'M4 9V4h5M15 4h5v5M20 15v5h-5M9 20H4v-5'}"/></svg>`;
-const vollKnopf = () => { const an = vollAn(), t = an ? L('Vollbild beenden', 'Exit full screen') : L('Vollbild', 'Full screen'); return `<button class="held-voll" data-a="vollbild" aria-pressed="${an}" aria-label="${t}" title="${t}">${ecken(an)}</button>`; };
-document.addEventListener('fullscreenchange', () => { document.querySelectorAll('.held-voll').forEach((k) => { k.outerHTML = vollKnopf(); }); });
+/* Klaus 25.11. abends: „vorher war besser, wo auch die Navi-Leisten ausgeblendet wurden … ich will das Rezept kochen“. Der Knopf zeigt jetzt
+   NUR das Rezept (Leiste, Liste und Baum weg, wie das alte „Nur dieses Rezept“) UND schaltet den Browser auf Vollbild; derselbe Knopf, Esc oder
+   die Zurück-Geste führen zur ganzen App zurück. Geht Vollbild nicht (iPhone), steht trotzdem nur das Rezept da. */
+const vollKnopf = () => { const an = vollAn() || s.nurDies, t = an ? L('Zurück zur ganzen App', 'Back to the whole app') : L('Nur das Rezept, im Vollbild', 'Only the recipe, full screen'); return `<button class="held-voll" data-a="vollbild" aria-pressed="${an}" aria-label="${t}" title="${t}">${ecken(an)}</button>`; };
+document.addEventListener('fullscreenchange', () => { if (!vollAn() && s.nurDies) { s.nurDies = false; zeichne(); return; } document.querySelectorAll('.held-voll').forEach((k) => { k.outerHTML = vollKnopf(); }); });
 
 const geraeteVon = (r) => [...new Set(r.steps.flatMap((x) => erkenne(x.txt)))];
 const geraetName = (g) => Lk(GERAETE[g].de, GERAETE[g].en);
@@ -1173,6 +1176,20 @@ document.addEventListener('pointerup', railLos); document.addEventListener('poin
 document.addEventListener('contextmenu', (ev) => { if (breit() && ev.target.closest?.('#kopf')) ev.preventDefault(); });
 
 /* ---------- Zeichnen ---------- */
+/* Klaus 25.11. abends: am breiten Schirm soll ein Rezept ohne Scrollen auf einen Bildschirm passen; reicht die Höhe nicht, verteilen sich
+   die Schritte auf eine zweite Spalte. Gemessen wird nach dem Zeichnen (und wenn das Bild geladen ist oder das Fenster sich ändert). Am Handy nicht. */
+function spaltenPruefen() {
+  const d = document.querySelector('.md-detail'); if (!d) return; d.classList.remove('spalten', 'spalten2', 'spalten3');
+  if (!breit() || d.querySelectorAll('.schritte li').length < 2) return;
+  const img = d.querySelector('.rezept-held>img'); if (img && !img.complete) img.addEventListener('load', spaltenPruefen, { once: true });
+  const ueber = () => d.scrollHeight - d.clientHeight; let best = ['', ueber()];
+  if (best[1] <= 4 || d.clientWidth < 900) return;   /* passt schon, oder zu schmal für zwei Spalten je Abschnitt */
+  /* Stufe 1: die Schritte in zwei Spalten; Stufe 2: dazu die Zutaten in zwei Spalten (breitere Zutaten-Spalte); Stufe 3: dazu ein kleineres Bild. Die erste, die passt, gilt;
+     sonst die mit dem wenigsten Überstand. Ohne Gewinn bleibt es bei einer Spalte. */
+  for (const st of ['spalten', 'spalten spalten2', 'spalten spalten2 spalten3']) { d.classList.remove('spalten', 'spalten2', 'spalten3'); d.classList.add(...st.split(' ')); const u = ueber(); if (u < best[1] - 8) best = [st, u]; if (u <= 4) break; }
+  d.classList.remove('spalten', 'spalten2', 'spalten3'); if (best[0]) d.classList.add(...best[0].split(' '));
+}
+addEventListener('resize', () => requestAnimationFrame(spaltenPruefen));
 function zeichne(einzug = false) {
   kopfZeichnen(); leisteZeichnen();
   const m = $('main'), lesen = ['start', 'rezept', 'kochen'].includes(s.ansicht), formRechts = breit() && s.ansicht === 'form';
@@ -1191,6 +1208,7 @@ function zeichne(einzug = false) {
     m.innerHTML = `<div class="md ${s.nurDies ? 'nur' : ''}"><div class="md-liste">${startHtml()}</div><div class="md-detail">${rezept(s.uid) ? rezeptHtml() : ''}</div></div>`;
     const l = m.querySelector('.md-liste'); if (l) l.scrollTop = alt;
   } else m.innerHTML = s.ansicht === 'rezept' || s.ansicht === 'kochen' ? rezeptHtml() : s.ansicht === 'form' ? formHtml() : s.ansicht === 'werkstatt' ? werkstattHtml() : s.ansicht === 'einkauf' ? einkaufHtml() : s.ansicht === 'plan' ? planHtml() : s.ansicht === 'kategorien' ? kategorienHtml() : s.ansicht === 'ordner' ? baumHtml() : s.ansicht === 'baum' ? baumHtml() : s.ansicht === 'kreativ' ? kreativHtml() : s.ansicht === 'zine' ? ZI.html() : s.ansicht === 'bilder' ? bilderHtml() : startHtml();
+  requestAnimationFrame(spaltenPruefen);
   katInSicht(); m.classList.toggle('einzug', einzug); document.body.dataset.ansicht = s.ansicht; document.body.classList.toggle('nur', breit() && (lesen || s.ansicht === 'baum') && s.nurDies);
   if (s.ansicht !== 'kochen') { wachAus(); weckerAus(); }
   kochZeichnen();
@@ -1386,7 +1404,8 @@ const A = {
   'zs-lage': (e) => { const [x, y] = e.dataset.l.split(','); zs.x = +x; zs.y = +y; zsZeigen(); },
   'zs-null': () => { zs.x = 50; zs.y = 50; zs.z = 1; $('zs-zoom').value = 100; zsZeigen(); },
   'zs-ok': () => { const z = zs; if (!z) return; Z.rezepte = Z.rezepte.map((r) => (r.uid === z.uid ? { ...r, imgCrop: { ...(r.imgCrop || {}), x: Math.round(z.x), y: Math.round(z.y), scale: Math.round(z.z * 100) / 100 } } : r)); sichern(); A['bv-zu'](); zeichne(); },
-  vollbild: () => { try { const p = vollAn() ? document.exitFullscreen?.() : document.documentElement.requestFullscreen?.(); p?.catch?.(() => melde(L('Vollbild ist hier nicht möglich.', 'Full screen is not possible here.'))); } catch { /* ohne Vollbild */ } },
+  vollbild: () => { const an = !(vollAn() || s.nurDies); s.nurDies = an; zeichne();
+    try { const p = an ? (vollAn() ? null : document.documentElement.requestFullscreen?.()) : vollAn() ? document.exitFullscreen?.() : null; p?.catch?.(() => { /* ohne Browser-Vollbild: das Rezept steht trotzdem allein da */ }); } catch { /* ohne Vollbild */ } },
   rail: () => { E.railZu = !E.railZu; sichern(); kopfZeichnen(); },
   schrift: () => fenster(`<h2>${L('Schriftgröße', 'Text size')} ${frag(L('Die Schrift ändert sich, während du schiebst. Sie gilt für die ganze App, auch beim Kochen.', 'The text changes while you slide. It applies to the whole app, also when cooking.'))}</h2>${schriftRegler(E.schrift, spr())}<div class="reihe" style="margin-top:14px"><button class="knopf" data-a="schrift-100">${L('Zurück auf 100 %', 'Back to 100 %')}</button><button class="knopf akz" data-a="fenster-zu">${L('Fertig', 'Done')}</button></div>`),
   'schrift-100': () => { E.schrift = schriftSetzen(document.documentElement, 100); $('schriftregler').value = 100; $('schriftzahl').textContent = '100 %'; sichern(); },

@@ -765,8 +765,6 @@ export default {
   'Nein, nur die Übersetzung': 'Нет, только перевод',
   'Sprache des Originals': 'Язык оригинала',
   'In welcher Sprache ist das bisherige Original geschrieben?': 'На каком языке написан прежний оригинал?',
-  'Vollbild beenden': 'Выйти из полноэкранного режима',
-  'Vollbild': 'Во весь экран',
   'im Gerät · es geht nichts hinaus': 'на устройстве · ничего не отправляется',
   'Weg': 'Способ',
   'Im Gerät': 'На устройстве',
@@ -786,7 +784,6 @@ export default {
   'Event-Ordner (optional)': 'Папка событий (необязательно)',
   'Neuer Event-Ordner, z. B. Hochzeit von Jonas und Lisa': 'Новая папка событий, напр. Свадьба Йонаса и Лизы',
   'Bild entfernen': 'Убрать изображение',
-  'Vollbild ist hier nicht möglich.': 'Полноэкранный режим здесь невозможен.',
   'Der Winkel neben dem Namen klappt die Werkzeuge auf: Einordnen (Kategorie und Event-Ordner in einem Fenster), Bild, Übersetzen, mehr, bearbeiten, löschen.': 'Уголок рядом с названием открывает инструменты: распределить (категория и папка событий в одном окне), изображение, перевести, ещё, изменить, удалить.',
   'Der Stift an „Zutaten“ und „Zubereitung“ macht genau diesen Teil an Ort und Stelle bearbeitbar. Die Nummern der Schritte stehen nur daneben, nicht im Text. Am großen Schirm öffnet „Bearbeiten“ das ganze Formular rechts; die Liste bleibt links stehen.': 'Карандаш у «Ингредиенты» и «Приготовление» делает именно эту часть редактируемой прямо на месте. Номера шагов стоят только рядом, не в тексте. На большом экране «Изменить» открывает всю форму справа; список остаётся слева.',
   'Wird eine Übersetzung gezeigt, bearbeitest du die Übersetzung. Beim Speichern fragt die App einmal: als Hauptfassung übernehmen (dann bleibt das bisherige Original als Übersetzung erhalten) oder nur die Übersetzung ändern.': 'Если показан перевод, вы редактируете перевод. При сохранении приложение один раз спрашивает: сделать его основной версией (прежний оригинал тогда останется переводом) или изменить только перевод.',
@@ -850,4 +847,6 @@ export default {
   'Original': 'Оригинал',
   'Geändert: die Fassung {0} ist neu zu übersetzen': 'Изменено: версию ({0}) нужно перевести заново',
   'Geändert und im Gerät neu übersetzt': 'Изменено и заново переведено на устройстве',
+  'Zurück zur ganzen App': 'Назад ко всему приложению',
+  'Nur das Rezept, im Vollbild': 'Только рецепт, во весь экран',
 };
