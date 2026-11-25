@@ -14,6 +14,7 @@ F=[('alkohol-trennt-nicht', "  if ((x === 'ohne') !== (y === 'ohne') && (x || y)
    ('formular-ohne-hinweis', "    if (p) { f.doppel = p; zeichne();", "    if (false) { f.doppel = p; zeichne();", APP, 'ähnliches Rezept: ein Band im Formular'),
    ('formular-text-legt-an', "s.form = null; rezeptSetzen(zus);", "s.form = null; Z.rezepte = [...Z.rezepte, normalisiere({ ...roh })]; sichern();", APP, '„Nur den Text übernehmen“'),
    ('merkmal-speichert-nicht', "merkmalUmschalten(x, e.dataset.m), modified: new Date().toISOString() } : x)); sichern(); zeichne(); },", "merkmalUmschalten(x, e.dataset.m), modified: new Date().toISOString() } : x)); zeichne(); },", APP, 'ein Tipp setzt „laktosefrei“'),
+   ('suche-ohne-merkmal', ", ...(r.tags || []), ...merkmalWorte(r, sprache)].join(' '));", ", ...(r.tags || [])].join(' '));", 'kern/modell/suche.mjs', 'die Wortsuche „vegan“ findet'),
    ('karte-ohne-merkmal', "<strong>${esc(r.name)}${merkZeichen(r0)}</strong>", "<strong>${esc(r.name)}</strong>", APP, 'die Karte in der Liste zeigt die Merkmale')]
 nur=os.environ.get('NUR_FALL'); nur=nur.split(',') if nur else None; gefangen=0; durch=0; anders=0; tot=0
 if os.environ.get('NUR_ANKER'):

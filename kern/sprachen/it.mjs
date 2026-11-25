@@ -244,4 +244,7 @@ export default {
   'Original und Übersetzung haben dieselbe Sprache.': 'Originale e traduzione hanno la stessa lingua.',
   'Menü': 'Menù',
   'Noch kein Gericht im Menü.': 'Ancora nessun piatto nel menù.',
+  'vegan': 'vegano',
+  'laktosefrei': 'senza lattosio',
+  'glutenfrei': 'senza glutine',
 };

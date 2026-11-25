@@ -80,3 +80,25 @@ test('Beispielbuch: keine Doppel im Buch selbst (falsche Treffer)', () => {
   const d = findeDoppel(buch, buch.slice(25));
   assert.deepEqual(d.map((x) => [nach && buch.find((r) => r.uid === x.neu).name, buch.find((r) => r.uid === x.alt).name, x.stufe]), []);
 });
+test('Merkmale sind ein Hinweis, der mitreist: Wortsuche (de, en, Oberfläche), Bedeutungssuche, Druck, Teilen (Klaus 25.11.)', async () => {
+  const { suche, suchtext } = await import('../kern/modell/suche.mjs');
+  const { passage } = await import('../kern/suche/bedeutung.mjs');
+  const { druckRezept } = await import('../kern/ausgabe/druck.mjs');
+  const { teilDaten, teilLink, ausTeilLink } = await import('../kern/teilen/qr.mjs');
+  const { ladeTabelle } = await import('../kern/oberflaeche/sprache.mjs');
+  const a = R({ uid: 'a', name: 'Linsensuppe', ings: ['Linsen', 'Karotten'], merkmale: ['vegan', 'laktosefrei'] }), b = R({ uid: 'b', name: 'Gulasch', ings: ['Rind'] });
+  const namen = (l) => l.map((r) => r.name);
+  assert.deepEqual(namen(suche([a, b], 'vegan laktosefrei', {})), ['Linsensuppe']);
+  assert.deepEqual(namen(suche([a, b], 'lactose-free', {})), ['Linsensuppe']);
+  assert.deepEqual(namen(suche([a, b], 'glutenfrei', {})), []);
+  await ladeTabelle('fr', [new URL('../kern/sprachen/fr.mjs', import.meta.url).href]);
+  assert.deepEqual(namen(suche([a, b], 'sans lactose', {}, 'fr')), ['Linsensuppe']);
+  assert.ok(passage(a).includes('vegan') && passage(a).includes('laktosefrei') && passage(a).includes('lactose-free'));
+  assert.equal(passage(b), passage({ ...b, merkmale: [] }), 'ohne Merkmal bleibt der Text gleich (nichts wird neu eingelesen)');
+  assert.ok(!suchtext(b).includes('vegan'));
+  const html = druckRezept(a, { sprache: 'de' });
+  assert.ok(/🌱 vegan/.test(html) && /🥛 laktosefrei/.test(html) && !/glutenfrei/.test(html), 'der Ausdruck zeigt die Merkmale');
+  assert.deepEqual(teilDaten(a).mk, ['vegan', 'laktosefrei']); assert.equal('mk' in teilDaten(b), false);
+  const zurueck = await ausTeilLink(await teilLink(a, 'https://x.example/neu/'));
+  assert.deepEqual(zurueck.merkmale, ['vegan', 'laktosefrei'], 'über den Teil-Link kommen die Merkmale an');
+});

@@ -5,9 +5,17 @@
 // verschiedenen Merkmalen (die laktosefreie Variante bleibt neben dem Original stehen, Klaus 25.11.).
 // Das Bild wird hier nicht gelesen: die App gibt je Rezept einen kleinen Bild-Fingerabdruck (64 Bit als Hex, dHash 9×8) mit.
 import { istInhalt } from './rezept.mjs';
+import { text } from '../oberflaeche/sprache.mjs';
 
 /** Merkmale einer Variante, in dieser Reihenfolge an der Leiste. */
 export const MERKMALE = ['vegan', 'laktosefrei', 'glutenfrei'];
+/** Name eines Merkmals in einer Sprache (Druck, Teilen, Suche). Klaus 25.11.: ein Hinweis am Rezept, kein Filter. */
+export function merkmalName(m, sprache = 'de') {
+  return m === 'vegan' ? text(sprache, 'vegan', 'vegan') : m === 'laktosefrei' ? text(sprache, 'laktosefrei', 'lactose-free') : m === 'glutenfrei' ? text(sprache, 'glutenfrei', 'gluten-free') : '';
+}
+export const MERKMAL_ZEICHEN = { vegan: '🌱', laktosefrei: '🥛', glutenfrei: '🌾' };
+/** Wörter, unter denen die Suche ein Merkmal findet: Deutsch, Englisch und die Sprache der Oberfläche. */
+export const merkmalWorte = (r, sprache = 'de') => merkmaleVon(r).flatMap((m) => [m, merkmalName(m, 'en'), merkmalName(m, sprache)]);
 export const merkmaleVon = (r) => (Array.isArray(r?.merkmale) ? MERKMALE.filter((m) => r.merkmale.includes(m)) : []);
 /** Schaltet ein Merkmal um; gibt ein neues Rezept zurück (ohne Feld, wenn keins mehr gesetzt ist). */
 export function merkmalUmschalten(r, m) {
