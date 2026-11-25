@@ -892,4 +892,5 @@ export default {
   '{0} Doppel zusammengeführt': '{0} doppioni uniti',
   '{0} Schritte': '{0} passaggi',
   '{0} Zutaten': '{0} ingredienti',
+  'Reihenfolge geändert': 'Ordine cambiato',
 };

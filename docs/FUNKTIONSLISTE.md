@@ -36,12 +36,12 @@ Auftrag: Brief `docs/BRIEF_SITZUNG_2026-11-23_REZEPTBUCH-KUECHEN-KERN.md` im Rep
 | Bild am Rezept, Bild-Vollbild | kern | 1 | da · smoke_neu |
 | Zutaten/Schritte per Ziehen umsortieren (Maus + Langdruck) | kern | 1 | anders · Reihenfolge im Formular (Zeilen im Textfeld), kein Ziehen |
 | Karte per Ziehen in andere Kategorie / auf Kategorie-Pille | kern | 2 | anders · „Kategorie“ in den Werkzeugen am Rezept (smoke_neu), kein Ziehen |
-| Wischen an der Rezeptkarte (`_rcardHdCheck`, nur in Muttis) — prüfen, ggf. übernehmen | kern | 1 | fehlt |
+| Wischen an der Rezeptkarte (`_rcardHdCheck`, nur in Muttis) — prüfen, ggf. übernehmen | kern | 1 | da (0.19.0) · in Muttis war es ein Langdruck mit Ziehen zum Umsortieren; neu: Karte lange drücken (Maus: ziehen) → vor/hinter eine Karte derselben Gruppe (eigene Reihenfolge, Kern `rezeptVerschieben`) oder auf ein Kategorie-/Event-Ordner-Foto (zuordnen), mit Rückgängig · smoke_neu_ziehen |
 | `_tddPendingMove` / `_tddPendingEnd` (nur in Muttis, Ziehen und Ablegen) — prüfen, ggf. übernehmen | kern | 2 | anders · Ziehen neu gebaut mit Zeiger-Ereignissen: Kategorien, Ordner, Warengruppen (smoke_neu); Karten, Zutaten und Schritte lassen sich nicht ziehen |
 | Doppelte Namen erlaubt (Kennung `r.uid` statt Name) | kern | 1 | da · test/kern.test.js (alt: `smoke_doppelte_namen`) |
 | Rechtschreibprüfung (SPELL-CHECK, `spellModal`) | kern | 10 | da · smoke_neu_menue, kern-helfer |
 | Rezept drucken (SINGLE RECIPE PRINT), Druckansicht | kern | 11 | da · smoke_neu_menue, kern-druck |
-| Swipe zwischen Bildschirmen, Zurück-Taste Android/Maus | kern | 1 | teils · Zurück-Taste da (smoke_neu); Wischen gibt es nur in der Kochansicht, nicht zwischen den Bildschirmen |
+| Swipe zwischen Bildschirmen, Zurück-Taste Android/Maus | kern | 1 | da (0.19.0) · Zurück-Taste (smoke_neu); Wischen am Handy zwischen den Punkten der Leiste (nicht in Fenstern, Rezept, Kochansicht, Feldern, waagerecht rollenden Leisten) · smoke_neu_ziehen |
 | Tastenkürzel (KEYBOARD SHORTCUTS) | kern | 1 | teils · Esc und Pfeiltasten (smoke_neu); Strg+K, Strg+N, Strg+M, Strg+Z fehlen |
 | Wortkarte | kern | 3 | da · ohne Probe · Synonyme in `kern/suche/bedeutung.mjs` (alt: `smoke_wortkarte`, stürzt schon auf main ab) |
 | **neu:** Kochansicht im Vollbild (ein Schritt groß, Wischen/Pfeiltasten, Bildschirm bleibt an, Zutaten des Schritts) | kern | 6 | da · smoke_neu |

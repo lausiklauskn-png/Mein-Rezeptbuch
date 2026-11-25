@@ -1078,3 +1078,9 @@ a.knopf{text-decoration:none}
 .dp-wahl{display:flex;flex-wrap:wrap;gap:6px}
 .dp-wahl .chip{min-height:34px}
 @media (max-width:420px){.dp-paar{grid-template-columns:1fr}}
+/* R5 Karte lange drücken und ziehen (0.19.0) */
+.gitter .karte{touch-action:pan-x pan-y;-webkit-touch-callout:none;-webkit-user-select:none;user-select:none}
+.karte.kz-zieht{opacity:.35}
+.karte.ziel-vor{box-shadow:-4px 0 0 0 var(--akz),var(--schatten)}
+.karte.ziel-nach{box-shadow:4px 0 0 0 var(--akz),var(--schatten)}
+.fotokat button.kz-ziel .bild{box-shadow:0 0 0 3px var(--akz);transform:scale(1.08)}

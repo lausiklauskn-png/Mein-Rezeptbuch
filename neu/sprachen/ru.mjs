@@ -889,4 +889,5 @@ export default {
   '{0} Doppel zusammengeführt': 'Объединено дубликатов: {0}',
   '{0} Schritte': 'Шагов: {0}',
   '{0} Zutaten': 'Ингредиентов: {0}',
+  'Reihenfolge geändert': 'Порядок изменён',
 };
