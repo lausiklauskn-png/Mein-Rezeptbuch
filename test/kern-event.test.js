@@ -91,3 +91,8 @@ test('Menükarte: Anlass, Datum, Gänge, entschärft, ohne Gästezahl', () => {
   assert.ok(!h.includes('Leer'), 'ein leerer Gang steht nicht da'); assert.ok(!h.includes('stern'.repeat(2)));
   assert.match(druckMenuekarte({}, { sprache: 'en' }), /No dish in the menu yet/);
 });
+test('Hinzufügen bricht nicht ab, wenn der eigene Kategorien-Stand unvollständig ist (älterer Speicher)', () => {
+  const l = lies(JSON.stringify({ version: 11, recipes: [{ uid: 'n1', name: 'Neu', steps: ['a'] }], menu: [], folders: [] }));
+  const m = fuehreZusammen({ rezepte: [], ordner: [], kategorien: { namen: { a: { name: 'A' } } } }, l, 'dazu');
+  assert.equal(m.neu, 1); assert.deepEqual(m.zustand.kategorien.namen, { a: { name: 'A' } }); assert.deepEqual(m.zustand.kategorien.eigene, []);
+});

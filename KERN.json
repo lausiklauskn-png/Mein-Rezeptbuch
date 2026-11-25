@@ -46,7 +46,7 @@
   "kern/oberflaeche/warten.mjs": "2987d4e43bd5e30a48b6c16bce82c267a27ce510435cf8cb005ded360f8283b5",
   "kern/pruefung/datei.mjs": "3b80ca3587e323a4d4853cfb4a6029cc52c310ccce81b3427ca0635b4bc073a2",
   "kern/pruefung/paket.mjs": "07aafc7db36b5fc553c044a72a0a9ac2668a0343b1308092c22f3339506d8b11",
-  "kern/sicherung/sicherung.mjs": "6a53c2d44cc93315a882775759997fa7e733a1c275b468079de57a030f29f984",
+  "kern/sicherung/sicherung.mjs": "39a29892ea1065f016a2310513370b840a8efd23c5a5a911bbabecf8a828ade7",
   "kern/speicher/alt-tresor.mjs": "87bc0a244bb4e701a1eb54c4c32896c214ee773abe500ba47435cb9b922ebe6b",
   "kern/speicher/speicher.mjs": "f4933d93cd2c945480c0e2dc9335c40b3ff21440bc62a8e706fa1ff74e8e6010",
   "kern/speicher/tresor.mjs": "074861e8864664053b7931017ea9eb63117eb1d07b75298334d458a9d699dfab",

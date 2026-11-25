@@ -78,7 +78,7 @@ export function fuehreZusammen(zustand, eingang, weise = 'dazu') {
   }
   const ordnerIds = new Set(z.ordner.map((o) => String(o.id)));
   const ordner = [...z.ordner, ...eingang.ordner.filter((o) => !ordnerIds.has(String(o.id)))];
-  const k = z.kategorien || leereKategorien(), e = eingang.kategorien || leereKategorien();
+  const k = { ...leereKategorien(), ...(z.kategorien || {}) }, e = { ...leereKategorien(), ...(eingang.kategorien || {}) };   // ein unvollständiger Stand (älterer Speicher) bricht das Hinzufügen nicht ab
   const eigIds = new Set(k.eigene.map((c) => c.id));
   const kategorien = { eigene: [...k.eigene, ...e.eigene.filter((c) => !eigIds.has(c.id))], namen: { ...e.namen, ...k.namen }, ausgeblendet: k.ausgeblendet, folge: k.folge.length ? k.folge : e.folge };
   const eigeneNotizen = notizListe(z.notizen), nIds = new Set(eigeneNotizen.map((n) => n.id)), notizenDazu = (eingang.notizen || []).filter((n) => !nIds.has(n.id));   /* Notizen der Datei kommen dazu, gleiche Kennung bleibt die eigene */
