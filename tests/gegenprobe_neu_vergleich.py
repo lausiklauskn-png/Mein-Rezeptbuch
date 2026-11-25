@@ -7,6 +7,8 @@ F=[('kein-alle-knopf', "${n && ['ohne', 'unbekannt', 'fremd'].includes(c.art) ?"
    ('kein-hinweis', "return offen ? `<p class=\"hinweis\" id=\"kat-offen\">", "return false ? `<p class=\"hinweis\" id=\"kat-offen\">", 'neu/app.mjs', 'ein Hinweis nennt die Rezepte'),
    ('kein-teilen', "(navigator.canShare ? zeile('sicherung-teilen'", "(false ? zeile('sicherung-teilen'", 'neu/app.mjs', '„Sicherung teilen“ gibt die Sicherung'),
    ('ohne-schluessel-los', "if (!SK.pollinations) { schluesselFenster('pollinations', 'gratis:' + uid); return; }", "", 'neu/app.mjs', 'fragt die App zuerst nach dem Pollinations-Schlüssel'),
+   ('blase-alt', "if (d.open) { document.querySelectorAll('details.frag[open]').forEach((x) => { if (x !== d) x.open = false; }); fragLegen(d); }", "if (d.open) { }", 'neu/app.mjs', 'jede ganz im Bild und obenauf'),
+   ('blase-schliesst-beim-scrollen', "if (r.bottom < 0 || r.top > innerHeight) fragZu(); else fragLegen(d);", "fragZu();", 'neu/app.mjs', 'jede ganz im Bild und obenauf'),
    ('schluessel-fehlt-im-abruf', "await gratisBild(frei, { schluessel: SK.pollinations })", "await gratisBild(frei)", 'neu/app.mjs', 'das Bild kommt von gen.pollinations.ai')]
 nur=os.environ.get('NUR_FALL'); gefangen=0; durch=0; tot=0
 for name,a,b,f,erwartet in F:

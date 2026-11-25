@@ -1,5 +1,7 @@
 # Brief für die nächste Sitzung: Mein Rezeptbuch und Mein Mixarium auf den Endstand bringen
 
+> **Fortsetzung:** `docs/BRIEF_SITZUNG_2026-11-25_TEIL2.md` (Befunde des Vergleichs, Reihenfolge des Baus) – dort beginnen.
+
 Stand **25.11.2026**. Gilt für beide Repos (`Mein-Rezeptbuch`, `Mein-Mixarium`); die Mixarium-Übergabe verweist hierher.
 
 ## Worum es jetzt geht

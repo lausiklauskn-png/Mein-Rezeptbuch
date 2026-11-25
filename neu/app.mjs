@@ -42,7 +42,7 @@ import { druckRezept, drucke } from '../kern/ausgabe/druck.mjs';
 import { teilLink, ausTeilLink, qrSvg, passtInQr } from '../kern/teilen/qr.mjs';
 import { rezeptIn } from '../kern/modell/einheiten.mjs';
 
-const FASSUNG = '0.15.2';
+const FASSUNG = '0.15.3';
 const breit = () => matchMedia('(min-width:1000px)').matches;
 const $ = (id) => document.getElementById(id);
 const esc = (t) => String(t ?? '').replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
@@ -694,7 +694,7 @@ function werkstattHtml() {
 
 /* ---------- Fenster ---------- */
 function fenster(html) { const z = zuTun; zuTun = null; z?.(); $('fensterort').innerHTML = `<div class="schleier" data-a="fenster-zu"><div class="fenster" role="dialog" aria-modal="true">${html}</div></div>`; }
-function fensterZu() { $('fensterort').innerHTML = ''; const z = zuTun; zuTun = null; z?.(); }
+function fensterZu() { document.getElementById('frag-blase')?.remove(); $('fensterort').innerHTML = ''; const z = zuTun; zuTun = null; z?.(); }
 function frage(titel, text, ja, tun, rot = true) { jaTun = tun; fenster(`<h2>${esc(titel)}</h2><p>${esc(text)}</p><div class="reihe"><button class="knopf ${rot ? 'rot' : 'akz'}" data-a="ja">${esc(ja)}</button><button class="knopf" data-a="fenster-zu">${L('Abbrechen', 'Cancel')}</button></div>`); }
 let jaTun = null, zuTun = null;
 /* Frage mit Antwort als Zusage (für Abläufe, die warten): Ja → true; Abbrechen, Schleier, Esc → false. html ist fertiges HTML. */
@@ -1023,6 +1023,20 @@ const NB = notizbuch({ L, spr, esc, ic, A, s, W, SK, Z: () => Z, setzeZ: (z) => 
 /* Kreativbuch (neu/kreativbuch.mjs): aus den Rezepten ein gestaltetes Buch, Texte von Claude im gewählten Stil; Einstellungen → Buch. */
 const KB = kreativbuch({ L, spr, esc, ic, A, W, SK, Z: () => Z, setzeZ: (z) => { Z = z; }, E: () => E, lager: () => lager, fenster, fensterZu, beiZu: (f) => { zuTun = f; }, melde, sichern, zeichne, zeig, istInhalt, schluesselFenster,
   katNamen: () => new Map(alleKategorien(Z.rezepte, Z.kategorien).map((c) => [c.id, katName(c)])), katVon: katVonRezept, wahl: ZU.wahl, stellenHtml: ZU.stellenHtml, ausgabe: () => ausgabe });
+/* Klaus 25.11.: die Erklärung hinter „?“ war nur teilweise zu lesen – sie hing rechtsbündig am Knopf und das Fenster schnitt sie
+   ab. Jetzt steht sie als eigene Blase am Seitenkörper (#frag-blase), ganz im Bild, unter oder über dem „?“; nur eine ist offen. */
+function fragLegen(d) {
+  document.getElementById('frag-blase')?.remove(); const p = d.querySelector('p'), k = d.querySelector('summary'); if (!p || !k) return;
+  const r = k.getBoundingClientRect(), b = Math.min(300, innerWidth - 16), x = document.createElement('div');
+  x.id = 'frag-blase'; x.className = 'frag-blase'; x.setAttribute('role', 'note'); x.innerHTML = p.innerHTML; x.style.width = b + 'px'; x.style.maxHeight = Math.round(innerHeight * 0.6) + 'px'; document.body.appendChild(x);
+  const h = x.getBoundingClientRect().height;
+  x.style.left = Math.round(Math.max(8, Math.min(r.right - b, innerWidth - b - 8))) + 'px';
+  x.style.top = Math.round(r.bottom + 6 + h > innerHeight - 8 ? Math.max(8, r.top - 6 - h) : r.bottom + 6) + 'px';
+}
+const fragZu = () => { document.getElementById('frag-blase')?.remove(); document.querySelectorAll('details.frag[open]').forEach((x) => { x.open = false; }); };
+document.addEventListener('toggle', (ev) => { const d = ev.target; if (!d.classList?.contains('frag')) return; if (d.open) { document.querySelectorAll('details.frag[open]').forEach((x) => { if (x !== d) x.open = false; }); fragLegen(d); } else if (!document.querySelector('details.frag[open]')) document.getElementById('frag-blase')?.remove(); }, true);
+document.addEventListener('pointerdown', (ev) => { if (document.getElementById('frag-blase') && !ev.target.closest?.('.frag, #frag-blase')) fragZu(); }, true);
+addEventListener('resize', fragZu); document.addEventListener('scroll', (ev) => { if (ev.target.closest?.('#frag-blase')) return; const d = document.querySelector('details.frag[open]'); if (!d) return; const r = d.querySelector('summary').getBoundingClientRect(); if (r.bottom < 0 || r.top > innerHeight) fragZu(); else fragLegen(d); }, true);   /* die Blase wandert mit dem „?“ */
 document.addEventListener('click', (ev) => {
   const e = ev.target.closest('[data-a]');
   if (s.leisteAuf && !ev.target.closest('#leiste')) { s.leisteAuf = false; leisteZeichnen(); }
