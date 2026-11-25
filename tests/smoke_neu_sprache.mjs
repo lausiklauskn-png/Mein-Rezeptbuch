@@ -117,7 +117,7 @@ try {
   for (const t of ['scan', 'web', 'text', 'pakete']) { await p.click(`.imp-reihe [data-t=${t}]`); await p.waitForSelector(`.imp-p[data-weg=${t}]`); if (t === 'scan') await p.click('#scan-mehr summary'); await merke(p, 'Neu: ' + t); if (t === 'web') { await p.click('[data-a=web-einfuegen]'); await p.waitForSelector('#web-text'); await merke(p, 'Neu: web einfügen'); } }
   await zu(p);
   await leisteAuf(p); await merke(p, 'Fliegende Leiste');
-  ok((await p.locator('#leiste [role=menuitem]').allInnerTexts()).map(glatt).join(' | ').startsWith('Recipes | Planner | Shopping') && await p.getAttribute('#leiste', 'aria-label') === 'Sections', 'fliegende Leiste: Bereiche und Werkzeuge auf Englisch', (await p.locator('#leiste [role=menuitem]').allInnerTexts()).map(glatt).join(' | '));
+  ok((await p.locator('#leiste [role=menuitem]').allInnerTexts()).map(glatt).join(' | ').startsWith('Recipes | Folders | Planner | Shopping') && await p.getAttribute('#leiste', 'aria-label') === 'Sections', 'fliegende Leiste: Bereiche und Werkzeuge auf Englisch', (await p.locator('#leiste [role=menuitem]').allInnerTexts()).map(glatt).join(' | '));
   await geh(p, 'einkauf', '#ek-liste'); await merke(p, 'Einkauf');
   ok(glatt(await p.locator('.laeden .chip').first().innerText()) === 'Supermarket' && (await p.locator('.ek-gruppe h3').allInnerTexts()).every((t) => !/[äöü]/.test(t)), 'Einkauf: der erste Laden und die Warengruppen auf Englisch', (await p.locator('.ek-gruppe h3').allInnerTexts()).join(' | '));
   await p.click('[data-a=ek-laden-neu]'); await p.waitForSelector('[data-form=laden]'); await merke(p, 'Fenster Neuer Laden'); await zu(p);
@@ -139,7 +139,7 @@ try {
   await menue(p); await p.click('#rmenue [data-a=qr]'); await p.waitForSelector('#qr-bild svg'); await merke(p, 'QR-Code'); await zu(p);
   await k.close();
   ({ p, k } = await seite({ ort: 'en-GB', breite: 1280 })); await merke(p, 'Monitor mit Seitenleiste');
-  ok((await p.locator('.rail-n .t').allInnerTexts()).map(glatt).join(' | ') === 'Notebook | Recipes | Planner | Shopping | Settings | Colour', 'Monitor: die Seitenleiste auf Englisch', (await p.locator('.rail-n .t').allInnerTexts()).map(glatt).join(' | ')); await k.close();
+  ok((await p.locator('.rail-n .t').allInnerTexts()).map(glatt).join(' | ') === 'Notebook | Recipes | Folders | Planner | Shopping | Settings | Colour', 'Monitor: die Seitenleiste auf Englisch', (await p.locator('.rail-n .t').allInnerTexts()).map(glatt).join(' | ')); await k.close();
   ({ p, k } = await seite({ ort: 'en-GB', bestand: null })); await p.waitForSelector('.leer.einladung'); await merke(p, 'leeres Buch');
   ok((await p.locator('.leer-text h2').innerText()).trim() === 'No recipes yet', 'leeres Buch: die Einladung auf Englisch'); await k.close();
   const funde = gesehen.flatMap(([wo, l]) => reste(l).map((r) => `${wo}: ${r}`));

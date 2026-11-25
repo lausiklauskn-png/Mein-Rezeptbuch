@@ -89,7 +89,7 @@ try {
   { const kk = await browser.newContext({ locale: 'de-DE', viewport: { width: 1280, height: 800 } }); const q = mitThemen(await kk.newPage()); q.on('pageerror', (e) => fehler.push(e.message));
     await q.goto(URL0); await q.waitForSelector('.gruss'); await q.click('[data-a=beispiel]'); await q.waitForSelector('.md-detail h1', { timeout: 20000 });
     ok(await q.locator('.md-liste .karte').count() === 42 && await q.locator('.md-detail h1').count() === 1, 'Liste links, Rezept rechts');
-    ok(await q.locator('#leiste').isHidden() && await q.locator('.rail-n').count() === 6, 'Leiste steht links, kein Griff am Rand (fünf Bereiche und das Notizbuch)');
+    ok(await q.locator('#leiste').isHidden() && await q.locator('.rail-n').count() === 7, 'Leiste steht links, kein Griff am Rand (sechs Bereiche mit „Ordner“ und das Notizbuch)');
     await q.locator('.md-liste').evaluate((e) => { e.scrollTop = 600; }); await q.locator('.md-liste .karte', { has: q.getByText('Ebi Tempura', { exact: true }) }).click();
     ok((await q.locator('.md-detail h1').innerText()) === 'Ebi Tempura' && await q.locator('.md-liste').evaluate((e) => e.scrollTop) > 300, 'Tipp links wechselt das Rezept rechts, die Liste bleibt an ihrer Stelle', (await q.locator('.md-detail h1').innerText()) + ' / ' + await q.locator('.md-liste').evaluate((e) => e.scrollTop));
     ok(await q.locator('.rezept-held .rund').count() === 0 && await q.locator('.rezept-held .wk-pf:visible').count() === 1, 'es gibt nur den kleinen Pfeil in der Namenszeile');

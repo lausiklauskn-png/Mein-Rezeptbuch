@@ -42,7 +42,7 @@ import { druckRezept, drucke } from '../kern/ausgabe/druck.mjs';
 import { teilLink, ausTeilLink, qrSvg, passtInQr } from '../kern/teilen/qr.mjs';
 import { rezeptIn } from '../kern/modell/einheiten.mjs';
 
-const FASSUNG = '0.15.3';
+const FASSUNG = '0.15.4';
 const breit = () => matchMedia('(min-width:1000px)').matches;
 const $ = (id) => document.getElementById(id);
 const esc = (t) => String(t ?? '').replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
@@ -72,7 +72,7 @@ async function spracheBereit(frist = 1200) {
 let ausgabe = null, lager = null;
 let Z = leererZustand();                     // Rezepte, Wochenplan, Ordner, Kategorien
 let E = { sprache: null, farbe: 'braun', leiste: { seite: 'r', pos: 64 }, zuletzt: null, ton: 'geraet', schrift: 100, railZu: false, sinn: false };   // Einstellungen dieses Geräts
-const s = { ansicht: 'start', uid: null, frage: '', kat: 'alle', portion: {}, werkzeug: false, leisteAuf: false, form: null, nurDies: false, planTag: new Date(), bilder: { gross: false, filter: 'alle', wahl: new Set() }, bildZiel: null, rleiste: false, scan: null, web: null, scanMehr: false, werkAuf: new Set(), original: null };
+const s = { ansicht: 'start', uid: null, frage: '', kat: 'alle', portion: {}, werkzeug: false, leisteAuf: false, form: null, nurDies: false, planTag: new Date(), bilder: { gross: false, filter: 'alle', wahl: new Set() }, bildZiel: null, rleiste: false, scan: null, web: null, scanMehr: false, werkAuf: new Set(), original: null, baum: { q: '', auf: new Set(), wahl: null } };
 const LEER_EINKAUF = () => ({ posten: [], haken: {}, eigene: [], laeden: { Supermarkt: [] }, laden: 'Supermarkt' });
 function ergaenze() { Z.einkauf = { ...LEER_EINKAUF(), ...(Z.einkauf || {}) }; if (!Z.einkauf.laeden[Z.einkauf.laden]) Z.einkauf.laden = Object.keys(Z.einkauf.laeden)[0] || 'Supermarkt'; if (!Z.einkauf.laeden[Z.einkauf.laden]) Z.einkauf.laeden[Z.einkauf.laden] = []; if (!Z.plan) Z.plan = ausAltemMenu(Z.menu, Z.rezepte); }
 
@@ -124,7 +124,7 @@ function kopfZeichnen() {
   if (breit()) {
     const n = (zu, i, t) => `<button class="rail-n" data-a="geh" data-zu="${zu}" ${(zu === 'start' ? ['start', 'rezept', 'kochen'].includes(s.ansicht) : s.ansicht === zu) ? 'aria-current="page"' : ''} title="${t}">${ic(i)}<span class="t">${t}</span></button>`;
     k.innerHTML = `<div class="rail-oben"><img class="logo" src="${esc(seitenZeichen())}" alt="" width="30" height="30"><span class="name t">${esc(ausgabe.titel)}${kopfFassung()}</span>${kopfInstall()}<button class="rail-klapp" data-a="rail" aria-label="${E.railZu ? L('Leiste ausklappen', 'Expand bar') : L('Leiste einklappen', 'Collapse bar')}">${ic(E.railZu ? 'rechts' : 'links')}</button></div>
-     <button class="knopf akz rail-neu" data-a="neu" aria-label="${L('Neues Rezept', 'New recipe')}">${ic('plus')}<span class="t">${L('Neues Rezept', 'New recipe')}</span></button>${NB.kopfKnopf(true)}${n('start', 'buch', L('Rezepte', 'Recipes'))}${n('plan', 'plan', L('Planer', 'Planner'))}${n('einkauf', 'einkauf', L('Einkauf', 'Shopping')).replace('</button>', (ekOffen() ? `<span class="zahl">${ekOffen()}</span>` : '') + '</button>')}${n('werkstatt', 'einst', L('Einstellungen', 'Settings'))}
+     <button class="knopf akz rail-neu" data-a="neu" aria-label="${L('Neues Rezept', 'New recipe')}">${ic('plus')}<span class="t">${L('Neues Rezept', 'New recipe')}</span></button>${NB.kopfKnopf(true)}${n('start', 'buch', L('Rezepte', 'Recipes'))}${n('baum', 'ordner', L('Ordner', 'Folders'))}${n('plan', 'plan', L('Planer', 'Planner'))}${n('einkauf', 'einkauf', L('Einkauf', 'Shopping')).replace('</button>', (ekOffen() ? `<span class="zahl">${ekOffen()}</span>` : '') + '</button>')}${n('werkstatt', 'einst', L('Einstellungen', 'Settings'))}
      <button class="rail-n" data-a="farbe" title="${L('Farbe', 'Colour')}"><span class="farbknopf"></span><span class="t">${L('Farbe', 'Colour')}</span></button>`;
     return;
   }
@@ -469,6 +469,123 @@ function ordnerWahlFenster(uid) {
     <form class="suche" data-form="ordner-neu-zu" data-uid="${esc(uid)}" style="margin-top:10px">${ic('plus')}<input name="n" placeholder="${L('Neuen Ordner anlegen', 'Create new folder')}" autocomplete="off" aria-label="${L('Neuer Ordner', 'New folder')}"></form>`);
 }
 
+/* ---------- Explorer „Ordner“ (Klaus 25.11., R3/R9): alle Kategorien und Ordner als Baum, wie „Meine Ordner“ der alten App ----------
+   Eine Kategorie zeigt die Rezepte, die in keinem Ordner liegen (wer in einem Ordner liegt, steht nur dort; die Zahl daneben sagt es).
+   Ziehen am Griff (Finger: lange drücken; Maus: ziehen): ein Rezept auf eine Kategorie setzt r.cat und nimmt es aus dem Ordner, auf einen
+   Ordner setzt es r.folder (die Kategorie bleibt). Eine Gruppe am Griff ihrer Kopfzeile ordnet die Kategorien bzw. Ordner um.
+   Mehrere auf einmal: „Auswählen“, Haken setzen, „Verschieben nach …“. Breiter Schirm: Baum links, Rezept rechts. */
+const BAUM_ERKL = () => L('Hier stehen alle Kategorien und Ordner mit ihren Rezepten. Ein Tipp auf die Zeile klappt sie auf, ein Tipp auf ein Rezept öffnet es. Zum Verschieben ein Rezept am Griff lange drücken (mit der Maus: ziehen) und auf eine Kategorie oder einen Ordner legen; eine ganze Kategorie oder einen Ordner verschiebst du am Griff der Kopfzeile. Mehrere auf einmal: „Auswählen“, Haken setzen, „Verschieben nach …“. Ein Rezept in einem Ordner behält seine Kategorie und steht im Baum nur beim Ordner.', 'Here are all categories and folders with their recipes. A tap on the row opens it, a tap on a recipe opens the recipe. To move, long-press a recipe at its handle (with the mouse: drag) and drop it on a category or a folder; move a whole category or folder at the handle of its header. Several at once: “Select”, tick, “Move to …”. A recipe in a folder keeps its category and appears in the tree only under the folder.');
+const bzKey = (art, id) => (art === 'kat' ? 'k:' : 'o:') + id;
+function baumGruppen() {
+  const q = s.baum.q.trim().toLowerCase(), alle = Z.rezepte.filter(istInhalt);
+  const passt = (r) => !q || zeig(r).name.toLowerCase().includes(q) || String(r.name || '').toLowerCase().includes(q);
+  const kats = alleKategorien(Z.rezepte, Z.kategorien).map((c) => { const eig = alle.filter((r) => katVonRezept(r) === c.id), frei = eig.filter((r) => !ordnerVonRezept(r, Z.ordner));
+    return { art: 'kat', id: c.id, c, name: katName(c), alle: frei, rz: frei.filter(passt), imOrdner: eig.length - frei.length }; });
+  const ords = ordUebersicht(Z.rezepte, Z.ordner).map((o) => { const rs = imOrdner(Z.rezepte, Z.ordner, o.id); return { art: 'ord', id: String(o.id), o, name: ordTitel(o), alle: rs, rz: rs.filter(passt) }; });
+  return { q, kats, ords };
+}
+function baumHtml() {
+  const g = baumGruppen(), alleAuf = [...g.kats, ...g.ords].every((x) => s.baum.auf.has(bzKey(x.art, x.id)));
+  return `<div class="ueber"><h2 style="font-size:19px">${L('Ordner', 'Folders')}</h2>${frag(BAUM_ERKL())}</div>
+   <form class="suche bz-suche" data-form="baum-suche" role="search">${ic('suche')}<input id="baumfeld" name="q" value="${esc(s.baum.q)}" placeholder="${L('Im Baum suchen …', 'Search the tree …')}" aria-label="${L('Im Baum suchen', 'Search the tree')}" autocomplete="off" enterkeyhint="search"><button type="button" id="baum-x" data-a="baum-suche-leer" aria-label="${L('Eingabe löschen', 'Clear input')}" ${s.baum.q ? '' : 'hidden'}>${ic('x')}</button></form>
+   <div class="reihe bz-knoepfe"><button class="chip" data-a="baum-ordner-neu">${ic('plus')}${L('Neuer Ordner', 'New folder')}</button><button class="chip" data-a="geh" data-zu="kategorien">${ic('stift')}${L('Kategorien umbenennen', 'Rename categories')}</button><button class="chip" data-a="baum-alle" aria-pressed="${alleAuf}">${ic(alleAuf ? 'hoch' : 'rechts')}${alleAuf ? L('Alle einklappen', 'Collapse all') : L('Alle aufklappen', 'Expand all')}</button><button class="chip" data-a="baum-wahl" aria-pressed="${!!s.baum.wahl}">${ic('haken')}${L('Auswählen', 'Select')}</button></div>
+   <div id="baum-rest">${baumRest(g)}</div>${s.baum.wahl ? baumWahlLeiste() : ''}`;
+}
+function baumRest(g = baumGruppen()) {
+  const kats = g.q ? g.kats.filter((x) => x.rz.length) : g.kats, ords = g.q ? g.ords.filter((x) => x.rz.length) : g.ords;
+  if (g.q && !kats.length && !ords.length) return `<div class="leer"><p>${fuelle(L('Nichts gefunden für „{0}“.', 'Nothing found for “{0}”.'), esc(g.q))}</p></div>`;
+  return `<h3 class="bz-teil">${L('Kategorien', 'Categories')}</h3><div class="bz-baum" data-teil="kat">${kats.map((x) => baumGruppe(x, g.q)).join('')}</div>
+   <h3 class="bz-teil">${L('Ordner', 'Folders')}</h3><div class="bz-baum" data-teil="ord">${ords.map((x) => baumGruppe(x, g.q)).join('') || `<p class="quelle" id="bz-ord-leer">${g.q ? '' : L('Noch kein Ordner. „Neuer Ordner“ legt einen an; danach Rezepte hineinziehen.', 'No folder yet. “New folder” creates one; then drag recipes into it.')}</p>`}</div>`;
+}
+function baumGruppe(x, q) {
+  /* Klaus 25.11.: wie die alte Liste – gleich da ändern, wo es steht: Name im Feld, Tipp aufs Bild ändert das Bild, Müll löscht, Pfeile ordnen zu. Kein Zwischenfenster. */
+  const k = bzKey(x.art, x.id), auf = !!q || s.baum.auf.has(k), kat = x.art === 'kat', n = x.alle.length;
+  const zeichen = kat ? katSticker(x.c) : x.o.bild ? `<img class="sticker" src="${esc(x.o.bild)}" alt="" loading="lazy">` : x.o.ico ? `<span aria-hidden="true">${esc(x.o.ico)}</span>` : ic('ordner');
+  const zahl = (n === 1 ? L('1 Rezept', '1 recipe') : fuelle(L('{0} Rezepte', '{0} recipes'), n)) + (kat && x.imOrdner ? ' · ' + fuelle(L('+{0} in Ordnern', '+{0} in folders'), x.imOrdner) : '');
+  const eig = kat ? Z.kategorien.namen?.[x.id]?.name || '' : '';
+  const feld = !kat ? `<input class="feld ord-name" data-oid="${esc(x.id)}" value="${esc(ordnerName(x.o))}" placeholder="${L('Name des Ordners', 'Folder name')}" aria-label="${L('Name des Ordners', 'Folder name')}" autocomplete="off">`
+    : x.c.art === 'ohne' ? `<span class="kat-fest">${esc(x.name)}</span>` : `<input class="feld kat-name" data-kid="${esc(x.id)}" value="${esc(x.c.art === 'eigen' && !eig ? x.c.de : eig)}" placeholder="${esc(jeSprache(x.c) || x.c.id)}" aria-label="${esc(fuelle(L('Name der Kategorie {0}', 'Name of the category {0}'), x.name))}" autocomplete="off">`;
+  const bild = kat ? `<button class="kat-zeichen" data-a="kat-emoji" data-kid="${esc(x.id)}" aria-label="${L('Bild oder Zeichen ändern', 'Change picture or symbol')}">${zeichen}</button>` : `<span class="kat-zeichen">${zeichen}</span>`;
+  const knoepfe = kat
+    ? (n + x.imOrdner ? `<button class="rund" data-a="kat-alle" data-kid="${esc(x.id)}" aria-label="${esc(fuelle(L('Alle {0} Rezepte aus „{1}“ einer Kategorie zuordnen', 'Assign all {0} recipes from “{1}” to a category'), n + x.imOrdner, x.name))}" title="${esc(L('Alle zuordnen', 'Assign all'))}">${ic('pfeile')}</button>` : '<span class="bz-platz"></span>')
+      + (x.c.art === 'ohne' ? '<span class="bz-platz"></span>' : `<button class="rund" data-a="kat-weg" data-kid="${esc(x.id)}" aria-label="${esc(fuelle(L('Kategorie {0} löschen', 'Delete category {0}'), x.name))}">${ic('muell')}</button>`)
+    : `<span class="bz-platz"></span><button class="rund" data-a="ordner-weg" data-oid="${esc(x.id)}" aria-label="${esc(fuelle(L('Ordner „{0}“ löschen', 'Delete folder “{0}”'), x.name))}">${ic('muell')}</button>`;
+  return `<section class="bz-gruppe" data-art="${x.art}" data-id="${esc(x.id)}" data-g="${esc(k)}" data-name="${esc(x.name)}"><div class="bz-kopf">${q ? '' : `<span class="griff bz-ggriff" aria-hidden="true" title="${L('Zum Verschieben lange drücken oder ziehen', 'Long-press or drag to move')}">${ic('griff')}</span>`}${bild}<span class="bz-name">${feld}<button class="bz-zahl" data-a="baum-auf" data-g="${esc(k)}" tabindex="-1">${esc(zahl)}</button></span><button class="bz-auf" data-a="baum-auf" data-g="${esc(k)}" aria-expanded="${auf}" aria-label="${esc(auf ? fuelle(L('„{0}“ zuklappen', 'Collapse “{0}”'), x.name) : fuelle(L('„{0}“ aufklappen', 'Expand “{0}”'), x.name))}">${ic('rechts', 'bz-pf')}</button>${knoepfe}</div>
+   ${auf ? `<div class="bz-rezepte">${x.rz.map((r) => baumZeile(r)).join('') || `<p class="bz-leer">${L('Keine Rezepte. Zieh eines hierher.', 'No recipes. Drag one here.')}</p>`}</div>` : ''}</section>`;
+}
+function baumZeile(r0) {
+  const r = zeig(r0), w = s.baum.wahl, an = w?.has(r0.uid), c = alleKategorien(Z.rezepte, Z.kategorien).find((x) => x.id === katVonRezept(r0));
+  return `<div class="bz-zeile" data-uid="${esc(r0.uid)}" ${breit() && s.uid === r0.uid ? 'aria-current="true"' : ''}>${w ? `<button class="bz-haken" data-a="baum-haken" data-uid="${esc(r0.uid)}" aria-pressed="${!!an}" aria-label="${esc(fuelle(L('„{0}“ auswählen', 'Select “{0}”'), r.name))}">${an ? ic('haken') : ''}</button>` : ''}<button class="bz-r" data-a="baum-rezept" data-uid="${esc(r0.uid)}"><span class="kat-zeichen bz-bild">${r0.img ? `<img class="sticker" src="${esc(r0.img)}" alt="" loading="lazy" ${ausschnitt(r0)}>` : c ? katZeichen(c) : ic('karte')}</span><span class="bz-rname">${esc(r.name)}</span></button><span class="griff bz-rgriff" aria-hidden="true" title="${L('Zum Verschieben lange drücken oder ziehen', 'Long-press or drag to move')}">${ic('griff')}</span></div>`;
+}
+const baumWahlLeiste = () => { const n = s.baum.wahl.size; return `<div class="bz-wahl" role="toolbar" aria-label="${L('Auswahl', 'Selection')}"><span id="bz-wahl-zahl">${esc(fuelle(L('{0} gewählt', '{0} selected'), n))}</span><button class="knopf akz" data-a="baum-verschieben" ${n ? '' : 'disabled'}>${ic('pfeile')}${L('Verschieben nach …', 'Move to …')}</button><button class="rund" data-a="baum-wahl" aria-label="${L('Auswahl beenden', 'End selection')}">${ic('x')}</button></div>`; };
+function baumZielFenster(uids) {
+  const kats = alleKategorien(Z.rezepte, Z.kategorien);
+  fenster(`<h2>${esc(fuelle(L('{0} Rezepte verschieben nach …', 'Move {0} recipes to …'), uids.length))}</h2><h3>${L('Kategorie', 'Category')}</h3><div class="wahl-liste" id="bz-ziele">${kats.map((c) => `<button class="zeile" data-a="baum-ziel" data-art="kat" data-id="${esc(c.id)}"><span class="kat-zeichen">${katSticker(c)}</span><span>${esc(katName(c))}</span></button>`).join('')}</div>
+    <h3 style="margin-top:12px">${L('Ordner', 'Folder')}</h3><div class="wahl-liste">${Z.ordner.map((o) => `<button class="zeile" data-a="baum-ziel" data-art="ord" data-id="${esc(o.id)}">${o.ico ? `<span class="kat-zeichen" aria-hidden="true">${esc(o.ico)}</span>` : ic('ordner')}<span>${esc(ordTitel(o))}</span></button>`).join('')}
+    <button class="zeile" data-a="baum-ziel" data-art="ord" data-id="">${ic('x')}<span>${L('aus dem Ordner nehmen', 'take out of the folder')}</span></button></div>`);
+}
+/** Legt Rezepte ab: auf eine Kategorie (r.cat, raus aus dem Ordner) oder in einen Ordner (r.folder; leer = heraus). Mit Rückgängig. */
+function baumAblegen(uids, art, id) {
+  const vorher = Z.rezepte, menge = new Set(uids); let n = 0;
+  if (art === 'kat') { const cat = id === KAT_OHNE ? '' : id; Z.rezepte = Z.rezepte.map((r) => (menge.has(r.uid) && (katVonRezept(r) !== (cat || KAT_OHNE) || ordnerVonRezept(r, Z.ordner)) ? (n++, { ...r, cat, folder: '' }) : r)); }
+  else { if (id && !findeOrdner(Z.ordner, id)) return; for (const u of menge) { const r = rezept(u); if (r && (ordnerVonRezept(r, Z.ordner) || '') !== String(id)) { Z.rezepte = legeIn(Z.rezepte, Z.ordner, u, id); n++; } } }
+  if (!n) { zeichne(); return; }
+  if (art === 'kat') s.baum.auf.add(bzKey('kat', id)); else if (id) s.baum.auf.add(bzKey('ord', id));
+  if (s.baum.wahl) s.baum.wahl.clear();
+  sichern(); zeichne();
+  const ziel = art === 'kat' ? katName(alleKategorien(Z.rezepte, Z.kategorien).find((c) => c.id === id) || { id, de: id }) : id ? ordTitel(findeOrdner(Z.ordner, id)) : '';
+  melde(ziel ? fuelle(L('{0} Rezepte nach „{1}“ verschoben', '{0} recipes moved to “{1}”'), n, ziel) : fuelle(L('{0} Rezepte aus dem Ordner genommen', '{0} recipes taken out of the folder'), n), L('Rückgängig', 'Undo'), () => { Z.rezepte = vorher; sichern(); zeichne(); });
+}
+/* Ziehen im Baum: Griff am Rezept oder an der Kopfzeile; Finger nach 350 ms, Maus sofort nach 6 px. Ein Schattenbild folgt dem Zeiger. */
+let bz = null, bzGezogen = 0;
+const bzRoll = () => (breit() ? document.querySelector('.md-liste') : null);
+function bzAn() {
+  if (!bz || bz.weit) return; bz.weit = true; const w = s.baum.wahl, uids = bz.art === 'r' ? (w?.has(bz.uid) ? [...w] : [bz.uid]) : [];
+  bz.uids = uids; bz.el.classList.add('bz-zieht');
+  const g = document.createElement('div'); g.className = 'bz-geist'; g.textContent = bz.art === 'r' ? (uids.length > 1 ? fuelle(L('{0} Rezepte', '{0} recipes'), uids.length) : zeig(rezept(bz.uid))?.name || '') : bz.el.dataset.name || '';
+  document.body.appendChild(g); bz.geist = g; bzSetze(bz.x, bz.y); navigator.vibrate?.(15);
+  bz.roll = setInterval(() => { if (!bz) return; const d = bz.y < 70 ? -14 : bz.y > innerHeight - 70 ? 14 : 0; if (!d) return; const c = bzRoll(); if (c) c.scrollTop += d; else scrollBy(0, d); bzZiel(); }, 30);
+}
+function bzSetze(x, y) { if (bz?.geist) { bz.geist.style.left = x + 'px'; bz.geist.style.top = y + 'px'; } }
+function bzZiel() {
+  document.querySelectorAll('.bz-ziel,.ziel-vor,.ziel-nach').forEach((e) => e.classList.remove('bz-ziel', 'ziel-vor', 'ziel-nach'));
+  /* durch Meldung, fliegende Leiste und Schattenbild hindurch: das Ziel ist die Gruppe darunter (am Gerät liegt die Meldung oft genau über dem untersten Ordner) */
+  let el = null; for (const e of document.elementsFromPoint(bz.x, bz.y)) { el = e.closest('.bz-gruppe'); if (el || e.closest('.md-detail, .fenster, .bz-wahl')) break; }
+  bz.ziel = null; if (!el) return;
+  if (bz.art === 'r') { el.classList.add('bz-ziel'); bz.ziel = { art: el.dataset.art, id: el.dataset.id }; return; }
+  if (el === bz.el || el.dataset.art !== bz.el.dataset.art) return;
+  const r = el.getBoundingClientRect(), vor = bz.y < r.top + Math.min(r.height, 52) / 2; el.classList.add(vor ? 'ziel-vor' : 'ziel-nach');
+  let nach = el.nextElementSibling; if (nach === bz.el) nach = nach.nextElementSibling;
+  bz.ziel = { vorId: vor ? el.dataset.id : nach?.dataset.id ?? null };
+}
+document.addEventListener('pointerdown', (ev) => {
+  const h = ev.target.closest?.('.bz-rgriff, .bz-ggriff'); if (!h || ev.button > 0) return;
+  const el = h.classList.contains('bz-rgriff') ? h.closest('.bz-zeile') : h.closest('.bz-gruppe');
+  bz = { el, art: h.classList.contains('bz-rgriff') ? 'r' : 'g', uid: el.dataset.uid, x: ev.clientX, y: ev.clientY, x0: ev.clientX, y0: ev.clientY, maus: ev.pointerType === 'mouse', weit: false, ziel: null };
+  bz.uhr = setTimeout(bzAn, 350); try { h.setPointerCapture(ev.pointerId); } catch { /* geht auch ohne */ } ev.preventDefault();
+});
+document.addEventListener('pointermove', (ev) => {
+  if (!bz) return; bz.x = ev.clientX; bz.y = ev.clientY;
+  if (!bz.weit) { if (Math.hypot(ev.clientX - bz.x0, ev.clientY - bz.y0) < 6) return; if (!bz.maus) { clearTimeout(bz.uhr); bz = null; return; } clearTimeout(bz.uhr); bzAn(); }
+  bzSetze(ev.clientX, ev.clientY); bzZiel();
+});
+document.addEventListener('touchmove', (ev) => { if (bz?.weit) ev.preventDefault(); }, { passive: false });   // während des Ziehens scrollt der Finger die Seite nicht
+const bzLos = (ev) => {
+  if (!bz) return; const b = bz; bz = null; clearTimeout(b.uhr); clearInterval(b.roll); b.geist?.remove(); b.el.classList.remove('bz-zieht');
+  document.querySelectorAll('.bz-ziel,.ziel-vor,.ziel-nach').forEach((e) => e.classList.remove('bz-ziel', 'ziel-vor', 'ziel-nach'));
+  if (!b.weit) return; bzGezogen = Date.now(); if (ev?.type === 'pointercancel' || !b.ziel) { zeichne(); return; }
+  if (b.art === 'r') { baumAblegen(b.uids, b.ziel.art, b.ziel.id); return; }
+  if (b.el.dataset.art === 'kat') Z.kategorien = katUmsortieren(Z.rezepte, Z.kategorien, b.el.dataset.id, b.ziel.vorId); else Z.ordner = ordUmsortieren(Z.ordner, b.el.dataset.id, b.ziel.vorId);
+  sichern(); zeichne();
+};
+document.addEventListener('pointerup', bzLos); document.addEventListener('pointercancel', bzLos);
+document.addEventListener('contextmenu', (ev) => { if (ev.target.closest?.('.bz-rgriff, .bz-ggriff')) ev.preventDefault(); });
+/** Name einer Kategorie setzen (Kategorien-Liste und Stift im Baum): eigene Kategorien tragen ihren Namen selbst, feste bekommen einen eigenen Namen. */
+function katNameSetzen(id, wert) {
+  const eig = Z.kategorien.eigene.some((c) => c.id === id);
+  if (eig && wert.trim()) Z.kategorien = { ...katUmbenennen(Z.kategorien, id, ''), eigene: Z.kategorien.eigene.map((c) => (c.id === id ? { ...c, de: wert.trim() } : c)) }; else if (!eig) Z.kategorien = katUmbenennen(Z.kategorien, id, wert);
+}
+
 
 /* ---------- Bilder-Ordner ---------- */
 function bilderHtml() {
@@ -678,7 +795,7 @@ function werkstattHtml() {
     ['ki', 'funken', WF.violett, L('KI-Schlüssel', 'AI keys'), L('KI läuft nur mit deinem eigenen Schlüssel und nur, wenn du es auslöst. Anthropic (Claude) liest Fotos und Webseiten, OpenAI malt Bilder, Mistral liest Text (EU). Ein Schlüssel bleibt in diesem Gerät und kommt in keine Sicherung; die Kosten rechnet der Anbieter direkt mit dir ab.', 'AI runs only with your own key and only when you start it. Anthropic (Claude) reads photos and web pages, OpenAI draws pictures, Mistral reads text (EU). A key stays on this device and is in no backup; the provider bills you directly.'),
       `<div id="schl-liste">${Object.keys(ANBIETER).map((a) => zeile('schluessel', 'schluessel', ANBIETER[a].name, SK[a] ? L('gespeichert', 'saved') : L('noch keiner', 'none yet'), `data-anbieter="${a}"`)).join('')}</div>` + kiZeile('alle-uebersetzen', 'welt', L('Alle übersetzen', 'Translate all'), helferHinaus('uebersetzung', Z.rezepte.find(istInhalt) || { name: '–' }, spr()))],
     ['ordnung', 'karte', WF.gelb, L('Ordnung', 'Order'), '',
-      zeile('geh', 'karte', L('Kategorien', 'Categories'), '', 'data-zu="kategorien"') + zeile('geh', 'ordner', L('Ordner', 'Folders'), String(Z.ordner.length), 'data-zu="ordner"') + zeile('geh', 'bild', L('Bilder', 'Pictures'), String(bilder), 'data-zu="bilder"')],
+      zeile('geh', 'ordner', L('Alle Ordner und Kategorien als Baum', 'All folders and categories as a tree'), '', 'data-zu="baum"') + zeile('geh', 'karte', L('Kategorien', 'Categories'), '', 'data-zu="kategorien"') + zeile('geh', 'ordner', L('Ordner', 'Folders'), String(Z.ordner.length), 'data-zu="ordner"') + zeile('geh', 'bild', L('Bilder', 'Pictures'), String(bilder), 'data-zu="bilder"')],
     ['aussehen', 'auge', WF.blau, L('Darstellung', 'Appearance'), '',
       zeile('sprache', 'welt', L('Sprache', 'Language'), E.sprache ? sprachName(E.sprache) : L('wie das Gerät', 'same as device')) + zeile('farbe', 'auge', L('Farbe, hell und dunkel', 'Colour, light and dark'), farbName(E.farbe) + ' · ' + Lk(TOENE[E.ton] || '', TOENE_EN[E.ton] || '')) + zeile('schrift', 'stift', L('Schriftgröße', 'Text size'), schriftWert(E.schrift) + ' %') + zeile('kontrast', 'kontrast', L('Hoher Kontrast', 'High contrast'), E.kontrast ? L('an', 'on') : L('aus', 'off'), `aria-pressed="${!!E.kontrast}"`) + zeile('einheiten', 'waage', L('Einheiten', 'Units'), einhName()) + zeile('hinweise', 'frage', L('Hinweis-Blasen', 'Tooltips'), E.hinweiseAus ? L('aus', 'off') : L('an', 'on'), `aria-pressed="${!E.hinweiseAus}"`) + (INST.zeigen() ? zeile('installieren', 'laden', L('Als App installieren', 'Install as an app')) : '')],
     ['beispiele', 'paket', WF.petrol, L('Beispiele', 'Examples'), '',
@@ -812,7 +929,7 @@ function leisteZeichnen() {
   if (!s.leisteAuf) { o.innerHTML = `<button class="fl-griff" data-a="leiste-auf" aria-label="${L('Leiste öffnen: Rezepte, Planer, Einkauf, Einstellungen. Lange drücken oder ziehen verschiebt sie.', 'Open bar: recipes, planner, shopping, settings. Long-press or drag to move it.')}"><span></span></button>`; return; }
   const k = (a, i, t, x = '') => `<button role="menuitem" data-a="${a}" ${x}>${i}${t}</button>`;
   o.innerHTML = `<div class="fl-knoepfe" role="menu"><button class="fl-zu" data-a="leiste-zu" aria-label="${L('Schließen', 'Close')}">${ic('x')}</button>`
-    + k('geh', ic('buch'), L('Rezepte', 'Recipes'), `data-zu="start" ${s.ansicht === 'start' ? 'aria-current="page"' : ''}`) + k('geh', ic('plan'), L('Planer', 'Planner'), `data-zu="plan" ${s.ansicht === 'plan' ? 'aria-current="page"' : ''}`)
+    + k('geh', ic('buch'), L('Rezepte', 'Recipes'), `data-zu="start" ${s.ansicht === 'start' ? 'aria-current="page"' : ''}`) + k('geh', ic('ordner'), L('Ordner', 'Folders'), `data-zu="baum" ${s.ansicht === 'baum' ? 'aria-current="page"' : ''}`) + k('geh', ic('plan'), L('Planer', 'Planner'), `data-zu="plan" ${s.ansicht === 'plan' ? 'aria-current="page"' : ''}`)
     + k('geh', ic('einkauf'), L('Einkauf', 'Shopping') + (ekOffen() ? ` <span class="zahl">${ekOffen()}</span>` : ''), `data-zu="einkauf" ${s.ansicht === 'einkauf' ? 'aria-current="page"' : ''}`) + k('geh', ic('einst'), L('Einstellungen', 'Settings'), `data-zu="werkstatt" ${s.ansicht === 'werkstatt' ? 'aria-current="page"' : ''}`)
     + '<hr>' + k('nach-oben', ic('hoch'), L('Nach oben', 'To top')) + k('zurueck', ic('zurueck'), L('Zurück', 'Back'))
     + `<hr><div class="fl-werk" role="group" aria-label="${L('Werkzeuge', 'Tools')}">${k('ton', ic('sonne'), L('Hell', 'Light'), `data-ton="hell" aria-pressed="${!istDunkel(E.farbe, E.ton)}"`)}${k('ton', ic('mond'), L('Dunkel', 'Dark'), `data-ton="dunkel" aria-pressed="${istDunkel(E.farbe, E.ton)}"`)}${k('farbe', '<span class="farbknopf"></span>', L('Farbe', 'Colour'))}${k('schrift', '<span class="aa" aria-hidden="true">A<b>A</b></span>', L('Schrift', 'Text'))}${k('sichern', ic('tresor'), L('Sichern', 'Backup'), `class="breit"
@@ -835,13 +952,17 @@ document.addEventListener('contextmenu', (ev) => { if (ev.target.closest?.('.fl-
 function zeichne(einzug = false) {
   kopfZeichnen(); leisteZeichnen();
   const m = $('main'), lesen = ['start', 'rezept', 'kochen'].includes(s.ansicht);
-  if (breit() && lesen) {
+  if (breit() && s.ansicht === 'baum') {   /* Explorer am breiten Schirm: Baum links, das gewählte Rezept rechts */
+    const alt = m.querySelector('.md-liste')?.scrollTop || 0;
+    m.innerHTML = `<div class="md bz-md ${s.nurDies && rezept(s.uid) ? 'nur' : ''}"><div class="md-liste">${baumHtml()}</div><div class="md-detail">${rezept(s.uid) ? rezeptHtml() : `<div class="leer bz-hier"><p>${L('Ein Tipp auf ein Rezept im Baum öffnet es hier.', 'Tap a recipe in the tree to open it here.')}</p></div>`}</div></div>`;
+    const l = m.querySelector('.md-liste'); if (l) l.scrollTop = alt;
+  } else if (breit() && lesen) {
     if (!rezept(s.uid)) s.uid = (rezept(E.zuletzt) || Z.rezepte.find(istInhalt))?.uid || null;
     const alt = m.querySelector('.md-liste')?.scrollTop || 0;
     m.innerHTML = `<div class="md ${s.nurDies ? 'nur' : ''}"><div class="md-liste">${startHtml()}</div><div class="md-detail">${rezept(s.uid) ? rezeptHtml() : ''}</div></div>`;
     const l = m.querySelector('.md-liste'); if (l) l.scrollTop = alt;
-  } else m.innerHTML = s.ansicht === 'rezept' || s.ansicht === 'kochen' ? rezeptHtml() : s.ansicht === 'form' ? formHtml() : s.ansicht === 'werkstatt' ? werkstattHtml() : s.ansicht === 'einkauf' ? einkaufHtml() : s.ansicht === 'plan' ? planHtml() : s.ansicht === 'kategorien' ? kategorienHtml() : s.ansicht === 'ordner' ? ordnerHtml() : s.ansicht === 'bilder' ? bilderHtml() : startHtml();
-  katInSicht(); m.classList.toggle('einzug', einzug); document.body.dataset.ansicht = s.ansicht; document.body.classList.toggle('nur', breit() && lesen && s.nurDies);
+  } else m.innerHTML = s.ansicht === 'rezept' || s.ansicht === 'kochen' ? rezeptHtml() : s.ansicht === 'form' ? formHtml() : s.ansicht === 'werkstatt' ? werkstattHtml() : s.ansicht === 'einkauf' ? einkaufHtml() : s.ansicht === 'plan' ? planHtml() : s.ansicht === 'kategorien' ? kategorienHtml() : s.ansicht === 'ordner' ? ordnerHtml() : s.ansicht === 'baum' ? baumHtml() : s.ansicht === 'bilder' ? bilderHtml() : startHtml();
+  katInSicht(); m.classList.toggle('einzug', einzug); document.body.dataset.ansicht = s.ansicht; document.body.classList.toggle('nur', breit() && (lesen || s.ansicht === 'baum') && s.nurDies);
   if (s.ansicht !== 'kochen') { wachAus(); weckerAus(); }
   kochZeichnen();
   document.title = s.ansicht === 'rezept' && rezept(s.uid) ? `${zeig(rezept(s.uid)).name} · ${ausgabe.titel}` : ausgabe.titel;
@@ -854,6 +975,17 @@ const A = {
   zurueck: () => { s.form = null; if (history.state && history.length > 1) history.back(); else geh('start', {}, true); },
   kat: (e) => { s.kat = e.dataset.kat; if (e.dataset.geh) geh('start'); else zeichne(); },
   'ordner-zuordnen': () => ordnerWahlFenster(s.uid),
+  'baum-auf': (e) => { if (Date.now() - bzGezogen < 400) return; const k = e.dataset.g; if (s.baum.q.trim()) return; if (s.baum.auf.has(k)) s.baum.auf.delete(k); else s.baum.auf.add(k); zeichne(); },
+  'baum-alle': () => { const g = baumGruppen(), keys = [...g.kats, ...g.ords].map((x) => bzKey(x.art, x.id)); if (keys.every((k) => s.baum.auf.has(k))) s.baum.auf.clear(); else keys.forEach((k) => s.baum.auf.add(k)); zeichne(); },
+  'baum-rezept': (e) => { if (Date.now() - bzGezogen < 400) return; const u = e.dataset.uid; if (s.baum.wahl) { A['baum-haken'](e); return; } E.zuletzt = u; s.rleiste = false; s.original = null; sichern();
+    if (breit()) { s.uid = u; history.pushState({ ansicht: 'baum', uid: u }, ''); zeichne(); document.querySelector('.md-detail')?.scrollTo(0, 0); } else geh('rezept', { uid: u }); },
+  'baum-wahl': () => { s.baum.wahl = s.baum.wahl ? null : new Set(); zeichne(); },
+  'baum-haken': (e) => { const w = s.baum.wahl; if (!w) return; if (w.has(e.dataset.uid)) w.delete(e.dataset.uid); else w.add(e.dataset.uid); zeichne(); },
+  'baum-verschieben': () => { const w = s.baum.wahl; if (w?.size) baumZielFenster([...w]); },
+  'baum-ziel': (e) => { const w = [...(s.baum.wahl || [])]; fensterZu(); baumAblegen(w, e.dataset.art, e.dataset.id); },
+  'baum-suche-leer': () => { s.baum.q = ''; zeichne(); $('baumfeld')?.focus(); },
+  'baum-ordner-neu': () => fenster(`<h2>${L('Neuer Ordner', 'New folder')}</h2><form class="suche" data-form="baum-ordner-neu">${ic('ordner')}<input name="n" placeholder="${L('Name des Ordners', 'Folder name')}" autocomplete="off" aria-label="${L('Name des Ordners', 'Folder name')}" required></form><div class="reihe" style="margin-top:10px"><button class="knopf akz" data-a="baum-form-ok">${L('Anlegen', 'Create')}</button><button class="knopf" data-a="fenster-zu">${L('Abbrechen', 'Cancel')}</button></div>`),
+  'baum-form-ok': () => document.querySelector('#fensterort form')?.requestSubmit(),
   'ordner-setzen': (e) => { const o = findeOrdner(Z.ordner, e.dataset.oid); Z.rezepte = legeIn(Z.rezepte, Z.ordner, e.dataset.uid, e.dataset.oid); sichern(); fensterZu(); zeichne(); melde(o ? fuelle(L('Liegt jetzt im Ordner „{0}“', 'Now in the folder “{0}”'), ordTitel(o)) : L('Aus dem Ordner genommen', 'Taken out of the folder')); },
   'ordner-neu': () => { const a = ordAnlegen(Z.ordner, ''); Z.ordner = a.ordner; sichern(); zeichne(); document.querySelector(`.ord-name[data-oid="${a.id}"]`)?.focus(); },
   'ordner-weg': (e) => { const vorher = { r: Z.rezepte, o: Z.ordner }, o = findeOrdner(Z.ordner, e.dataset.oid), l = ordLoeschen(Z.rezepte, Z.ordner, e.dataset.oid); Z.rezepte = l.rezepte; Z.ordner = l.ordner; sichern(); zeichne();
@@ -1051,6 +1183,8 @@ document.addEventListener('submit', (ev) => { ev.preventDefault(); const f = ev.
     (k ? S.setz(a, k) : S.weg(a)).then(() => { SK[a] = k; fensterZu(); zeichne(); melde(!k ? L('Schlüssel gelöscht', 'Key deleted') : formPasst(a, k) ? L('Schlüssel gespeichert', 'Key saved') : L('Gespeichert. Der Schlüssel sieht ungewohnt aus, bitte prüfen.', 'Saved. The key looks unusual, please check it.')); if (k && danach === 'scan') neuFenster('scan'); else if (k && danach === 'web') neuFenster('web'); else if (k && danach === 'rmenue') rezeptMenue(); else if (k && danach === 'alle-ueb') alleUebFenster(); else if (k && A[danach]) A[danach]({ dataset: {} }); else if (k && danach.startsWith('gratis:')) A['gratis-bild']({ dataset: { uid: danach.slice(7) } }); else if (k && danach) A['ki-bild']({ dataset: { uid: danach } }); }).catch(() => melde(L('Der Schlüssel ließ sich nicht speichern.', 'The key could not be saved.'))); }
   else if (f === 'tresor') { const n = String(new FormData(ev.target).get('name') || '').trim(); tr.ablegen(schreibe(Z), 'benannt', n).then(() => { tresorFenster(); melde(L('Stand im Tresor gesichert', 'State saved in the vault')); }).catch(() => melde(L('Der Tresor ließ sich nicht beschreiben.', 'The vault could not be written.'))); }
   else if (f === 'ek-eigen') { const t = String(new FormData(ev.target).get('t') || '').trim(); if (!t) return; Z.einkauf = { ...Z.einkauf, eigene: [...Z.einkauf.eigene, { id: Date.now().toString(36), text: t }] }; sichern(); zeichne(); document.querySelector('[data-form="ek-eigen"] input')?.focus(); }
+  else if (f === 'baum-suche') { $('baumfeld')?.blur(); }
+  else if (f === 'baum-ordner-neu') { const n = String(new FormData(ev.target).get('n') || '').trim(); if (!n) return; const a = ordAnlegen(Z.ordner, n); Z.ordner = a.ordner; s.baum.auf.add(bzKey('ord', a.id)); sichern(); fensterZu(); zeichne(); melde(a.neu ? fuelle(L('Ordner „{0}“ angelegt – zieh Rezepte hinein', 'Folder “{0}” created – drag recipes into it'), n) : fuelle(L('Den Ordner „{0}“ gibt es schon', 'The folder “{0}” already exists'), n)); }
   else if (f === 'ordner-neu-zu') { const n = String(new FormData(ev.target).get('n') || '').trim(), uid = ev.target.dataset.uid; if (!n || !uid) return; const a = ordAnlegen(Z.ordner, n); Z.ordner = a.ordner; A['ordner-setzen']({ dataset: { uid, oid: a.id } }); }
   else if (f === 'kat-neu-zu') { const n = String(new FormData(ev.target).get('n') || '').trim(), uid = document.querySelector('[data-a="kat-setzen"]')?.dataset.uid; if (!n || !uid) return; const a = katAnlegen(Z.kategorien, n); Z.kategorien = a.kat; A['kat-setzen']({ dataset: { uid, ziel: a.id } }); }
   else if (f === 'laden') { const n = String(new FormData(ev.target).get('n') || '').trim(); if (!n) return; Z.einkauf = { ...Z.einkauf, laeden: { ...Z.einkauf.laeden, [n]: Z.einkauf.laeden[n] || [...(Z.einkauf.laeden[Z.einkauf.laden] || [])] }, laden: n }; sichern(); fensterZu(); zeichne(); }
@@ -1071,11 +1205,11 @@ const gzLos = () => { if (!gz) return; const g = gz; gz = null; clearTimeout(g.u
     sichern(); }
   zeichne(); };
 document.addEventListener('pointerup', gzLos); document.addEventListener('pointercancel', gzLos);
-document.addEventListener('change', (ev) => { const o = ev.target.closest?.('.ord-name'); if (o) { Z.ordner = ordUmbenennen(Z.ordner, o.dataset.oid, o.value); sichern(); return; } const f = ev.target.closest?.('.kat-name'); if (!f) return; const id = f.dataset.kid, eig = Z.kategorien.eigene.some((c) => c.id === id);
-  if (eig && f.value.trim()) Z.kategorien = { ...katUmbenennen(Z.kategorien, id, ''), eigene: Z.kategorien.eigene.map((c) => (c.id === id ? { ...c, de: f.value.trim() } : c)) }; else if (!eig) Z.kategorien = katUmbenennen(Z.kategorien, id, f.value);
+document.addEventListener('change', (ev) => { const o = ev.target.closest?.('.ord-name'); if (o) { Z.ordner = ordUmbenennen(Z.ordner, o.dataset.oid, o.value); sichern(); return; } const f = ev.target.closest?.('.kat-name'); if (!f) return; katNameSetzen(f.dataset.kid, f.value);
   sichern(); });
 document.addEventListener('input', (ev) => { if (ev.target.id === 'schriftregler') { E.schrift = schriftSetzen(document.documentElement, ev.target.value); $('schriftzahl').textContent = E.schrift + ' %'; sichern(); return; } if (ev.target.id === 'zs-zoom' && zs) { zs.z = +ev.target.value / 100; zsZeigen(); } });
 document.addEventListener('input', (ev) => {
+  if (ev.target.id === 'baumfeld') { s.baum.q = ev.target.value; $('baum-rest').innerHTML = baumRest(); $('baum-x').hidden = !s.baum.q; return; }
   if (ev.target.id !== 'suchfeld') return;
   s.frage = ev.target.value; $('start-rest').innerHTML = startRest(); $('suche-x').hidden = !s.frage; semPlanen();   // das Feld selbst bleibt stehen (Tastatur, Diktat)
 });
