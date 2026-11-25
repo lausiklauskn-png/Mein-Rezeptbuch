@@ -34,7 +34,7 @@ export const AUSSEN = {
  *  'NAME' nimmt die ganze Konstante aus, 'NAME.feld' nur die Listen hinter diesem Feld. */
 export const KEIN_PAAR = {
   'oberflaeche/sprache.mjs': ['SPRACHEN', 'ORT'], 'oberflaeche/diktat.mjs': ['SPRECH_SPRACHEN', 'BEFEHLE'], 'oberflaeche/geraete.mjs': ['GERAETE.worte'],
-  'modell/einheiten.mjs': ['SYSTEME'], 'ausgabe/ausgabe.mjs': ['LIEFERUNG'], 'suche/bedeutung.mjs': ['BAUSTEINE', 'SYNONYME'],
+  'modell/einheiten.mjs': ['SYSTEME'], 'modell/doppel.mjs': ['BILD_FELDER'], 'ausgabe/ausgabe.mjs': ['LIEFERUNG'], 'suche/bedeutung.mjs': ['BAUSTEINE', 'SYNONYME'],
 };
 
 /* ---------- Zerlegen: Quelltext → Zeichenfolge aus Namen, Texten, Zahlen, Mustern und Satzzeichen ---------- */

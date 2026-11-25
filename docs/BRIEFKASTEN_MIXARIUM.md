@@ -14,7 +14,21 @@ Klaus 23.11.2026: „Brief lesen, bevor gebaut wird. Und dann Brief ergänzen, s
 
 ---
 
-## Runde I · 25.11.2026 spät · Kern 0.28.1, PWA 0.16.1 (Bedienung am Rezept, Übersetzung, Bild, Seitenleiste)
+## Runde J · 25.11.2026 spätabends · Kern 0.30.0, PWA 0.18.0 (R6 Doppelungen, Merkmale einer Variante)
+
+| Kern | neu |
+|---|---|
+| 0.30.0 | `modell/doppel.mjs`: `vergleiche`, `findeDoppel(alle, neue, { hash })` (Name bereinigt, Zutaten mit Wortformen, Bild-Fingerabdruck dHash 9×8 von der App), `wendeAn(alt, neu, wahl)` mit `meins · bild · text · ganz · beide`; `alkoholArt`, `sindVarianten`; `MERKMALE` (vegan, laktosefrei, glutenfrei), `merkmaleVon`, `merkmalUmschalten` |
+
+- **Klaus' Regeln (25.11.):** „mit Alkohol“ und „alkoholfrei“ sind **nie** ein Doppel (Feld `alcohol` oder Wörter wie alkoholfrei, Virgin,
+  Mocktail); ebenso zwei Rezepte mit **verschiedenen Merkmalen** (die laktosefreie Variante bleibt neben dem Original). Gezeigt werden „sicher“
+  (Vorgabe „Meins behalten“) und „vielleicht“ (Vorgabe „Beide behalten“).
+- **Fürs Mixarium (beim nächsten `kern-nachziehen`):** neu, nichts Bestehendes ändert sich. Das Getränke-Feld `alcohol` wird schon gelesen;
+  gemessen über alle 2072 Paare der Beispielbücher beider Apps: kein falscher Treffer. Die App-Seite (`neu/app.mjs`: `bildFingerabdruck`,
+  `doppelPruefen` nach dem Einlesen und dem Stapel-Scan, `formDoppelBand` im Formular, `merkLeiste`/`merkZeichen`) ist übernehmbar; ob die drei
+  Merkmale bei Getränken passen (vegan ja, laktosefrei bei Shakes, glutenfrei bei Bier?), ist vorher mit Klaus zu klären.
+
+## Runde I · 25.11.2026 spät · Kern 0.28.1, PWA 0.16.1 (Bedienung am Rezept, Übersetzung, Bild, Seitenleiste) (vorige Fassung)
 
 | Kern | neu |
 |---|---|
@@ -29,13 +43,3 @@ Klaus 23.11.2026: „Brief lesen, bevor gebaut wird. Und dann Brief ergänzen, s
   (`E.railSeite`); **Zweispaltigkeit per Container-Query** (am geteilten Schirm war die Zubereitung gequetscht – im Mixarium dieselbe Media-Query prüfen).
 - **Food-Zine** (Mixarium nutzt es nicht): Blättern in der Großansicht; eigenes KI-Bild aus der Sammlung (Wahl-Modus); zwei Spalten.
 - Klaus' Beispiel für Ordner ist jetzt „Hochzeit von Jonas und Lisa“ (statt „Weihnachten“/„Für Gäste“).
-
-## Runde H · 25.11.2026 nachts · Kern 0.28.0, PWA 0.16.0 (R8: Food-Zine wie alt, Kreativbuch-Auswahl) (vorige Fassung)
-
-| Kern | neu |
-|---|---|
-| 0.28.0 | `ausgabe/zine.mjs` neu: der Poster-Auftrag der alten App (`zinePoster`, sechs Formate, fünf Extras, `zineTrend`, `zineFotoHinweis`, `ZINE_CHAT`), Deutsch wörtlich, sonst Englisch mit Satz zur Beschriftungssprache; Sammlung `zineSammlung(lager)` im Gerät, `zineAusRezepten` (alte Seiten `r.zine` heraus), `zineSaetzeBilder`, `zineDruck`. **Entfernt** (nichts nutzte sie): `zineAuftraege`, `ZINE_STILE`, `pruefeZineAuftrag`, `setzeSeite`/`entferneSeite`, `zineGalerie`, `zineSaetzeEinlesen`, Kosten. `kbTexte` liest die alte Antwort `{name,intro,tip,serve}` ganz (tip → Kochtipp, serve → Servier-Idee). `kbProjekt` trägt `ab` (abgewählte Rezepte). Kern-Sprachtabellen: die elf Zine-Schlüssel sind raus. |
-
-- **Fürs Mixarium:** es nutzt `ausgabe/zine.mjs` nicht (gemessen: kein Treffer in `neu/`, `getraenke/`); beim nächsten `kern-nachziehen` fällt nichts weg, was dort gebraucht wird. `modell/rezept.mjs` liest `zine` weiter.
-- **Klaus' Grundsatz (25.11.):** „Hol nichts aus dem Speicher heraus, was sich nicht bewährt hat … Es soll keine neuen Kosten erzeugen.“ Im Food-Zine gibt es kein Erzeugen mit einem Schlüssel mehr; der Weg ist Kopieren → Claude/ChatGPT. Fürs Mixarium bei einem Getränke-Poster dasselbe prüfen.
-- **Kreativbuch:** Rezepte einzeln anhaken (Liste gruppiert nach Kategorie/Ordner, Schnellwahl setzt die Häkchen), Auftragsfeld mit Kopieren · Claude · ChatGPT und „Auftrag neu bauen“. Fürs Mixarium übernehmbar, wenn dort ein Kreativbuch kommt.
