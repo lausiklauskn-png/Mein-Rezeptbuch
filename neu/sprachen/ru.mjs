@@ -849,4 +849,8 @@ export default {
   'Geändert und im Gerät neu übersetzt': 'Изменено и заново переведено на устройстве',
   'Zurück zur ganzen App': 'Назад ко всему приложению',
   'Nur das Rezept, im Vollbild': 'Только рецепт, во весь экран',
+  'nach oben': 'вверх',
+  'nach unten': 'вниз',
+  'nach links': 'влево',
+  'nach rechts': 'вправо',
 };

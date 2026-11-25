@@ -849,4 +849,8 @@ export default {
   'Geändert und im Gerät neu übersetzt': '已更改，并已在设备上重新翻译',
   'Zurück zur ganzen App': '返回完整应用',
   'Nur das Rezept, im Vollbild': '只看菜谱，全屏',
+  'nach oben': '向上',
+  'nach unten': '向下',
+  'nach links': '向左',
+  'nach rechts': '向右',
 };

@@ -55,6 +55,8 @@ neuen App), danach Mein Mixarium.
 | R33 | **Alles auf einen Bildschirm**, notfalls zweite Spalte | – | **gebaut (0.17.4):** am breiten Schirm gemessen, nur wenn nötig: Stufe 1 Schritte zweispaltig, Stufe 2 auch Zutaten, Stufe 3 kleineres Bild; am Handy nie. Grenze: sehr lange Rezepte auf kleinem Schirm rollen weiter |
 | R34 | **Symbole statt dicker Knöpfe** (Kochen, Einkaufen, Planen, Portionen) | zwei Zeilen breiter Knöpfe | **gebaut (0.17.4):** eine Zeile Symbol-Knöpfe mit kleinem Untertext, Portionen-Regler daneben |
 
+| R35 | **Fliegende Leiste am Handy schwer zu greifen** (Klaus 25.11. abends) | nur Ziehen am schmalen Griff | **gebaut (0.17.5):** im Menü „Leiste verschieben“ (Kreuz-Symbol) → kleines Viereck mit vier Pfeilen an der Stelle der Leiste; jeder Tipp bewegt sie sichtbar (Seite wechseln, entlang des Randes, ganz unten an den unteren Rand); kein Bestätigen, ein Tipp daneben schließt. Probe `smoke_neu_ansicht` |
+
 ## Befunde Mein Mixarium (später)
 
 | # | Befund | Stand |
