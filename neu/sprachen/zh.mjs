@@ -838,4 +838,7 @@ export default {
   'Abgeglichen · der Kalender bleibt, wie er ist': '完成 · 日历保持不变',
   'Für wie viele?': '几人份？',
   'Wie im Rezept ({0})': '与菜谱相同（{0}）',
+  '{0} neue Rezepte noch nicht auf {1}': '{0} 个新菜谱还没有{1}版本',
+  '{0} im Gerät übersetzt': '{0} 个已在设备上翻译',
+  '{0} neue Übersetzungen im Gerät angelegt': '在设备上新建了 {0} 个翻译',
 };

@@ -841,4 +841,7 @@ export default {
   'Abgeglichen · der Kalender bleibt, wie er ist': 'Fatto · il calendario resta com’è',
   'Für wie viele?': 'Per quanti?',
   'Wie im Rezept ({0})': 'Come nella ricetta ({0})',
+  '{0} neue Rezepte noch nicht auf {1}': '{0} nuove ricette non ancora in {1}',
+  '{0} im Gerät übersetzt': '{0} tradotte sul dispositivo',
+  '{0} neue Übersetzungen im Gerät angelegt': '{0} nuove traduzioni fatte sul dispositivo',
 };

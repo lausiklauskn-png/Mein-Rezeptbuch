@@ -841,4 +841,7 @@ export default {
   'Abgeglichen · der Kalender bleibt, wie er ist': 'Fait · le calendrier reste tel quel',
   'Für wie viele?': 'Pour combien ?',
   'Wie im Rezept ({0})': 'Comme dans la recette ({0})',
+  '{0} neue Rezepte noch nicht auf {1}': '{0} nouvelles recettes pas encore en {1}',
+  '{0} im Gerät übersetzt': '{0} traduites sur l’appareil',
+  '{0} neue Übersetzungen im Gerät angelegt': '{0} nouvelles traductions faites sur l’appareil',
 };

@@ -841,4 +841,7 @@ export default {
   'Abgeglichen · der Kalender bleibt, wie er ist': 'Hecho · el calendario queda como está',
   'Für wie viele?': '¿Para cuántos?',
   'Wie im Rezept ({0})': 'Como en la receta ({0})',
+  '{0} neue Rezepte noch nicht auf {1}': '{0} recetas nuevas aún no en {1}',
+  '{0} im Gerät übersetzt': '{0} traducidas en el dispositivo',
+  '{0} neue Übersetzungen im Gerät angelegt': '{0} traducciones nuevas hechas en el dispositivo',
 };
