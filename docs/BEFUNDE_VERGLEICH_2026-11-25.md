@@ -57,6 +57,8 @@ neuen App), danach Mein Mixarium.
 
 | R35 | **Fliegende Leiste am Handy schwer zu greifen** (Klaus 25.11. abends) | nur Ziehen am schmalen Griff | **gebaut (0.17.5):** im Menü „Leiste verschieben“ (Kreuz-Symbol) → kleines Viereck mit vier Pfeilen an der Stelle der Leiste; jeder Tipp bewegt sie sichtbar (Seite wechseln, entlang des Randes, ganz unten an den unteren Rand); kein Bestätigen, ein Tipp daneben schließt. Probe `smoke_neu_ansicht` |
 
+| R35 | **Fliegende Leiste am Handy schwer zu greifen** (Klaus 25.11. abends) | nur Ziehen am schmalen Griff | **gebaut (0.17.5):** im Menü „Leiste verschieben“ (Kreuz-Symbol) → kleines Viereck mit vier Pfeilen an der Stelle der Leiste; jeder Tipp bewegt sie sichtbar (Seite wechseln, entlang des Randes, ganz unten an den unteren Rand); kein Bestätigen, ein Tipp daneben schließt. Probe `smoke_neu_ansicht` |
+
 ## Befunde Mein Mixarium (später)
 
 | # | Befund | Stand |
