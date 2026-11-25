@@ -799,3 +799,45 @@ a.knopf{text-decoration:none}
 .nz-tagfeld{display:flex;align-items:center;gap:8px;font-size:13px;color:var(--mut)}
 .nz-tagfeld .ic{width:17px;height:17px;flex:none}
 .nz-tagfeld .feld{width:auto;flex:1;min-width:0;padding:6px 8px}
+/* Explorer „Ordner“ (R3/R9): Baum der Kategorien und Ordner */
+.bz-suche{margin:2px 0 8px}
+.bz-knoepfe{flex-wrap:wrap;gap:6px;margin-bottom:6px}
+.bz-teil{font-size:12.5px;letter-spacing:.06em;text-transform:uppercase;color:var(--mut);margin:14px 2px 6px}
+.bz-baum{display:grid;gap:6px;max-width:760px}
+.bz-gruppe{background:var(--fl);border-radius:14px;box-shadow:var(--schatten);overflow:hidden;transition:box-shadow .12s ease}
+.bz-kopf{display:flex;align-items:center;gap:2px;padding:3px 4px 3px 0;min-height:50px}
+.bz-kopf .griff,.bz-zeile .griff{width:28px;height:40px;display:grid;place-items:center;color:var(--mut);touch-action:none;cursor:grab;flex:none;user-select:none;-webkit-user-select:none;-webkit-touch-callout:none}
+.bz-kopf .griff .ic,.bz-zeile .griff .ic{width:17px;height:17px}
+.bz-kopf>.kat-zeichen{margin:0 6px 0 2px}
+.bz-auf{width:36px;height:36px;display:grid;place-items:center;flex:none;border-radius:50%}
+.bz-kopf .kat-zeichen:has(.sticker){border-radius:50%}
+.bz-name{flex:1;min-width:0;display:grid;gap:1px}
+.bz-name .feld{padding:5px 8px;font-weight:600;font-size:14.5px}
+.bz-name .kat-fest{padding:5px 8px;font-weight:600;font-size:14.5px}
+.bz-zahl{text-align:left;padding:0 9px;font-size:12.5px;color:var(--mut)}
+.bz-pf{width:16px;height:16px;color:var(--mut);transition:transform .15s ease;flex:none}
+.bz-auf[aria-expanded="true"] .bz-pf{transform:rotate(90deg)}
+.bz-kopf .rund{background:none;color:var(--mut);width:36px;height:36px}
+.bz-rezepte{border-top:1px solid var(--line);padding:2px 0 4px}
+.bz-zeile{display:flex;align-items:center;gap:4px;padding:0 4px 0 10px;min-height:46px;border-top:1px solid var(--line);user-select:none;-webkit-user-select:none;-webkit-touch-callout:none}
+.bz-zeile:first-child{border-top:0}
+.bz-zeile[aria-current="true"]{background:var(--fl2)}
+.bz-r{flex:1;min-width:0;display:flex;align-items:center;gap:10px;padding:5px 2px;text-align:left;font-size:14px}
+.bz-bild{width:34px;height:34px;border-radius:9px}
+.bz-bild img{width:100%;height:100%;object-fit:cover}
+.bz-rname{min-width:0;overflow-wrap:anywhere}
+.bz-haken{width:26px;height:26px;border-radius:7px;border:2px solid var(--line);display:grid;place-items:center;flex:none;background:var(--fl);color:var(--akz-ink)}
+.bz-haken[aria-pressed="true"]{background:var(--akz);border-color:var(--akz)}
+.bz-haken .ic{width:16px;height:16px}
+.bz-leer{margin:0;padding:10px 14px;color:var(--mut);font-size:13px;font-style:italic}
+.bz-zieht{opacity:.45}
+.bz-gruppe.bz-ziel{box-shadow:0 0 0 3px var(--akz)}
+.bz-gruppe.ziel-vor{box-shadow:0 -3px 0 0 var(--akz)}
+.bz-gruppe.ziel-nach{box-shadow:0 3px 0 0 var(--akz)}
+.bz-geist{position:fixed;z-index:90;pointer-events:none;transform:translate(14px,-50%);max-width:240px;padding:7px 12px;border-radius:10px;background:var(--akz);color:var(--akz-ink);font-weight:600;font-size:13.5px;box-shadow:0 10px 26px rgba(0,0,0,.28);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.bz-wahl{position:sticky;bottom:10px;z-index:20;display:flex;align-items:center;gap:8px;margin-top:12px;max-width:760px;padding:8px 8px 8px 14px;border-radius:14px;background:var(--fl);border:1px solid var(--line);box-shadow:0 10px 26px rgba(0,0,0,.2);font-size:13.5px}
+.bz-wahl #bz-wahl-zahl{flex:1;min-width:0}
+.bz-wahl .rund{background:none;color:var(--mut)}
+.bz-hier{padding:40px 20px;color:var(--mut)}
+.bz-platz{width:36px;flex:none}
+.bz-name .feld::placeholder{color:var(--ink);opacity:1}
