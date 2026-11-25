@@ -715,7 +715,6 @@ export default {
   'Instagram': 'Instagram',
   '1:1 · Quadrat': '1:1 · 方形',
   'Zeitungsseite': '报纸页',
-  'Zweispaltig · Hochformat': '两栏 · 纵向',
   'Rezeptkarte': '菜谱卡',
   'A5 · Kompakt': 'A5 · 紧凑',
   'Panorama': '全景',
@@ -890,4 +889,7 @@ export default {
   '{0} Schritte': '{0} 个步骤',
   '{0} Zutaten': '{0} 种配料',
   'Reihenfolge geändert': '顺序已更改',
+  'Beispiel groß: Maus darauf oder lange drücken': '放大示例：鼠标悬停或长按',
+  'Beispiel: {0}': '示例：{0}',
+  'Aufgeschlagene Doppelseite': '打开的双页',
 };
