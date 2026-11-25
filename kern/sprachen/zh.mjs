@@ -242,4 +242,6 @@ export default {
   'Kein Übersetzer im Gerät.': '设备上没有翻译器。',
   'Als Übersetzung braucht der Text so viele Zutaten und Schritte wie das Original ({0} und {1}). Als Hauptfassung geht es immer.': '作为译文，文本的配料和步骤数量需与原文相同（{0} 和 {1}）。作为主版本则始终可以。',
   'Original und Übersetzung haben dieselbe Sprache.': '原文和译文是同一种语言。',
+  'Menü': '菜单',
+  'Noch kein Gericht im Menü.': '菜单中还没有菜。',
 };

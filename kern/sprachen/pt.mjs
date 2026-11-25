@@ -242,4 +242,6 @@ export default {
   'Kein Übersetzer im Gerät.': 'Não há tradutor no dispositivo.',
   'Als Übersetzung braucht der Text so viele Zutaten und Schritte wie das Original ({0} und {1}). Als Hauptfassung geht es immer.': 'Como tradução, o texto precisa de tantos ingredientes e passos quanto o original ({0} e {1}). Como versão principal funciona sempre.',
   'Original und Übersetzung haben dieselbe Sprache.': 'O original e a tradução têm o mesmo idioma.',
+  'Menü': 'Menu',
+  'Noch kein Gericht im Menü.': 'Ainda não há nenhum prato no menu.',
 };
