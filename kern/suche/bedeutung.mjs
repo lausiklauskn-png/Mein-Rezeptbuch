@@ -4,6 +4,7 @@
 // eingeschaltet wird, ohne Siegel, Widget, Spore oder Netz-Bausteine. Der Suchtext je Rezept ist derselbe wie bisher
 // (Name, Geschmack, Zutaten, Kategorie). Der Deckel von 120 Rezepten ist weg; jeder Vektor wird je Rezept gemerkt.
 // Benannte Grenze: das Modell lädt beim ersten Einschalten aus dem Netz (transformers.js und Modell-Datei).
+import { merkmaleVon, merkmalName } from '../modell/doppel.mjs';
 export const BAUSTEINE = ['03_embedding.js', '04_match.js'];
 export const SYNONYME = {"torte":["kuchen"],"kuchen":["torte"],"cocktail":["drink"],"drink":["cocktail","getränk"],"getränk":["drink","getraenk"],"limo":["limonade"],"limonade":["limo"],"smoothie":["shake"],"shake":["smoothie"],"alkoholfrei":["mocktail"],"mocktail":["alkoholfrei"],"plätzchen":["keks"],"keks":["plätzchen","plaetzchen"],"kfz":["auto"],"auto":["kfz","wagen"],"wagen":["auto"],"notebook":["laptop"],"laptop":["notebook"],"handy":["smartphone"],"smartphone":["handy"],"arznei":["medikament"],"medikament":["arznei","arzneimittel"],"foto":["bild"],"bild":["foto"]};
 
@@ -17,7 +18,7 @@ export function ladeBausteine(basis, doc = document, w = window) {
 }
 /** Suchtext eines Rezepts, wie in der alten App. */
 export function passage(r, katName = '') {
-  return [String(r.name), ...(Array.isArray(r.flavors) ? r.flavors : []), ...(Array.isArray(r.ings) ? r.ings.map((z) => (z && (z.name || z.origName)) || '') : []), katName].filter(Boolean).join(', ');
+  return [String(r.name), ...(Array.isArray(r.flavors) ? r.flavors : []), ...(Array.isArray(r.ings) ? r.ings.map((z) => (z && (z.name || z.origName)) || '') : []), katName, ...merkmaleVon(r).flatMap((m) => [merkmalName(m, 'de'), merkmalName(m, 'en')])].filter(Boolean).join(', ');   // Merkmale nur, wo gesetzt: sonst bleibt der Text gleich und nichts wird neu eingelesen
 }
 const gemerkt = new Map();   // uid → { text, vec }
 /** Baut den Korpus für alle Rezepte. Ein Rezept, dessen Suchtext sich nicht geändert hat, wird nicht neu eingebettet. */

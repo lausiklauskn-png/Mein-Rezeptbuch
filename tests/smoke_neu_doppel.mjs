@@ -107,6 +107,9 @@ try {
     await p.click('.merkmale [data-m=vegan]'); z = await bestandWenn(p, (b) => (b.rezepte.find((r) => r.name === 'Linsensuppe').merkmale || []).length === 2);
     ok(JSON.stringify(z.rezepte.find((r) => r.name === 'Linsensuppe').merkmale) === '["vegan","laktosefrei"]', 'zwei Merkmale, in fester Reihenfolge');
     await geh(p, 'start'); ok(/🌱🥛/.test(await p.locator('.karte', { hasText: 'Linsensuppe' }).first().innerText()), 'die Karte in der Liste zeigt die Merkmale');
+    await p.fill('#suchfeld', 'vegan'); await p.waitForTimeout(400);
+    ok(JSON.stringify(await p.locator('#start-rest .karte strong').allInnerTexts().then((l) => l.map((t) => t.replace(/[^\p{L} ]/gu, '').trim()))) === '["Linsensuppe"]', 'die Wortsuche „vegan“ findet genau das angehakte Rezept', JSON.stringify(await p.locator('#start-rest .karte strong').allInnerTexts()));
+    await p.fill('#suchfeld', ''); await p.waitForTimeout(200);
     await p.locator('.karte', { hasText: 'Linsensuppe' }).first().click(); await p.waitForSelector('.merkmale');
     await p.click('.merkmale [data-m=vegan]'); await p.click('.merkmale [data-m=laktosefrei]'); z = await bestandWenn(p, (b) => !b.rezepte.find((r) => r.name === 'Linsensuppe').merkmale);
     ok(!('merkmale' in z.rezepte.find((r) => r.name === 'Linsensuppe')), 'ein zweiter Tipp nimmt es wieder weg, ohne Rest im Rezept');

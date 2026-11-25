@@ -14,7 +14,7 @@ Klaus 23.11.2026: „Brief lesen, bevor gebaut wird. Und dann Brief ergänzen, s
 
 ---
 
-## Runde J · 25.11.2026 spätabends · Kern 0.30.0, PWA 0.18.0 (R6 Doppelungen, Merkmale einer Variante)
+## Runde J · 25.11.2026 spätabends · Kern 0.30.1, PWA 0.18.1 (R6 Doppelungen, Merkmale einer Variante)
 
 | Kern | neu |
 |---|---|
@@ -25,8 +25,9 @@ Klaus 23.11.2026: „Brief lesen, bevor gebaut wird. Und dann Brief ergänzen, s
   (Vorgabe „Meins behalten“) und „vielleicht“ (Vorgabe „Beide behalten“).
 - **Fürs Mixarium (beim nächsten `kern-nachziehen`):** neu, nichts Bestehendes ändert sich. Das Getränke-Feld `alcohol` wird schon gelesen;
   gemessen über alle 2072 Paare der Beispielbücher beider Apps: kein falscher Treffer. Die App-Seite (`neu/app.mjs`: `bildFingerabdruck`,
-  `doppelPruefen` nach dem Einlesen und dem Stapel-Scan, `formDoppelBand` im Formular, `merkLeiste`/`merkZeichen`) ist übernehmbar; ob die drei
-  Merkmale bei Getränken passen (vegan ja, laktosefrei bei Shakes, glutenfrei bei Bier?), ist vorher mit Klaus zu klären.
+  `doppelPruefen` nach dem Einlesen und dem Stapel-Scan, `formDoppelBand` im Formular) ist übernehmbar. **Die Merkmal-Leiste NICHT** – Klaus
+  25.11.: „Mixarium soll nicht betroffen sein.“ Kern 0.30.1 liest `merkmale` in Suche, Bedeutungssuche, Druck und Teilen nur, wo das Feld
+  gesetzt ist; ohne Feld bleibt alles wie bisher (der Text für die Bedeutungssuche ändert sich nicht, nichts wird neu eingelesen).
 
 ## Runde I · 25.11.2026 spät · Kern 0.28.1, PWA 0.16.1 (Bedienung am Rezept, Übersetzung, Bild, Seitenleiste) (vorige Fassung)
 

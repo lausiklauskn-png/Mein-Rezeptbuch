@@ -244,4 +244,7 @@ export default {
   'Original und Übersetzung haben dieselbe Sprache.': 'Оригинал и перевод на одном языке.',
   'Menü': 'Меню',
   'Noch kein Gericht im Menü.': 'В меню пока нет блюд.',
+  'vegan': 'веганский',
+  'laktosefrei': 'без лактозы',
+  'glutenfrei': 'без глютена',
 };

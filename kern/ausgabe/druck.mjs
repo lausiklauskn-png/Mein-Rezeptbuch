@@ -13,6 +13,7 @@
 import { text, fuelle, gebiet, kennt } from '../oberflaeche/sprache.mjs';
 import { normalisiere, sicht } from '../modell/rezept.mjs';
 import { skaliere } from '../modell/mengen.mjs';
+import { merkmaleVon, merkmalName, MERKMAL_ZEICHEN } from '../modell/doppel.mjs';
 
 /** Entschärft Text für HTML, im Inhalt wie in Attributen: & < > " ' */
 export const esc = (s) => String(s ?? '').replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
@@ -125,6 +126,7 @@ export function rezeptTeile(rezept, { portionen, sprache = 'de', mitBild = true,
     kategorieName ? `<span class="kat">${esc(kategorieName)}</span>` : '',
     anders ? `<span class="port neu">${esc(port(ziel))}</span><span>${esc(fuelle(text(sprache, '(Rezept für {0})', '(recipe for {0})'), basis))}</span>` : `<span class="port">${esc(port(basis))}</span>`,
     Number.isFinite(zeit) && zeit > 0 ? `<span class="zeit">${zeit} ${esc(text(sprache, 'Min', 'min'))}</span>` : '',
+    ...merkmaleVon(roh).map((m) => `<span class="chip merkmal">${MERKMAL_ZEICHEN[m]} ${esc(merkmalName(m, sprache))}</span>`),   // Hinweis für den, der das Rezept bekommt
     ...r.flavors.map((f) => `<span class="chip">${esc(f)}</span>`),
     sterne ? `<span class="sterne">${'★'.repeat(sterne)}${'☆'.repeat(5 - sterne)}</span>` : '',
   ].filter(Boolean).join('\n');

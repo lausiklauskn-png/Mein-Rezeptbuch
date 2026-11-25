@@ -11,6 +11,7 @@
 // Was nicht in Version 40 passt, wird nicht gekürzt: qrMatrix() wirft mit Klartext, passtInQr() fragt vorher.
 import { text, fuelle } from '../oberflaeche/sprache.mjs';
 import { normalisiere, sicht } from '../modell/rezept.mjs';
+import { MERKMALE, merkmaleVon } from '../modell/doppel.mjs';
 
 // ───────────────────────── 1 · Rezept als Text ─────────────────────────
 
@@ -38,6 +39,7 @@ export function teilDaten(rezept) {
   const r = normalisiere(rezept || {}), z = zeit(r);
   const d = { v: 2, n: r.name, c: r.cat, s: r.servings, fl: r.flavors, i: r.ings.map((x) => ({ a: x.amt, u: x.unit, n: x.name })), st: r.steps.map((x) => x.txt) };
   if (z) d.t = z;
+  const mk = merkmaleVon(r); if (mk.length) d.mk = mk;   // Merkmale reisen mit (vegan, laktosefrei, glutenfrei); die alte App überliest das Feld
   return d;
 }
 
@@ -83,6 +85,7 @@ export async function ausTeilLink(adresse) {
       ings: liste(d.i).map((x) => (x && typeof x === 'object' ? { amt: kurz(x.a, 40), unit: kurz(x.u, 40), name: kurz(x.n, 200) } : { amt: '', unit: '', name: kurz(x, 200) })).filter((x) => x.name || x.amt),
       steps: liste(d.st).map((x) => ({ txt: kurz(x && typeof x === 'object' ? x.txt : x, 4000) })).filter((x) => x.txt) };
     if (Number.isFinite(z) && z > 0 && z < 100000) r.prepTime = z;
+    const mk = liste(d.mk).filter((m) => MERKMALE.includes(m)); if (mk.length) r.merkmale = MERKMALE.filter((m) => mk.includes(m));
     return r;
   } catch { return null; }
 }

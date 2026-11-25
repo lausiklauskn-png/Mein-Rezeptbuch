@@ -244,4 +244,7 @@ export default {
   'Original und Übersetzung haben dieselbe Sprache.': '原文和译文是同一种语言。',
   'Menü': '菜单',
   'Noch kein Gericht im Menü.': '菜单中还没有菜。',
+  'vegan': '纯素',
+  'laktosefrei': '无乳糖',
+  'glutenfrei': '无麸质',
 };
