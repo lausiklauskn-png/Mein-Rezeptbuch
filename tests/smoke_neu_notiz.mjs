@@ -55,6 +55,8 @@ const nz = (b) => b.zustand.notizen || [];
 const oeffne = async (p) => { await p.click('#kopf [data-a=notiz]'); await p.waitForSelector('#nz'); };
 const aufklappen = async (p, id) => { if (!(await p.locator(`.nz-notiz[data-id="${id}"].auf`).count())) await p.click(`.nz-notiz[data-id="${id}"] [data-a=nz-auf]`); await p.waitForSelector(`.nz-notiz[data-id="${id}"] .nz-inhalt`); };
 const tagText = (p, tag) => p.evaluate((t) => new Date(t + 'T12:00').toLocaleDateString('de-DE', { weekday: 'short', day: 'numeric', month: 'numeric' }), tag);
+/* Speichern im Formular; erscheint das Band „Gibt es schon“ (R6 – diese Probe liest dasselbe gestellte Rezept mehrmals), als eigenes Rezept. */
+const formSpeichern = async (p) => { await p.click('form[data-form=rezept] [type=submit]'); await p.waitForSelector('.rezept-held h1, #form-doppel'); if (await p.locator('#form-doppel').count()) await p.click('#form-doppel [data-w=eigen]'); await p.waitForSelector('.rezept-held h1'); };
 const will = (n) => !process.env.NUR_TEIL || process.env.NUR_TEIL.split(',').includes(String(n));
 let p, k, netz;
 /* Ein Abschnitt; stolpert er (ein Element fehlt), steht das als rote Zeile da, und der nächste Abschnitt läuft trotzdem. */
@@ -149,7 +151,7 @@ try {
   const bild = netz.claude[0]?.messages[0].content.find?.((x) => x.type === 'image');
   ok(netz.claude.length === 1 && !!bild && !/finished dish/.test(JSON.stringify(netz.claude[0])) && (await p.locator('[name=name]').inputValue()) === 'Gelesene Suppe', 'a: ein Aufruf mit dem Foto, das Formular trägt das gelesene Rezept');
   ok(!Buffer.from(bild?.source?.data || '', 'base64').includes(MARKE), 'a: auch das gesendete Foto trägt keine Aufnahmedaten');
-  await p.click('form[data-form=rezept] [type=submit]'); await p.waitForSelector('.rezept-held h1');
+  await formSpeichern(p);
   ok(await wennToast(p, 'Notiz abhaken'), 'nach dem Speichern bietet die Meldung „Notiz abhaken“', await toast(p));
   b = await bestandWenn(p, (x) => nz(x)[0]?.rezept);
   const neuUid = b.zustand.rezepte.find((r) => r.name === 'Gelesene Suppe')?.uid;
@@ -162,10 +164,10 @@ try {
   ok((await p.locator('[data-a=scan-senden]').innerText()).includes('Rezept vorschlagen'), 'b: „Vom Teller“ führt ins Scan-Blatt mit „Rezept vorschlagen“');
   await p.click('[data-a=scan-senden]'); await p.waitForSelector('form[data-form=rezept]');
   ok(netz.claude.length === 2 && /finished dish/.test(JSON.stringify(netz.claude[1])) && (await p.locator('[name=name]').inputValue()) === 'Tellergericht', 'b: der Teller-Auftrag geht mit dem Foto hinaus, das Formular trägt den Vorschlag');
-  await p.click('form[data-form=rezept] [type=submit]'); await p.waitForSelector('.rezept-held h1');
+  await formSpeichern(p);
   ok(await wennToast(p, 'Notiz abhaken'), 'b: auch hier bietet die Meldung „Notiz abhaken“');
   /* Ein Rezept, das nicht aus einer Notiz kommt, bietet kein Abhaken */
-  await p.click('#kopf [data-a=neu]'); await p.click('[data-a=neu-form]'); await p.fill('[name=name]', 'Ohne Notiz'); await p.click('form[data-form=rezept] [type=submit]'); await p.waitForSelector('.rezept-held h1');
+  await p.click('#kopf [data-a=neu]'); await p.click('[data-a=neu-form]'); await p.fill('[name=name]', 'Ohne Notiz'); await formSpeichern(p);
   ok(!/Notiz abhaken/.test(await toast(p)), 'ein Rezept über das Plus bietet kein „Notiz abhaken“', await toast(p));
   await k.close();
   });
@@ -177,7 +179,7 @@ try {
   ok((await p.locator('.nz-notiz[data-id="n-text"] [data-a=nz-aufteilen] small').innerText().catch(() => '')) === 'ohne KI', 'c: „Aufteilen“ sagt, dass keine KI beteiligt ist');
   await p.click('.nz-notiz[data-id="n-text"] [data-a=nz-aufteilen]'); await p.waitForSelector('form[data-form=rezept]');
   ok((await p.locator('[name=name]').inputValue()) === 'Kürbissuppe' && (await p.locator('[name=ings]').inputValue()) === '500 g Kürbis\n1 Zwiebel' && netz.claude.length === 0, 'c: ohne KI in Name, Zutaten und Schritte aufgeteilt', await p.locator('[name=ings]').inputValue());
-  await p.click('form[data-form=rezept] [type=submit]'); await p.waitForSelector('.rezept-held h1');
+  await formSpeichern(p);
   ok(await wennToast(p, 'Notiz abhaken'), 'c: nach dem Speichern „Notiz abhaken“');
   /* Idee ohne Schlüssel: erst das Schlüssel-Fenster, danach geht es weiter */
   await oeffne(p); await aufklappen(p, 'n-idee');
