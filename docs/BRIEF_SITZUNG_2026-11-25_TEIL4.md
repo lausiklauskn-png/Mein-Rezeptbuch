@@ -1,5 +1,7 @@
 # Brief für die nächste Sitzung: Vergleich alt ↔ neu, Teil 4
 
+> **Fortsetzung:** `docs/BRIEF_SITZUNG_2026-11-25_TEIL5.md` – dort beginnen.
+
 Stand **25.11.2026 nachts**. Vorgänger: `docs/BRIEF_SITZUNG_2026-11-25_TEIL3.md` (Grundsätze, Fallen – gelten weiter).
 Jeder Befund mit Stand: `docs/BEFUNDE_VERGLEICH_2026-11-25.md` (jetzt R1–R24, M1–M3).
 
