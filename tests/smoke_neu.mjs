@@ -98,7 +98,7 @@ try {
     await q.click('.md-detail h1'); ok(await q.locator('.vollbild').count() === 0, 'Monitor: ein Tipp auf den Namen öffnet kein Vollbild');
     await q.click('[data-a=rleiste]'); await q.waitForTimeout(250);
     ok(await q.evaluate(() => { const b = document.querySelector('.md-detail .rezept-held>img').getBoundingClientRect(); return [...document.querySelectorAll('.rwerk .chip')].filter((c) => c.offsetHeight).every((c) => c.getBoundingClientRect().top >= b.bottom - 1); }), 'Monitor: die aufgeklappten Werkzeuge liegen unter dem Bild, keins darauf');
-    await q.click('[data-a=nurdies]'); ok(await q.locator('.md-liste').isHidden() && await q.locator('.kopf').isHidden(), '„Nur dieses Rezept“ blendet Liste und Leiste aus'); await q.click('[data-a=nurdies]'); ok(await q.locator('.md-liste').isVisible(), 'derselbe Knopf holt sie zurück');
+    ok(await q.locator('[data-a=nurdies]').count() === 0 && await q.locator('.md-detail .held-voll').count() === 1, '„Nur dieses Rezept“ ist abgelöst durch den Vollbild-Knopf im Bild (0.16.1; gemessen in smoke_neu_bedienung)');
     await q.click('[data-a=rail]'); await q.waitForTimeout(350); ok(await q.locator('.kopf.zu').count() === 1 && (await q.locator('.kopf').boundingBox()).width < 70, 'Leiste klappt auf Symbole zusammen');
     { await q.hover('[data-a=rail]'); await q.mouse.move(5, 790); await q.waitForTimeout(250); const w = q.locator('.md-detail [data-a=rleiste]'); const lbl = await w.getAttribute('aria-label'); await w.hover(); await q.waitForTimeout(650);
       const bl = await q.evaluate(() => { const b = document.getElementById('hinweis-blase'); return b && getComputedStyle(b).display !== 'none' && b.style.opacity === '1' ? b.textContent : ''; });
@@ -167,7 +167,7 @@ try {
   await p.click('[data-a=kat-neu]'); await p.keyboard.type('Sonntagsessen'); await p.keyboard.press('Tab');
   await p.waitForTimeout(350); await p.reload(); await p.waitForSelector('.gruss'); lt = await p.locator('.fotokat button').allInnerTexts();
   ok(lt[1].includes(nachK[0] === 'fleisch' ? 'Fleisch' : '') && lt.some((t) => /Fisch & Meer/.test(t)) && !lt.some((t) => /Suppen/.test(t)), 'nach Neuladen: Reihenfolge, Name und Löschung sind da', lt.join(' | '));
-  await p.fill('#suchfeld', 'Ratatouille'); await p.locator('.karte').first().click(); await p.click('[data-a=rleiste]'); await p.click('[data-a=kat-zuordnen]'); await p.fill('[data-form=kat-neu-zu] input', 'Sommerküche'); await p.keyboard.press('Enter');
+  await p.fill('#suchfeld', 'Ratatouille'); await p.locator('.karte').first().click(); await p.click('[data-a=rleiste]'); await p.click('[data-a=einordnen]'); await p.fill('[data-form=ein-kat-neu] input', 'Sommerküche'); await p.keyboard.press('Enter'); await p.waitForTimeout(200); await p.keyboard.press('Escape');
   ok((await p.locator('.rezept-held .meta').innerText()).includes('Sommerküche'), 'aus dem Rezept: neue Kategorie anlegen und zuordnen in einem Griff');
 
   await zuWerk('bilder'); await p.waitForSelector('.bildkachel'); const nB = await p.locator('.bildkachel').count(); ok(nB === 30, 'Bilder-Ordner zeigt alle 30 Bilder', String(nB));
@@ -180,17 +180,16 @@ try {
   ok(true, 'Bild einfügen bei einem Rezept ohne Bild');
   await p.click('[data-a=bilder-alle-weg]'); await p.click('[data-a=ja]'); ok(await p.locator('.bildkachel').count() === 0, '„Alle Bilder löschen“ mit Rückfrage'); await p.click('[data-a=toast-tun]');
   await p.click('#leiste .fl-griff'); await p.click('#leiste [data-zu=start]'); await p.fill('#suchfeld', ''); await p.locator('.fotokat button').first().click(); ok(await p.locator('.karte').count() === 42, 'alle 42 Rezepte sind noch da');
-  await p.fill('#suchfeld', 'Dragon'); await p.locator('.karte').first().click(); await p.click('.rezept-held');
-  const vb = await p.locator('.vollbild').evaluate((e) => { const r = e.getBoundingClientRect(), i = e.querySelector('img'); return [Math.round(r.width), Math.round(r.height), innerWidth, innerHeight, getComputedStyle(i).objectFit].join(','); });
-  ok(vb === '390,800,390,800,contain', 'Tipp aufs Bild: Vollbild so groß wie das Fenster, ganzes Bild', vb);
-  await p.keyboard.press('Escape'); ok(await p.locator('.vollbild').count() === 0 && await p.locator('.rezept-held h1').count() === 1, 'Esc schließt das Vollbild, das Rezept steht noch da');
-  await p.click('.rezept-held'); await p.goBack(); ok(await p.locator('.vollbild').count() === 0 && (await p.locator('.rezept-held h1').innerText()).includes('Dragon'), 'die Zurück-Taste schließt das Vollbild und bleibt im Rezept');
-  await p.click('.rezept-held'); ok(await p.locator('.vollbild [data-a=voll-werk]').count() === 1, 'im Vollbild steht „Bild bearbeiten“ (Klaus 23.11.: Tipp aufs Bild öffnet Vollbild und Bild-Blatt)');
-  await p.click('.vollbild [data-a=voll-werk]'); await p.waitForTimeout(250);
-  ok(await p.locator('.vollbild').count() === 0 && await p.locator('.fenster [data-a=ki-bild]').count() === 1, '„Bild bearbeiten“ schließt das Vollbild und öffnet das Bild-Blatt');
-  ok(await p.evaluate(() => !history.state?.voll), 'danach steht kein Vollbild-Schritt mehr in der Geschichte');
-  await p.locator('.schleier').click({ position: { x: 5, y: 5 } }); ok(await p.locator('.fenster').count() === 0 && (await p.locator('.rezept-held h1').innerText()).includes('Dragon'), 'Bild-Blatt zu, das Rezept steht noch da');
-  if (!(await p.locator('.rwerk').count())) await p.click('[data-a=rleiste]'); await p.click('.rwerk [data-a=bild-blatt]'); await p.click('[data-a=zuschnitt]'); await p.locator('[data-a=zs-lage]', { hasText: 'Oben' }).click();
+  /* seit 0.16.1 (R10): ein Tipp aufs Bild öffnet gleich „Bild anpassen“ im Vollbild; die Bildwege stehen dort unten rechts */
+  await p.fill('#suchfeld', 'Dragon'); await p.locator('.karte').first().click(); await p.click('.rezept-held img');
+  const vb = await p.locator('.bildvoll').evaluate((e) => { const r = e.getBoundingClientRect(); return [Math.round(r.width), Math.round(r.height), innerWidth, innerHeight].join(','); });
+  ok(vb === '390,800,390,800', 'Tipp aufs Bild: „Bild anpassen“ so groß wie das Fenster', vb);
+  await p.keyboard.press('Escape'); await p.waitForTimeout(150); ok(await p.locator('.bildvoll').count() === 0 && await p.locator('.rezept-held h1').count() === 1, 'Esc schließt das Vollbild, das Rezept steht noch da');
+  await p.click('.rezept-held img'); await p.goBack(); ok(await p.locator('.bildvoll').count() === 0 && (await p.locator('.rezept-held h1').innerText()).includes('Dragon'), 'die Zurück-Taste schließt das Vollbild und bleibt im Rezept');
+  await p.click('.rezept-held img'); ok(await p.locator('.bildvoll .bv-werk [data-w=ki-bild]').count() === 1, 'im Vollbild stehen die Bildwege (KI-Bild …) unten rechts am Bild');
+  await p.click('.bildvoll [data-a=bv-zu]'); await p.waitForTimeout(250);
+  ok(await p.evaluate(() => !history.state?.voll) && await p.locator('.bildvoll').count() === 0, 'Schließen nimmt den Vollbild-Schritt aus der Geschichte');
+  await p.click('.rezept-held img'); await p.locator('[data-a=zs-lage]', { hasText: 'Oben' }).click();
   await p.locator('#zs-zoom').evaluate((e) => { e.value = 200; e.dispatchEvent(new Event('input', { bubbles: true })); }); await p.click('[data-a=zs-ok]');
   const stil = await p.locator('.rezept-held > img').getAttribute('style'); ok(/object-position:50% 0%/.test(stil) && /scale\(2\)/.test(stil), 'Bildausschnitt: Lage oben und Zoom 2 sind am Kopfbild', stil);
   await p.waitForTimeout(350); await p.reload(); await p.waitForSelector('.gruss'); await p.fill('#suchfeld', 'Dragon'); ok(/scale\(2\)/.test(await p.locator('.karte img').first().getAttribute('style') || ''), 'der Ausschnitt gilt auch auf der Karte und nach dem Neuladen');
@@ -300,7 +299,7 @@ try {
   await p.evaluate(async () => { const d = await new Promise((g) => { const q = indexedDB.open('KuechenKern-rezeptbuch'); q.onsuccess = () => g(q.result); }); const z = { fassung: 1, einstellungen: {}, zustand: { rezepte: [{ uid: 'u1', name: 'Queen Charlotte', cat: 'suppen', servings: 1, ings: [{ name: 'Red wine', amt: '2', unit: 'oz' }], steps: [{ txt: 'Pour.' }], translations: { de: { name: 'Königin Charlotte', ingredients: ['Rotwein'], steps: ['Eingießen.'] } } }], menu: [], ordner: [], kategorien: { eigene: [], namen: {}, ausgeblendet: [], folge: [] } } }; await new Promise((g) => { const t = d.transaction('zustand', 'readwrite'); t.objectStore('zustand').put(z, 'alles'); t.oncomplete = g; }); });
   await p.reload(); await p.waitForSelector('.karte'); ok((await p.locator('.karte').innerText()).includes('Königin Charlotte'), 'liegt translations.de am Rezept, zeigt die Karte Deutsch');
   await p.locator('.karte').click(); await p.waitForSelector('.rezept-held h1'); ok((await p.locator('.zut').innerText()).includes('Rotwein') && (await p.locator('.schritte').innerText()).includes('Eingießen') && !(await p.locator('main').innerText()).includes('Red wine'), 'auch Zutaten und Schritte');
-  await p.click('[data-a=rleiste]'); await p.click('[data-a=bearbeiten]'); ok(await p.inputValue('[name=name]') === 'Queen Charlotte', 'bearbeitet wird das Original');
+  await p.click('[data-a=rleiste]'); await p.click('[data-a=bearbeiten]'); ok(await p.inputValue('[name=name]') === 'Königin Charlotte', 'bearbeitet wird die angezeigte Fassung (Klaus 25.11.: die Übersetzung, nicht das Original; Übernehmen prüft smoke_neu_bedienung)');
   await k.close();
   const { SYMBOLE } = await import('../kern/oberflaeche/symbole.mjs'); const zeichen = ['buch', 'koch', 'karte', 'plan', 'einkauf', 'einst', 'funken'].map((n) => SYMBOLE[n]);
   ok(new Set(zeichen).size === zeichen.length, 'Rezepte, Kochen, Kategorie, Planer, Einkauf, Einstellungen (Zahnrad) und KI tragen verschiedene Zeichen');
@@ -389,8 +388,8 @@ try {
           return { drin: r.left >= 0 && r.right <= innerWidth && r.top >= 0 && r.bottom <= innerHeight && r.width > 100, oben: ecken.every(([x, y]) => p.contains(document.elementFromPoint(x, y))), text: p.textContent.slice(0, 30) }; });
         if (!lage.drin || !lage.oben) schlecht.push(JSON.stringify(lage)); await d.locator('summary').click().catch(() => {}); }
       ok(n > 0 && !schlecht.length, `${breite} px · ${wo}: ${n} Erklärungen, jede ganz im Bild und obenauf`, schlecht.join(' · ')); };
-    await q.locator('.karte', { hasText: 'Forelle' }).click(); if (breite < 1000) await q.waitForSelector('.rezept-held'); await q.click('.rezept-held'); await pruefe('Bild-Blatt'); await q.click('.fenster [data-a=fenster-zu]');
-    if (!(await q.locator('[data-a=ordner-zuordnen]:visible').count())) await q.click('.rezept-held [data-a=rleiste]'); await q.click('[data-a=ordner-zuordnen]'); await q.waitForSelector('[data-form=ordner-neu-zu]'); await pruefe('In einen Ordner legen'); await q.locator('.schleier').click({ position: { x: 4, y: 4 } });
+    await q.locator('.karte', { hasText: 'Forelle' }).click(); if (breite < 1000) await q.waitForSelector('.rezept-held'); if (!(await q.locator('.rwerk').count())) await q.click('.rezept-held [data-a=rleiste]'); await q.click('.rwerk [data-a=bild-blatt]'); await pruefe('Bild-Blatt'); await q.click('.fenster [data-a=fenster-zu]');
+    if (!(await q.locator('.rwerk [data-a=einordnen]:visible').count())) await q.click('.rezept-held [data-a=rleiste]'); await q.click('.rwerk [data-a=einordnen]'); await q.waitForSelector('[data-form=ein-ord-neu]'); ok(await q.locator('.fenster .ein-satz').isVisible() && await q.locator('.fenster details.frag').count() === 0, `${breite} px · Einordnen: die Erklärung steht sichtbar als Satz da (Klaus 25.11.: nicht hinter „?“)`); await q.locator('.schleier').click({ position: { x: 4, y: 4 } });
     if (breite < 1000) await q.click('#leiste .fl-griff'); await q.click(breite < 1000 ? '#leiste [data-zu=werkstatt]' : '#kopf [data-zu=werkstatt]'); await pruefe('Einstellungen');
     await q.click('[data-zu=kategorien]'); await q.waitForSelector('#kat-liste'); await pruefe('Kategorien');
     await kf.close(); }

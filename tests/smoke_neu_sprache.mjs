@@ -32,6 +32,8 @@ const uebAntwort = (leib) => { const t = leib.messages[0].content, m = /exactly 
 async function seite({ ort = 'de-DE', breite = 390, bestand = BESTAND, einst = {}, schluessel = { anthropic: 'sk-ant-probe-111111111111111111' }, start = URL0, vorher = null, alt = null } = {}) {
   const k = await browser.newContext({ locale: ort, viewport: { width: breite, height: 800 }, serviceWorkers: 'block', acceptDownloads: true }), p = await k.newPage();
   p.on('pageerror', (e) => fehler.push(e.message)); p.on('console', (m) => m.type() === 'error' && !/Failed to load resource/.test(m.text()) && fehler.push(m.text()));
+  /* diese Probe misst die Wege mit Claude, wie auf einem Gerät ohne eingebauten Übersetzer (Android-Chrome); den Weg „Im Gerät“ misst smoke_neu_bedienung */
+  await k.addInitScript(() => { try { delete self.Translator; } catch { /* schon weg */ } });
   await p.route(/^https?:\/\/(?!localhost)/, (r) => { fehler.push('Netz nach draußen: ' + r.request().url()); r.abort(); });
   await p.route('https://api.anthropic.com/**', async (r) => { const leib = JSON.parse(r.request().postData()); rufe.push(leib); const a = await antwort(leib, rufe.length);
     try { if (a && a.status) await r.fulfill({ status: a.status, contentType: 'application/json', body: JSON.stringify({ error: { type: 'api_error', message: 'gestellt' } }) }); else await r.fulfill({ contentType: 'application/json', body: JSON.stringify({ content: [{ type: 'text', text: JSON.stringify(a) }], stop_reason: 'end_turn' }) }); } catch { /* der Aufruf wurde abgebrochen */ } });
@@ -101,7 +103,7 @@ try {
   await zumRezept(p); await p.click('[data-a=rleiste]'); await p.click('[data-naehr] summary'); await merke(p, 'Rezept mit Werkzeugen');
   ok((await p.locator('.zweispalt').innerText()).includes('Ingredients') && (await p.locator('[data-naehr] summary').innerText()).includes('per serving') && glatt(await p.locator('.rezept-held .meta').innerText()).includes('40 min'), 'Rezept: Überschriften, Nährwerte und Zeit auf Englisch; der Inhalt bleibt, wie er ist');
   await p.click('.rwerk [data-a=rmenue]'); await p.waitForSelector('#rmenue'); await merke(p, 'Menü am Rezept'); await zu(p);
-  for (const [a, sel] of [['kat-zuordnen', '.wahl-liste'], ['ordner-zuordnen', '#ord-wahl'], ['bild-blatt', '.fenster .liste']]) { await p.click(`.rwerk [data-a=${a}]`); await p.waitForSelector(sel); await merke(p, 'Fenster ' + a); await zu(p); }
+  for (const [a, sel] of [['einordnen', '#ein-kat'], ['bild-blatt', '.fenster .liste']]) { await p.click(`.rwerk [data-a=${a}]`); await p.waitForSelector(sel); await merke(p, 'Fenster ' + a); await zu(p); }
   await p.click('[data-a=planen]'); await p.waitForSelector('.tagwahl'); await merke(p, 'Fenster Planen'); await zu(p);
   await p.click('[data-a=auf-liste]'); await toast(p, /shopping list|servings adjusted/); await merke(p, 'Meldung Einkaufen');
   await p.click('[data-a=kochen]'); await p.waitForSelector('.koch'); await merke(p, 'Kochen 1'); await p.click('.k-fuss .vor'); await p.waitForFunction(() => /2/.test(document.querySelector('.k-nr')?.innerText || '')); await merke(p, 'Kochen 2');
@@ -134,8 +136,8 @@ try {
   await p.click('.themen [data-a=tresor]'); await p.waitForSelector('[data-form=tresor]'); await p.click('[data-form=tresor] button[type=submit]'); await p.waitForSelector('.tr-liste .zeile'); await merke(p, 'Tresor mit Stand'); await zu(p);
   await p.setInputFiles('#datei-sicherung', { name: 'kaputt.json', mimeType: 'application/json', buffer: Buffer.from('kein json') }); await toast(p, /backup|Sicherung/); await merke(p, 'Meldung: Datei ist keine Sicherung');
   ok(glatt(await p.locator('#toast').innerText()) === 'The file is not a valid backup (no JSON).', 'eine Meldung, die der Kern nur deutsch kennt, steht englisch da', glatt(await p.locator('#toast').innerText()));
-  await geh(p, 'start', '.fotokat'); await zumRezept(p, 'Apfelkuchen'); await p.click('.rezept-held img'); await p.waitForSelector('.vollbild'); await merke(p, 'Bild groß'); await p.click('.voll-werk'); await p.waitForSelector('.bb-bild'); await merke(p, 'Bild-Blatt mit Bild');
-  await p.click('.fenster [data-a=zuschnitt]'); await p.waitForSelector('#zs-rahmen'); await merke(p, 'Bild anpassen'); await zu(p);
+  await geh(p, 'start', '.fotokat'); await zumRezept(p, 'Apfelkuchen'); if (!(await p.locator('.rwerk').count())) await p.click('[data-a=rleiste]'); await p.click('.rwerk [data-a=bild-blatt]'); await p.waitForSelector('.bb-bild'); await merke(p, 'Bild-Blatt mit Bild'); await zu(p);
+  await p.click('.rezept-held img'); await p.waitForSelector('.bildvoll #zs-rahmen'); await merke(p, 'Bild anpassen (Vollbild)'); await p.click('.bildvoll [data-a=bv-zu]'); await p.waitForTimeout(200);
   await menue(p); await p.click('#rmenue [data-a=qr]'); await p.waitForSelector('#qr-bild svg'); await merke(p, 'QR-Code'); await zu(p);
   await k.close();
   ({ p, k } = await seite({ ort: 'en-GB', breite: 1280 })); await merke(p, 'Monitor mit Seitenleiste');
@@ -221,9 +223,10 @@ try {
   await menue(p); await p.click('#rmenue [data-a=uebersetzen]'); await p.waitForSelector('#ueb-wahl');
   ok(await p.locator('#ueb-wahl [data-s=en] svg').count() === 1 && await p.locator('#ueb-wahl [data-s=fr] svg').count() === 0, 'im Fenster trägt die schon übersetzte Sprache einen Haken'); await zu(p);
   if (!(await p.locator('.rwerk').count())) await p.click('[data-a=rleiste]'); await p.click('.rwerk [data-a=bearbeiten]'); await p.waitForSelector('[data-form=rezept]');
-  ok(await p.inputValue('[name=name]') === 'Kartofelsuppe' && (await p.inputValue('[name=steps]')).includes('schälen'), 'bearbeitet wird das Original');
+  ok(await p.inputValue('[name=name]') === 'Potato soup', 'bearbeitet wird die angezeigte Fassung, hier die englische Übersetzung (Klaus 25.11.)');
   await p.fill('[name=servings]', '6'); await p.click('[data-form=rezept] button[type=submit]'); await p.waitForSelector('.rezept-held h1');
-  ges = await bisGespeichert(p, (g) => g.zustand.rezepte[0].servings === 6); ok(ges.zustand.rezepte[0].servings === 6 && !!ges.zustand.rezepte[0].translations?.en && ges.zustand.rezepte[0].ings[3].name !== 'Zwiebel' && await p.locator('.rezept-held h1').innerText() === 'Potato soup', 'nur die Portionen geändert: die Übersetzung bleibt, auch wenn das Formular eine Zutat anders zurückgibt', JSON.stringify(ges.zustand.rezepte[0].ings[3]));
+  ges = await bisGespeichert(p, (g) => g.zustand.rezepte[0].servings === 6); ok(ges.zustand.rezepte[0].servings === 6 && !!ges.zustand.rezepte[0].translations?.en && JSON.stringify(ges.zustand.rezepte[0].ings.map(({ amt, unit, name }) => [amt, unit, name])) === JSON.stringify(SUPPE.ings.map(({ amt, unit, name }) => [amt, unit, name])) && await p.locator('.rezept-held h1').innerText() === 'Potato soup', 'nur die Portionen geändert: die Übersetzung bleibt, und Name, Zutaten und Schritte bleiben genau, wie sie waren (nichts wird neu zerlegt)', JSON.stringify(ges.zustand.rezepte[0].ings[3]));
+  await p.click('.ueb-um'); await p.waitForFunction(() => document.querySelector('.rezept-held h1')?.textContent === 'Kartofelsuppe');   /* das Original zeigen, dann das Original bearbeiten */
   if (!(await p.locator('.rwerk').count())) await p.click('[data-a=rleiste]'); await p.click('.rwerk [data-a=bearbeiten]'); await p.waitForSelector('[data-form=rezept]');
   await p.fill('[name=name]', 'Kartoffelsuppe'); await p.click('[data-form=rezept] button[type=submit]'); await p.waitForSelector('.rezept-held h1');
   ges = await bisGespeichert(p, (g) => g.zustand.rezepte[0].name === 'Kartoffelsuppe'); ok(!ges.zustand.rezepte[0].translations && await p.locator('.rezept-held h1').innerText() === 'Kartoffelsuppe' && await p.locator('.ueb-um').count() === 0, 'ändert sich der Text des Rezepts, fällt die Übersetzung weg: es steht nicht der alte Text da');
@@ -234,7 +237,7 @@ try {
   console.log('6 · Ohne Schlüssel fragt die App danach; nichts geht hinaus');
   rufe.length = 0; ({ p, k } = await seite({ ort: 'de-DE', schluessel: {} })); await zumRezept(p); await menue(p); await p.click('#rmenue [data-a=uebersetzen]');
   ok(await p.locator('[data-form=schluessel][data-anbieter=anthropic]').count() === 1 && await p.locator('#ueb-wahl').count() === 0 && rufe.length === 0, 'Übersetzen ohne Anthropic-Schlüssel: das Schlüssel-Fenster kommt, nichts geht hinaus');
-  await p.fill('#schl-feld', 'sk-ant-probe-111111111111111111'); await p.click('[data-form=schluessel] button[type=submit]'); await p.waitForSelector('#rmenue'); ok(rufe.length === 0, 'nach dem Speichern steht das Menü wieder da; gesendet ist weiter nichts'); await k.close();
+  await p.fill('#schl-feld', 'sk-ant-probe-111111111111111111'); await p.click('[data-form=schluessel] button[type=submit]'); await p.waitForSelector('#ueb-wahl'); ok(rufe.length === 0, 'nach dem Speichern geht es gleich mit dem Übersetzen weiter (ein Schritt weniger); gesendet ist weiter nichts'); await k.close();
   ({ p, k } = await seite({ ort: 'de-DE', schluessel: {} })); await zuEinst(p); await p.click('.themen [data-a=alle-uebersetzen]');
   ok(await p.locator('[data-form=schluessel][data-anbieter=anthropic]').count() === 1 && await p.locator('#alle-ueb-wahl').count() === 0, '„Alle übersetzen“ ohne Schlüssel: das Schlüssel-Fenster kommt');
   await p.fill('#schl-feld', 'sk-ant-probe-111111111111111111'); await p.click('[data-form=schluessel] button[type=submit]'); await p.waitForSelector('#alle-ueb-wahl'); ok(rufe.length === 0, 'nach dem Speichern geht es bei „Alle übersetzen“ weiter; gesendet ist nichts'); await k.close();

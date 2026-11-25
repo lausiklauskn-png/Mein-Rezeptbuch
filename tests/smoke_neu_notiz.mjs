@@ -68,6 +68,11 @@ try {
   await oeffne(p);
   ok(await p.evaluate(() => document.activeElement?.id === 'nz-text') && await p.locator('#nz .nz-liste').count() === 0, 'das Notizbuch öffnet mit der Schreibmarke im Feld, ohne Liste, wenn es noch nichts gibt');
   ok(!(await p.locator('.fenster').innerText()).match(/\n.{60,}/), 'kein Erklärtext auf dem Blatt');
+  ok(await p.locator('.nz-leer').isHidden(), 'leeres Feld: kein ✕');
+  await p.fill('#nz-text', 'Ein langes Diktat, das neu soll'); ok(await p.locator('.nz-leer').isVisible(), 'mit Text steht das ✕ im Feld (Klaus 25.11.)');
+  await p.click('.nz-leer'); ok((await p.locator('#nz-text').inputValue()) === '' && await p.evaluate(() => document.activeElement?.id === 'nz-text') && (await p.locator('#toast').innerText()).includes('Text gelöscht'), '✕ leert das Feld, der Zeiger bleibt drin, Meldung mit Rückgängig');
+  await p.click('#toast [data-a=toast-tun]'); ok((await p.locator('#nz-text').inputValue()) === 'Ein langes Diktat, das neu soll', 'Rückgängig holt den Text zurück');
+  await p.fill('#nz-text', '');
   await p.fill('#nz-text', 'Kürbis vom Markt');
   await p.setInputFiles('#datei-notiz', FOTO_DATEI); await p.waitForSelector('#nz-entwurf-fotos img');
   ok(await p.locator('#nz-entwurf-fotos .nz-foto').count() === 1 && (await p.locator('#nz-text').inputValue()) === 'Kürbis vom Markt', 'das Foto steht als kleines Bild unter dem Feld, der Text bleibt');

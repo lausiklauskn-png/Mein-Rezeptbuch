@@ -60,7 +60,7 @@ async function seite({ rezepte = BESTAND(), einstellungen = {}, ort = 'de-DE', b
   }
   await p.goto(URL0); await p.waitForSelector('.gruss'); return { p, k };
 }
-const geh = async (p, z) => { await p.keyboard.press('Escape'); if (await p.locator('#leiste .fl-griff').count()) await p.click('#leiste .fl-griff'); await p.click(`#leiste [data-zu=${z}]`); };
+const geh = async (p, z) => { await p.keyboard.press('Escape'); if (await p.locator(`.rail-n[data-zu=${z}]`).count()) { await p.click(`.rail-n[data-zu=${z}]`); return; } if (await p.locator('#leiste .fl-griff').count()) await p.click('#leiste .fl-griff'); await p.click(`#leiste [data-zu=${z}]`); };   /* am breiten Schirm über die Seitenleiste */
 const toast = (p) => p.locator('#toast').innerText().catch(() => '');
 const wennToast = (p, muster) => p.waitForFunction((m) => new RegExp(m).test(document.querySelector('#toast')?.textContent || ''), muster, { timeout: 12000 }).then(() => true, () => false);
 const lagerHol = (p, schluessel) => p.evaluate((k) => new Promise((ja) => { const a = indexedDB.open('KuechenKern-rezeptbuch'); a.onsuccess = () => { const q = a.result.transaction('zustand').objectStore('zustand').get(k); q.onsuccess = () => { a.result.close(); ja(q.result ?? null); }; }; }), schluessel);
@@ -176,7 +176,7 @@ try {
   }
 
   if (will(4)) {
-  console.log('4 · Bild für die KI und Kopieren: Text und PNG (≤ 1600 px) in einem Eintrag; eigenes Bild (1200 px); ohne Bild nur Text');
+  console.log('4 · Bild für die KI und Kopieren: Text und PNG (≤ 1600 px) in einem Eintrag; eigenes Bild aus der Sammlung (Wahl-Modus); ohne Bild nur Text');
   ({ p, k } = await seite());
   await zumZine(p, 'Rindergulasch'); await p.waitForTimeout(400);
   await leeren(p); await p.click('[data-a=zn-kopieren]'); await wennToast(p, 'Text und Bild kopiert');
@@ -184,18 +184,39 @@ try {
   ok(a.typen.includes('image/png') && a.typen.includes('text/plain') && a.text === soll(GUL) + '\n\n' + zineFotoHinweis('de'), 'mit Rezeptbild: Auftrag samt Satz zum Foto UND Bild in einem Eintrag', JSON.stringify(a.typen));
   ok(a.masse && Math.max(...a.masse) === 1600 && Math.abs(a.masse[0] / a.masse[1] - 1.5) < 0.01, 'das PNG ist auf 1600 px lange Kante umgerechnet (Seitenverhältnis bleibt)', JSON.stringify(a.masse));
   const gross = await bildDatei(p, 3000, 2000, '#3a8');
+  /* Klaus 25.11.: das eigene Bild kommt aus „Meine Food-Zine-Bilder“. Leere Sammlung: „Eigenes Bild“ öffnet die Dateiwahl der Sammlung. */
+  { const [fc0] = await Promise.all([p.waitForEvent('filechooser', { timeout: 5000 }), p.click('[data-a=zn-bild][data-w=eigen]')]); await fc0.setFiles([]); await p.waitForTimeout(200);
+    ok(fc0.isMultiple() && await p.locator('[data-a=zn-bild][data-w=rezept][aria-checked=true]').count() === 1 && await p.locator('#zn-vorschau [data-a=zn-eigen]').count() === 0 && await p.locator('#zn-eigen-datei').count() === 0, 'leere Sammlung: „Eigenes Bild“ öffnet die Dateiwahl der Sammlung; abgebrochen bleibt „Bild aus Rezept“; kein eigener Dateiweg, kein „Bild wählen“'); }
   const [fc] = await Promise.all([p.waitForEvent('filechooser'), p.click('[data-a=zn-bild][data-w=eigen]')]); await fc.setFiles({ name: 'eigen.jpg', mimeType: 'image/jpeg', buffer: gross });
   await p.waitForFunction(() => document.querySelector('#zn-vorschau img.zn-mini') && document.querySelector('[data-a=zn-bild][data-w=eigen]')?.getAttribute('aria-checked') === 'true', null, { timeout: 8000 }).catch(() => {});
   const eigen = await p.locator('#zn-vorschau img.zn-mini').getAttribute('src').catch(() => '');
   const em = eigen ? await p.evaluate(async (s) => { const b = await createImageBitmap(await (await fetch(s)).blob()); return [b.width, b.height]; }, eigen) : null;
-  ok(/^data:image\/jpeg/.test(eigen) && em && Math.max(...em) === 1200, '„Eigenes Bild“: per Datei, lange Kante 1200 px, mit Miniatur', JSON.stringify(em));
-  ok(await p.locator('#zn-vorschau [data-a=zn-eigen]').count() === 1, 'daneben „Anderes Bild …“');
+  ok(/^data:image\/jpeg/.test(eigen) && em && Math.max(...em) === 1600 && (await kacheln(p)).join() === 'eigen', 'das neue Bild liegt in der Sammlung UND ist gewählt (lange Kante 1600 px), mit Miniatur', JSON.stringify(em));
+  ok(await p.locator('#zn-vorschau [data-a=zn-eigen]').count() === 1, 'daneben nur „Anderes Bild …“');
   await p.waitForTimeout(400); await leeren(p); await p.evaluate(() => { document.querySelector('#toast').innerHTML = ''; }); await p.click('[data-a=zn-kopieren]'); await wennToast(p, 'Text und Bild kopiert');
   a = await ablage(p);
-  ok(a.typen.includes('image/png') && a.masse && Math.max(...a.masse) === 1200, 'kopiert wird das eigene Bild', JSON.stringify(a.masse));
+  ok(a.typen.includes('image/png') && a.masse && Math.max(...a.masse) === 1600, 'kopiert wird das eigene Bild (PNG ≤ 1600 px)', JSON.stringify(a.masse));
+  await dazu(p, [{ name: 'Zweitbild.jpg', mimeType: 'image/jpeg', buffer: await bildDatei(p, 600, 900, '#a35') }]); await wennToast(p, '\\+1 Bild');
+  ok(await p.locator('#zs.wahl').count() === 0 && (await p.locator('#zn-vorschau img.zn-mini').getAttribute('src')) === eigen, '„+“ außerhalb des Wahl-Modus fügt nur hinzu, die Wahl bleibt');
+  await p.click('#zn-vorschau [data-a=zn-eigen]'); await p.waitForTimeout(250);
+  ok(await p.locator('#zs.wahl #zs-wahl-hin').count() === 1 && (await p.locator('#zs-wahl-hin').innerText()).includes('Tippe auf ein Bild für die KI'), '„Anderes Bild …“: die Sammlung geht in den Wahl-Modus, mit kurzer Zeile');
+  await p.locator('#zs-gitter .zs-kachel[data-id]').nth(1).click(); await p.waitForTimeout(400);
+  const zweit = await p.locator('#zn-vorschau img.zn-mini').getAttribute('src');
+  ok(await p.locator('.zs-voll').count() === 0 && zweit !== eigen && await p.locator('#zs.wahl').count() === 0, 'im Wahl-Modus wählt ein Tipp das Bild (keine Großansicht) und beendet den Modus');
+  await p.locator('#zs-gitter .zs-kachel[data-id]').nth(0).click(); await p.waitForSelector('.zs-voll');
+  ok(await p.locator('.zs-voll [data-a=zs-fuer-ki]').count() === 1, 'außerhalb des Wahl-Modus öffnet ein Tipp die Großansicht, mit „Für die KI verwenden“');
+  await p.click('.zs-voll [data-a=zs-fuer-ki]'); await p.waitForTimeout(400);
+  ok(await p.locator('.zs-voll').count() === 0 && (await p.locator('#zn-vorschau img.zn-mini').getAttribute('src')) === eigen, '„Für die KI verwenden“ setzt das gezeigte Bild');
+  await p.click('#zn-vorschau [data-a=zn-eigen]'); const [fc2] = await Promise.all([p.waitForEvent('filechooser'), p.click('#zs [data-a=zs-dazu]')]); await fc2.setFiles({ name: 'drittbild.jpg', mimeType: 'image/jpeg', buffer: await bildDatei(p, 700, 700, '#58c') });
+  await wennToast(p, '\\+1 Bild'); await p.waitForTimeout(300);
+  ok((await kacheln(p)).length === 3 && (await p.locator('#zn-vorschau img.zn-mini').getAttribute('src')) !== eigen && await p.locator('#zs.wahl').count() === 0, '„+“ im Wahl-Modus: hinzufügen und gleich wählen');
+  ok(await p.evaluate(() => { const l = document.querySelector('.zn-links'), r = document.querySelector('.zn-rechts'); return l && r && r.getBoundingClientRect().top >= l.getBoundingClientRect().bottom - 1; }), '390 px: eine Spalte (Wahl oben, Auftrag und Sammlung darunter)');
   await p.click('[data-a=zn-bild][data-w=ohne]'); await leeren(p); await p.click('[data-a=zn-kopieren]'); await wennToast(p, 'Auftrag kopiert');
   a = await ablage(p);
   ok(!a.typen.includes('image/png') && a.text === soll(GUL) && /^Auftrag kopiert$/.test((await toast(p)).trim()), '„Ohne Bild“: nur der Text, die Meldung sagt „Auftrag kopiert“', JSON.stringify(a.typen));
+  { const { p: q, k: kq } = await seite({ breite: 1280 }); await zumZine(q, 'Rindergulasch'); await q.waitForTimeout(300);
+    const sp = await q.evaluate(() => { const l = document.querySelector('.zn-links').getBoundingClientRect(), r = document.querySelector('.zn-rechts').getBoundingClientRect(), a = document.querySelector('#zn-auftrag').getBoundingClientRect(), z = document.querySelector('#zs').getBoundingClientRect(); return { neben: r.left >= l.right - 1 && Math.abs(r.top - l.top) < 40, rechts: a.left >= l.right - 1 && z.left >= l.right - 1 && z.top >= a.bottom, quer: document.scrollingElement.scrollWidth - innerWidth }; });
+    ok(sp.neben && sp.rechts && sp.quer <= 0, '1280 px: zwei Spalten – links die Wahl, rechts Auftrag und darunter die Sammlung', JSON.stringify(sp)); await kq.close(); }
   ok(await p.locator('#zn-vorschau img').count() === 0, '„Ohne Bild“: keine Miniatur');
   await p.click('[data-a=zn-bild][data-w=rezept]'); await p.waitForTimeout(300);
   await p.evaluate(() => { window.ClipboardItem = undefined; });
@@ -306,8 +327,29 @@ try {
   ok(b.zustand.rezepte.find((r) => r.uid === 'r-2').img === g0.gross, 'das Rezept trägt das Buchbild (1600 px) der Sammlung');
   await p.click('[data-a=toast-tun]'); await bestandWenn(p, (x) => !x?.zustand?.rezepte.find((r) => r.uid === 'r-2')?.img);
   ok(!(await lagerHol(p, 'alles')).zustand.rezepte.find((r) => r.uid === 'r-2').img, '„Rückgängig“ nimmt das Rezeptbild zurück');
+  /* Blättern in der Großansicht (Klaus 25.11.): drei Bilder, Pfeil, Taste, Wischen, Zähler, Ende, Entfernen springt zum nächsten */
+  await dazu(p, [{ name: 'Drittes.jpg', mimeType: 'image/jpeg', buffer: await bildDatei(p, 800, 600, '#6a3') }]); await wennToast(p, '\\+1 Bild');
+  await p.click('#zs-gitter .zs-kachel[data-id] >> nth=0'); await p.waitForSelector('.zs-voll img');
+  const zahl = async () => (await p.locator('#zs-nr').innerText()).trim(), nameV = async () => (await p.locator('.zs-voll .zs-leiste b').innerText()).split(' ')[0];
+  ok(await zahl() === '1 / 3' && await p.locator('.zs-pf.li').isHidden() && await p.locator('.zs-pf.re').isVisible(), 'Großansicht: Zähler „1 / 3“, am Anfang kein Zurück-Pfeil, Weiter-Pfeil am Rand');
+  await p.click('.zs-pf.re'); await p.waitForFunction(() => document.getElementById('zs-nr')?.textContent.trim() === '2 / 3', null, { timeout: 4000 }).catch(() => {});
+  ok(await zahl() === '2 / 3' && await nameV() === 'Zweites' && await p.locator('.zs-voll').count() === 1, 'Pfeil rechts zeigt das nächste Bild, die Ansicht bleibt offen');
+  await p.keyboard.press('ArrowRight'); await p.waitForFunction(() => document.getElementById('zs-nr')?.textContent.trim() === '3 / 3', null, { timeout: 4000 }).catch(() => {});
+  ok(await zahl() === '3 / 3' && await nameV() === 'Drittes' && await p.locator('.zs-pf.re').isHidden(), 'Taste → blättert weiter; am Ende kein Weiter-Pfeil');
+  await p.keyboard.press('ArrowRight'); await p.waitForTimeout(200); ok(await zahl() === '3 / 3', 'am Ende geht es nicht weiter (kein Ringlauf)');
+  { const zugW = (t, x) => p.evaluate(([t, x]) => { const el = document.querySelector('.zs-voll img'), tp = { clientX: x, clientY: 300 }, ev = new Event(t, { bubbles: true }); Object.defineProperty(ev, 'touches', { value: t === 'touchstart' ? [tp] : [] }); Object.defineProperty(ev, 'changedTouches', { value: [tp] }); el.dispatchEvent(ev); }, [t, x]);
+    await zugW('touchstart', 100); await zugW('touchend', 260); await p.waitForFunction(() => document.getElementById('zs-nr')?.textContent.trim() === '2 / 3', null, { timeout: 4000 }).catch(() => {});
+    ok(await zahl() === '2 / 3' && await p.locator('.zs-voll').count() === 1, 'Wischen nach rechts zeigt das vorige Bild'); }
+  await p.click('.zs-voll [data-a=zs-weg-voll]'); await wennToast(p, 'Bild entfernt'); await p.waitForFunction(() => document.getElementById('zs-nr')?.textContent.trim() === '2 / 2', null, { timeout: 4000 }).catch(() => {});
+  ok(await nameV() === 'Drittes' && await zahl() === '2 / 2', 'Entfernen in der Großansicht: weiter mit dem nächsten Bild', await zahl());
+  await p.click('.zs-voll [data-a=zs-weg-voll]'); await wennToast(p, 'Bild entfernt'); await p.waitForFunction(() => document.getElementById('zs-nr')?.textContent.trim() === '1 / 1', null, { timeout: 4000 }).catch(() => {});
+  ok(await nameV() === 'Erstes', 'war es das letzte, zeigt sie das vorige', await nameV());
+  await p.click('[data-a=toast-tun]'); await p.waitForTimeout(300); await p.click('.zs-voll [data-a=zs-zu].voll-x'); await p.waitForTimeout(150);
+  ok((await kacheln(p)).join('|') === 'Erstes|Drittes' && await p.locator('.zs-voll').count() === 0, 'Rückgängig wie bisher', (await kacheln(p)).join('|'));
+  await p.click('#zs-gitter .zs-kachel[data-id] >> nth=1'); await p.waitForSelector('.zs-voll'); await p.click('.zs-voll [data-a=zs-weg-voll]'); await wennToast(p, 'Bild entfernt'); await p.waitForTimeout(200); await p.click('.zs-voll .voll-x');
+  await dazu(p, [{ name: 'Zweites.jpg', mimeType: 'image/jpeg', buffer: await bildDatei(p, 900, 600, '#36c') }]); await wennToast(p, '\\+1 Bild');
   await p.click('#zs-gitter .zs-kachel[data-id] >> nth=1'); await p.waitForSelector('.zs-voll'); await p.click('.zs-voll [data-a=zs-weg-voll]');
-  await wennToast(p, 'Bild entfernt'); await p.waitForTimeout(200);
+  await wennToast(p, 'Bild entfernt'); await p.waitForTimeout(200); if (await p.locator('.zs-voll').count()) await p.click('.zs-voll .voll-x');   /* seit 0.16.1 zeigt die Großansicht danach das nächste Bild */
   ok((await kacheln(p)).join('|') === 'Erstes' && namen(await lagerHol(p, 'zine-sammlung')).join() === 'Erstes', 'Entfernen nimmt das Bild aus der Sammlung (auch im Gerät)', (await kacheln(p)).join('|'));
   await p.click('[data-a=toast-tun]'); await p.waitForFunction(() => document.querySelectorAll('#zs-gitter .zs-kachel[data-id]').length === 2, null, { timeout: 4000 }).catch(() => {});
   ok((await kacheln(p)).join('|') === 'Erstes|Zweites', '„Rückgängig“ legt es an seine Stelle zurück', (await kacheln(p)).join('|'));
@@ -395,6 +437,6 @@ try {
   }
 
   ok(fehler.length === 0, 'keine Fehler in der Konsole, kein Netz nach draußen', fehler.join(' · '));
-} catch (e) { rot++; console.log('  ✗ ROT: Probe abgebrochen — ' + e.message.split('\n')[0]); }
+} catch (e) { rot++; console.log('  ✗ ROT: Probe abgebrochen — ' + e.message.split('\n').slice(0, process.env.DBG ? 12 : 1).join(' | ')); }
 await browser.close(); srv.close();
 console.log(`\n${gruen} grün · ${rot} ROT`); process.exitCode = rot ? 1 : 0;

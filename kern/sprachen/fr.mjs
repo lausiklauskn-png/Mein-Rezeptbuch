@@ -239,4 +239,7 @@ export default {
   'Foto-Notiz ({0})': 'Note photo ({0})',
   'Foto-Notiz': 'Note photo',
   'Fotos über den Dienst Pollinations (eigenes Konto dort)': 'Photos via le service Pollinations (ton propre compte)',
+  'Kein Übersetzer im Gerät.': 'Pas de traducteur sur l’appareil.',
+  'Als Übersetzung braucht der Text so viele Zutaten und Schritte wie das Original ({0} und {1}). Als Hauptfassung geht es immer.': 'Comme traduction, le texte doit avoir autant d’ingrédients et d’étapes que l’original ({0} et {1}). Comme version principale, cela marche toujours.',
+  'Original und Übersetzung haben dieselbe Sprache.': 'L’original et la traduction sont dans la même langue.',
 };

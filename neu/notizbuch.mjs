@@ -71,7 +71,7 @@ export function notizbuch(app) {
   function html() {
     const l = notizenSortiert(app.Z().notizen);
     return `<div id="nz"><h2 class="imp-kopf">${ic('notiz')}<span>${L('Notizbuch', 'Notebook')}</span></h2>
-     <div class="nz-feld"><span class="mitmik"><textarea class="feld" id="nz-text" rows="3" placeholder="${L('Was war lecker? Was gibt es morgen?', 'What was tasty? What is for tomorrow?')}" aria-label="${L('Notiz', 'Note')}">${esc(entwurf.text)}</textarea>${app.mik('#nz-text')}</span>
+     <div class="nz-feld"><span class="mitmik"><textarea class="feld" id="nz-text" rows="3" placeholder="${L('Was war lecker? Was gibt es morgen?', 'What was tasty? What is for tomorrow?')}" aria-label="${L('Notiz', 'Note')}">${esc(entwurf.text)}</textarea><button type="button" class="nz-leer" data-a="nz-leeren" ${entwurf.text ? '' : 'hidden'} aria-label="${L('Text löschen und neu anfangen', 'Clear the text and start again')}" title="${L('Text löschen und neu anfangen', 'Clear the text and start again')}">${ic('x')}</button>${app.mik('#nz-text')}</span>
       <button class="rund nz-kamera" data-a="nz-foto" aria-label="${L('Foto aufnehmen', 'Take a photo')}" title="${L('Foto aufnehmen', 'Take a photo')}" ${entwurf.fotos.length >= NOTIZ_FOTOS_MAX ? 'disabled' : ''}>${ic('kamera')}${entwurf.fotos.length ? `<i class="nz-zahl-foto">${entwurf.fotos.length}</i>` : ''}</button>
       <button class="rund akz nz-speichern" data-a="nz-speichern" aria-label="${L('Notiz speichern', 'Save note')}" title="${L('Speichern', 'Save')}">${ic('haken')}</button></div>
      <div id="nz-entwurf-fotos">${fotosHtml(entwurf.fotos, 'nz-entwurf-foto-weg')}</div><div class="nz-erkannt" id="nz-erkannt">${erkanntHtml()}</div>
@@ -81,7 +81,7 @@ export function notizbuch(app) {
   const frisch = () => { if ($('nz')) zeigen(); app.kopfZeichnen(); };
   function oeffnen(id = '') { if (id) auf = id; zeigen(); if (!id) $('nz-text')?.focus(); }
 
-  document.addEventListener('input', (ev) => { if (ev.target.id !== 'nz-text') return; entwurf.text = ev.target.value; const e = $('nz-erkannt'); if (e) e.innerHTML = erkanntHtml(); });
+  document.addEventListener('input', (ev) => { if (ev.target.id !== 'nz-text') return; entwurf.text = ev.target.value; const x = document.querySelector('.nz-leer'); if (x) x.hidden = !entwurf.text; const e = $('nz-erkannt'); if (e) e.innerHTML = erkanntHtml(); });
   document.addEventListener('change', (ev) => {
     const t = ev.target.dataset?.nzTag, z = ev.target.dataset?.nzZeit;
     if (t) { setze(aendereNotiz(liste(), t, (n) => ({ ...n, tag: ev.target.value, zeit: ev.target.value ? n.zeit : '' }))); frisch(); }
@@ -93,6 +93,10 @@ export function notizbuch(app) {
   A['nz-entwurf-foto-weg'] = (e) => { entwurf.fotos.splice(+e.dataset.i, 1); zeigen(); };
   A['nz-tag-ja'] = (e) => { entwurf.tag = e.dataset.tag; entwurf.zeit = e.dataset.zeit || ''; const x = $('nz-erkannt'); if (x) x.innerHTML = erkanntHtml(); };
   A['nz-tag-weg'] = () => { entwurf.tag = ''; entwurf.zeit = ''; const x = $('nz-erkannt'); if (x) x.innerHTML = erkanntHtml(); };
+  /* Klaus 25.11.: ein ✕ im Feld leert den Text (etwa nach einem langen Diktat) und lässt neu anfangen; mit Rückgängig. Fotos bleiben. */
+  A['nz-leeren'] = () => { const vorher = { text: entwurf.text, tag: entwurf.tag, zeit: entwurf.zeit }; if (!vorher.text) return; app.diktatAus?.();
+    Object.assign(entwurf, { text: '', tag: '', zeit: '' }); zeigen(); $('nz-text')?.focus();
+    melde(L('Text gelöscht', 'Text cleared'), L('Rückgängig', 'Undo'), () => { Object.assign(entwurf, vorher); zeigen(); $('nz-text')?.focus(); }); };
   A['nz-speichern'] = () => {
     const text = ($('nz-text')?.value ?? entwurf.text).trim(), n = neueNotiz({ text, fotos: entwurf.fotos, tag: entwurf.tag, zeit: entwurf.zeit });
     if (!n) { melde(L('Bitte etwas schreiben oder ein Foto machen.', 'Please write something or take a photo.')); $('nz-text')?.focus(); return; }

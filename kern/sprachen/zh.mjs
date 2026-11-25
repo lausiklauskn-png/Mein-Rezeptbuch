@@ -239,4 +239,7 @@ export default {
   'Foto-Notiz ({0})': '照片笔记（{0}）',
   'Foto-Notiz': '照片笔记',
   'Fotos über den Dienst Pollinations (eigenes Konto dort)': '通过 Pollinations 服务生成照片（需自己的账户）',
+  'Kein Übersetzer im Gerät.': '设备上没有翻译器。',
+  'Als Übersetzung braucht der Text so viele Zutaten und Schritte wie das Original ({0} und {1}). Als Hauptfassung geht es immer.': '作为译文，文本的配料和步骤数量需与原文相同（{0} 和 {1}）。作为主版本则始终可以。',
+  'Original und Übersetzung haben dieselbe Sprache.': '原文和译文是同一种语言。',
 };
