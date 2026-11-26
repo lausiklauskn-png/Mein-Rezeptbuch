@@ -43,7 +43,7 @@ import { teilLink, ausTeilLink, qrSvg, passtInQr } from '../kern/teilen/qr.mjs';
 import { rezeptIn } from '../kern/modell/einheiten.mjs';
 import { findeDoppel, wendeAn, dHash, MERKMALE, merkmaleVon, merkmalUmschalten } from '../kern/modell/doppel.mjs';
 
-const FASSUNG = '0.19.1';
+const FASSUNG = '0.19.2';
 const breit = () => matchMedia('(min-width:1000px)').matches;
 const $ = (id) => document.getElementById(id);
 const esc = (t) => String(t ?? '').replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
@@ -143,7 +143,7 @@ function kopfZeichnen() {
 /** Bildausschnitt (r.imgCrop wie in der alten App: x, y in Prozent, scale) als Stil. */
 const zahl = (v, sonst) => (Number.isFinite(+v) && v !== '' && v != null ? +v : sonst);   // 0 ist ein gültiger Wert (Lage oben/links)
 const ausschnitt = (r) => { const c = r.imgCrop; if (!c || (c.x === 50 && c.y === 50 && (c.scale || 1) === 1)) return ''; const x = zahl(c.x, 50), y = zahl(c.y, 50), z = Math.min(3, Math.max(1, zahl(c.scale, 1))); return `style="object-position:${x}% ${y}%;${z > 1 ? `transform:scale(${z});transform-origin:${x}% ${y}%` : ''}"`; };
-const bildOder = (r, gr = '') => (r.img ? `<img src="${esc(r.img)}" alt="" loading="lazy" ${ausschnitt(r)} ${gr}>` : ic('karte'));
+const bildOder = (r, gr = '', vorn = false) => (r.img ? `<img src="${esc(r.img)}" alt="" ${vorn ? 'fetchpriority="high"' : 'loading="lazy"'} ${ausschnitt(r)} ${gr}>` : ic('karte'));   /* vorn: das große Bild oben ist das größte Element beim Öffnen, es lädt sofort (Lighthouse 26.11.: lazy kostete 7,6 s bis zum Bild) */
 /* Klaus 23.11.: ein Kochbuch ist ein Bilderbuch. Unter dem Bild steht nur der Name; die Kategorie wird nicht auf jeder Karte wiederholt
    (sie steht in der Leiste und über dem Abschnitt), nur in gemischten Trefferlisten (mitKat). */
 const karte = (r0, c, mitKat = false, r = zeig(r0)) => { const unter = [r.prepTime ? ic('uhr') + esc(minText(r.prepTime)) : '', mitKat && c ? esc(katName(c)) : ''].filter(Boolean).join(' · '); return `<button class="karte" data-a="rezept" data-uid="${esc(r.uid)}"><span class="bild">${bildOder(r)}</span><span class="text"><strong>${esc(r.name)}${merkZeichen(r0)}</strong>${unter ? `<small>${unter}</small>` : ''}</span></button>`; };
@@ -175,7 +175,7 @@ function startRest() {
     const trink = new Set(['drk', 'smooth', 'mock', 'afckt', 'limo', 'tee', 'ckt', 'bowle', 'sirup']);
     const z = rezept(E.zuletzt) || alle.find((r) => r.img && !trink.has(r.cat)) || alle.find((r) => r.img) || alle[0];
     h += `${E.zuletzt && rezept(E.zuletzt) ? `<div class="ueber held-ueber"><h2>${L('Weiterkochen', 'Continue cooking')}</h2></div>` : ''}
-     <button class="held" data-a="rezept" data-uid="${esc(z.uid)}">${bildOder(z)}<span class="verlauf"><strong>${esc(z.name)}</strong><span class="meta">${z.prepTime ? `<span>${ic('uhr')}${esc(minText(z.prepTime))}</span>` : ''}<span>${ic('leute')}${portionenText(z.servings)}</span></span></span></button>`;
+     <button class="held" data-a="rezept" data-uid="${esc(z.uid)}">${bildOder(z, '', true)}<span class="verlauf"><strong>${esc(z.name)}</strong><span class="meta">${z.prepTime ? `<span>${ic('uhr')}${esc(minText(z.prepTime))}</span>` : ''}<span>${ic('leute')}${portionenText(z.servings)}</span></span></span></button>`;
     /* Ein Raster, keine Überschrift je Kategorie: die Kategorien stehen als Fotos darüber, und eine Zeile je Gruppe wäre bei wenigen Rezepten mehr Rahmen als Inhalt. In der Reihenfolge der Kategorien. */
     h += `<div class="gitter alle">${kats.flatMap((c) => alle.filter((r) => katVonRezept(r) === c.id)).map((r) => karte(r)).join('')}</div>`;
   } else if (s.kat.startsWith('ordner:')) {
@@ -511,8 +511,8 @@ function piep() { try { const c = new (window.AudioContext || window.webkitAudio
 
 
 /* ---------- Einkaufsliste ---------- */
-const ekPosten = () => Z.einkauf.posten.map((p) => ({ rezept: rezept(p.uid), portionen: p.portionen })).filter((p) => p.rezept);
-const ekOffen = () => { const l = einkaufsliste(ekPosten()); return l.filter((x) => !Z.einkauf.haken[x.schluessel]).length + Z.einkauf.eigene.filter((x) => !Z.einkauf.haken['eig:' + x.id]).length; };
+const ekPosten = () => (Z.einkauf?.posten || []).map((p) => ({ rezept: rezept(p.uid), portionen: p.portionen })).filter((p) => p.rezept);
+const ekOffen = () => { if (!Z.einkauf) return 0; const l = einkaufsliste(ekPosten()); return l.filter((x) => !Z.einkauf.haken[x.schluessel]).length + Z.einkauf.eigene.filter((x) => !Z.einkauf.haken['eig:' + x.id]).length; };
 /* Die offenen Posten der Einkaufsliste in der Reihenfolge des gewählten Ladens, für den Druck: [{ text, menge, gruppe }]. */
 function einkaufDruckZeilen() {
   const E_ = Z.einkauf, liste = einkaufsliste(ekPosten()), aus = [];
@@ -1251,7 +1251,7 @@ async function beispielLaden() {
    Nur beim allerersten Start (leerer Speicher, nichts aus der bisherigen App): acht Rezepte mit Bild, als Beispiele markiert
    und damit mit einem Tipp entfernbar. Sie liegen neben der App (neu/start-rezepte.json, im Offline-Vorrat); fehlt die Datei, bleibt die App leer. */
 async function startRezepte() {
-  try { const a = await fetch('./start-rezepte.json'); if (!a.ok) return; const e = lies(await a.text());
+  try { const a = await (window.__startRezepte || fetch('./start-rezepte.json')); if (!a.ok) return;   /* index.html beginnt den Abruf schon vor den Modulen (Lighthouse 26.11.: er stand sonst ~5 s hinter ihnen) */ const e = lies(await a.text());
     Z = fuehreZusammen(Z, { ...e, rezepte: e.rezepte.map((r) => ({ ...r, beispiel: true })) }).zustand; await lager.schreibe({ fassung: 1, zustand: Z, einstellungen: E }); } catch { /* ohne Startrezepte beginnt die App leer */ }
 }
 
@@ -1698,6 +1698,7 @@ async function start() {
   lager = speicher('KuechenKern-' + ausgabe.name); tr = tresor(lager);
   { const e = ausgabe.speicher.endung; S = schluesselLager(lager, { altNamen: { anthropic: ['claudeKey' + e], openai: ['openaiImgKey' + e, 'openaiKey' + e], mistral: ['mistralKey' + e] } }); await schlLaden(); }
   const da = await lager.lies().catch(() => null);
+  try { localStorage.setItem('rb-neu-da', '1'); } catch { /* ohne localStorage holt index.html die Startrezepte eben jedes Mal vorab */ }
   if (da?.zustand) { Z = { ...leererZustand(), ...da.zustand, rezepte: (da.zustand.rezepte || []).map(normalisiere) }; E = { ...E, ...(da.einstellungen || {}) }; altBilderNachtragen().catch(() => {}); }
   else {
     E.farbe = FARBEN[ausgabe.farbe] ? ausgabe.farbe : 'braun';

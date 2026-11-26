@@ -5,10 +5,10 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="theme-color" content="#f1dfc6">
 <meta name="description" content="Mein Rezeptbuch: Rezepte sammeln, kochen, planen. Läuft im Gerät, ohne Konto.">
-<meta name="robots" content="noindex">
 <title>Mein Rezeptbuch</title>
 <link rel="icon" type="image/png" sizes="192x192" href="../icons/rezeptbuch-neu-192.png?v=1">
 <link rel="manifest" href="./manifest.webmanifest">
+<script>/* Beim allerersten Start füllen acht Startrezepte das Buch; ihr Abruf beginnt hier, parallel zu den Modulen, nicht erst nach ihnen. Wer die App schon einmal geöffnet hat, holt nichts. */try{if(!localStorage.getItem('rb-neu-da')&&!/[?&]leer\b/.test(location.search))window.__startRezepte=fetch('./start-rezepte.json')}catch(e){}</script>
 <link rel="stylesheet" href="./app.css?v=0.17.6">
 <script type="module" src="./app.mjs?v=0.17.6"></script>
 </head>
