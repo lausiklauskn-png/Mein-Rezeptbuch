@@ -36,7 +36,7 @@
   "kern/modell/warengruppen.mjs": "668839e24e2ce7052da008161392553892958d940ae9a209fc8b8af9c2e52d15",
   "kern/modell/zustand.mjs": "f3e7db34eb49f3dd5a5755e4f39bb0528e237328142bc9a4967bec5caed3508b",
   "kern/oberflaeche/app-pflege.mjs": "6b95bb8de3a125bb602d6d37a8bd1980845c8d8cd77321eb21e4558d20471a0e",
-  "kern/oberflaeche/bild.mjs": "08f95b0960eaf05fdc37344b0c23e03d9e0b417a2965efd5e572514a8f36fceb",
+  "kern/oberflaeche/bild.mjs": "1bb12d5d13fd88077eddc0452550127d2d344920978c37a63c185288e6f6da76",
   "kern/oberflaeche/diktat.mjs": "4c18a27fa41a0f57f470a4b558153b0fc2421775d0dce48a0e223e84aaa3737f",
   "kern/oberflaeche/farben.mjs": "d4d52f86dcf40b943113b9aad20a55f4fcef7400510e1a014efbf39827f881d5",
   "kern/oberflaeche/geraete.mjs": "47f1ae28940bad565c0d51942f8e95432369fef620655dba3bf1e17456bede32",
