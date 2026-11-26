@@ -39,8 +39,8 @@
  "netzmodule": "eingebaut-nicht-geladen",
  "alkoholErlaubt": false,
  "beispiele": [
-  "beispielbuch-mein-rezeptbuch",
   "rezeptbuch-geschenk",
+  "beispielbuch-mein-rezeptbuch",
   "foodzine-beispiele"
  ]
 }

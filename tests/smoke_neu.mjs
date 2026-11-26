@@ -2,11 +2,14 @@
 import { createRequire } from 'node:module';
 import { mitThemen, themenAuf } from './neu-hilfe.mjs';
 const { chromium } = createRequire(import.meta.url)('playwright');   // global eingerichtet (require findet es, import nicht)
-import http from 'node:http'; import { readFile } from 'node:fs/promises'; import { extname, join } from 'node:path';
+import http from 'node:http'; import { readFile } from 'node:fs/promises'; import { readFileSync } from 'node:fs'; import { extname, join } from 'node:path';
 const WURZEL = process.cwd();
 const TYP = { '.html': 'text/html', '.mjs': 'text/javascript', '.js': 'text/javascript', '.css': 'text/css', '.json': 'application/json', '.png': 'image/png', '.jpg': 'image/jpeg' };
 const srv = http.createServer(async (q, a) => { let p = decodeURIComponent(q.url.split('?')[0]); if (p.endsWith('/')) p += 'index.html'; try { const d = await readFile(join(process.cwd(), p)); a.writeHead(200, { 'content-type': TYP[extname(p)] || 'application/octet-stream' }); a.end(d); } catch { a.writeHead(404); a.end(); } }).listen(0);
-const URL0 = `http://localhost:${srv.address().port}/neu/?leer`;   /* ?leer: ohne die acht Startrezepte, die Proben stellen ihren Bestand selbst */
+const URL0 = `http://localhost:${srv.address().port}/neu/?leer`;
+/* Zahlen aus dem Beispielbuch der Ausgabe (seit 0.19.12 Klaus' Geschenkbuch), nicht abgetippt: das Buch wird weiter gepflegt */
+const BSP = JSON.parse(readFileSync(join(WURZEL, 'beispiele', JSON.parse(readFileSync(join(WURZEL, 'beispiele', 'KATALOG.json'), 'utf8')).pakete.find((x) => x.id === JSON.parse(readFileSync(join(WURZEL, 'ausgaben', 'rezeptbuch', 'ausgabe.json'), 'utf8')).beispiele[0]).datei), 'utf8')).recipes;
+const N_BSP = BSP.length, N_SUSHI = BSP.filter((r) => r.cat === 'eig_1789556014817').length, N_BILD = BSP.filter((r) => r.img).length;   /* ?leer: ohne die acht Startrezepte, die Proben stellen ihren Bestand selbst */
 let gruen = 0, rot = 0; const ok = (b, t, mehr = '') => { if (b) { gruen++; console.log('  ✓ ' + t); } else { rot++; console.log('  ✗ ROT: ' + t + (mehr ? ' — ' + mehr : '')); } };
 const browser = await chromium.launch(); const fehler = [];
 async function seite(vorher) { const k = await browser.newContext({ locale: 'de-DE', viewport: { width: 390, height: 800 }, acceptDownloads: true }); const p = mitThemen(await k.newPage()); p.on('pageerror', (e) => fehler.push(e.message)); p.on('console', (m) => m.type() === 'error' && fehler.push(m.text()));
@@ -18,25 +21,25 @@ try {
   ok(await p.locator('.leer').count() === 1, 'leeres Buch zeigt die Begrüßung mit drei Wegen');
   ok((await p.locator('header.kopf button').evaluateAll((l) => l.map((b) => b.dataset.a).join(' '))) === 'aktualisieren installieren zur-suche farbe notiz neu', 'Kopf am Handy: Versionsnummer (aktualisieren), Installieren, Suche, Farbpalette, Notizbuch und das Plus; kein Pfeil zum Aufklappen');
   await p.click('[data-a=beispiel]'); await p.waitForSelector('.karte', { timeout: 20000 });
-  const karten = await p.locator('.karte').count(); ok(karten === 42, 'Beispielbuch: 42 Rezepte als Karten', String(karten));
+  const karten = await p.locator('.karte').count(); ok(karten === N_BSP, `Beispielbuch: ${N_BSP} Rezepte als Karten`, String(karten));
   const kats = await p.locator('.fotokat button').allInnerTexts();
-  ok(kats.some((t) => /^Sushi\s+7$/.test(t.trim())), 'Kategorie heißt „Sushi“ und zählt 7', kats.join(' | '));
+  ok(kats.some((t) => new RegExp(`^Sushi\\s+${N_SUSHI}$`).test(t.trim())), `Kategorie heißt „Sushi“ und zählt ${N_SUSHI}`, kats.join(' | '));
   ok(!kats.some((t) => t.includes('eig_')), 'keine nackte Kennung in der Leiste');
   const summe = kats.slice(1).reduce((n, t) => n + +t.trim().match(/(\d+)$/)[1], 0); ok(summe === 42, 'Summe der Kategorien = Alle', String(summe));
 
   console.log('2 · Suche');
-  await p.fill('#suchfeld', 'sushi'); const tr = await p.locator('.karte').count(); ok(tr === 7, 'Suche „sushi“ findet 7', String(tr));
+  await p.fill('#suchfeld', 'sushi'); const tr = await p.locator('.karte').count(); ok(tr === N_SUSHI, `Suche „sushi“ findet ${N_SUSHI}`, String(tr));
   ok(await p.evaluate(() => document.activeElement?.id === 'suchfeld'), 'das Suchfeld behält den Fokus beim Tippen');
   await p.fill('#suchfeld', 'gibtesnicht'); ok(await p.locator('.karte').count() === 0 && (await p.locator('.leer').innerText()).includes('Nichts gefunden'), 'kein Treffer wird gesagt');
   await p.click('#suche-x'); ok(await p.locator('.karte').count() === 42, 'X leert die Suche');
 
   console.log('3 · Kategorie, Rezept, Portionen');
-  await p.locator('.fotokat button', { hasText: 'Sushi' }).click(); ok(await p.locator('.karte').count() === 7, 'Tipp auf Sushi zeigt 7');
+  await p.locator('.fotokat button', { hasText: 'Sushi' }).click(); ok(await p.locator('.karte').count() === N_SUSHI, `Tipp auf Sushi zeigt ${N_SUSHI}`);
   await p.locator('.karte', { hasText: 'Dragon Roll' }).click(); await p.waitForSelector('.rezept-held h1');
   ok((await p.locator('h1').innerText()).includes('Dragon Roll'), 'Rezept öffnet');
   const vor = await p.locator('.zut li b').first().innerText(); await p.click('[data-a=portion][data-d="1"]'); await p.click('[data-a=portion][data-d="1"]');
   const nach = await p.locator('.zut li b').first().innerText(); ok(vor === '200 g' && nach === '400 g' && (await p.locator('#portionen').innerText()) === '4', 'Portionen 2 → 4 verdoppelt die Menge', `${vor} → ${nach}`);
-  await p.goBack(); await p.waitForSelector('.fotokat'); ok(await p.locator('.karte').count() === 7, 'Zurück-Taste führt in die Kategorie zurück');
+  await p.goBack(); await p.waitForSelector('.fotokat'); ok(await p.locator('.karte').count() === N_SUSHI, 'Zurück-Taste führt in die Kategorie zurück');
 
   console.log('4 · Anlegen, neue Kategorie, Neuladen');
   await p.click('[data-a=neu]'); ok(await p.locator('.imp-tabs button').count() === 6, 'das Plus öffnet das Blatt mit allen Wegen'); await p.click('[data-a=neu-form]'); await p.fill('[name=name]', 'Probe <b>Suppe</b>'); await p.fill('[name=katneu]', 'Eintöpfe');
@@ -44,16 +47,16 @@ try {
   await p.waitForSelector('.rezept-held h1'); ok((await p.locator('h1').innerText()) === 'Probe <b>Suppe</b>', 'Name wird als Text gezeigt, nicht als HTML');
   const zl = await p.locator('.zut li').allInnerTexts(); ok(zl.length === 3 && zl[0].startsWith('500 g') && zl[0].includes('mehlig') && zl[1].startsWith('1 ½ l'), 'Zutaten: Menge, Einheit, Name, Notiz getrennt', zl.join(' | '));
   await p.waitForTimeout(400); await p.reload(); await p.waitForSelector('.fotokat');
-  ok(await p.locator('.karte').count() === 43, 'nach Neuladen sind 43 Rezepte da'); ok((await p.locator('.fotokat button').allInnerTexts()).some((t) => /^Eintöpfe\s+1$/.test(t.trim())), 'die neue Kategorie ist da');
+  ok(await p.locator('.karte').count() === N_BSP + 1, `nach Neuladen sind ${N_BSP + 1} Rezepte da`); ok((await p.locator('.fotokat button').allInnerTexts()).some((t) => /^Eintöpfe\s+1$/.test(t.trim())), 'die neue Kategorie ist da');
 
   console.log('5 · Sicherung hin und zurück, Beispiele entfernen');
   await p.click('#leiste .fl-griff'); await p.click('#leiste [data-zu=werkstatt]');
   const [dl] = await Promise.all([p.waitForEvent('download'), p.click('[data-a=sichern]')]); const pfad = await dl.path();
-  const datei = JSON.parse(await readFile(pfad, 'utf8')); ok(datei.version === 11 && datei.recipes.length === 43 && datei.kategorien.eigene.length === 2, 'Sicherung: Fassung 11, 43 Rezepte, 2 eigene Kategorien');
+  const datei = JSON.parse(await readFile(pfad, 'utf8')); ok(datei.version === 11 && datei.recipes.length === N_BSP + 1 && datei.kategorien.eigene.length === 2, `Sicherung: Fassung 11, ${N_BSP + 1} Rezepte, 2 eigene Kategorien`);
   await p.click('[data-a=beispiele-weg]'); await p.click('[data-a=ja]'); await p.click('#leiste .fl-griff'); await p.click('#leiste [data-zu=start]'); await p.waitForSelector('.karte');
   ok(await p.locator('.karte').count() === 1, 'Beispiele entfernt, das eigene Rezept bleibt');
   await p.setInputFiles('#datei-sicherung', pfad); await p.click('[data-a=datei-dazu]'); await p.waitForFunction(() => document.querySelectorAll('.karte').length === 43);
-  ok(true, 'Sicherung eingelesen: wieder 43, das eigene nicht doppelt'); ok((await p.locator('.fotokat button').allInnerTexts()).some((t) => /^Sushi\s+7$/.test(t.trim())), 'Sushi heißt nach dem Einlesen wieder Sushi');
+  ok(true, 'Sicherung eingelesen: wieder alle, das eigene nicht doppelt'); ok((await p.locator('.fotokat button').allInnerTexts()).some((t) => new RegExp(`^Sushi\\s+${N_SUSHI}$`).test(t.trim())), 'Sushi heißt nach dem Einlesen wieder Sushi');
   await k.close();
 
   console.log('6 · Übernahme aus der alten App');
@@ -174,13 +177,16 @@ try {
   await p.fill('#suchfeld', 'Ratatouille'); await p.locator('.karte').first().click(); await p.click('[data-a=rleiste]'); await p.click('[data-a=einordnen]'); await p.fill('[data-form=ein-kat-neu] input', 'Sommerküche'); await p.keyboard.press('Enter'); await p.waitForTimeout(200); await p.keyboard.press('Escape');
   ok((await p.locator('.rezept-held .meta').innerText()).includes('Sommerküche'), 'aus dem Rezept: neue Kategorie anlegen und zuordnen in einem Griff');
 
-  await zuWerk('bilder'); await p.waitForSelector('.bildkachel'); const nB = await p.locator('.bildkachel').count(); ok(nB === 30, 'Bilder-Ordner zeigt alle 30 Bilder', String(nB));
+  await zuWerk('bilder'); await p.waitForSelector('.bildkachel'); const nB = await p.locator('.bildkachel').count(); ok(nB === N_BILD, `Bilder-Ordner zeigt alle ${N_BILD} Bilder`, String(nB));
   await p.click('[data-a=bilder-gross][data-g="1"]'); ok(await p.locator('.bildgitter.gross').count() === 1, 'große Vorschau per Tipp');
+  const ohne0 = await p.locator('[data-a=bild-dazu]').count();
   await p.locator('.bildkachel').nth(0).click(); await p.locator('.bildkachel').nth(1).click(); await p.click('[data-a=bilder-weg]');
-  ok(await p.locator('.bildkachel').count() === 28 && await p.locator('[data-a=bild-dazu]').count() === 14, 'zwei Bilder gelöscht, die Rezepte stehen jetzt unter „ohne Bild“');
-  await p.click('[data-a=toast-tun]'); ok(await p.locator('.bildkachel').count() === 30, 'Rückgängig holt die Bilder zurück');
+  ok(await p.locator('.bildkachel').count() === N_BILD - 2 && await p.locator('[data-a=bild-dazu]').count() === ohne0 + 2, 'zwei Bilder gelöscht, die Rezepte stehen jetzt unter „ohne Bild“');
+  await p.click('[data-a=toast-tun]'); ok(await p.locator('.bildkachel').count() === N_BILD, 'Rückgängig holt die Bilder zurück');
   const png = Buffer.from('iVBORw0KGgoAAAANSUhEUgAAAAoAAAAKCAYAAACNMs+9AAAAFUlEQVR42mP8z8BQz0AEYBxVSF+FABJADveWkH6oAAAAAElFTkSuQmCC', 'base64');
-  await p.locator('[data-a=bild-dazu]').first().click().catch(() => {}); await p.setInputFiles('#datei-bild', { name: 'foto.png', mimeType: 'image/png', buffer: png }); await p.waitForFunction(() => document.querySelectorAll('.bildkachel').length === 31);
+  if (!(await p.locator('[data-a=bild-dazu]').count())) { await p.locator('.bildkachel').nth(0).click(); await p.click('[data-a=bilder-weg]'); await p.waitForTimeout(200); }   /* im Geschenkbuch hat jedes Rezept ein Bild: eins wegnehmen, damit es eins ohne Bild gibt */
+  const vorEinf = await p.locator('.bildkachel').count();
+  await p.locator('[data-a=bild-dazu]').first().click().catch(() => {}); await p.setInputFiles('#datei-bild', { name: 'foto.png', mimeType: 'image/png', buffer: png }); await p.waitForFunction((n) => document.querySelectorAll('.bildkachel').length === n, vorEinf + 1);
   ok(true, 'Bild einfügen bei einem Rezept ohne Bild');
   await p.click('[data-a=bilder-alle-weg]'); await p.click('[data-a=ja]'); ok(await p.locator('.bildkachel').count() === 0, '„Alle Bilder löschen“ mit Rückfrage'); await p.click('[data-a=toast-tun]');
   await p.click('#leiste .fl-griff'); await p.click('#leiste [data-zu=start]'); await p.fill('#suchfeld', ''); await p.locator('.fotokat button').first().click(); ok(await p.locator('.karte').count() === 42, 'alle 42 Rezepte sind noch da');
@@ -218,6 +224,10 @@ try {
     if (lage.oben) { await p.click('.rezept-held [data-a=rleiste]'); ok(await p.locator('.rwerk').count() === 0, 'langer Name: der Winkel klappt wieder zu'); } else ok(false, 'langer Name: der Winkel klappt wieder zu', 'Winkel verdeckt');
     await umbenennen(alt); await werkzeuge(false);
   }
+  /* das Bild-Blatt kommt bei einem Rezept OHNE Bild (mit Bild öffnet ein Tipp „Bild anpassen“); im Geschenkbuch hat jedes eins */
+  if (await p.locator('.rezept-held > img').count()) { const name = (await p.locator('.rezept-held h1').innerText()).trim(); await p.waitForTimeout(400);
+    await p.evaluate((n) => new Promise((ja) => { const a = indexedDB.open('KuechenKern-rezeptbuch'); a.onsuccess = () => { const t = a.result.transaction('zustand', 'readwrite'), st = t.objectStore('zustand'), g = st.get('alles'); g.onsuccess = () => { const v = g.result; v.zustand.rezepte = v.zustand.rezepte.map((r) => (r.name === n ? { ...r, img: '' } : r)); st.put(v, 'alles'); }; t.oncomplete = () => { a.result.close(); ja(); }; }; }), name);
+    await p.reload(); await p.waitForSelector('.gruss, .rezept-held'); if (!(await p.locator('.rezept-held').count())) { await p.fill('#suchfeld', name); await p.locator('.karte').first().click(); } await p.waitForSelector('.rezept-held'); }
   await p.click('.rezept-held'); ok(await p.locator('.fenster [data-a=ki-bild]').count() === 1 && await p.locator('.fenster [data-a=gratis-bild]').count() === 1 && await p.locator('.fenster [data-a=bild-dazu]').count() === 1, 'Tipp aufs Bild öffnet das Bild-Blatt: einfügen, KI-Bild, Gratis-Foto');
   ok(!(await p.locator('.fenster').innerText()).match(/Bild löschen/), 'im Bild-Blatt steht kein „Bild löschen“');
   await p.click('.fenster [data-a=ki-bild]'); ok(await p.locator('#schl-feld').count() === 1 && await p.locator('[data-form=schluessel][data-anbieter=openai]').count() === 1, 'ohne Schlüssel fragt die App zuerst nach dem OpenAI-Schlüssel');
@@ -239,7 +249,7 @@ try {
   await p.click('[data-a=alles-weg]'); await p.click('[data-a=ja]'); await p.waitForSelector('.leer'); await p.click('#leiste .fl-griff'); await p.click('#leiste [data-zu=werkstatt]'); await p.click('[data-a=tresor]'); await p.waitForSelector('.tr-liste .zeile');
   ok(await p.locator('.tr-liste .zeile').count() === 2, 'vor „Alle löschen“ kam der Stand automatisch in den Tresor', String(await p.locator('.tr-liste .zeile').count()));
   await p.locator('.tr-liste .zeile', { hasText: 'Vor dem Aufräumen' }).locator('[data-a=tresor-holen]').click(); await p.click('[data-a=ja]'); await p.waitForSelector('.karte');
-  ok(await p.locator('.karte').count() === 42 && (await p.locator('.fotokat button').allInnerTexts()).some((t) => /^Sushi\s+7$/.test(t.trim())), 'zurückgeholt: 42 Rezepte, Sushi zählt 7');
+  ok(await p.locator('.karte').count() === N_BSP && (await p.locator('.fotokat button').allInnerTexts()).some((t) => new RegExp(`^Sushi\\s+${N_SUSHI}$`).test(t.trim())), `zurückgeholt: ${N_BSP} Rezepte, Sushi zählt ${N_SUSHI}`);
   await p.waitForTimeout(350); await p.reload(); await p.waitForSelector('.karte'); ok(await p.locator('.karte').count() === 42, 'auch nach dem Neuladen');
   await k.close();
 
@@ -330,6 +340,8 @@ try {
     ok(await q.locator('.gitter .karte').count() === nStart && await q.locator('.karte img').count() === nStart && await q.locator('.held img').count() === 1 && await q.locator('.leer').count() === 0, `der erste Start zeigt alle ${nStart} Startrezepte mit Bild und das große Bild, keine leere Seite`);
     /* Klaus 26.11.: erst die App mit unscharfen Vorschaubildern, die scharfen kommen ein paar Sekunden später im Hintergrund */
     const v0 = await q.evaluate(() => [...document.querySelectorAll('.karte img, .held img')].map((i) => [i.getAttribute('src').length, i.naturalWidth, i.classList.contains('vorschau')]));   /* loading=lazy: Bilder außerhalb des Schirms sind noch nicht dekodiert (Breite 0) */
+    const logo = await q.evaluate(() => [...document.querySelectorAll('img.logo')].map((i) => [i.naturalWidth, i.classList.contains('vorschau'), getComputedStyle(i).filter]));
+    ok(logo.length > 0 && logo.every(([w, v, f]) => w > 0 && !v && f === 'none'), 'das Logo oben links bleibt scharf (Klaus 26.11.: in 0.19.11 war es als Vorschau verwischt)', JSON.stringify(logo));
     ok(v0.length > 0 && v0.every(([n, w, v]) => n < 8000 && (w === 0 || (w <= 64 && v))), 'beim ersten Bild stehen nur Vorschaubilder (≤ 64 px, weich gezeichnet)', JSON.stringify(v0.slice(0, 3)));
     await q.waitForFunction(() => { const l = [...document.querySelectorAll('.karte img, .held img')]; return l.length && l.every((i) => i.getAttribute('src').length > 8000 && !i.classList.contains('vorschau')); }, null, { timeout: 25000 }).catch(() => {});
     const v1 = await q.evaluate(() => [...document.querySelectorAll('.karte img, .held img')].map((i) => [i.getAttribute('src').length, i.naturalWidth]));
@@ -350,6 +362,7 @@ try {
     await q.click('#leiste [data-zu=werkstatt]'); await q.waitForSelector('.themen');
     ok(await q.locator('.themen .gruppe').count() === 7 && await q.locator('.themen .gruppe.auf').count() === 0 && await q.locator('.themen .zeile').count() === 0 && (await q.locator('.ueber h2').innerText()) === 'Einstellungen', 'Einstellungen: sieben Themen (das Buch steht seit R12 im Bereich Kreativbuch), alle eingeklappt, keine lange Liste');
     ok(await q.locator('.themen .frag').count() === 0 && await q.locator('main p:not(.quelle)').count() === 0, 'eingeklappt steht kein Erklärtext und kein „?“ da');
+    ok(await q.locator('main a[href="../impressum.html"]').count() === 1, 'Einstellungen: unten steht der Link zu Impressum und Datenschutz (Pflichtangabe, fehlte bis 0.19.12)');
     ok(await q.locator('main a[href="../"], main a[href$="index.html"]').count() === 0 && /^Mein Rezeptbuch \d+\.\d+\.\d+$/.test((await q.locator('#fassung').innerText()).trim()), 'kein Verweis auf die bisherige App; unten steht nur die Fassung');
     const feld = await q.locator('.gkopf .kfeld').first().evaluate((e) => { const c = document.createElement('canvas'); c.width = c.height = 1; const x = c.getContext('2d'); x.fillStyle = getComputedStyle(e).backgroundColor; x.fillRect(0, 0, 1, 1); return { m: [...x.getImageData(0, 0, 1, 1).data], b: e.offsetWidth }; });   /* über eine Leinwand: die Farbe kommt als color-mix und nicht als rgb() */
     ok(Math.min(...feld.m.slice(0, 3)) > 190 && new Set(feld.m.slice(0, 3)).size > 1 && feld.b <= 40, 'die Zeichen stehen in dezenten Farbfeldern (Wasserfarbe: hell, nicht grau, nicht kräftig)', JSON.stringify(feld));

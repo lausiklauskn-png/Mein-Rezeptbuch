@@ -3,13 +3,13 @@
  "pakete": [
   {
    "id": "rezeptbuch-geschenk",
-   "titel": "Geschenkbuch: 44 Rezepte",
+   "titel": "Geschenkbuch: 42 Rezepte",
    "datei": "rezeptbuch-geschenk.json",
    "art": "rezepte",
    "alkohol": false,
-   "anzahl": 44,
-   "bytes": 14659725,
-   "sha256": "0057c5d2ef0691fb785931a81e7a2f6631aa1e6e5a6a15653ea9bdebe068b85f",
+   "anzahl": 42,
+   "bytes": 13884952,
+   "sha256": "ed90a18d00ccb918698e2ffc988aa7e9dd1112ecb2d5b0a95c7387a5591ea200",
    "fuer": [
     "rezeptbuch",
     "muttis"

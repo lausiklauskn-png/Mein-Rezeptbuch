@@ -922,4 +922,8 @@ export default {
   'Platz sparen': 'Risparmia spazio',
   'Rechnet große Bilder platzsparend neu (1600 px, WebP). Ein Bild wird nur ersetzt, wenn es dabei mindestens 10 % kleiner wird.': 'Risalva le immagini grandi per risparmiare spazio (1600 px, WebP). Un’immagine viene sostituita solo se diventa almeno il 10 % più piccola.',
   '{0} Bilder neu gespeichert · {1} MB gespart': '{0} immagini risalvate · {1} MB risparmiati',
+  "Das Bild hat {0} px. Auf großen Bildschirmen kann es weich wirken – ein neues Foto oder ein KI-Bild wird schärfer.": "L’immagine è di {0} px. Sugli schermi grandi può sembrare sfocata: una nuova foto o un’immagine IA sarà più nitida.",
+  "vor dem Weitergeben: eigene Worte, eigenes Bild": "prima di condividere: parole tue, immagine tua",
+  "Zutaten und Arbeitsschritte eines Rezepts gehören niemandem. Fotos sind aber immer geschützt, und ein persönlich geschriebener Text kann es sein. Wer ein geholtes Rezept weitergibt oder veröffentlicht, schreibt es deshalb in eigenen Worten und nimmt ein eigenes Foto oder ein KI-Bild. Die Adresse der Seite bleibt als Quelle am Rezept.": "Gli ingredienti e i passaggi di una ricetta non appartengono a nessuno. Le foto invece sono sempre protette, e anche un testo scritto in modo personale può esserlo. Se condividi o pubblichi una ricetta presa dal web, riscrivila quindi con parole tue e usa una tua foto o un’immagine IA. L’indirizzo della pagina resta nella ricetta come fonte.",
+  "Impressum · Datenschutz": "Note legali · Privacy",
 };
