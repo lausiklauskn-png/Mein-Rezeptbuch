@@ -60,8 +60,10 @@ Pro-Dateien aus den **GitHub-Releases** auf den eigenen Server (Marktplatz Spezi
 und den App-Namen des Rezeptbuchs mit Klaus klären („Mein Rezeptbuch Pro“ wie beim Mixarium?).
 
 **Klaus' Freigaben (26.11. abends):** Befehle für Termux sind gegeben (Freigabe erzeugen, als `RB_SIGNING_UNLOCK` / `MX_SIGNING_UNLOCK` im
-Environment `android-production` eintragen, mit `age -p` nach Downloads sichern, Gegenprobe „GLEICH“). Zu Beginn der Sitzung fragen, ob beide
-Secrets stehen.
+Environment `android-production` eintragen, mit `age -p` nach Downloads sichern, Gegenprobe „GLEICH“). ✅ **Erledigt und gemessen
+(26.11., 17:05):** beide Gegenproben „GLEICH“, `gh secret list` zeigt `RB_SIGNING_UNLOCK` (Mein-Rezeptbuch) und `MX_SIGNING_UNLOCK`
+(Mein-Mixarium) im Environment `android-production`, Sicherungen `rb-`/`mx-signing-freigabe.txt.age` (je 247 Bytes) in Klaus' Downloads,
+Klartext gelöscht. Nicht mehr fragen, gleich mit dem Signier-Workflow beginnen.
 
 **Fertig ist es, wenn:**
 - Klaus vier feste Links hat (je App APK und Setup).
