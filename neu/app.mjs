@@ -43,7 +43,7 @@ import { teilLink, ausTeilLink, qrSvg, passtInQr } from '../kern/teilen/qr.mjs';
 import { rezeptIn } from '../kern/modell/einheiten.mjs';
 import { findeDoppel, findeDoppelImBuch, wendeAn, dHash, MERKMALE, merkmaleVon, merkmalUmschalten } from '../kern/modell/doppel.mjs';
 
-const FASSUNG = '0.19.11';
+const FASSUNG = '0.19.12';
 const breit = () => matchMedia('(min-width:1000px)').matches;
 const $ = (id) => document.getElementById(id);
 const esc = (t) => String(t ?? '').replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
@@ -261,7 +261,7 @@ function rezeptHtml() {
     <div class="portion kompakt" role="group" aria-label="${L('Portionen', 'Servings')}"><span class="st"><button data-a="portion" data-d="-1" aria-label="${L('Weniger', 'Fewer')}">${ic('minus')}</button><span class="pz" aria-hidden="true">${ic('leute')}</span><button data-a="portion" data-d="1" aria-label="${L('Mehr', 'More')}">${ic('plus')}</button></span><small><b id="portionen">${n}</b> ${L('Pers.', 'ppl')}</small></div></div>${merkLeiste(roh)}
     ${abschnittKopf('ings', L('Zutaten', 'Ingredients'))}${s.abschnitt?.uid === roh.uid && s.abschnitt.teil === 'ings' ? abschnittForm(roh, 'ings') : `<ul class="zut">${r.ings.map((z) => `<li><b>${esc([skaliere(z.amt, f), z.unit].filter(Boolean).join(' '))}</b><span>${esc(z.name)}${z.note ? `<small>${esc(z.note)}</small>` : ''}</span></li>`).join('')}</ul>`}${naehrHtml(r, n)}${geraeteVon(r).length ? `<h2 class="h">${L('Geräte', 'Equipment')}</h2><div class="gr-liste">${geraeteVon(r).map((g) => `<span class="gr-chip">${geraetSvg(g)}${esc(geraetName(g))}</span>`).join('')}</div>` : ''}</div>
     <div>${abschnittKopf('steps', L('Zubereitung', 'Method'))}${s.abschnitt?.uid === roh.uid && s.abschnitt.teil === 'steps' ? abschnittForm(roh, 'steps') : `<ol class="schritte">${r.steps.map((x) => `<li><span>${esc(x.txt)}${x.note ? `<small>${esc(x.note)}</small>` : ''}</span></li>`).join('')}</ol>`}
-    ${r.source ? `<p class="quelle">${fuelle(L('Quelle: {0}', 'Source: {0}'), esc(r.source))}</p>` : ''}${vermerkHtml(r, spr())}</div></div></div>`;
+    ${r.source ? `<p class="quelle">${fuelle(L('Quelle: {0}', 'Source: {0}'), esc(r.source))}${/^https?:/.test(r.source) ? ` · <span class="weitergeben">${L('vor dem Weitergeben: eigene Worte, eigenes Bild', 'before sharing: your own words, your own picture')}</span>` : ''}</p>` : ''}${vermerkHtml(r, spr())}</div></div></div>`;
 }
 
 /* ---------- Abschnitt an Ort und Stelle bearbeiten (Klaus 25.11.): der Stift an „Zutaten“ und „Zubereitung“ macht genau diesen Teil zum Textfeld.
@@ -950,7 +950,7 @@ function neuFenster(tab = '') {
 function webInhalt() {
   const w = s.web || (s.web = { adresse: '', text: '', stand: '', seitentext: '' });
   const einfuegen = w.stand === 'gesperrt' || w.stand === 'einfuegen', tE = L('Seitentext einfügen statt Adresse', 'Paste page text instead of an address'), tH = L('Rezept von dieser Adresse holen (ohne KI, direkt von der Seite)', 'Get the recipe from this address (without AI, straight from the page)');
-  const feld = `<form class="suche web-zeile" data-form="web-holen">${ic('welt')}<input id="web-adresse" name="u" inputmode="url" value="${esc(w.adresse)}" placeholder="https://…" aria-label="${L('Adresse der Seite', 'Address of the page')}" autocomplete="off" autocapitalize="off" enterkeyhint="go">${einfuegen ? '' : `<button type="button" class="feldknopf" data-a="web-einfuegen" aria-label="${tE}" title="${tE}">${ic('kopieren')}</button>`}<button type="button" class="feldknopf akz" data-a="web-holen" aria-label="${L('Rezept holen', 'Get recipe')}" title="${tH}">${ic('rechts')}</button></form>`;
+  const feld = `<form class="suche web-zeile" data-form="web-holen">${ic('welt')}<input id="web-adresse" name="u" inputmode="url" value="${esc(w.adresse)}" placeholder="https://…" aria-label="${L('Adresse der Seite', 'Address of the page')}" autocomplete="off" autocapitalize="off" enterkeyhint="go">${einfuegen ? '' : `<button type="button" class="feldknopf" data-a="web-einfuegen" aria-label="${tE}" title="${tE}">${ic('kopieren')}</button>`}<button type="button" class="feldknopf akz" data-a="web-holen" aria-label="${L('Rezept holen', 'Get recipe')}" title="${tH}">${ic('rechts')}</button>${frag(L('Zutaten und Arbeitsschritte eines Rezepts gehören niemandem. Fotos sind aber immer geschützt, und ein persönlich geschriebener Text kann es sein. Wer ein geholtes Rezept weitergibt oder veröffentlicht, schreibt es deshalb in eigenen Worten und nimmt ein eigenes Foto oder ein KI-Bild. Die Adresse der Seite bleibt als Quelle am Rezept.', 'Ingredients and method of a recipe belong to no one. Photos, however, are always protected, and a personally written text can be. If you share or publish a fetched recipe, write it in your own words and use your own photo or an AI picture. The address of the page stays with the recipe as its source.'))}</form>`;   /* Klaus 26.11.: was man weitergeben darf – hinter „?“, die Zeile bleibt eine Zeile */
   if (w.stand === 'ohneDaten') { const k = fuerKi(w.seitentext, spr());
     return feld + `<p class="scan-was" id="web-ohne">${L('Keine Rezeptdaten auf der Seite', 'No recipe data on the page')}</p>
      <div class="reihe"><button class="knopf akz gross" data-a="web-mit-ki" title="${esc(k.satz)}">${ic('funken')}<span>${L('Mit Claude lesen', 'Read with Claude')}</span><small id="web-was">Anthropic · ${fuelle(L('{0} Zeichen', '{0} characters'), k.text.length)}</small></button><button class="knopf gross" data-a="web-ohne-ki" title="${L('Erkennt die Überschriften „Zutaten“ und „Zubereitung“', 'Recognises the headings “Ingredients” and “Method”')}">${L('Ohne KI', 'Without AI')}</button></div>`; }
@@ -1128,7 +1128,7 @@ function werkstattHtml() {
   return `<div class="ueber"><h2 style="font-size:19px">${L('Einstellungen', 'Settings')}</h2><small>${fuelle(L('{0} Rezepte', '{0} recipes'), n)}</small></div>
   <div class="themen">${themen.map(([id, i, kc, titel, hilfe, zeilen]) => { const auf = s.werkAuf.has(id);
     return `<div class="gruppe ${auf ? 'auf' : ''}" data-g="${id}" style="--kc:${kc}"><div class="gkopf-zeile"><button class="gkopf" data-a="werk-auf" data-g="${id}" aria-expanded="${auf}">${kfeld(i)}<span>${esc(titel)}</span>${ic(auf ? 'hoch' : 'rechts', 'pf')}</button>${auf && hilfe ? frag(hilfe) : ''}</div>${auf ? `<div class="liste">${zeilen}</div>` : ''}</div>`; }).join('')}</div>
-  <p class="quelle" id="fassung">${esc(ausgabe.titel)} ${FASSUNG}</p>`;   /* kein Verweis auf die bisherige App (Klaus 23.11.: „Wir müssen nicht auf eine schlechtere Version verweisen.“) */
+  <p class="quelle" id="fassung">${esc(ausgabe.titel)} ${FASSUNG}</p><p class="quelle"><a href="../impressum.html" target="_blank" rel="noopener">${L('Impressum · Datenschutz', 'Legal notice · Privacy')}</a></p>`;   /* Pflichtangabe; fehlte in der neuen App bis 0.19.12 */   /* kein Verweis auf die bisherige App (Klaus 23.11.: „Wir müssen nicht auf eine schlechtere Version verweisen.“) */
 }
 
 /* ---------- Kreativbuch (Klaus 25.11., R12): Bücher und Food-Zine als eigener Bereich in der Leiste, nicht mehr in den Einstellungen ---------- */
@@ -1166,7 +1166,8 @@ function schluesselFenster(a = 'openai', danach = '') {
 /* ---------- Bild-Blatt: Tipp aufs Bild. Ansehen, anpassen, ersetzen, von der KI erzeugen lassen. Gelöscht wird im Bilder-Ordner. ---------- */
 function bildBlatt(uid) {
   const r = rezept(uid); if (!r) return;
-  fenster(`<h2>${esc(r.name)}</h2>${r.img ? `<img class="bb-bild" data-a="bild-voll" src="${esc(r.img)}" alt="${esc(r.name)}">` : `<p>${L('Dieses Rezept hat noch kein Bild.', 'This recipe has no picture yet.')}</p>`}
+  const held = document.querySelector('.rezept-held>img'), a = held?.naturalWidth > 64 ? aufloesung(held.naturalWidth, held.getBoundingClientRect().width, devicePixelRatio) : null;   /* Klaus 26.11.: der Hinweis gehört hierher, nicht dauerhaft aufs Bild */
+  fenster(`<h2>${esc(r.name)}</h2>${r.img ? `<img class="bb-bild" data-a="bild-voll" src="${esc(r.img)}" alt="${esc(r.name)}">` : `<p>${L('Dieses Rezept hat noch kein Bild.', 'This recipe has no picture yet.')}</p>`}${a && !a.genug ? `<p class="bb-hinweis">${ic('bild')}${esc(fuelle(L('Das Bild hat {0} px. Auf großen Bildschirmen kann es weich wirken – ein neues Foto oder ein KI-Bild wird schärfer.', 'The picture is {0} px wide. On large screens it may look soft – a new photo or an AI picture will be sharper.'), held.naturalWidth))}</p>` : ''}
    <div class="liste" style="margin-top:10px">${r.img ? zeile('zuschnitt', 'zuschnitt', L('Ausschnitt anpassen', 'Adjust section'), L('verschieben und vergrößern', 'move and enlarge')) : ''}
    ${zeile('bild-dazu', 'kamera', r.img ? L('Bild ersetzen', 'Replace picture') : L('Bild einfügen', 'Add picture'), L('Foto aufnehmen oder Datei wählen', 'Take a photo or choose a file'), `data-uid="${esc(uid)}"`)}
    ${zeile('ki-bild', 'funken', L('Bild von der KI erzeugen', 'Create picture with AI'), 'OpenAI, ' + kostenBild(), `data-uid="${esc(uid)}"`)}
@@ -1412,9 +1413,10 @@ addEventListener('resize', () => requestAnimationFrame(spaltenPruefen));
    oder KI-Bild) und in der Bilder-Übersicht (kleine Marke). Gemessen wird nach dem Laden: Bildpunkte gegen die angezeigte Breite × Pixeldichte. */
 function aufloesungPruefen(img) {
   if (!img?.naturalWidth) return;
-  if (img.classList.toggle('vorschau', img.naturalWidth <= 64)) return;   /* Vorschaubild der Startrezepte (48 px): weich gezeichnet, kein „Bild unscharf“, das scharfe kommt gleich */ const a = aufloesung(img.naturalWidth, img.getBoundingClientRect().width, devicePixelRatio);
+  if (img.classList.toggle('vorschau', img.naturalWidth <= 64 && /^data:image\//.test(img.getAttribute('src') || ''))) return;   /* nur eingebettete Rezeptbilder; das Logo (64 px, Datei) war in 0.19.12 mit verwischt (Klaus 26.11.) */   /* Vorschaubild der Startrezepte (48 px): weich gezeichnet, kein „Bild unscharf“, das scharfe kommt gleich */ const a = aufloesung(img.naturalWidth, img.getBoundingClientRect().width, devicePixelRatio);
   if (img.matches('.rezept-held>img')) {
     const held = img.parentElement; held.querySelector('.bild-unscharf')?.remove(); if (a.genug) return;
+    if (aufloesungPruefen.gezeigt?.has(img.currentSrc || img.src)) return; (aufloesungPruefen.gezeigt ||= new Set()).add(img.currentSrc || img.src);   /* Klaus 26.11.: nur ein kurzer Hinweis, einmal je Bild; er blendet nach 4 s aus (CSS) */
     held.insertAdjacentHTML('beforeend', `<button class="bild-unscharf" data-a="bild-blatt" title="${esc(L('Für diese Größe ein schärferes Foto aufnehmen oder ein KI-Bild erzeugen', 'Take a sharper photo for this size or create an AI picture'))}">${ic('bild')}${esc(fuelle(L('Bild unscharf ({0} px)', 'Picture blurry ({0} px)'), img.naturalWidth))}</button>`);
   } else if (img.matches('.bildkachel>img')) img.parentElement.classList.toggle('klein', img.naturalWidth < 1000);
 }

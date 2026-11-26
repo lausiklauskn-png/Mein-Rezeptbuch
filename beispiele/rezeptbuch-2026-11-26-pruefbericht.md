@@ -1,14 +1,15 @@
 # Prüfbericht: Geschenk-Rezeptbuch vom 26.11.2026
 
-Datei: `beispiele/rezeptbuch-2026-11-26.json` · **52 Rezepte** (vorher 54) · 16,4 MB (vorher 23 MB).
+Datei: `beispiele/rezeptbuch-2026-11-26.json` · **50 Rezepte** (vorher 54).
 Klaus 26.11.: „Fehler selber beheben … vollständige Revision, die ich dann später auch nochmal prüfen kann.“
+Daraus gebaut (`python3 tools/start-rezepte.py`): `beispiele/rezeptbuch-geschenk.json` (ohne Alkohol, für Rezeptbuch und Muttis) und die Startrezepte der App.
 
 ## Bitte selbst ansehen
 
-- **Quarkstollen** und **Sächsische Eierschecke ohne Boden** sind neu geschrieben, nach deinen Angaben (Quarkstollen, Eierschecke wie ein Käsekuchen mit Schecke, ½ Stück Butter) und dem üblichen Vorgehen. Mengen, Temperatur (175 °C) und Backzeit (etwa 60 Minuten) bitte prüfen.
+- **Quarkstollen und Eierschecke sind herausgenommen** (Klaus 26.11.: „Ich werde das nochmal nacharbeiten“). Kommen sie überarbeitet zurück, werden sie wieder eingefügt.
 - **Tropical-Sunrise-Bowle**: 300 ml Zitronensaft auf 100 ml gesenkt.
 - **Zwei neue KI-Bilder** (Hühnerfrikassee, Himbeer-Cooler) statt der Bilder von Chefkoch und TheCocktailDB.
-- Bei neun Rezepten steht im Feld `source` weiter die Chefkoch-Adresse, von der sie stammen (Quellenangabe). Die Schritte lesen sich umformuliert; ob einzelne Sätze wörtlich übernommen sind, konnte ich nicht prüfen (Chefkoch ist von hier aus nicht erreichbar).
+- Bei neun Rezepten steht im Feld `source` die Chefkoch-Adresse, bei der Bärlauchsuppe Gaumenfreundin (Quellenangabe, Klaus: „drin lassen“). Die Schritte lesen sich umformuliert; ob einzelne Sätze wörtlich übernommen sind, konnte ich nicht prüfen (die Seiten sind von hier aus nicht erreichbar).
 
 ## Was geändert wurde (Protokoll)
 
@@ -41,11 +42,9 @@ Klaus 26.11.: „Fehler selber beheben … vollständige Revision, die ich dann 
 - Blind Russian: übersetzt und überarbeitet → „Blind Russian“
 - Amaretto Sunrise: übersetzt und überarbeitet → „Amaretto Sunrise“
 - Queen Charlotte: übersetzt und überarbeitet → „Queen Charlotte“
-- Stollen: neu geschrieben als Quarkstollen (Backpulver statt Hefe, 750 g Mehl, Rosinen einmal, 10 Portionen = 2 Stollen) – bitte prüfen
-- Eierschecke: neu geschrieben als sächsische Eierschecke ohne Boden (Quarkmasse + Pudding-Schecke, deine Zutaten) – bitte prüfen
+- Stollen: entfernt – Klaus arbeitet das Rezept selbst nach
+- Eierschecke: entfernt – Klaus arbeitet das Rezept selbst nach
 - Schnelles Hühnerfrikassee: neues KI-Bild statt fremdem Bild
 - Raspberry Cooler: neues KI-Bild statt fremdem Bild
-- Quarkstollen: Foto platzsparend gespeichert (4070 → 438 KB, ohne Metadaten)
-- Sächsische Eierschecke ohne Boden: Foto platzsparend gespeichert (4041 → 331 KB, ohne Metadaten)
 - Nachträge: Gulasch-Kommentar „intensiver“, „Fleisch“; Würzfleisch: falsche Quelle (Hühnerfrikassee) entfernt
 - Tropical-Sunrise-Bowle: Einheit stand im Mengenfeld („2 Stück“, „1 Handvoll“), getrennt (gefunden vom Paket-Test)

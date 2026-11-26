@@ -4,7 +4,7 @@
 import { createRequire } from 'node:module';
 import { mitThemen } from './neu-hilfe.mjs';
 const { chromium } = createRequire(import.meta.url)('playwright');
-import { createHash } from 'node:crypto'; import http from 'node:http'; import { readFile } from 'node:fs/promises'; import { extname, join } from 'node:path';
+import { createHash } from 'node:crypto'; import { readFileSync } from 'node:fs'; import http from 'node:http'; import { readFile } from 'node:fs/promises'; import { extname, join } from 'node:path';
 const WURZEL = process.env.WURZEL || process.cwd();
 const TYP = { '.html': 'text/html', '.mjs': 'text/javascript', '.js': 'text/javascript', '.css': 'text/css', '.json': 'application/json', '.png': 'image/png', '.jpg': 'image/jpeg' };
 const srv = http.createServer(async (q, a) => { let p = decodeURIComponent(q.url.split('?')[0]); if (p.endsWith('/')) p += 'index.html'; try { const d = await readFile(join(WURZEL, p)); a.writeHead(200, { 'content-type': TYP[extname(p)] || 'application/octet-stream' }); a.end(d); } catch { a.writeHead(404); a.end(); } }).listen(0);
@@ -407,7 +407,7 @@ try {
   await k.close();
   /* Das Beispielbuch fragt nicht: gestellt als kleines Paket mit passender Prüfsumme. */
   const BSP = JSON.stringify({ version: 11, recipes: [R(7, 'Beispielsuppe', { cat: 'suppe' }), R(8, 'Beispielkuchen', { cat: 'kuchen' })] }), sum = createHash('sha256').update(BSP).digest('hex');
-  ({ p, k } = await seite({ rezepte: ALT_R, kategorien: KAT, vorher: async (q) => { await q.route('**/beispiele/KATALOG.json', (r) => r.fulfill({ contentType: 'application/json', body: JSON.stringify({ version: 1, pakete: [{ id: 'beispielbuch-mein-rezeptbuch', titel: 'Probe', datei: 'probe-buch.json', art: 'rezepte', anzahl: 2, bytes: BSP.length, sha256: sum, fuer: ['rezeptbuch', 'muttis'] }] }) })); await q.route('**/beispiele/probe-buch.json', (r) => r.fulfill({ contentType: 'application/json', body: BSP })); } }));
+  ({ p, k } = await seite({ rezepte: ALT_R, kategorien: KAT, vorher: async (q) => { await q.route('**/beispiele/KATALOG.json', (r) => r.fulfill({ contentType: 'application/json', body: JSON.stringify({ version: 1, pakete: [{ id: JSON.parse(readFileSync(new URL('../ausgaben/rezeptbuch/ausgabe.json', import.meta.url), 'utf8')).beispiele[0], titel: 'Probe', datei: 'probe-buch.json', art: 'rezepte', anzahl: 2, bytes: BSP.length, sha256: sum, fuer: ['rezeptbuch', 'muttis'] }] }) })); await q.route('**/beispiele/probe-buch.json', (r) => r.fulfill({ contentType: 'application/json', body: BSP })); } }));
   await geh(p, 'werkstatt'); await p.click('[data-a=beispiel]'); await p.waitForFunction(() => /Rezept/.test(document.querySelector('#toast')?.textContent || ''), null, { timeout: 8000 }).catch(() => {});
   b = await bestandWenn(p, (x) => x.zustand.rezepte.length === 4);
   ok(await p.locator('[data-a=datei-ersetzen]').count() === 0 && /^\+2 Rezepte/.test(await toast(p)) && b.zustand.rezepte.length === 4, 'das Beispielbuch fragt nicht: es wird immer hinzugefügt', (await toast(p)) + ' · ' + b.zustand.rezepte.length);

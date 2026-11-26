@@ -919,4 +919,8 @@ export default {
   'Platz sparen': 'Сэкономить место',
   'Rechnet große Bilder platzsparend neu (1600 px, WebP). Ein Bild wird nur ersetzt, wenn es dabei mindestens 10 % kleiner wird.': 'Пересохраняет большие изображения для экономии места (1600 px, WebP). Изображение заменяется, только если становится меньше хотя бы на 10 %.',
   '{0} Bilder neu gespeichert · {1} MB gespart': 'Пересохранено изображений: {0} · сэкономлено {1} МБ',
+  "Das Bild hat {0} px. Auf großen Bildschirmen kann es weich wirken – ein neues Foto oder ein KI-Bild wird schärfer.": "Изображение шириной {0} px. На больших экранах оно может выглядеть нечётким – новое фото или изображение от ИИ будет резче.",
+  "vor dem Weitergeben: eigene Worte, eigenes Bild": "прежде чем делиться: своими словами, своё изображение",
+  "Zutaten und Arbeitsschritte eines Rezepts gehören niemandem. Fotos sind aber immer geschützt, und ein persönlich geschriebener Text kann es sein. Wer ein geholtes Rezept weitergibt oder veröffentlicht, schreibt es deshalb in eigenen Worten und nimmt ein eigenes Foto oder ein KI-Bild. Die Adresse der Seite bleibt als Quelle am Rezept.": "Ингредиенты и шаги рецепта никому не принадлежат. Фотографии же всегда защищены, а текст, написанный в личном стиле, тоже может быть защищён. Поэтому, если вы делитесь полученным рецептом или публикуете его, перепишите его своими словами и используйте собственное фото или изображение от ИИ. Адрес страницы остаётся в рецепте как источник.",
+  "Impressum · Datenschutz": "Выходные данные · Конфиденциальность",
 };

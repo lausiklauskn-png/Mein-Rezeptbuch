@@ -38,7 +38,8 @@ try {
   let { p, k } = await seite();
   await p.click('[data-a=neu]'); ok(await p.locator('.imp-tabs button').count() === 6 && await p.locator('.imp-tabs [data-t=web]').count() === 1, 'das Blatt hinter „+“ hat den Weg „Web“');
   await webAuf(p);
-  ok(await p.locator('#web-adresse').count() === 1 && await p.locator('.web-zeile [data-a=web-holen]').count() === 1 && await p.locator('.web-zeile [data-a=web-einfuegen]').count() === 1 && await p.locator('#web-text').count() === 0 && (await p.locator('.imp-p').innerText()).trim() === '', 'der Web-Weg ist EINE Zeile: Adresse, Einfügen, Holen; kein Erklärtext');
+  ok(await p.locator('#web-adresse').count() === 1 && await p.locator('.web-zeile [data-a=web-holen]').count() === 1 && await p.locator('.web-zeile [data-a=web-einfuegen]').count() === 1 && await p.locator('#web-text').count() === 0 && (await p.locator('.imp-p').evaluate((e) => { const c = e.cloneNode(true); c.querySelectorAll('.frag').forEach((f) => f.remove()); return c.textContent; })).trim() === '', 'der Web-Weg ist EINE Zeile: Adresse, Einfügen, Holen; kein Erklärtext (das „?“ seit 26.11. ausgenommen)');
+  ok(await p.locator('.web-zeile .frag').count() === 1 && /Fotos sind aber immer geschützt/.test(await p.locator('.web-zeile .frag p').textContent()), 'Klaus 26.11.: was man weitergeben darf, steht hinter „?“ in der Web-Zeile (die Zeile bleibt eine Zeile)');
   ok((await p.locator('.imp-p').boundingBox()).height < 60 && (await p.locator('[data-a=web-holen]').getAttribute('title')).includes('ohne KI'), 'nur eine Zeile hoch; was der Knopf tut, sagt sein Hinweis');
   ok(await p.locator('.imp-reihe button').count() === 6 && await p.locator('.imp-reihe [data-t=web][aria-selected=true]').count() === 1 && (await p.locator('.imp-reihe').innerText()).trim() === 'Web', 'oben bleiben die sechs Wege als Symbolreihe; nur der gewählte trägt seinen Namen');
   await p.fill('#web-adresse', 'omas.example/suppe'); await p.click('[data-a=web-holen]'); await p.waitForSelector('[data-form=rezept]', { timeout: 20000 });
@@ -48,7 +49,7 @@ try {
   ok((await p.locator('.formbild img').getAttribute('src').catch(() => '') || '').startsWith('data:image/webp'), 'das Bild der Seite ist als eigene Kopie übernommen (WebP, Klaus 26.11.)');
   ok(/Rezeptdaten der Seite/.test(await p.locator('#toast').innerText()) && rufe.length === 0, 'die Meldung sagt, woher es kommt; keine KI im Spiel');
   await p.click('[data-form=rezept] button[type=submit]'); await p.waitForSelector('.rezept-held h1');
-  ok((await p.locator('.quelle').innerText()).includes('https://omas.example/suppe'), 'am Rezept steht die Quelle');
+  ok((await p.locator('.quelle').innerText()).includes('https://omas.example/suppe'), 'am Rezept steht die Quelle'); ok(/vor dem Weitergeben: eigene Worte, eigenes Bild/.test(await p.locator('.quelle').innerText()), 'Klaus 26.11.: … und daneben, was man vor dem Weitergeben tut');
 
   console.log('2 · Eine Seite, die der Browser nicht lesen darf: Hinweis, Seite öffnen, Einfügen');
   draussen.length = 0; await webAuf(p);

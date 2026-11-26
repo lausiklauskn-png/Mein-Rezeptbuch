@@ -919,4 +919,8 @@ export default {
   'Platz sparen': '节省空间',
   'Rechnet große Bilder platzsparend neu (1600 px, WebP). Ein Bild wird nur ersetzt, wenn es dabei mindestens 10 % kleiner wird.': '将大图重新保存以节省空间（1600 px，WebP）。只有缩小至少 10 % 时才替换。',
   '{0} Bilder neu gespeichert · {1} MB gespart': '已重新保存 {0} 张图片 · 节省 {1} MB',
+  "Das Bild hat {0} px. Auf großen Bildschirmen kann es weich wirken – ein neues Foto oder ein KI-Bild wird schärfer.": "图片宽 {0} 像素。在大屏幕上可能显得不够清晰——新照片或 AI 图片会更清晰。",
+  "vor dem Weitergeben: eigene Worte, eigenes Bild": "分享之前：用自己的话、自己的图片",
+  "Zutaten und Arbeitsschritte eines Rezepts gehören niemandem. Fotos sind aber immer geschützt, und ein persönlich geschriebener Text kann es sein. Wer ein geholtes Rezept weitergibt oder veröffentlicht, schreibt es deshalb in eigenen Worten und nimmt ein eigenes Foto oder ein KI-Bild. Die Adresse der Seite bleibt als Quelle am Rezept.": "食谱的配料和步骤不属于任何人。但照片始终受保护，带有个人风格的文字也可能受保护。因此，分享或发布获取的食谱时，请用自己的话改写，并使用自己的照片或 AI 图片。网页地址会作为来源保留在食谱中。",
+  "Impressum · Datenschutz": "法律声明 · 隐私",
 };

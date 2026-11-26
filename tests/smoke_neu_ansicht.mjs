@@ -106,6 +106,10 @@ try {
   const nw = await p.evaluate(() => document.querySelector('.rezept-held>img')?.naturalWidth || 0);
   ok(nw === 640 && await p.locator('.bild-unscharf').count() === 1 && /Bild unscharf \(\d+ px\)/.test(await p.locator('.bild-unscharf').innerText()), 'ein 640-px-Bild auf großer Fläche trägt „Bild unscharf (… px)“', String(nw));
   await p.click('.bild-unscharf'); ok(await p.locator('.fenster [data-a=ki-bild], .fenster [data-a=bild-dazu]').count() >= 1, '… ein Tipp darauf öffnet das Bild-Blatt (neues Foto oder KI-Bild)');
+  ok(/640 px/.test(await p.locator('.fenster .bb-hinweis').innerText().catch(() => '')), '… und im Bild-Blatt steht der Hinweis dauerhaft, mit der Pixelzahl (Klaus 26.11.: dort, wo man ein Bild holt)');
+  await p.keyboard.press('Escape'); await p.waitForTimeout(4800);
+  const weg = await p.evaluate(() => { const b = document.querySelector('.bild-unscharf'); return b ? [getComputedStyle(b).opacity, getComputedStyle(b).visibility] : ['fehlt']; });
+  ok(weg[0] === 'fehlt' || (weg[0] === '0' && weg[1] === 'hidden'), 'auf dem Bild ist „Bild unscharf“ nach gut 4 s ausgeblendet (Klaus 26.11.: „soll nicht oben bleiben und das Bild belästigen“)', JSON.stringify(weg));
   await k.close();
   ok(fehler.length === 0, 'keine Fehler in der Konsole', fehler.join(' · '));
 } catch (e) { rot++; console.log('  ✗ ROT: Probe abgebrochen — ' + e.message.split('\n')[0]); }
