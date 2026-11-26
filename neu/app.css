@@ -1089,3 +1089,15 @@ a.knopf{text-decoration:none}
 #zn-gross{position:fixed;inset:0;z-index:95;display:grid;place-content:center;justify-items:center;gap:8px;padding:16px;background:rgba(20,14,8,.62);pointer-events:none}
 #zn-gross img{max-width:min(94vw,820px);max-height:82vh;object-fit:contain;border-radius:10px;box-shadow:0 10px 40px rgba(0,0,0,.45);background:#fff}
 #zn-gross span{color:#fff;font-weight:650;font-size:14px;text-shadow:0 1px 3px rgba(0,0,0,.6)}
+/* Vor und Zurück im Vollbild (Klaus 26.11.): zwei runde Pfeile im Bildbereich, die Stelle in der Folge unten in der Mitte; nur am Monitor */
+.blatt-pfeil{position:absolute;top:50%;transform:translateY(-50%);z-index:3;width:46px;height:46px;border-radius:50%;display:grid;place-items:center;cursor:pointer;padding:0;background:rgba(20,20,20,.5);color:#fff;border:1px solid rgba(255,255,255,.4);-webkit-backdrop-filter:blur(8px);backdrop-filter:blur(8px)}
+.blatt-pfeil .ic{width:24px;height:24px;color:#fff}
+.blatt-pfeil.links{left:12px}.blatt-pfeil.rechts{right:12px}
+.blatt-pfeil:disabled{opacity:.25;cursor:default}
+.blatt-stand{position:absolute;left:50%;top:12px;transform:translateX(-50%);z-index:3;padding:3px 10px;border-radius:999px;background:rgba(20,20,20,.5);color:#fff;font-size:13px;font-weight:600;pointer-events:none}
+.vollbild .blatt-pfeil{position:fixed}.vollbild .blatt-stand{position:fixed;top:16px}
+@media print{.blatt-pfeil,.blatt-stand{display:none!important}}
+/* am Monitor steht das Bild mit dem Titel in einem Raster: die Pfeile gehören in die Zelle des Bildes, mittig zu ihm (sonst lagen sie auf dem Vollbild-Knopf) */
+.md-detail .rezept-held:has(>img)>.blatt-pfeil{grid-area:1/1;position:relative;top:auto;left:auto;right:auto;transform:none;align-self:center;margin:0 12px}
+.md-detail .rezept-held:has(>img)>.blatt-pfeil.links{justify-self:start}.md-detail .rezept-held:has(>img)>.blatt-pfeil.rechts{justify-self:end}
+.md-detail .rezept-held:has(>img)>.blatt-stand{grid-area:1/1;position:relative;left:auto;top:auto;transform:none;align-self:start;justify-self:center;margin-top:12px}

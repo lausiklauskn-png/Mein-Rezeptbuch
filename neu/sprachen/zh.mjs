@@ -892,4 +892,6 @@ export default {
   'Beispiel groß: Maus darauf oder lange drücken': '放大示例：鼠标悬停或长按',
   'Beispiel: {0}': '示例：{0}',
   'Aufgeschlagene Doppelseite': '打开的双页',
+  'Voriges Rezept': '上一个食谱',
+  'Nächstes Rezept': '下一个食谱',
 };
