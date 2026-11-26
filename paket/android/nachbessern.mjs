@@ -8,7 +8,9 @@
 //   3. Gegenkontrolle: die App-Kennung im Projekt ist die aus capacitor.config.json.
 // Jede Stelle muss GENAU EINMAL treffen, sonst Abbruch ohne Änderung (die Vorlage von Capacitor hat sich dann geändert).
 //
-//   node paket/android/nachbessern.mjs --ordner paket/aus/<ausgabe>-android [--nummer 1] [--android-sicherung aus|an]
+//   Für ein Release setzt --fassung X.Y.Z den versionName (aus paket/release-fassung.mjs; sonst gilt die Fassung der App).
+//
+//   node paket/android/nachbessern.mjs --ordner paket/aus/<ausgabe>-android [--nummer 1] [--fassung X.Y.Z] [--android-sicherung aus|an]
 import { readFileSync, writeFileSync, existsSync } from 'node:fs';
 import { join, resolve } from 'node:path';
 
@@ -21,7 +23,7 @@ if (!['aus', 'an'].includes(sicherung)) halt(`--android-sicherung kennt nur aus 
 const gradle = join(ordner, 'android', 'app', 'build.gradle'), manifest = join(ordner, 'android', 'app', 'src', 'main', 'AndroidManifest.xml');
 for (const p of [gradle, manifest, join(ordner, 'www', 'paket.json'), join(ordner, 'capacitor.config.json')]) if (!existsSync(p)) halt(`fehlt: ${p} (erst zusammenstellen, dann „npx cap add android“)`);
 const zettel = JSON.parse(readFileSync(join(ordner, 'www', 'paket.json'), 'utf8')), cap = JSON.parse(readFileSync(join(ordner, 'capacitor.config.json'), 'utf8'));
-const fassung = String(zettel.app.fassung); if (!/^[0-9A-Za-z.+-]{1,40}$/.test(fassung)) halt(`Fassung der App ist nicht brauchbar: ${fassung}`);
+const fassung = String(arg('fassung', '') || zettel.app.fassung); if (arg('fassung', '') && !/^\d+\.\d+\.\d+$/.test(fassung)) halt(`--fassung muss X.Y.Z sein: ${fassung}`); if (!/^[0-9A-Za-z.+-]{1,40}$/.test(fassung)) halt(`Fassung der App ist nicht brauchbar: ${fassung}`);
 
 const einmal = (text, muster, neu, was) => { const n = (text.match(new RegExp(muster.source, muster.flags + 'g')) || []).length; if (n !== 1) halt(`${was}: die Stelle trifft ${n}-mal statt einmal. Die Vorlage von Capacitor hat sich geändert – nachbessern.mjs anpassen.`); return text.replace(muster, neu); };
 let g = readFileSync(gradle, 'utf8'), m = readFileSync(manifest, 'utf8');

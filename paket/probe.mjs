@@ -150,7 +150,7 @@ async function probe() {
   const testOrdner = join(VENDOR, '..', 'beispiele'), tb = join(testOrdner, 'Testbild-versteckte-Anweisung.png'), tp = join(testOrdner, 'Testdatei-unsichtbarer-Text.pdf');
   if (!ok(existsSync(tb) && existsSync(tp), 'die Testdateien aus Workflow PDF sind da (Testbild mit versteckter Anweisung, PDF mit unsichtbarem Text)', testOrdner)) return;
   const testBild = readFileSync(tb).toString('base64'), testPdf = readFileSync(tp).toString('base64');
-  const GLEICH = ['zusammenstellen.mjs', 'probe.mjs', 'vendor-pin.json', 'package.json', 'android/package.json', 'android/package-lock.json', 'android/capacitor.vorlage.json', 'android/nachbessern.mjs', 'windows/package.json', 'windows/package-lock.json', 'windows/haupt.cjs', 'windows/pfad.cjs', 'windows/builder.vorlage.json'];
+  const GLEICH = ['zusammenstellen.mjs', 'release-fassung.mjs', 'probe.mjs', 'vendor-pin.json', 'package.json', 'android/package.json', 'android/package-lock.json', 'android/capacitor.vorlage.json', 'android/nachbessern.mjs', 'windows/package.json', 'windows/package-lock.json', 'windows/haupt.cjs', 'windows/pfad.cjs', 'windows/builder.vorlage.json'];
   const ungleich = GLEICH.filter((d) => !existsSync(join(WERKZEUG.rezeptbuch, d)) || !existsSync(join(WERKZEUG.mixarium, d)) || sha(readFileSync(join(WERKZEUG.rezeptbuch, d))) !== sha(readFileSync(join(WERKZEUG.mixarium, d))));
   ok(ungleich.length === 0, `ein Werkzeug für beide Apps: ${GLEICH.length} Dateien liegen in beiden Repos byte-gleich`, ungleich.join(', '));
   const pfadModul = require(join(WERKZEUG.rezeptbuch, 'windows', 'pfad.cjs'));

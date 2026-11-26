@@ -1,0 +1,225 @@
+# Veröffentlichen wie Private Akte (Klaus 26.11.2026: „nicht als ZIP, sondern von Main heruntergeladen“).
+# Baut die Ausgabe als Android-APK (Release, mit der dauerhaften eigenen Signatur aus signing/) und als Windows-Setup (unsigniert, wie
+# bei Private Akte). Nur von Hand und nur von main.
+#   veroeffentlichen = nein  → APK und Setup liegen nur als Download am Lauf (Probe, 14 Tage).
+#   veroeffentlichen = ja    → zusätzlich GitHub-Release v<Fassung> mit APK, Setup und SHA256SUMS. Feste Links:
+#                              https://github.com/<repo>/releases/download/v<Fassung>/<Datei>. Eine Fassung nur einmal.
+# Die Release-Fassung kommt aus paket/release-fassung.mjs (Regel dort). Der Update-Feed (Fähnchen in der App, family-projekt.de/updates/)
+# ist hier NICHT gebaut: er braucht den Update-Baustein in der App und zwei Geheimnisse (siehe docs/VEROEFFENTLICHEN.md).
+# Je App verschieden sind nur der env-Block und der Name der Freigabe (RB_SIGNING_UNLOCK / MX_SIGNING_UNLOCK).
+
+name: Veröffentlichen (APK signiert + Windows)
+
+on:
+  workflow_dispatch:
+    inputs:
+      veroeffentlichen:
+        description: "Als GitHub-Release veröffentlichen? (ja = feste Download-Links)"
+        type: choice
+        required: true
+        default: nein
+        options: [nein, ja]
+
+permissions:
+  contents: read
+
+concurrency:
+  group: veroeffentlichen
+  cancel-in-progress: false
+
+env:
+  AUSGABE: rezeptbuch
+  DATEI: Mein-Rezeptbuch
+  TITEL: Mein Rezeptbuch
+
+jobs:
+  fassung:
+    if: github.ref == 'refs/heads/main'
+    runs-on: ubuntu-24.04
+    outputs:
+      release: ${{ steps.f.outputs.release }}
+      nummer: ${{ steps.f.outputs.nummer }}
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version: "22"
+      - name: Release-Fassung ableiten
+        id: f
+        run: |
+          set -euo pipefail
+          node paket/release-fassung.mjs | tee -a "$GITHUB_OUTPUT"
+      - name: Eine Fassung nur einmal
+        if: inputs.veroeffentlichen == 'ja'
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          v=$(node paket/release-fassung.mjs | sed -n 's/^release=//p')
+          if gh release view "v$v" -R "$GITHUB_REPOSITORY" > /dev/null 2>&1; then echo "::error::v$v ist schon veröffentlicht – erst die FASSUNG in neu/app.mjs erhöhen"; exit 1; fi
+
+  android:
+    needs: fassung
+    runs-on: ubuntu-24.04
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - name: Workflow PDF holen (pdf.js und Texterkennung, nur der Ordner vendor)
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          repository: lausiklauskn-png/Workflow-PDF
+          path: .workflow-pdf
+          sparse-checkout: vendor
+          persist-credentials: false
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version: "22"
+      - uses: actions/setup-java@d1374f8ac74474200d16ef8ecee22c7ae7a51880 # v6.3.0
+        with:
+          distribution: temurin
+          java-version: "21"
+      - name: Zusammenstellen
+        run: node paket/zusammenstellen.mjs --ausgabe "$AUSGABE" --ziel android --vendor .workflow-pdf/vendor
+      - name: Android-Projekt erzeugen, Zeichen einsetzen, Fassung setzen
+        run: |
+          set -euo pipefail
+          cd "paket/aus/$AUSGABE-android"
+          npm ci --no-audit --no-fund
+          npx --no-install cap add android
+          npx --no-install capacitor-assets generate --android
+          cd -
+          node paket/android/nachbessern.mjs --ordner "paket/aus/$AUSGABE-android" --nummer "${{ needs.fassung.outputs.nummer }}" --fassung "${{ needs.fassung.outputs.release }}"
+      - name: Unsignierte Release-APK bauen
+        run: |
+          cd "paket/aus/$AUSGABE-android/android"
+          ./gradlew --no-daemon assembleRelease
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: unsigned-release-apk
+          path: paket/aus/${{ env.AUSGABE }}-android/android/app/build/outputs/apk/release/app-release-unsigned.apk
+          if-no-files-found: error
+          retention-days: 1
+
+  signieren:
+    needs: [fassung, android]
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    environment: android-production
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version: "22"
+      - uses: actions/setup-java@d1374f8ac74474200d16ef8ecee22c7ae7a51880 # v6.3.0
+        with:
+          distribution: temurin
+          java-version: "21"
+      - uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1
+        with:
+          name: unsigned-release-apk
+          path: unsigned-apk
+      - name: Mit der dauerhaften Identität signieren und prüfen
+        env:
+          RB_SIGNING_UNLOCK: ${{ secrets.RB_SIGNING_UNLOCK }}
+          TMPDIR: ${{ runner.temp }}
+          V: ${{ needs.fassung.outputs.release }}
+        run: |
+          set -euo pipefail
+          for file in signing/android-release.enc.json signing/android-certificate.json; do
+            test -f "$file" || { echo "::error::Fehlt: $file – erst „Dauerhafte Signieridentität (Android)“ › initialize, dann deren PR zusammenführen"; exit 1; }
+          done
+          node --test tools/signing/test-identity.mjs tools/signing/test-unlock-file.mjs
+          "$ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager" --install 'build-tools;36.0.0' > /dev/null
+          export APP_APKSIGNER="$ANDROID_HOME/build-tools/36.0.0/apksigner" APP_AAPT="$ANDROID_HOME/build-tools/36.0.0/aapt"
+          node tools/signing/cli.mjs check
+          mkdir ausgabe
+          APP_RELEASE_TAG="v$V" APP_RELEASE_COMMIT="$GITHUB_SHA" \
+            node tools/signing/cli.mjs sign-apk unsigned-apk/app-release-unsigned.apk "ausgabe/$DATEI-$V.apk"
+          cat "ausgabe/$DATEI-$V.apk.json"
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: android-signiert
+          path: ausgabe/
+          if-no-files-found: error
+          retention-days: 14
+
+  windows:
+    needs: fassung
+    runs-on: windows-latest
+    timeout-minutes: 45
+    defaults:
+      run:
+        shell: bash
+    steps:
+      - name: Zeilenenden nicht umwandeln (sonst stimmen unter Windows die Prüfsummen nicht)
+        run: git config --global core.autocrlf false
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - name: Workflow PDF holen (pdf.js und Texterkennung, nur der Ordner vendor)
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          repository: lausiklauskn-png/Workflow-PDF
+          path: .workflow-pdf
+          sparse-checkout: vendor
+          persist-credentials: false
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version: "22"
+      - name: Zusammenstellen, Release-Fassung setzen
+        run: |
+          set -euo pipefail
+          node paket/zusammenstellen.mjs --ausgabe "$AUSGABE" --ziel windows --vendor .workflow-pdf/vendor
+          node paket/release-fassung.mjs --windows "paket/aus/$AUSGABE-windows"
+      - name: Installer bauen (ohne Signatur)
+        env:
+          CSC_IDENTITY_AUTO_DISCOVERY: "false"
+          V: ${{ needs.fassung.outputs.release }}
+        run: |
+          set -euo pipefail
+          cd "paket/aus/$AUSGABE-windows"
+          npm ci --no-audit --no-fund
+          npx --no-install electron-builder --win nsis --x64 --config builder.json --publish never
+          mkdir -p ../../../ausgabe
+          n=$(ls ausgabe/*.exe | wc -l); test "$n" = 1 || { echo "::error::$n Installer statt einem"; exit 1; }
+          cp ausgabe/*.exe "../../../ausgabe/$DATEI-$V-Windows-Setup.exe"
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: windows-setup
+          path: ausgabe/
+          if-no-files-found: error
+          retention-days: 14
+
+  release:
+    if: inputs.veroeffentlichen == 'ja'
+    needs: [fassung, signieren, windows]
+    runs-on: ubuntu-24.04
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1
+        with:
+          path: ausgabe
+          merge-multiple: true
+      - name: GitHub-Release anlegen und von außen gegenprüfen
+        env:
+          GH_TOKEN: ${{ github.token }}
+          V: ${{ needs.fassung.outputs.release }}
+        run: |
+          set -euo pipefail
+          cd ausgabe
+          A="$DATEI-$V.apk"; W="$DATEI-$V-Windows-Setup.exe"
+          ls -la
+          sha256sum "$A" "$W" > SHA256SUMS
+          cat SHA256SUMS
+          gh release create "v$V" "$A" "$W" SHA256SUMS -R "$GITHUB_REPOSITORY" --target "$GITHUB_SHA" --title "$TITEL $V" \
+            --notes "Android-App (signiert) und Windows-Setup (ohne Signatur: SmartScreen › Weitere Informationen › Trotzdem ausführen). Eine neue signierte APK installiert sich über die vorige, die Daten bleiben. Von der Probe-APK (Debug) vorher in der App „Sicherung speichern“, die Probe deinstallieren, diese installieren, Sicherung einspielen."
+          for f in "$A" "$W" SHA256SUMS; do
+            curl -fsSL "https://github.com/$GITHUB_REPOSITORY/releases/download/v$V/$f" | cmp - "$f"
+            echo "Download: https://github.com/$GITHUB_REPOSITORY/releases/download/v$V/$f"
+          done
