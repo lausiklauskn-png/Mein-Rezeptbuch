@@ -43,7 +43,7 @@ import { teilLink, ausTeilLink, qrSvg, passtInQr } from '../kern/teilen/qr.mjs';
 import { rezeptIn } from '../kern/modell/einheiten.mjs';
 import { findeDoppel, wendeAn, dHash, MERKMALE, merkmaleVon, merkmalUmschalten } from '../kern/modell/doppel.mjs';
 
-const FASSUNG = '0.19.2';
+const FASSUNG = '0.19.3';
 const breit = () => matchMedia('(min-width:1000px)').matches;
 const $ = (id) => document.getElementById(id);
 const esc = (t) => String(t ?? '').replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
@@ -251,7 +251,7 @@ function rezeptHtml() {
   const uebUm = fass.length ? `<span class="ueb-fass" role="group" aria-label="${esc(L('Fassungen', 'Versions'))}">${ic('welt')}${fChip('orig', !jetzt, esc(SPRACH_CODES.includes(roh.sprache) ? roh.sprache.toUpperCase() : L('Original', 'Original')), L('Original zeigen', 'Show the original'))}${fass.map((c) => fChip(c, jetzt === c, c.toUpperCase(), fuelle(L('Fassung {0} zeigen', 'Show the {0} version'), sprachName(c)))).join('')}</span>` : '';
   const wk = (akt, i, t, kl = '') => `<button class="chip ${kl}" data-a="${akt}" aria-label="${esc(t)}" title="${esc(t)}">${ic(i)}<span class="wk-t">${esc(t)}</span></button>`;   /* am Handy nur das Symbol (Klaus 23.11.: „kein Button-Kino“), am Monitor neben dem Bild mit Wort */
   const winkel = (d) => `<svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="${d}"/></svg>`;
-  return `<div class="rezept-held" data-a="held" role="button" tabindex="0" aria-label="${r.img ? L('Bild groß ansehen', 'View picture large') : L('Bild einfügen', 'Add picture')}">${r.img ? `<img src="${esc(r.img)}" alt="${esc(r.name)}" ${ausschnitt(r)}>` : ic('karte')}
+  return `<div class="rezept-held" data-a="held" role="button" tabindex="0" aria-label="${r.img ? L('Bild groß ansehen', 'View picture large') : L('Bild einfügen', 'Add picture')}">${r.img ? `<img src="${esc(r.img)}" alt="${esc(r.name)}" ${ausschnitt(r)}>` : ic('karte')}${blaetterPfeile()}
     ${vollKnopf()}<div class="verlauf"><div class="tzeile">${s.rleiste ? `<div class="rwerk" role="toolbar">${wk('einordnen', 'ordner', L('Einordnen: Kategorie und Event-Ordner', 'Organise: category and event folder'))}${wk('bild-blatt', 'bild', L('Bild', 'Picture'))}${wk('uebersetzen', 'welt', L('Übersetzen', 'Translate'))}${wk('rmenue', 'mehr', L('Mehr: Drucken, Teilen, Nährwerte …', 'More: print, share, nutrition …'))}${wk('bearbeiten', 'stift', L('Bearbeiten', 'Edit'))}${wk('loeschen', 'muell', L('Rezept löschen', 'Delete recipe'), 'rot')}</div>` : ''}<button class="wk-pf zur" data-a="zurueck" aria-label="${L('Zurück', 'Back')}">${winkel('M15 5l-7 7 7 7')}</button><h1>${esc(r.name)}</h1><button class="wk-pf" data-a="rleiste" aria-expanded="${s.rleiste}" aria-label="${L('Werkzeuge für Rezept und Bild', 'Tools for recipe and picture')}">${winkel(s.rleiste ? 'M5 9l7 7 7-7' : 'M5 15l7-7 7 7')}</button></div><div class="meta">${r.prepTime ? `<span>${ic('uhr')}${esc(minText(r.prepTime))}</span>` : ''}<span>${ic('karte')}${esc(c ? katName(c) : '')}</span>${ordnerVonRezept(r, Z.ordner) ? `<span class="im-ordner">${ic('ordner')}${esc(ordTitel(findeOrdner(Z.ordner, r.folder)))}</span>` : ''}${sterneHtml(roh)}${uebUm}</div></div></div>
    <div class="bogen"><div class="zweispalt"><div>
     <div class="rz-aktion">${r.steps.length ? `<button class="sym akz" data-a="kochen">${ic('koch')}<small>${L('Kochen', 'Cook')}</small></button>` : ''}<button class="sym" data-a="auf-liste">${ic('einkauf')}<small>${L('Einkaufen', 'Shop')}</small></button><button class="sym" data-a="planen" aria-label="${L('In den Wochenplan', 'Into the week plan')}">${ic('plan')}<small>${L('Planen', 'Plan')}</small></button>
@@ -311,6 +311,37 @@ const ecken = (innen) => `<svg viewBox="0 0 24 24" width="20" height="20" fill="
    NUR das Rezept (Leiste, Liste und Baum weg, wie das alte „Nur dieses Rezept“) UND schaltet den Browser auf Vollbild; derselbe Knopf, Esc oder
    die Zurück-Geste führen zur ganzen App zurück. Geht Vollbild nicht (iPhone), steht trotzdem nur das Rezept da. */
 const vollKnopf = () => { const an = vollAn() || s.nurDies, t = an ? L('Zurück zur ganzen App', 'Back to the whole app') : L('Nur das Rezept, im Vollbild', 'Only the recipe, full screen'); return `<button class="held-voll" data-a="vollbild" aria-pressed="${an}" aria-label="${t}" title="${t}">${ecken(an)}</button>`; };
+/* ---------- Vor und Zurück im Vollbild (Klaus 26.11.: „ein Vor und Zurück … in der jeweiligen Kategorie. Wählt man alle, durch alle; wählt man nur Fisch, nur durch Fisch“).
+   Am Monitor zwei Pfeile im Bildbereich und ←/→, am Handy Wischen (Pfeile stören dort). Die Folge ist die der Startseite: Suche, Kategorie oder Event-Ordner. ---------- */
+function blaetterListe() {
+  const alle = Z.rezepte.filter(istInhalt);
+  if (s.frage.trim()) return finde(s.frage).filter(istInhalt);
+  if (s.kat.startsWith('ordner:')) { const id = s.kat.slice(7); return findeOrdner(Z.ordner, id) ? imOrdner(Z.rezepte, Z.ordner, id) : alle; }
+  if (s.kat === 'alle') return alleKategorien(Z.rezepte, Z.kategorien).filter((c) => anzahl(Z.rezepte, c.id) > 0).flatMap((c) => alle.filter((r) => katVonRezept(r) === c.id));
+  return alle.filter((r) => katVonRezept(r) === s.kat);
+}
+const bildOffen = () => !!document.querySelector('#fensterort .vollbild');
+const blattFolge = () => { const l = blaetterListe(); return bildOffen() ? l.filter((r) => zeig(r)?.img) : l; };   /* im Vollbild des Bildes nur Rezepte mit Bild */
+const blaetternAn = () => !!rezept(s.uid) && s.ansicht !== 'kochen' && (bildOffen() || (s.nurDies && ['rezept', 'start', 'baum'].includes(s.ansicht) && !$('fensterort').innerHTML));
+function nachbar(d) { const l = blattFolge(), i = l.findIndex((r) => r.uid === s.uid); return i < 0 ? null : l[i + d] || null; }
+const blaetterPfeile = (imBild = false) => {
+  if (!breit() || !(imBild || blaetternAn())) return '';
+  const l = imBild ? blaetterListe().filter((r) => zeig(r)?.img) : blattFolge(), i = l.findIndex((r) => r.uid === s.uid); if (i < 0 || l.length < 2) return '';
+  return `<button class="blatt-pfeil links" data-a="blatt" data-d="-1" ${i > 0 ? '' : 'disabled'} aria-label="${L('Voriges Rezept', 'Previous recipe')}" title="${L('Voriges Rezept', 'Previous recipe')}">${ic('links')}</button><button class="blatt-pfeil rechts" data-a="blatt" data-d="1" ${i < l.length - 1 ? '' : 'disabled'} aria-label="${L('Nächstes Rezept', 'Next recipe')}" title="${L('Nächstes Rezept', 'Next recipe')}">${ic('rechts')}</button><span class="blatt-stand" aria-hidden="true">${i + 1} / ${l.length}</span>`;
+};
+const vollbildHtml = (r) => `<div class="vollbild" data-a="voll-zu" role="dialog" aria-modal="true" aria-label="${esc(r.name)}"><img src="${esc(r.img)}" alt="${esc(r.name)}"><button class="voll-werk" data-a="voll-werk">${ic('bild')}${L('Bild bearbeiten', 'Edit picture')}</button><button class="voll-x" data-a="voll-zu" aria-label="${L('Schließen', 'Close')}">${ic('x')}</button><p>${esc(r.name)}</p>${blaetterPfeile(true)}</div>`;
+function blaettern(d) {
+  if (!blaetternAn()) return false; const n = nachbar(d); if (!n) return false; const bild = bildOffen();
+  s.uid = n.uid; E.zuletzt = n.uid; s.rleiste = false; s.original = null; sichern();
+  if (s.ansicht === 'rezept' && history.state) history.replaceState({ ...history.state, uid: n.uid }, '');
+  zeichne(); document.querySelector('.md-detail')?.scrollTo(0, 0); if (!breit()) scrollTo(0, 0);
+  if (bild) $('fensterort').innerHTML = vollbildHtml(zeig(n));
+  return true;
+}
+document.addEventListener('keydown', (ev) => { if ((ev.key === 'ArrowRight' || ev.key === 'ArrowLeft') && blaetternAn() && !/^(INPUT|TEXTAREA|SELECT)$/.test(document.activeElement?.tagName || '') && blaettern(ev.key === 'ArrowRight' ? 1 : -1)) ev.preventDefault(); });
+let bw = null;
+document.addEventListener('touchstart', (ev) => { const t = ev.target; bw = !breit() && ev.touches.length === 1 && blaetternAn() && !t.closest?.('button, input, textarea, select, .portion, .ueb-fass, .rwerk') && !rolltQuer(t) ? { x: ev.touches[0].clientX, y: ev.touches[0].clientY } : null; }, { passive: true });
+document.addEventListener('touchend', (ev) => { if (!bw) return; const a = bw; bw = null; const dx = ev.changedTouches[0].clientX - a.x, dy = ev.changedTouches[0].clientY - a.y; if (Math.abs(dx) >= 60 && Math.abs(dx) > 2 * Math.abs(dy)) blaettern(dx < 0 ? 1 : -1); }, { passive: true });
 document.addEventListener('fullscreenchange', () => { if (!vollAn() && s.nurDies) { s.nurDies = false; zeichne(); return; } document.querySelectorAll('.held-voll').forEach((k) => { k.outerHTML = vollKnopf(); }); });
 
 const geraeteVon = (r) => [...new Set(r.steps.flatMap((x) => erkenne(x.txt)))];
@@ -1498,7 +1529,8 @@ const A = {
   // Tipp aufs Bild: mit Bild das Vollbild, ohne Bild gleich das Bild-Blatt. Am Monitor steht die Namenszeile UNTER dem Bild
   // (Klaus 23.11.: „der Winkel soll im Monitor stehen, nicht im Bild“); ein Tipp dort öffnet kein Bild.
   held: (e, ev) => { if (breit() && ev?.target?.closest?.('.verlauf')) return; if (rezept(s.uid)?.img) zuschnittFenster(s.uid); else bildBlatt(s.uid); },   /* R10: ein Tipp aufs Bild öffnet gleich „Bild anpassen“ im Vollbild */
-  'bild-voll': () => { const r = zeig(rezept(s.uid)); if (!r?.img) return; fensterZu(); $('fensterort').innerHTML = `<div class="vollbild" data-a="voll-zu" role="dialog" aria-modal="true" aria-label="${esc(r.name)}"><img src="${esc(r.img)}" alt="${esc(r.name)}"><button class="voll-werk" data-a="voll-werk">${ic('bild')}${L('Bild bearbeiten', 'Edit picture')}</button><button class="voll-x" data-a="voll-zu" aria-label="${L('Schließen', 'Close')}">${ic('x')}</button><p>${esc(r.name)}</p></div>`; history.pushState({ ...(history.state || { ansicht: s.ansicht, uid: s.uid }), voll: true }, ''); },
+  'bild-voll': () => { const r = zeig(rezept(s.uid)); if (!r?.img) return; fensterZu(); $('fensterort').innerHTML = vollbildHtml(r); history.pushState({ ...(history.state || { ansicht: s.ansicht, uid: s.uid }), voll: true }, ''); },
+  blatt: (e) => { blaettern(Number(e.dataset.d)); },
   'voll-zu': () => { if (document.querySelector('.vollbild')) { fensterZu(); if (history.state?.voll) history.back(); } },
   // Klaus 23.11.: ein Tipp aufs Bild öffnet das Vollbild, von dort geht es mit einem Tipp zum Bild-Blatt (Ausschnitt, ersetzen, KI-Bild).
   'voll-werk': () => { const uid = s.uid; if (history.state?.voll) { nachZurueck = () => bildBlatt(uid); history.back(); } else { fensterZu(); bildBlatt(uid); } },

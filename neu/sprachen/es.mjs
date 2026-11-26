@@ -895,4 +895,6 @@ export default {
   'Beispiel groß: Maus darauf oder lange drücken': 'Ejemplo grande: pasa el ratón o mantén pulsado',
   'Beispiel: {0}': 'Ejemplo: {0}',
   'Aufgeschlagene Doppelseite': 'Doble página abierta',
+  'Voriges Rezept': 'Receta anterior',
+  'Nächstes Rezept': 'Receta siguiente',
 };

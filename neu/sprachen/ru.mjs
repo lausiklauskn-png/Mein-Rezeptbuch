@@ -892,4 +892,6 @@ export default {
   'Beispiel groß: Maus darauf oder lange drücken': 'Пример крупно: наведи мышь или удерживай',
   'Beispiel: {0}': 'Пример: {0}',
   'Aufgeschlagene Doppelseite': 'Открытый разворот',
+  'Voriges Rezept': 'Предыдущий рецепт',
+  'Nächstes Rezept': 'Следующий рецепт',
 };
