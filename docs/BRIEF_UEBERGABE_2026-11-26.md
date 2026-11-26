@@ -85,3 +85,20 @@ kreativbuch 99 · 2 (vorbestehend: Warnung des Testbrowsers und fehlender Workfl
   web und notiz tippen „Als eigenes Rezept speichern“ (im Mixarium habt ihr das in web und scan schon so).
 - **Probe und laufende Gegenprobe:** die Gegenproben fahren `tests/smoke_*.mjs` aus dem Arbeitsbaum, nicht aus der Kopie –
   die Probe nicht ändern, während die Gegenprobe läuft.
+
+## Antwort der Mixarium-/Windows-Sitzung (26.11.2026, morgens) – geprüft gegen `origin/main` aller vier Repos
+
+| Punkt im Brief | Stand bei mir | Abweichung |
+|---|---|---|
+| Kern-Pin `ff8a4e8` = 0.31.0 aktuell | stimmt (`node tools/kern-nachziehen.mjs --pruefen` grün) | – |
+| R5 Ziehen/Wischen fürs Mixarium „⚠ prüfen: Karussell?“ | Die neue Mixarium-PWA zeigt **kein** Karussell mehr (Liste bzw. Kartenraster wie im Rezeptbuch). R5 ist dort **noch nicht gebaut** (offen, Brief Teil 6) | – |
+| „Neu“-Knopf an der Marktplatz-Karte „nicht gebaut“ | **gebaut** am 25./26.11.: family-project #378 (Cache v169), PWA-Toolpoint #186 (Cache v107), für Mein Rezeptbuch **und** Mein Mixarium; Proben in `smoke_statische_listen` bzw. `tests/smoke.mjs` | ⚠ Er ist eine **kleine runde Pille** „Neu“ neben dem Namen, **nicht schräg**. Steht „schräg“ für Klaus fest, nachziehen (eine CSS-Zeile je Markt) |
+| Name „Mein Mixarium Pro“ (#313 setzte „App Mein Mixarium“) | **nachgezogen** (Mixarium 10.0.0-vor37): `paket/ausgaben.json` „Mein Mixarium Pro“ (die volle Ausgabe „Mein Mixarium Pro (voll)“) | – |
+| P2 Pro-Zeile: „Pro“ + Versionsnummer als Knopf + rotes Schild „Update“ wie Private Akte | **gebaut** (vor37), nur in der Hülle (`app:` bzw. Capacitor nativ). Das Schild hängt am Update-Baustein `Capacitor.Plugins.DoUpdates` wie in Private Akte (`app.js`, `#update-fahne`) und erscheint nie, solange der fehlt; ein Tipp auf die Versionsnummer sagt dann „Updates sind in dieser Fassung noch nicht eingerichtet“. Probe `smoke_neu_ansicht` Teil 5 | Private Akte zeigt „Update 0.9.x“, hier steht nur „Update“ (Klaus' Wort) |
+| „Das Geheimnis“ (P3) | **hier ebenso ungeklärt.** In Private Akte prüft DoUpdates Unterschrift, SHA-256, Paket, Zertifikat und versionCode einer Datei vom Server der Akte (`docs/SIGNIERUNG.md` dort) – „das Geheimnis“ ist vermutlich der **Signatur-Schlüssel als GitHub-Geheimnis** für Release-Bau und Update-Datei. Nicht geraten, Klaus fragen | – |
+| `BAU_APK_WINDOWS.md` Zeile 7a | **nachgetragen** (Mixarium, mit Anlässen statt Event-Ordnern) | – |
+| Erster echter Bau | **APK und Windows-Installer gebaut** über `paket-bauen.yml` (mixarium-voll, vor36), an Klaus geschickt; Doku Mixarium `docs/BAU_APK_WINDOWS.md` § 6a | Rezeptbuch hat den Workflow noch nicht |
+
+**Neu von Klaus in dieser Sitzung (Mixarium vor37), fürs Rezeptbuch zu prüfen:**
+- **Zahl an der Navi-Leiste statt „8 Getränke“ im Kopf** (der Kopf wurde dadurch zu dick): kleine Zahl links am Symbol je Bereich (Getränke, Karte, Einkauf nur offene Posten, Labor). Das Rezeptbuch zeigt im Kopf keine Zahl – prüfen, ob Klaus es dort an der Leiste auch will.
+- **Bild entsteht:** Klaus sah beim KI-Bild keinen Ladebalken („lief im Hintergrund auf der Seite, von wo das Bild generiert wurde“). Jetzt eine Pille oben in der Mitte, außerhalb der Seite: **drei kreisende Punkte**, Text, **geschätzte Prozentzahl**, die mit dem Bild auf **100 %** springt (`bildArbeit` in `neu/app.mjs`, auch beim Sammel-Lauf). Das Rezeptbuch hat denselben Weg (Kern `warten.mjs` unten am Rand) – vermutlich derselbe Befund dort.
