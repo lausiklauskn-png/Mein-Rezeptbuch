@@ -88,6 +88,23 @@ try {
   await wisch(320, 80); await p.waitForTimeout(300); const a1 = await hh(); await wisch(80, 320); await p.waitForTimeout(300); const a2 = await hh();
   ok(a1 !== a0 && a2 === a0, 'im Vollbild: nach links wischen zeigt das nächste Rezept, nach rechts das vorige', [a0, a1, a2].join(' · '));
   await k.close();
+  console.log('6 · Bilder in hoher Qualität, platzsparend; zu kleine Bilder sagen es (Klaus 26.11.)');
+  k = await browser.newContext({ locale: 'de-DE', viewport: { width: 1600, height: 900 }, serviceWorkers: 'block' }); p = await k.newPage(); p.on('pageerror', (e) => fehler.push(e.message));
+  await p.goto(URL0.replace('?leer', '')); await p.waitForSelector('.karte', { timeout: 20000 });
+  const mod = URL0.replace('/neu/?leer', '/kern/oberflaeche/bild.mjs');
+  const r6 = await p.evaluate(async (m) => { const B = await import(m); const c = document.createElement('canvas'); c.width = 2400; c.height = 1600; const g = c.getContext('2d');
+    for (let i = 0; i < 4000; i++) { g.fillStyle = `hsl(${i % 360},60%,${30 + (i % 40)}%)`; g.fillRect((i * 37) % 2400, (i * 53) % 1600, 30, 30); }
+    const gross = c.toDataURL('image/jpeg', 0.95), klein = await B.platzSparen(gross), nochmal = klein ? await B.platzSparen(klein) : 'x';
+    const im = new Image(); im.src = klein || ''; await im.decode().catch(() => {});
+    return { vor: B.datenGroesse(gross), nach: klein ? B.datenGroesse(klein) : 0, typ: (klein || '').slice(5, 15), breite: im.naturalWidth, nochmal, a1: B.aufloesung(640, 1060, 1).genug, a2: B.aufloesung(1600, 1060, 1).genug }; }, mod);
+  ok(r6.nach > 0 && r6.nach < r6.vor * 0.9 && r6.typ === 'image/webp' && r6.breite === 1600, '„Platz sparen“: ein großes JPEG wird zu WebP mit 1600 px und deutlich kleiner', JSON.stringify({ ...r6, nochmal: r6.nochmal === null }));
+  ok(r6.nochmal === null, '… und ein schon sparsames Bild bleibt, wie es ist (nur ersetzen, wenn es mindestens 10 % kleiner wird)');
+  ok(r6.a1 === false && r6.a2 === true, 'Auflösung: 640 px auf 1060 px Fläche reichen nicht, 1600 px reichen');
+  await p.locator('.karte').first().click(); await p.waitForTimeout(800);
+  const nw = await p.evaluate(() => document.querySelector('.rezept-held>img')?.naturalWidth || 0);
+  ok(nw < 800 && await p.locator('.bild-unscharf').count() === 1 && /Bild unscharf \(\d+ px\)/.test(await p.locator('.bild-unscharf').innerText()), 'ein Startrezept-Bild (640 px) auf großer Fläche trägt „Bild unscharf (… px)“', String(nw));
+  await p.click('.bild-unscharf'); ok(await p.locator('.fenster [data-a=ki-bild], .fenster [data-a=bild-dazu]').count() >= 1, '… ein Tipp darauf öffnet das Bild-Blatt (neues Foto oder KI-Bild)');
+  await k.close();
   ok(fehler.length === 0, 'keine Fehler in der Konsole', fehler.join(' · '));
 } catch (e) { rot++; console.log('  ✗ ROT: Probe abgebrochen — ' + e.message.split('\n')[0]); }
 await browser.close(); srv.close();

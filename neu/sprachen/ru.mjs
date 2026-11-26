@@ -912,4 +912,11 @@ export default {
   'Die gewählten Rezepte werden aus dem Buch entfernt. Gleich danach lässt es sich rückgängig machen.': 'Выбранные рецепты будут удалены из книги. Сразу после этого можно отменить.',
   '{0} Rezepte gelöscht': 'Удалено рецептов: {0}',
   '{0} Rezepte löschen?': 'Удалить рецепты ({0})?',
+  'Bild unscharf ({0} px)': 'Изображение нечёткое ({0} px)',
+  'Bilder werden platzsparend gespeichert …': 'Изображения сохраняются компактно …',
+  'Die Bilder sind schon platzsparend gespeichert': 'Изображения уже сохранены компактно',
+  'Für diese Größe ein schärferes Foto aufnehmen oder ein KI-Bild erzeugen': 'Для этого размера сделайте более чёткое фото или создайте изображение ИИ',
+  'Platz sparen': 'Сэкономить место',
+  'Rechnet große Bilder platzsparend neu (1600 px, WebP). Ein Bild wird nur ersetzt, wenn es dabei mindestens 10 % kleiner wird.': 'Пересохраняет большие изображения для экономии места (1600 px, WebP). Изображение заменяется, только если становится меньше хотя бы на 10 %.',
+  '{0} Bilder neu gespeichert · {1} MB gespart': 'Пересохранено изображений: {0} · сэкономлено {1} МБ',
 };

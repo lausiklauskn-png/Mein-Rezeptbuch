@@ -13,7 +13,7 @@ import { speicher } from '../kern/speicher/speicher.mjs';
 import { symbol as ic } from '../kern/oberflaeche/symbole.mjs';
 import { FARBEN, TOENE, TOENE_EN, farbeSetzen, istDunkel } from '../kern/oberflaeche/farben.mjs';
 import { schriftSetzen, schriftRegler, schriftWert } from '../kern/oberflaeche/schrift.mjs';
-import { bildAusDatei } from '../kern/oberflaeche/bild.mjs';
+import { bildAusDatei, platzSparen, datenGroesse, aufloesung } from '../kern/oberflaeche/bild.mjs';
 import { zutatenFuerSchritt, zeitImSchritt } from '../kern/modell/kochen.mjs';
 import { GERAETE, erkenne, geraetSvg } from '../kern/oberflaeche/geraete.mjs';
 import { einkaufsliste, gruppenFolge, gruppeVerschieben, WARENGRUPPEN } from '../kern/modell/einkauf.mjs';
@@ -43,7 +43,7 @@ import { teilLink, ausTeilLink, qrSvg, passtInQr } from '../kern/teilen/qr.mjs';
 import { rezeptIn } from '../kern/modell/einheiten.mjs';
 import { findeDoppel, findeDoppelImBuch, wendeAn, dHash, MERKMALE, merkmaleVon, merkmalUmschalten } from '../kern/modell/doppel.mjs';
 
-const FASSUNG = '0.19.6';
+const FASSUNG = '0.19.7';
 const breit = () => matchMedia('(min-width:1000px)').matches;
 const $ = (id) => document.getElementById(id);
 const esc = (t) => String(t ?? '').replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
@@ -243,7 +243,7 @@ function sterneHtml(r) {
   return `<span class="sterne" role="group" aria-label="${fuelle(L('Bewertung: {0} von 5', 'Rating: {0} of 5'), n)}">${[1, 2, 3, 4, 5].map((i) => `<button data-a="stern" data-n="${i}" class="${i <= n ? 'an' : ''}" aria-pressed="${i === n}" aria-label="${i === 1 ? L('1 Stern', '1 star') : fuelle(L('{0} Sterne', '{0} stars'), i)}">${ic('stern')}</button>`).join('')}</span>`;
 }
 /* Das Zeichen dieser Seite (index.html: das neue, muttis.html: ihr eigenes) – aus dem <link rel=icon> der Seite, nicht fest verdrahtet. */
-const seitenZeichen = () => document.querySelector('link[rel=icon]')?.getAttribute('href') || '../icons/rezeptbuch-neu-192.png?v=1';
+const seitenZeichen = () => document.querySelector('link[data-logo]')?.getAttribute('href') || document.querySelector('link[rel=icon]')?.getAttribute('href') || '../icons/rezeptbuch-neu-192.png?v=1';   /* das Logo im Kopf: 64 px WebP (PageSpeed 26.11.: 48 KB für 30 px) */
 function rezeptHtml() {
   const roh = rezept(s.uid), r = inEinheit(zeig(roh)); if (!r) return `<div class="leer"><p>${L('Dieses Rezept gibt es nicht mehr.', 'This recipe no longer exists.')}</p><button class="knopf" data-a="geh" data-zu="start">${L('Zur Startseite', 'To the start page')}</button></div>`;
   const c = alleKategorien(Z.rezepte, Z.kategorien).find((x) => x.id === katVonRezept(r));
@@ -891,7 +891,7 @@ function bilderHtml() {
   for (const u of [...B.wahl]) if (!gez.some((r) => r.uid === u)) B.wahl.delete(u);
   return `<div class="ueber"><h2 style="font-size:19px">${L('Bilder', 'Pictures')}</h2><small>${fuelle(L('{0} Bilder · {1} Rezepte ohne Bild', '{0} pictures · {1} recipes without a picture'), mit.length, ohne.length)}</small></div>
    <div class="laeden">${[['alle', L('Alle', 'All')], ['eigene', L('Eigene', 'Own')], ['beispiele', L('Beispiele', 'Examples')]].map(([f, t]) => `<button class="chip" data-a="bilder-filter" data-f="${f}" aria-pressed="${B.filter === f}">${t}</button>`).join('')}<span class="segment" role="group" aria-label="${L('Vorschau', 'Preview')}"><button class="chip" data-a="bilder-gross" data-g="0" aria-pressed="${!B.gross}">${L('Klein', 'Small')}</button><button class="chip" data-a="bilder-gross" data-g="1" aria-pressed="${!!B.gross}">${ic('voll')}${L('Groß', 'Large')}</button></span>${frag(L('Tippe Bilder an, um sie auszuwählen. „Löschen“ entfernt nur das Bild; das Rezept mit seinem Text bleibt.', 'Tap pictures to select them. “Delete” removes only the picture; the recipe with its text stays.'))}</div>
-   <div class="reihe" style="margin-bottom:10px"><button class="knopf rot" data-a="bilder-weg" ${B.wahl.size ? '' : 'disabled'}>${ic('muell')}${fuelle(L('Löschen ({0})', 'Delete ({0})'), B.wahl.size)}</button><button class="knopf" data-a="bilder-alle-wahl">${B.wahl.size === gez.length && gez.length ? L('Auswahl aufheben', 'Clear selection') : L('Alle auswählen', 'Select all')}</button><button class="knopf rot" data-a="bilder-alle-weg" ${mit.length ? '' : 'disabled'}>${L('Alle Bilder löschen', 'Delete all pictures')}</button>${ZU.sammelKnopf()}<button class="knopf" data-a="doppel-buch">${ic('suche')}${L('Doppelte suchen', 'Find duplicates')}</button>${mit.some((r) => r.beispiel) || Z.rezepte.some((r) => r.beispiel) ? `<button class="knopf" data-a="beispiele-uebernehmen">${ic('haken')}${L('Beispiele übernehmen', 'Keep the examples')}</button>` : ''}</div>
+   <div class="reihe" style="margin-bottom:10px"><button class="knopf rot" data-a="bilder-weg" ${B.wahl.size ? '' : 'disabled'}>${ic('muell')}${fuelle(L('Löschen ({0})', 'Delete ({0})'), B.wahl.size)}</button><button class="knopf" data-a="bilder-alle-wahl">${B.wahl.size === gez.length && gez.length ? L('Auswahl aufheben', 'Clear selection') : L('Alle auswählen', 'Select all')}</button><button class="knopf rot" data-a="bilder-alle-weg" ${mit.length ? '' : 'disabled'}>${L('Alle Bilder löschen', 'Delete all pictures')}</button>${ZU.sammelKnopf()}<button class="knopf" data-a="bilder-sparen" title="${esc(L('Rechnet große Bilder platzsparend neu (1600 px, WebP). Ein Bild wird nur ersetzt, wenn es dabei mindestens 10 % kleiner wird.', 'Re-saves large pictures to save space (1600 px, WebP). A picture is only replaced if it gets at least 10 % smaller.'))}">${ic('paket')}${L('Platz sparen', 'Save space')}</button><button class="knopf" data-a="doppel-buch">${ic('suche')}${L('Doppelte suchen', 'Find duplicates')}</button>${mit.some((r) => r.beispiel) || Z.rezepte.some((r) => r.beispiel) ? `<button class="knopf" data-a="beispiele-uebernehmen">${ic('haken')}${L('Beispiele übernehmen', 'Keep the examples')}</button>` : ''}</div>
    <div class="bildgitter ${B.gross ? 'gross' : ''}">${gez.map((r) => `<button class="bildkachel" data-a="bild-wahl" data-uid="${esc(r.uid)}" aria-pressed="${B.wahl.has(r.uid)}"><img src="${esc(r.img)}" alt="" loading="lazy"><span class="hk">${B.wahl.has(r.uid) ? ic('haken') : ''}</span><span class="bn">${esc(r.name)}</span></button>`).join('') || `<p class="quelle">${L('Keine Bilder in dieser Auswahl.', 'No pictures in this selection.')}</p>`}</div>
    ${ohne.length ? `<div class="gruppe"><h3>${L('Rezepte ohne Bild', 'Recipes without a picture')}</h3><div class="liste">${ohne.map((r) => `<button class="zeile" data-a="bild-dazu" data-uid="${esc(r.uid)}">${ic('kamera')}<span>${esc(r.name)}<small>${L('Foto einfügen', 'Add photo')}</small></span></button>`).join('')}</div></div>` : ''}`;
 }
@@ -1384,6 +1384,16 @@ function spaltenPruefen() {
   d.classList.remove('spalten', 'spalten2', 'spalten3'); if (best[0]) d.classList.add(...best[0].split(' '));
 }
 addEventListener('resize', () => requestAnimationFrame(spaltenPruefen));
+/* Klaus 26.11.: ist ein Bild für die Fläche zu klein, sagt die App es – im Rezept („Bild unscharf“, Tipp öffnet das Bild-Blatt: neues Foto
+   oder KI-Bild) und in der Bilder-Übersicht (kleine Marke). Gemessen wird nach dem Laden: Bildpunkte gegen die angezeigte Breite × Pixeldichte. */
+function aufloesungPruefen(img) {
+  if (!img?.naturalWidth) return; const a = aufloesung(img.naturalWidth, img.getBoundingClientRect().width, devicePixelRatio);
+  if (img.matches('.rezept-held>img')) {
+    const held = img.parentElement; held.querySelector('.bild-unscharf')?.remove(); if (a.genug) return;
+    held.insertAdjacentHTML('beforeend', `<button class="bild-unscharf" data-a="bild-blatt" title="${esc(L('Für diese Größe ein schärferes Foto aufnehmen oder ein KI-Bild erzeugen', 'Take a sharper photo for this size or create an AI picture'))}">${ic('bild')}${esc(fuelle(L('Bild unscharf ({0} px)', 'Picture blurry ({0} px)'), img.naturalWidth))}</button>`);
+  } else if (img.matches('.bildkachel>img')) img.parentElement.classList.toggle('klein', img.naturalWidth < 1000);
+}
+document.addEventListener('load', (ev) => { if (ev.target?.tagName === 'IMG') aufloesungPruefen(ev.target); }, true);
 function zeichne(einzug = false) {
   kopfZeichnen(); leisteZeichnen();
   const m = $('main'), lesen = ['start', 'rezept', 'kochen'].includes(s.ansicht), formRechts = breit() && s.ansicht === 'form';
@@ -1402,7 +1412,7 @@ function zeichne(einzug = false) {
     m.innerHTML = `<div class="md ${s.nurDies ? 'nur' : ''}"><div class="md-liste">${startHtml()}</div><div class="md-detail">${rezept(s.uid) ? rezeptHtml() : ''}</div></div>`;
     const l = m.querySelector('.md-liste'); if (l) l.scrollTop = alt;
   } else m.innerHTML = s.ansicht === 'rezept' || s.ansicht === 'kochen' ? rezeptHtml() : s.ansicht === 'form' ? formHtml() : s.ansicht === 'werkstatt' ? werkstattHtml() : s.ansicht === 'einkauf' ? einkaufHtml() : s.ansicht === 'plan' ? planHtml() : s.ansicht === 'kategorien' ? kategorienHtml() : s.ansicht === 'ordner' ? baumHtml() : s.ansicht === 'baum' ? baumHtml() : s.ansicht === 'kreativ' ? kreativHtml() : s.ansicht === 'zine' ? ZI.html() : s.ansicht === 'bilder' ? bilderHtml() : startHtml();
-  requestAnimationFrame(spaltenPruefen);
+  requestAnimationFrame(spaltenPruefen); requestAnimationFrame(() => document.querySelectorAll('.rezept-held>img, .bildkachel>img').forEach((i) => { if (i.complete) aufloesungPruefen(i); }));
   katInSicht(); m.classList.toggle('einzug', einzug); document.body.dataset.ansicht = s.ansicht; document.body.classList.toggle('nur', breit() && (lesen || s.ansicht === 'baum') && s.nurDies);
   if (s.ansicht !== 'kochen') { wachAus(); weckerAus(); }
   kochZeichnen();
@@ -1422,6 +1432,15 @@ const A = {
     if (breit()) { s.uid = u; history.pushState({ ansicht: 'baum', uid: u }, ''); zeichne(); document.querySelector('.md-detail')?.scrollTo(0, 0); } else geh('rezept', { uid: u }); },
   'baum-leere': () => { s.baum.leere = !s.baum.leere; zeichne(); },
   'doppel-buch': () => { doppelImBuch(); },
+  /* Klaus 26.11.: „Qualität hoch, aber runterrechnen, wenn es ohne Qualitätsverlust geht.“ Vorher wird eine Sicherung im Tresor abgelegt. */
+  'bilder-sparen': async () => {
+    const liste = Z.rezepte.filter((r) => istInhalt(r) && /^data:image\//.test(r.img || '')); if (!liste.length) return;
+    tresorAuto(); let vor = 0, nach = 0, n = 0; const neu = new Map();
+    await W.mit(L('Bilder werden platzsparend gespeichert …', 'Saving pictures to save space …'), async (w) => { for (const [i, r] of liste.entries()) { w?.anteil?.((i + 1) / liste.length); try { const x = await platzSparen(r.img); if (x) { vor += datenGroesse(r.img); nach += datenGroesse(x); neu.set(r.uid, x); n++; } } catch { /* ein Bild, das sich nicht lesen lässt, bleibt */ } } });
+    if (!n) { melde(L('Die Bilder sind schon platzsparend gespeichert', 'The pictures are already saved compactly')); return; }
+    const vorher = Z.rezepte; Z.rezepte = Z.rezepte.map((r) => (neu.has(r.uid) ? { ...r, img: neu.get(r.uid), modified: new Date().toISOString() } : r)); sichern(); zeichne();
+    melde(fuelle(L('{0} Bilder neu gespeichert · {1} MB gespart', '{0} pictures re-saved · {1} MB saved'), n, ((vor - nach) / 1048576).toFixed(1)), L('Rückgängig', 'Undo'), () => { Z.rezepte = vorher; sichern(); zeichne(); });
+  },
   'baum-teil': (e) => { const t = e.dataset.teil, m = s.baum.teilAuf || (s.baum.teilAuf = new Set()); if (m.has(t)) m.delete(t); else m.add(t); zeichne(); },
   'baum-wahl': () => { s.baum.wahl = s.baum.wahl ? null : new Set(); zeichne(); },
   /* Klaus 26.11.: ein kleines Viereck „Alle“ neben „Auswählen“ – Haken rein: alle gewählt, Haken raus: keins. Einzeln geht weiter. */
@@ -1765,7 +1784,7 @@ async function altBilderNachtragen() {
 }
 async function start() {
   const andere = document.documentElement.dataset.ausgabe || '';   /* eine Einstiegsseite kann eine andere Ausgabe nennen (neu/muttis.html) */
-  ausgabe = await (await (/^[a-z-]+$/.test(andere) ? fetch('../ausgaben/' + andere + '/ausgabe.json') : fetch('../ausgaben/rezeptbuch/ausgabe.json'))).json();
+  ausgabe = await (await (/^[a-z-]+$/.test(andere) ? fetch('../ausgaben/' + andere + '/ausgabe.json') : (window.__ausgabe || fetch('../ausgaben/rezeptbuch/ausgabe.json')))).json();   /* index.html stößt den Abruf schon vor den Modulen an */
   lager = speicher('KuechenKern-' + ausgabe.name); tr = tresor(lager);
   { const e = ausgabe.speicher.endung; S = schluesselLager(lager, { altNamen: { anthropic: ['claudeKey' + e], openai: ['openaiImgKey' + e, 'openaiKey' + e], mistral: ['mistralKey' + e] } }); await schlLaden(); }
   const da = await lager.lies().catch(() => null);
@@ -1794,7 +1813,7 @@ async function start() {
   lager.dauerhaft();
   ZU.altTresor().catch(() => {});   /* Tresor-Stände der bisherigen App, einmal */
   if ('serviceWorker' in navigator) navigator.serviceWorker.register('./sw.js').catch(() => {});   // Offline-Vorrat; ohne ihn läuft die App genauso, nur nicht ohne Netz
-  fetch('../beispiele/KATALOG.json').then((a) => a.json()).then((k) => { katalog = k; if (s.ansicht === 'start' || s.ansicht === 'werkstatt') zeichne(); }).catch(() => {});
+  (globalThis.requestIdleCallback || ((f) => setTimeout(f, 1500)))(() => fetch('../beispiele/KATALOG.json').then((a) => a.json()).then((k) => { katalog = k; if (s.ansicht === 'start' || s.ansicht === 'werkstatt') zeichne(); }).catch(() => {}));   /* erst nach dem Start: der Katalog nennt nur die Größe des Beispielbuchs (PageSpeed 26.11.: er stand am Ende der Ladekette) */
 }
 /* Bis der Bestand gelesen ist, steht der Wartesatz der Seite da (index.html, deutsch); er folgt gleich der Sprache des Geräts. */
 { const warte = document.querySelector('#main .laden'); document.documentElement.lang = spr(); if (warte) warte.textContent = L('Rezeptbuch wird geöffnet …', 'Opening the recipe book …'); }

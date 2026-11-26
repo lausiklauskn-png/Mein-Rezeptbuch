@@ -12,6 +12,7 @@
 // pdf.js liegt im Netz neben Workflow PDF (`vendor`); ohne diese Adresse geht kein PDF hinaus.
 import { text, fuelle } from '../oberflaeche/sprache.mjs';
 
+import { alsDatenAdresse, BILD_SPEICHER } from '../oberflaeche/bild.mjs';
 export const BILD_NETZ_B64_MAX = 4 * 1024 * 1024, BILD_NETZ_STUFEN = [1200, 900, 700, 500, 380], BILD_ROH_MAX = 40 * 1024 * 1024;
 export const PDF_SEITEN_MAX = 10, PDF_DPI = 300, PDF_MAX_KANTE = 5000, PDF_JPEG_GUETE = 0.92;
 const ORT = { assets: '../assets/', vendor: '/Workflow-PDF/vendor/' };
@@ -29,6 +30,11 @@ function ueberImage(quelle) {
 function dekodieren(quelle) {
   if (typeof Blob !== 'undefined' && quelle instanceof Blob && typeof createImageBitmap === 'function') return createImageBitmap(quelle).catch(() => ueberImage(quelle));
   return ueberImage(quelle);
+}
+function speicherFassung(bild) {
+  const bw = bild.width || bild.naturalWidth, bh = bild.height || bild.naturalHeight, f = Math.min(1, BILD_SPEICHER.kante / Math.max(bw, bh));
+  const c = document.createElement('canvas'); c.width = Math.max(1, Math.round(bw * f)); c.height = Math.max(1, Math.round(bh * f));
+  c.getContext('2d').drawImage(bild, 0, 0, c.width, c.height); return alsDatenAdresse(c);
 }
 function aufKante(bild, kante, guete) {
   const bw = bild.width || bild.naturalWidth, bh = bild.height || bild.naturalHeight, f = Math.min(1, kante / Math.max(bw, bh));
@@ -53,7 +59,7 @@ export async function bildFuersNetz(quelle, kante = 1200, guete = 0.90, deckel) 
 /** Ein Kamerafoto, EIN Dekodier-Durchgang, zwei Ergebnisse: was an die KI geht (netz) und was als Rezeptbild bleibt (store). */
 export async function scanBildAufbereiten(datei) {
   let bild; try { bild = await dekodieren(datei); } catch { return null; }
-  const netz = bildAufDeckel(bild, 1200, 0.90), store = aufKante(bild, 1024, 0.82); if (bild && bild.close) bild.close();
+  const netz = bildAufDeckel(bild, 1200, 0.90), store = speicherFassung(bild); if (bild && bild.close) bild.close();   /* Klaus 26.11.: das Rezeptbild in hoher Qualität (1600 px, WebP), was an die KI geht, bleibt klein */
   return { netz, store };
 }
 

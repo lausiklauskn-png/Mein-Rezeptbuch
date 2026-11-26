@@ -915,4 +915,11 @@ export default {
   'Die gewählten Rezepte werden aus dem Buch entfernt. Gleich danach lässt es sich rückgängig machen.': 'Le ricette scelte vengono tolte dal libro. Subito dopo si può annullare.',
   '{0} Rezepte gelöscht': '{0} ricette eliminate',
   '{0} Rezepte löschen?': 'Eliminare {0} ricette?',
+  'Bild unscharf ({0} px)': 'Immagine sfocata ({0} px)',
+  'Bilder werden platzsparend gespeichert …': 'Salvataggio compatto delle immagini …',
+  'Die Bilder sind schon platzsparend gespeichert': 'Le immagini sono già salvate in modo compatto',
+  'Für diese Größe ein schärferes Foto aufnehmen oder ein KI-Bild erzeugen': 'Per questa dimensione scatta una foto più nitida o crea un’immagine IA',
+  'Platz sparen': 'Risparmia spazio',
+  'Rechnet große Bilder platzsparend neu (1600 px, WebP). Ein Bild wird nur ersetzt, wenn es dabei mindestens 10 % kleiner wird.': 'Risalva le immagini grandi per risparmiare spazio (1600 px, WebP). Un’immagine viene sostituita solo se diventa almeno il 10 % più piccola.',
+  '{0} Bilder neu gespeichert · {1} MB gespart': '{0} immagini risalvate · {1} MB risparmiati',
 };

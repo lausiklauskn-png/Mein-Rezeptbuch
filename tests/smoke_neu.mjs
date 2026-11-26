@@ -230,7 +230,7 @@ try {
   await p.waitForSelector('.rezept-held > img');
   ok(await p.locator('#warten-zeile.an, #warten-balken.an').count() === 0, 'Ladebalken: danach ist er wieder weg');
   ok(rufe.length === 1 && rufe[0].kopf === 'Bearer sk-probe' && rufe[0].leib.prompt.includes('Ratatouille') && !('response_format' in rufe[0].leib), 'ein Aufruf an OpenAI, mit dem Schlüssel und dem Rezeptnamen');
-  ok((await p.locator('.rezept-held > img').getAttribute('src')).startsWith('data:image/jpeg'), 'das Bild liegt als data:-Adresse im Rezept');
+  ok((await p.locator('.rezept-held > img').getAttribute('src')).startsWith('data:image/webp'), 'das Bild liegt als data:-Adresse im Rezept (WebP, Klaus 26.11.)');
   ok(await p.evaluate(() => !localStorage.getItem('openaiImgKey9m') && !localStorage.getItem('openaiKey9m') && !localStorage.getItem('openaiImgKey9')), 'der Schlüssel liegt im Kern-Speicher; der Speicher der bisherigen App und der von Muttis bleiben unberührt');
   await p.click('#leiste .fl-griff'); await p.click('#leiste [data-zu=werkstatt]'); const [lad] = await Promise.all([p.waitForEvent('download'), p.click('[data-a=sichern]')]);
   ok(!(await readFile(await lad.path(), 'utf8')).includes('sk-probe'), 'der Schlüssel steht nicht in der Sicherung');

@@ -186,7 +186,7 @@ try {
     console.log(`7 · Bild anpassen im Vollbild (${breite} px)`);
     ({ p, k } = await seite(breite)); await zumRezept(p, 'Kartoffelsuppe');
     const kopf = await box(p, '.rezept-held>img'), karte = breite >= 1000 ? await box(p, '.md-liste .karte .bild') : null;
-    await p.locator('.rezept-held>img').click({ position: { x: 30, y: 30 } }); await p.waitForSelector('.bildvoll');
+    await p.locator('.rezept-held>img').click({ position: { x: Math.round(kopf.w / 2), y: Math.round(kopf.h / 3) } });   /* oben links steht bei einem kleinen Bild der Hinweis „Bild unscharf“ (Klaus 26.11.) */ await p.waitForSelector('.bildvoll');
     const bv = await box(p, '.bildvoll'), vp = await p.evaluate(() => [innerWidth, innerHeight]);
     ok(Math.abs(bv.w - vp[0]) < 2 && Math.abs(bv.h - vp[1]) < 2 && await p.locator('.bildvoll #zs-rahmen').count() === 1, 'ein Tipp aufs Bild öffnet gleich „Bild anpassen“ im Vollbild', JSON.stringify(bv));
     const ra = await box(p, '#zs-rahmen'), wz = await box(p, '.bv-werk');
@@ -198,9 +198,9 @@ try {
     ok(await querlauf(p) <= 0, 'nichts läuft quer');
     await p.click('.bildvoll [data-a=zs-lage][data-l="50,0"]'); await p.click('.bildvoll [data-a=zs-ok]'); await p.waitForTimeout(300);
     r = await rz(p, 'r-suppe'); ok(r.imgCrop?.y === 0 && await p.locator('.bildvoll').count() === 0, '„Übernehmen“ speichert den Ausschnitt und schließt');
-    await p.locator('.rezept-held>img').click({ position: { x: 30, y: 30 } }); await p.waitForSelector('.bildvoll'); await p.goBack(); await p.waitForTimeout(200);
+    await p.locator('.rezept-held>img').click({ position: { x: Math.round(kopf.w / 2), y: Math.round(kopf.h / 3) } }); await p.waitForSelector('.bildvoll'); await p.goBack(); await p.waitForTimeout(200);
     ok(await p.locator('.bildvoll').count() === 0 && await p.locator('.rezept-held h1').count() === 1, 'die Zurück-Taste schließt das Vollbild und bleibt beim Rezept');
-    await p.locator('.rezept-held>img').click({ position: { x: 30, y: 30 } }); await p.waitForSelector('.bildvoll'); await p.click('.bv-werk [data-w=bild-entfernen]'); await p.waitForTimeout(300);
+    await p.locator('.rezept-held>img').click({ position: { x: Math.round(kopf.w / 2), y: Math.round(kopf.h / 3) } }); await p.waitForSelector('.bildvoll'); await p.click('.bv-werk [data-w=bild-entfernen]'); await p.waitForTimeout(300);
     r = await rz(p, 'r-suppe'); ok(!r.img && await p.locator('.bildvoll').count() === 0 && await p.locator('#toast [data-a=toast-tun]').count() === 1, '„Bild entfernen“ nimmt das Bild weg und bietet Rückgängig');
     await p.click('#toast [data-a=toast-tun]'); await p.waitForTimeout(300); ok(!!(await rz(p, 'r-suppe')).img, 'Rückgängig bringt es zurück');
     await k.close();
