@@ -53,6 +53,16 @@ So läuft es dort:
 2. In GitHub → Repo → Settings → Environments → `android-production` → Secret anlegen (Name siehe oben).
 3. Danach startet die Sitzung „Signieridentität initialize“ und führt den PR `signing/android-identity` zusammen.
 
+**Server-Spiegel steht schon bereit (gesehen 26.11. auf Klaus' Hetzner-Server):** `family-project/server/spezial/spiegeln.mjs` holt die
+Pro-Dateien aus den **GitHub-Releases** auf den eigenen Server (Marktplatz Spezial, Download gegen Passkey). In `quellen.json` stehen schon
+`rezeptbuch-pro` (Repo `Mein-Rezeptbuch`, „Mein Rezeptbuch Pro“) und `mixarium-pro` (`Mein-Mixarium`, „Mein Mixarium Pro“); der Lauf meldet
+„unverändert“, weil es noch keine Releases gibt. Dateinamen der Release-Anhänge so wählen, wie `spiegeln.mjs` sie erwartet (dort nachlesen),
+und den App-Namen des Rezeptbuchs mit Klaus klären („Mein Rezeptbuch Pro“ wie beim Mixarium?).
+
+**Klaus' Freigaben (26.11. abends):** Befehle für Termux sind gegeben (Freigabe erzeugen, als `RB_SIGNING_UNLOCK` / `MX_SIGNING_UNLOCK` im
+Environment `android-production` eintragen, mit `age -p` nach Downloads sichern, Gegenprobe „GLEICH“). Zu Beginn der Sitzung fragen, ob beide
+Secrets stehen.
+
 **Fertig ist es, wenn:**
 - Klaus vier feste Links hat (je App APK und Setup).
 - Die zweite Fassung sich über die erste installiert.
