@@ -46,7 +46,8 @@ jobs:
             echo 'Initialisierung ist bereits auf signing/android-identity vorhanden. Diese zuerst prüfen.'
             exit 1
           fi
-          releases=$(gh api "repos/$GITHUB_REPOSITORY/releases?per_page=1" --jq 'length')
+          # Nur App-Auslieferungen zählen (Tag vX.Y.Z); die Ablage-Releases „eingang-…“ tragen keine signierte App.
+          releases=$(gh api "repos/$GITHUB_REPOSITORY/releases?per_page=100" --jq '[.[] | select(.tag_name | test("^v[0-9]+[.][0-9]+[.][0-9]+$"))] | length')
           if test "$releases" -gt 0; then
             echo 'Auslieferungen bereits vorhanden. Bestehenden Schlüssel wiederherstellen, keine neue Identität erzeugen.'
             exit 1
@@ -63,7 +64,7 @@ jobs:
           TMPDIR: ${{ runner.temp }}
         run: node tools/signing/cli.mjs check
       - name: Nur verschlüsselte Identität und öffentlichen Fingerabdruck sichern
-        if: always() && inputs.operation == 'initialize'
+        if: success() && inputs.operation == 'initialize'
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
         with:
           name: encrypted-signing-identity
