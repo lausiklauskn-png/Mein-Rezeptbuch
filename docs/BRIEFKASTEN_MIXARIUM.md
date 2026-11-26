@@ -14,7 +14,20 @@ Klaus 23.11.2026: „Brief lesen, bevor gebaut wird. Und dann Brief ergänzen, s
 
 ---
 
-## Runde J · 25.11.2026 spätabends · Kern 0.31.0, PWA 0.19.0 (R6 Doppelungen, Merkmale einer Variante)
+## Runde K · 26.11.2026 · Kern 0.33.2, PWA 0.19.9 (Fotos, Doppelungen im ganzen Buch, Blättern)
+
+| Kern | neu |
+|---|---|
+| 0.32 | `modell/doppel.mjs`: `findeDoppelImBuch(alle, {hash})` (ganzes Buch, jedes Rezept in höchstens einem Paar), Mengen-Regel (`mengenGleich`, gleiche Mengen in gleicher Folge = dieselbe Übersetzung), Vergleich auch über `sicht(r, sprache)` |
+| 0.33 | `oberflaeche/bild.mjs`: Fotos als WebP 0.86 mit 1600 px (`BILD_SPEICHER`, `alsDatenAdresse`), `platzSparen`, `datenGroesse`, `aufloesung` |
+| 0.33.1 | `mengenGleich` zählt erst ab drei verschiedenen Mengen (überall „2 cl“ machte den Virgin Mojito zum Doppel des Mojito; gefunden in der Mixarium-Probe) |
+| 0.33.2 | `platzSparen` rechnet ein schon gespeichertes WebP bis 1600 px nicht noch einmal (Absicherung; die 10-%-Schwelle fing es im Test schon ab) |
+
+- **Mixarium hat es übernommen (vor42):** „Doppelte suchen“ und „Platz sparen“ auf der Bilder-Seite, Proben `smoke_neu_doppel` (40), `scan` (56), `web` (29).
+- **Klaus 26.11.:** Mixarium misst live 96 · 99 · 100 · 100. Fürs Rezeptbuch ist geplant: App zuerst, Startbilder unscharf vorab, scharf im Hintergrund.
+  Neu fürs Mixarium: Getränke aus dem Rezeptbuch, die dort fehlen, und eine Kategorie **Fingerfood**. Der Verlauf im Mixarium-Bild bleibt, wie er ist.
+
+## Runde J · 25.11.2026 spätabends · Kern 0.31.0, PWA 0.19.0 (R6 Doppelungen, Merkmale einer Variante) (vorige Fassung)
 
 | Kern | neu |
 |---|---|
@@ -32,19 +45,3 @@ Klaus 23.11.2026: „Brief lesen, bevor gebaut wird. Und dann Brief ergänzen, s
   `doppelPruefen` nach dem Einlesen und dem Stapel-Scan, `formDoppelBand` im Formular) ist übernehmbar. **Die Merkmal-Leiste NICHT** – Klaus
   25.11.: „Mixarium soll nicht betroffen sein.“ Kern 0.30.1 liest `merkmale` in Suche, Bedeutungssuche, Druck und Teilen nur, wo das Feld
   gesetzt ist; ohne Feld bleibt alles wie bisher (der Text für die Bedeutungssuche ändert sich nicht, nichts wird neu eingelesen).
-
-## Runde I · 25.11.2026 spät · Kern 0.28.1, PWA 0.16.1 (Bedienung am Rezept, Übersetzung, Bild, Seitenleiste) (vorige Fassung)
-
-| Kern | neu |
-|---|---|
-| 0.28.1 | `ki/helfer.mjs`: `uebersetzeMit(rezept, ziel, uebersetzer)` (Übersetzer im Gerät, z. B. Chromes Translator-API; Form wie `uebersetze`, dazu `weg: 'geraet'`), `rateSprache(r)` (kyrillisch/chinesisch, sonst kleine Wörter; nicht eindeutig → ''), `alsUebersetzung(alt, ziel, neu)` und `alsHauptfassung(alt, ziel, neu, quelle)` (bearbeitete Übersetzung nur als Übersetzung bzw. als Hauptfassung; das bisherige Original wandert mit `original: true` unter seine Sprache, `r.sprache` = neue Sprache). Drei neue Kern-Texte in allen Tabellen. Proben `test/kern-fassung.test.js`. |
-
-- **Fürs Mixarium (beim nächsten `kern-nachziehen`):** die vier Funktionen sind neu, nichts Bestehendes ändert sich. Wer dort „Bearbeiten“ an einer
-  gezeigten Übersetzung anbietet, sollte dieselbe Frage stellen (sonst überschreibt er das Original mit fremdsprachigem Text).
-- **PWA 0.16.1 (nur `neu/`, übernehmbar, jeweils prüfen):** Stift an „Zutaten“/„Zubereitung“ (an Ort und Stelle, Nummern nur Anzeige); „Einordnen“ =
-  Kategorie und Ordner in einem Fenster; Bearbeiten direkt vor Löschen; Bearbeiten am breiten Schirm rechts; Tipp aufs Bild → „Bild anpassen“ im
-  Vollbild mit Bildwegen unten rechts und Vorschau aus echten Maßen (im Mixarium: Getränkekarten sind hochkant – `bildMasse` misst die Karte, das
-  passt dort von selbst); Vollbild-Knopf (ganze App) unten rechts im Rezeptbild statt „Nur dieses Rezept“; Seitenleiste links/rechts einrasten
-  (`E.railSeite`); **Zweispaltigkeit per Container-Query** (am geteilten Schirm war die Zubereitung gequetscht – im Mixarium dieselbe Media-Query prüfen).
-- **Food-Zine** (Mixarium nutzt es nicht): Blättern in der Großansicht; eigenes KI-Bild aus der Sammlung (Wahl-Modus); zwei Spalten.
-- Klaus' Beispiel für Ordner ist jetzt „Hochzeit von Jonas und Lisa“ (statt „Weihnachten“/„Für Gäste“).
