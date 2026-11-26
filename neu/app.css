@@ -1111,9 +1111,27 @@ a.knopf{text-decoration:none}
  .md-detail.spalten3{--bildh:min(38vh,520px)}
  .md-detail .rezept-held>img,.md-detail .rezept-held>img:not([style]),.md-detail.spalten3 .rezept-held>img,.md-detail.spalten3 .rezept-held>img:not([style]){
   justify-self:center;width:min(100%,calc(var(--bildh) * 2.6));height:auto;max-height:var(--bildh);aspect-ratio:auto;object-fit:cover;background:none;
-  -webkit-mask-image:linear-gradient(90deg,transparent,#000 7%,#000 93%,transparent),linear-gradient(180deg,transparent,#000 6%,#000 46%,rgba(0,0,0,.35) 82%,transparent);
-  -webkit-mask-composite:source-in;mask-image:linear-gradient(90deg,transparent,#000 7%,#000 93%,transparent),linear-gradient(180deg,transparent,#000 6%,#000 46%,rgba(0,0,0,.35) 82%,transparent);mask-composite:intersect}
+  -webkit-mask-image:linear-gradient(90deg,transparent,#000 4%,#000 96%,transparent),linear-gradient(180deg,transparent,#000 3%,#000 62%,rgba(0,0,0,.3) 88%,transparent);
+  -webkit-mask-composite:source-in;mask-image:linear-gradient(90deg,transparent,#000 4%,#000 96%,transparent),linear-gradient(180deg,transparent,#000 3%,#000 62%,rgba(0,0,0,.3) 88%,transparent);mask-composite:intersect}
  .md-detail .rezept-held:has(>img) .verlauf{z-index:1;margin-top:calc(-1 * clamp(36px,5vw,60px));text-shadow:0 0 16px var(--bg),0 0 6px var(--bg),0 0 2px var(--bg)}
  .md-detail .rezept-held:has(>img)>:is(.held-voll,.blatt-pfeil,.blatt-stand){z-index:3}
  .md-detail .rezept-held:has(>img)>.held-voll{align-self:end;margin:0 calc((100% - min(100%, var(--bildh) * 2.6)) / 2 + 12px) calc(clamp(36px,5vw,60px) + 12px) 0}   /* unten rechts im Bild, über dem Auslauf, in dem der Name steht; auch wenn das Bild schmaler als die Spalte ist */
 }
+/* Klaus 26.11.: zwei Äste wie im Explorer – Kopf mit Griff (umstellen) und Winkel (auf/zu) */
+.bz-block{margin-top:10px;position:relative;z-index:1}
+.bz-block.bz-zieht{z-index:5;box-shadow:0 10px 26px rgba(0,0,0,.18);background:var(--bg);border-radius:12px}
+.bz-teilkopf{display:flex;align-items:center;gap:4px;border-bottom:1px solid var(--line)}
+.bz-tgriff{cursor:grab;touch-action:none;padding:8px 4px;color:var(--mut);display:grid;place-items:center}
+.bz-teilkopf .bz-teil{flex:1;display:flex;align-items:center;gap:8px;margin:0;padding:10px 4px;background:none;border:0;cursor:pointer;text-align:left;font:inherit;font-size:12.5px;letter-spacing:.06em;text-transform:uppercase;color:var(--mut);font-weight:700;min-height:44px}
+.bz-teilkopf .bz-teil small{font-weight:600;letter-spacing:0;text-transform:none;background:var(--fl2);border-radius:999px;padding:1px 8px}
+.bz-teilkopf .bz-teil .bz-pf{width:16px;height:16px;transition:transform .15s}
+.bz-teilkopf .bz-teil[aria-expanded="true"] .bz-pf{transform:rotate(90deg)}
+.bz-block .bz-baum{margin-top:8px}
+/* Klaus 26.11.: Klein | Groß als zwei Knöpfe nebeneinander, der gedrückte ist der Zustand */
+.segment{display:inline-flex;gap:0;border-radius:999px;overflow:hidden;border:1px solid var(--line)}
+.segment .chip{border:0;border-radius:0;margin:0}
+.segment .chip[aria-pressed="true"]{background:var(--akz);color:var(--akz-ink)}
+/* Klaus 26.11.: das Viereck „Alle“ neben „Auswählen“ */
+.bz-alle-wahl{gap:8px}
+.bz-alle-wahl .bz-haken{width:22px;height:22px;border-radius:6px}
+.bz-alle-wahl[aria-pressed="true"] .bz-haken{background:var(--akz);border-color:var(--akz)}

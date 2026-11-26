@@ -41,9 +41,9 @@ import { naehrwerte, naehrwerteAnRezept, naehrwertZeilen, rechtschreibung, recht
 import { druckRezept, drucke, druckMenuekarte } from '../kern/ausgabe/druck.mjs';
 import { teilLink, ausTeilLink, qrSvg, passtInQr } from '../kern/teilen/qr.mjs';
 import { rezeptIn } from '../kern/modell/einheiten.mjs';
-import { findeDoppel, wendeAn, dHash, MERKMALE, merkmaleVon, merkmalUmschalten } from '../kern/modell/doppel.mjs';
+import { findeDoppel, findeDoppelImBuch, wendeAn, dHash, MERKMALE, merkmaleVon, merkmalUmschalten } from '../kern/modell/doppel.mjs';
 
-const FASSUNG = '0.19.4';
+const FASSUNG = '0.19.5';
 const breit = () => matchMedia('(min-width:1000px)').matches;
 const $ = (id) => document.getElementById(id);
 const esc = (t) => String(t ?? '').replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
@@ -73,7 +73,7 @@ async function spracheBereit(frist = 1200) {
 let ausgabe = null, lager = null;
 let Z = leererZustand();                     // Rezepte, Wochenplan, Ordner, Kategorien
 let E = { sprache: null, farbe: 'braun', leiste: { seite: 'r', pos: 64 }, zuletzt: null, ton: 'geraet', schrift: 100, railZu: false, sinn: false };   // Einstellungen dieses Geräts
-const s = { ansicht: 'start', uid: null, frage: '', kat: 'alle', portion: {}, werkzeug: false, leisteAuf: false, form: null, nurDies: false, planTag: new Date(), bilder: { gross: false, filter: 'alle', wahl: new Set() }, bildZiel: null, rleiste: false, scan: null, web: null, scanMehr: false, werkAuf: new Set(), original: null, baum: { q: '', auf: new Set(), wahl: null } };
+const s = { ansicht: 'start', uid: null, frage: '', kat: 'alle', portion: {}, werkzeug: false, leisteAuf: false, form: null, nurDies: false, planTag: new Date(), bilder: { gross: false, filter: 'alle', wahl: new Set() }, bildZiel: null, rleiste: false, scan: null, web: null, scanMehr: false, werkAuf: new Set(), original: null, baum: { q: '', auf: new Set(), wahl: null, teilAuf: new Set() } };
 const LEER_EINKAUF = () => ({ posten: [], haken: {}, eigene: [], laeden: { Supermarkt: [] }, laden: 'Supermarkt' });
 function ergaenze() { Z.einkauf = { ...LEER_EINKAUF(), ...(Z.einkauf || {}) }; if (!Z.einkauf.laeden[Z.einkauf.laden]) Z.einkauf.laden = Object.keys(Z.einkauf.laeden)[0] || 'Supermarkt'; if (!Z.einkauf.laeden[Z.einkauf.laden]) Z.einkauf.laeden[Z.einkauf.laden] = []; if (!Z.plan) Z.plan = ausAltemMenu(Z.menu, Z.rezepte); if (!Z.planPortionen || typeof Z.planPortionen !== 'object') Z.planPortionen = {}; }
 
@@ -109,6 +109,7 @@ function geh(ansicht, extra = {}, ersetzen = false) {
   diktatAus();
   if (ansicht === 'form' && s.ansicht !== 'form') s.formVon = s.ansicht;   /* woher das Formular kam: am breiten Schirm bleibt diese Liste links stehen */
   Object.assign(s, { ansicht, leisteAuf: false, rleiste: false, abschnitt: null, ...extra });   /* jede Ansicht beginnt mit eingeklappten Werkzeugen */
+  if ((ansicht === 'baum' || ansicht === 'ordner') && s.baum) { s.baum.teilAuf = new Set(); s.baum.auf = new Set(); }   /* Klaus 26.11.: wer die Ordner öffnet, sieht beide Bäume zugeklappt */
   if (ansicht === 'form' && s.ausNotiz && s.form?.neu) { s.form.notiz = s.ausNotiz; s.ausNotiz = null; }   /* aus dem Notizbuch (Foto lesen, Vom Teller): die Notiz reist mit */
   if (ansicht === 'kochen') { $('toast').innerHTML = ''; toastTun = null; }   // nichts über den Knöpfen der Kochansicht
   const st = { ansicht, uid: s.uid };
@@ -187,6 +188,8 @@ function startRest() {
   }
   return h;
 }
+/* Klaus 26.11.: ein neuer Event-Ordner steht immer oben – er ist der, mit dem man gerade arbeitet; man muss nicht nach unten rollen. */
+function ordNeu(n) { const a = ordAnlegen(Z.ordner, n); Z.ordner = a.neu ? ordUmsortieren(a.ordner, a.id, Z.ordner[0]?.id ?? null) : a.ordner; return a; }
 const ordTitel = (o) => ordnerName(o) || L('Event-Ordner', 'Event folder');
 function leerHtml() {
   return `<div class="leer einladung"><img class="leer-bild" src="../icons/ausgeloest-48fb59f123.jpg?v=1" alt="" width="640" height="427"><div class="leer-text"><h2>${L('Noch keine Rezepte', 'No recipes yet')}</h2>
@@ -659,7 +662,7 @@ function baumHtml() {
   const g = baumGruppen(), alleAuf = [...g.kats, ...g.ords].every((x) => s.baum.auf.has(bzKey(x.art, x.id)));
   return `<div class="ueber"><h2 style="font-size:19px">${L('Ordner', 'Folders')}</h2>${frag(BAUM_ERKL())}</div>
    <form class="suche bz-suche" data-form="baum-suche" role="search">${ic('suche')}<input id="baumfeld" name="q" value="${esc(s.baum.q)}" placeholder="${L('Im Baum suchen …', 'Search the tree …')}" aria-label="${L('Im Baum suchen', 'Search the tree')}" autocomplete="off" enterkeyhint="search"><button type="button" id="baum-x" data-a="baum-suche-leer" aria-label="${L('Eingabe löschen', 'Clear input')}" ${s.baum.q ? '' : 'hidden'}>${ic('x')}</button></form>
-   <div class="reihe bz-knoepfe"><button class="chip" data-a="baum-ordner-neu">${ic('plus')}${L('Neuer Event-Ordner', 'New event folder')}</button><button class="chip" data-a="geh" data-zu="kategorien">${ic('stift')}${L('Kategorien umbenennen', 'Rename categories')}</button><button class="chip" data-a="baum-alle" aria-pressed="${alleAuf}">${ic(alleAuf ? 'hoch' : 'rechts')}${alleAuf ? L('Alle einklappen', 'Collapse all') : L('Alle aufklappen', 'Expand all')}</button><button class="chip" data-a="baum-wahl" aria-pressed="${!!s.baum.wahl}">${ic('haken')}${L('Auswählen', 'Select')}</button></div>
+   <div class="reihe bz-knoepfe"><button class="chip" data-a="baum-ordner-neu">${ic('plus')}${L('Neuer Event-Ordner', 'New event folder')}</button><button class="chip" data-a="geh" data-zu="kategorien">${ic('stift')}${L('Kategorien umbenennen', 'Rename categories')}</button><button class="chip" data-a="baum-alle" aria-pressed="${alleAuf}">${ic(alleAuf ? 'hoch' : 'rechts')}${alleAuf ? L('Alle einklappen', 'Collapse all') : L('Alle aufklappen', 'Expand all')}</button><button class="chip" data-a="baum-wahl" aria-pressed="${!!s.baum.wahl}">${ic('haken')}${L('Auswählen', 'Select')}</button>${s.baum.wahl ? (() => { const alle = baumAlleUids(), an = alle.length > 0 && alle.every((u) => s.baum.wahl.has(u)); return `<button class="chip bz-alle-wahl" data-a="baum-alle-haken" aria-pressed="${an}" aria-label="${an ? L('Alle abwählen', 'Deselect all') : L('Alle auswählen', 'Select all')}"><span class="bz-haken" aria-hidden="true">${an ? ic('haken') : ''}</span>${L('Alle', 'All')}</button>`; })() : ''}<button class="chip" data-a="doppel-buch" title="${esc(L('Sucht im ganzen Buch nach doppelten Rezepten, auch nach einer deutschen und einer englischen Fassung desselben Rezepts', 'Looks through the whole book for duplicate recipes, including a German and an English version of the same recipe'))}">${ic('suche')}${L('Doppelte suchen', 'Find duplicates')}</button></div>
    <div id="baum-rest">${baumRest(g)}</div>${s.baum.wahl ? baumWahlLeiste() : ''}`;
 }
 function baumRest(g = baumGruppen()) {
@@ -668,8 +671,14 @@ function baumRest(g = baumGruppen()) {
   /* leere Kategorien (Klaus 25.11.): eingeklappt hinter einer Zeile, nicht versteckt – man muss noch Rezepte hineinziehen können */
   const leer = g.q ? [] : kats.filter((x) => !x.alle.length && !x.imOrdner), voll = kats.filter((x) => !leer.includes(x));
   const leerZeile = leer.length ? `<button class="bz-leere" data-a="baum-leere" aria-expanded="${!!s.baum.leere}">${ic('rechts', 'bz-pf')}${esc(fuelle(L('+ {0} leere Kategorien', '+ {0} empty categories'), leer.length))}</button>` : '';
-  return `<h3 class="bz-teil">${L('Kategorien', 'Categories')}</h3><div class="bz-baum" data-teil="kat">${voll.map((x) => baumGruppe(x, g.q)).join('')}${s.baum.leere ? leer.map((x) => baumGruppe(x, g.q)).join('') : ''}</div>${leerZeile}
-   <h3 class="bz-teil">${L('Event-Ordner', 'Event folders')}</h3><div class="bz-baum" data-teil="ord">${ords.map((x) => baumGruppe(x, g.q)).join('') || `<p class="quelle" id="bz-ord-leer">${g.q ? '' : L('Noch kein Event-Ordner. „Neuer Event-Ordner“ legt einen an; danach Rezepte hineinziehen.', 'No event folder yet. “New event folder” creates one; then drag recipes into it.')}</p>`}</div>`;
+  /* Klaus 26.11.: wie im Explorer – „Event-Ordner“ und „Kategorien“ sind zwei Äste, beim Öffnen zugeklappt; die Event-Ordner stehen
+     oben (sie sind klein und kommen und gehen), die Folge lässt sich mit dem Griff am Ast umstellen (E.baumFolge). Bei einer Suche sind beide offen. */
+  const teilAuf = (t) => !!g.q || (s.baum.teilAuf || new Set()).has(t);
+  const kopf = (t, titel, n) => `<div class="bz-teilkopf" data-teil="${t}"><span class="griff bz-tgriff" data-teil="${t}" aria-hidden="true" title="${L('Zum Verschieben ziehen', 'Drag to move')}">${ic('griff')}</span><button class="bz-teil" data-a="baum-teil" data-teil="${t}" aria-expanded="${teilAuf(t)}">${ic('rechts', 'bz-pf')}${titel} <small>${n}</small></button></div>`;
+  const katBlock = `<section class="bz-block" data-block="kat">${kopf('kat', L('Kategorien', 'Categories'), voll.length)}${teilAuf('kat') ? `<div class="bz-baum" data-teil="kat">${voll.map((x) => baumGruppe(x, g.q)).join('')}${s.baum.leere ? leer.map((x) => baumGruppe(x, g.q)).join('') : ''}</div>${leerZeile}` : ''}</section>`;
+  const ordInhalt = ords.map((x) => baumGruppe(x, g.q)).join('') || `<p class="quelle" id="bz-ord-leer">${g.q ? '' : L('Noch kein Event-Ordner. „Neuer Event-Ordner“ legt einen an; danach Rezepte hineinziehen.', 'No event folder yet. “New event folder” creates one; then drag recipes into it.')}</p>`;
+  const ordBlock = `<section class="bz-block" data-block="ord">${kopf('ord', L('Event-Ordner', 'Event folders'), ords.length)}${teilAuf('ord') ? `<div class="bz-baum" data-teil="ord">${ordInhalt}</div>` : ''}</section>`;
+  return (E.baumFolge === 'kat-ord' ? [katBlock, ordBlock] : [ordBlock, katBlock]).join('');
 }
 function baumGruppe(x, q) {
   /* Klaus 25.11.: wie die alte Liste – gleich da ändern, wo es steht: Name im Feld, Tipp aufs Bild ändert das Bild, Müll löscht, Pfeile ordnen zu. Kein Zwischenfenster. */
@@ -730,7 +739,8 @@ function baumZeile(r0) {
   const r = zeig(r0), w = s.baum.wahl, an = w?.has(r0.uid), c = alleKategorien(Z.rezepte, Z.kategorien).find((x) => x.id === katVonRezept(r0));
   return `<div class="bz-zeile" data-uid="${esc(r0.uid)}" ${breit() && s.uid === r0.uid ? 'aria-current="true"' : ''}>${w ? `<button class="bz-haken" data-a="baum-haken" data-uid="${esc(r0.uid)}" aria-pressed="${!!an}" aria-label="${esc(fuelle(L('„{0}“ auswählen', 'Select “{0}”'), r.name))}">${an ? ic('haken') : ''}</button>` : ''}<button class="bz-r" data-a="baum-rezept" data-uid="${esc(r0.uid)}"><span class="kat-zeichen bz-bild">${r0.img ? `<img class="sticker" src="${esc(r0.img)}" alt="" loading="lazy" ${ausschnitt(r0)}>` : c ? katZeichen(c) : ic('karte')}</span><span class="bz-rname">${esc(r.name)}</span></button><span class="griff bz-rgriff" aria-hidden="true" title="${L('Zum Verschieben lange drücken oder ziehen', 'Long-press or drag to move')}">${ic('griff')}</span></div>`;
 }
-const baumWahlLeiste = () => { const n = s.baum.wahl.size; return `<div class="bz-wahl" role="toolbar" aria-label="${L('Auswahl', 'Selection')}"><span id="bz-wahl-zahl">${esc(fuelle(L('{0} gewählt', '{0} selected'), n))}</span><button class="knopf akz" data-a="baum-verschieben" ${n ? '' : 'disabled'}>${ic('pfeile')}${L('Verschieben nach …', 'Move to …')}</button><button class="rund" data-a="baum-wahl" aria-label="${L('Auswahl beenden', 'End selection')}">${ic('x')}</button></div>`; };
+const baumAlleUids = () => { const g = baumGruppen(); return [...new Set([...g.kats, ...g.ords].flatMap((x) => x.rz.map((r) => r.uid)))]; };
+const baumWahlLeiste = () => { const n = s.baum.wahl.size; return `<div class="bz-wahl" role="toolbar" aria-label="${L('Auswahl', 'Selection')}"><span id="bz-wahl-zahl">${esc(fuelle(L('{0} gewählt', '{0} selected'), n))}</span><button class="knopf akz" data-a="baum-verschieben" ${n ? '' : 'disabled'}>${ic('pfeile')}${L('Verschieben nach …', 'Move to …')}</button><button class="knopf rot" data-a="baum-wahl-weg" ${n ? '' : 'disabled'}>${ic('muell')}${L('Löschen', 'Delete')}</button><button class="rund" data-a="baum-wahl" aria-label="${L('Auswahl beenden', 'End selection')}">${ic('x')}</button></div>`; };
 function baumZielFenster(uids) {
   const kats = alleKategorien(Z.rezepte, Z.kategorien);
   fenster(`<h2>${esc(fuelle(L('{0} Rezepte verschieben nach …', 'Move {0} recipes to …'), uids.length))}</h2><h3>${L('Kategorie', 'Category')}</h3><div class="wahl-liste" id="bz-ziele">${kats.map((c) => `<button class="zeile" data-a="baum-ziel" data-art="kat" data-id="${esc(c.id)}"><span class="kat-zeichen">${katSticker(c)}</span><span>${esc(katName(c))}</span></button>`).join('')}</div>
@@ -793,6 +803,17 @@ const bzLos = (ev) => {
 };
 document.addEventListener('pointerup', bzLos); document.addEventListener('pointercancel', bzLos);
 document.addEventListener('contextmenu', (ev) => { if (ev.target.closest?.('.bz-rgriff, .bz-ggriff')) ev.preventDefault(); });
+/* Klaus 26.11.: die zwei Äste (Event-Ordner, Kategorien) mit der Hand umstellen – am Griff ziehen und auf den anderen Ast fallen lassen. */
+let bt = null;
+document.addEventListener('pointerdown', (ev) => { const h = ev.target.closest?.('.bz-tgriff'); if (!h || ev.button > 0) return; const el = h.closest('.bz-block'); bt = { el, y0: ev.clientY }; el.classList.add('bz-zieht'); try { h.setPointerCapture(ev.pointerId); } catch { /* geht auch ohne */ } ev.preventDefault(); });
+document.addEventListener('pointermove', (ev) => { if (bt) bt.el.style.transform = `translateY(${ev.clientY - bt.y0}px)`; });
+const btLos = (ev) => { if (!bt) return; const b = bt; bt = null; b.el.classList.remove('bz-zieht'); b.el.style.transform = '';
+  if (ev.type === 'pointercancel' || Math.abs(ev.clientY - b.y0) < 20) return;
+  b.el.style.visibility = 'hidden'; const unter = document.elementFromPoint(ev.clientX, ev.clientY)?.closest?.('.bz-block'); b.el.style.visibility = '';
+  const andere = [...document.querySelectorAll('.bz-block')].find((x) => x !== b.el), oben = document.querySelector('.bz-block')?.dataset.block;
+  if (unter !== andere && !(andere && (ev.clientY - b.y0 > 0 ? ev.clientY > andere.getBoundingClientRect().top : ev.clientY < andere.getBoundingClientRect().bottom))) return;
+  E.baumFolge = oben === 'kat' ? 'ord-kat' : 'kat-ord'; sichern(); zeichne(); };
+document.addEventListener('pointerup', btLos); document.addEventListener('pointercancel', btLos);
 
 /* ---------- R5 (Klaus 25.11., Vorbild Muttis `_rcardHdStart`): eine Rezeptkarte lange drücken (Finger 350 ms, Maus nach 6 px) und ziehen.
    Vor oder hinter eine andere Karte derselben Gruppe: eigene Reihenfolge. Auf ein Kategorie- oder Event-Ordner-Foto oben: zuordnen.
@@ -869,8 +890,8 @@ function bilderHtml() {
   const gez = mit.filter((r) => B.filter === 'alle' || (B.filter === 'beispiele' ? r.beispiel : !r.beispiel));
   for (const u of [...B.wahl]) if (!gez.some((r) => r.uid === u)) B.wahl.delete(u);
   return `<div class="ueber"><h2 style="font-size:19px">${L('Bilder', 'Pictures')}</h2><small>${fuelle(L('{0} Bilder · {1} Rezepte ohne Bild', '{0} pictures · {1} recipes without a picture'), mit.length, ohne.length)}</small></div>
-   <div class="laeden">${[['alle', L('Alle', 'All')], ['eigene', L('Eigene', 'Own')], ['beispiele', L('Beispiele', 'Examples')]].map(([f, t]) => `<button class="chip" data-a="bilder-filter" data-f="${f}" aria-pressed="${B.filter === f}">${t}</button>`).join('')}<button class="chip" data-a="bilder-gross" aria-pressed="${B.gross}">${ic('voll')}${B.gross ? L('Groß', 'Large') : L('Klein', 'Small')}</button>${frag(L('Tippe Bilder an, um sie auszuwählen. „Löschen“ entfernt nur das Bild; das Rezept mit seinem Text bleibt.', 'Tap pictures to select them. “Delete” removes only the picture; the recipe with its text stays.'))}</div>
-   <div class="reihe" style="margin-bottom:10px"><button class="knopf rot" data-a="bilder-weg" ${B.wahl.size ? '' : 'disabled'}>${ic('muell')}${fuelle(L('Löschen ({0})', 'Delete ({0})'), B.wahl.size)}</button><button class="knopf" data-a="bilder-alle-wahl">${B.wahl.size === gez.length && gez.length ? L('Auswahl aufheben', 'Clear selection') : L('Alle auswählen', 'Select all')}</button><button class="knopf rot" data-a="bilder-alle-weg" ${mit.length ? '' : 'disabled'}>${L('Alle Bilder löschen', 'Delete all pictures')}</button>${ZU.sammelKnopf()}</div>
+   <div class="laeden">${[['alle', L('Alle', 'All')], ['eigene', L('Eigene', 'Own')], ['beispiele', L('Beispiele', 'Examples')]].map(([f, t]) => `<button class="chip" data-a="bilder-filter" data-f="${f}" aria-pressed="${B.filter === f}">${t}</button>`).join('')}<span class="segment" role="group" aria-label="${L('Vorschau', 'Preview')}"><button class="chip" data-a="bilder-gross" data-g="0" aria-pressed="${!B.gross}">${L('Klein', 'Small')}</button><button class="chip" data-a="bilder-gross" data-g="1" aria-pressed="${!!B.gross}">${ic('voll')}${L('Groß', 'Large')}</button></span>${frag(L('Tippe Bilder an, um sie auszuwählen. „Löschen“ entfernt nur das Bild; das Rezept mit seinem Text bleibt.', 'Tap pictures to select them. “Delete” removes only the picture; the recipe with its text stays.'))}</div>
+   <div class="reihe" style="margin-bottom:10px"><button class="knopf rot" data-a="bilder-weg" ${B.wahl.size ? '' : 'disabled'}>${ic('muell')}${fuelle(L('Löschen ({0})', 'Delete ({0})'), B.wahl.size)}</button><button class="knopf" data-a="bilder-alle-wahl">${B.wahl.size === gez.length && gez.length ? L('Auswahl aufheben', 'Clear selection') : L('Alle auswählen', 'Select all')}</button><button class="knopf rot" data-a="bilder-alle-weg" ${mit.length ? '' : 'disabled'}>${L('Alle Bilder löschen', 'Delete all pictures')}</button>${ZU.sammelKnopf()}<button class="knopf" data-a="doppel-buch">${ic('suche')}${L('Doppelte suchen', 'Find duplicates')}</button>${mit.some((r) => r.beispiel) || Z.rezepte.some((r) => r.beispiel) ? `<button class="knopf" data-a="beispiele-uebernehmen">${ic('haken')}${L('Beispiele übernehmen', 'Keep the examples')}</button>` : ''}</div>
    <div class="bildgitter ${B.gross ? 'gross' : ''}">${gez.map((r) => `<button class="bildkachel" data-a="bild-wahl" data-uid="${esc(r.uid)}" aria-pressed="${B.wahl.has(r.uid)}"><img src="${esc(r.img)}" alt="" loading="lazy"><span class="hk">${B.wahl.has(r.uid) ? ic('haken') : ''}</span><span class="bn">${esc(r.name)}</span></button>`).join('') || `<p class="quelle">${L('Keine Bilder in dieser Auswahl.', 'No pictures in this selection.')}</p>`}</div>
    ${ohne.length ? `<div class="gruppe"><h3>${L('Rezepte ohne Bild', 'Recipes without a picture')}</h3><div class="liste">${ohne.map((r) => `<button class="zeile" data-a="bild-dazu" data-uid="${esc(r.uid)}">${ic('kamera')}<span>${esc(r.name)}<small>${L('Foto einfügen', 'Add photo')}</small></span></button>`).join('')}</div></div>` : ''}`;
 }
@@ -1100,7 +1121,7 @@ function werkstattHtml() {
     ['aussehen', 'auge', WF.blau, L('Darstellung', 'Appearance'), '',
       zeile('sprache', 'welt', L('Sprache', 'Language'), E.sprache ? sprachName(E.sprache) : L('wie das Gerät', 'same as device')) + zeile('farbe', 'auge', L('Farbe, hell und dunkel', 'Colour, light and dark'), farbName(E.farbe) + ' · ' + Lk(TOENE[E.ton] || '', TOENE_EN[E.ton] || '')) + zeile('schrift', 'stift', L('Schriftgröße', 'Text size'), schriftWert(E.schrift) + ' %') + zeile('kontrast', 'kontrast', L('Hoher Kontrast', 'High contrast'), E.kontrast ? L('an', 'on') : L('aus', 'off'), `aria-pressed="${!!E.kontrast}"`) + zeile('einheiten', 'waage', L('Einheiten', 'Units'), einhName()) + zeile('hinweise', 'frage', L('Hinweis-Blasen', 'Tooltips'), E.hinweiseAus ? L('aus', 'off') : L('an', 'on'), `aria-pressed="${!E.hinweiseAus}"`) + (INST.zeigen() ? zeile('installieren', 'laden', L('Als App installieren', 'Install as an app')) : '')],
     ['beispiele', 'paket', WF.petrol, L('Beispiele', 'Examples'), '',
-      zeile('beispiel', 'paket', L('Beispielbuch laden', 'Load example book'), beispielText()) + ZI.beispielZeile(zeile) + (b ? zeile('beispiele-weg', 'muell', L('Beispiele entfernen', 'Remove examples'), String(b)) : '')],
+      zeile('beispiel', 'paket', L('Beispielbuch laden', 'Load example book'), beispielText()) + ZI.beispielZeile(zeile) + (b ? zeile('beispiele-uebernehmen', 'haken', L('Beispiele übernehmen', 'Keep the examples'), L('werden zu deinen Rezepten', 'become your recipes')) + zeile('beispiele-weg', 'muell', L('Beispiele entfernen', 'Remove examples'), String(b)) : '')],
     ZU.hilfeThema(zeile, '#7d8794'),
     ['aufraeumen', 'muell', WF.koralle, L('Aufräumen', 'Clean up'), '', zeile('alles-weg', 'muell', L('Alle Rezepte löschen', 'Delete all recipes'), L('mit Rückfrage', 'asks first'))],
   ];
@@ -1214,7 +1235,7 @@ async function bildFingerabdruck(src) {
 }
 async function fingerabdruecke(rs) { const m = new Map(); for (const r of rs) if (istInhalt(r) && r.img) m.set(r.uid, await bildFingerabdruck(r.img)); return m; }
 let dopp = null;
-const dpGrund = (p) => [p.name === 1 ? L('Name gleich', 'Same name') : p.name >= 0.5 ? L('Name ähnlich', 'Similar name') : '', p.zutaten ? fuelle(L('Zutaten zu {0} % gleich', 'Ingredients {0} % the same'), Math.round(p.zutaten * 100)) : '', p.bild ? L('gleiches Bild', 'same picture') : ''].filter(Boolean).join(' · ');
+const dpGrund = (p) => [p.name === 1 ? L('Name gleich', 'Same name') : p.name >= 0.5 ? L('Name ähnlich', 'Similar name') : '', p.zutaten ? fuelle(L('Zutaten zu {0} % gleich', 'Ingredients {0} % the same'), Math.round(p.zutaten * 100)) : '', p.bild ? L('gleiches Bild', 'same picture') : '', p.mengen ? fuelle(L('Mengen zu {0} % gleich', 'Amounts {0} % the same'), Math.round(p.mengen * 100)) : '', p.uebersetzt ? fuelle(L('verglichen über die Übersetzung ({0})', 'compared via the translation ({0})'), p.uebersetzt.toUpperCase()) : ''].filter(Boolean).join(' · ');
 const dpSeite = (r, titel) => `<figure class="dp-seite"><span class="dp-bild">${r.img ? `<img src="${esc(r.img)}" alt="" loading="lazy">` : ic('karte')}</span><figcaption><small>${esc(titel)}</small><b>${esc(r.name)}</b><small>${fuelle(L('{0} Zutaten', '{0} ingredients'), r.ings.length)} · ${fuelle(L('{0} Schritte', '{0} steps'), r.steps.length)}</small></figcaption></figure>`;
 function dpWahlKnoepfe(p, w, akt, extra = '') {
   const neu = rezept(p.neu) || p.neuR, opt = [['meins', L('Meins behalten', 'Keep mine')], ...(neu?.img ? [['bild', L('Bild vom neuen', 'Picture from the new one')]] : []), ['text', L('Text vom neuen', 'Text from the new one')], ['ganz', L('Ganz das neue', 'All of the new one')], ['beide', L('Beide behalten', 'Keep both')]];
@@ -1226,9 +1247,20 @@ async function doppelPruefen(neuIds) {
   const hash = await W.mit(L('Doppelte Rezepte werden gesucht …', 'Looking for duplicate recipes …'), () => fingerabdruecke(Z.rezepte)).catch(() => new Map());
   const paare = findeDoppel(Z.rezepte, neuIds.filter((u) => rezept(u)), { hash });
   if (!paare.length) return;
+  doppelFenster(paare);
+}
+/* Klaus 26.11.: „Wo kann ich Rezeptdoppelungen entfernen?“ – das ganze Buch auf einmal, auch eine deutsche und eine englische Fassung desselben Rezepts. */
+async function doppelImBuch() {
+  const hash = await W.mit(L('Doppelte Rezepte werden gesucht …', 'Looking for duplicate recipes …'), () => fingerabdruecke(Z.rezepte)).catch(() => new Map());
+  const paare = findeDoppelImBuch(Z.rezepte, { hash });
+  if (!paare.length) { melde(L('Keine Doppel gefunden', 'No duplicates found')); return; }
+  doppelFenster(paare, true);
+}
+function doppelFenster(paare, imBuch = false) {
   dopp = { paare, wahl: new Map(paare.map((p) => [p.neu, p.stufe === 'sicher' ? 'meins' : 'beide'])) };
-  fenster(`<h2>${fuelle(L('Mögliche Doppel ({0})', 'Possible duplicates ({0})'), paare.length)}</h2><p>${L('Links steht dein Rezept, rechts das neue. Wähle je Paar, was bleibt. „Später“ behält beide.', 'Your recipe is on the left, the new one on the right. Choose what stays for each pair. “Later” keeps both.')}</p>
-   <div class="dp-liste" id="doppel-liste">${paare.map((p) => `<div class="dp" data-neu="${esc(p.neu)}"><div class="dp-kopf">${dpStufe(p)}<small>${esc(dpGrund(p))}</small></div><div class="dp-paar">${dpSeite(rezept(p.alt), L('Meins', 'Mine'))}${dpSeite(rezept(p.neu), L('Neu', 'New'))}</div><div class="dp-wahl" role="group" aria-label="${L('Was bleibt', 'What stays')}">${dpWahlKnoepfe(p, dopp.wahl.get(p.neu), 'dp-wahl', `data-neu="${esc(p.neu)}"`)}</div></div>`).join('')}</div>
+  const [li, re] = imBuch ? [L('Früher im Buch', 'Earlier in the book'), L('Später im Buch', 'Later in the book')] : [L('Meins', 'Mine'), L('Neu', 'New')];
+  fenster(`<h2>${fuelle(L('Mögliche Doppel ({0})', 'Possible duplicates ({0})'), paare.length)}</h2><p>${imBuch ? L('Je Paar wählst du, was bleibt: „Meins behalten“ behält das linke und löscht das rechte. „Später“ behält beide.', 'For each pair choose what stays: “Keep mine” keeps the left one and deletes the right one. “Later” keeps both.') : L('Links steht dein Rezept, rechts das neue. Wähle je Paar, was bleibt. „Später“ behält beide.', 'Your recipe is on the left, the new one on the right. Choose what stays for each pair. “Later” keeps both.')}</p>
+   <div class="dp-liste" id="doppel-liste">${paare.map((p) => `<div class="dp" data-neu="${esc(p.neu)}"><div class="dp-kopf">${dpStufe(p)}<small>${esc(dpGrund(p))}</small></div><div class="dp-paar">${dpSeite(rezept(p.alt), li)}${dpSeite(rezept(p.neu), re)}</div><div class="dp-wahl" role="group" aria-label="${L('Was bleibt', 'What stays')}">${dpWahlKnoepfe(p, dopp.wahl.get(p.neu), 'dp-wahl', `data-neu="${esc(p.neu)}"`)}</div></div>`).join('')}</div>
    <div class="reihe"><button class="knopf akz" data-a="dp-fertig">${ic('haken')}${L('Übernehmen', 'Apply')}</button><button class="knopf" data-a="fenster-zu">${L('Später', 'Later')}</button></div>`);
   zuTun = () => { dopp = null; };
 }
@@ -1385,11 +1417,16 @@ const A = {
   kat: (e) => { s.kat = e.dataset.kat; if (e.dataset.geh) geh('start'); else zeichne(); },
   'ordner-zuordnen': () => ordnerWahlFenster(s.uid),
   'baum-auf': (e) => { if (Date.now() - bzGezogen < 400) return; const k = e.dataset.g; if (s.baum.q.trim()) return; if (s.baum.auf.has(k)) s.baum.auf.delete(k); else s.baum.auf.add(k); zeichne(); },
-  'baum-alle': () => { const g = baumGruppen(), keys = [...g.kats, ...g.ords].map((x) => bzKey(x.art, x.id)); if (keys.every((k) => s.baum.auf.has(k))) s.baum.auf.clear(); else keys.forEach((k) => s.baum.auf.add(k)); zeichne(); },
-  'baum-rezept': (e) => { if (Date.now() - bzGezogen < 400) return; const u = e.dataset.uid; if (s.baum.wahl) { A['baum-haken'](e); return; } E.zuletzt = u; s.rleiste = false; s.original = null; sichern();
+  'baum-alle': () => { const g = baumGruppen(), keys = [...g.kats, ...g.ords].map((x) => bzKey(x.art, x.id)); if (keys.every((k) => s.baum.auf.has(k))) { s.baum.auf.clear(); s.baum.teilAuf = new Set(); } else { keys.forEach((k) => s.baum.auf.add(k)); s.baum.teilAuf = new Set(['kat', 'ord']); } zeichne(); },
+  'baum-rezept': (e) => { if (Date.now() - bzGezogen < 400) return; const u = e.dataset.uid; if (s.baum.wahl && !breit()) { A['baum-haken'](e); return; }   /* Klaus 26.11.: am breiten Schirm zeigt ein Tipp das Rezept rechts, auch beim Auswählen (wie im E-Mail-Programm); der Haken steht links davon */ E.zuletzt = u; s.rleiste = false; s.original = null; sichern();
     if (breit()) { s.uid = u; history.pushState({ ansicht: 'baum', uid: u }, ''); zeichne(); document.querySelector('.md-detail')?.scrollTo(0, 0); } else geh('rezept', { uid: u }); },
   'baum-leere': () => { s.baum.leere = !s.baum.leere; zeichne(); },
+  'doppel-buch': () => { doppelImBuch(); },
+  'baum-teil': (e) => { const t = e.dataset.teil, m = s.baum.teilAuf || (s.baum.teilAuf = new Set()); if (m.has(t)) m.delete(t); else m.add(t); zeichne(); },
   'baum-wahl': () => { s.baum.wahl = s.baum.wahl ? null : new Set(); zeichne(); },
+  /* Klaus 26.11.: ein kleines Viereck „Alle“ neben „Auswählen“ – Haken rein: alle gewählt, Haken raus: keins. Einzeln geht weiter. */
+  'baum-alle-haken': () => { const w = s.baum.wahl; if (!w) return; const alle = baumAlleUids(); if (alle.length && alle.every((u) => w.has(u))) w.clear(); else alle.forEach((u) => w.add(u)); zeichne(); },
+  'baum-wahl-weg': () => { const w = s.baum.wahl; if (!w?.size) return; const n = w.size, weg = new Set(w); frage(fuelle(L('{0} Rezepte löschen?', 'Delete {0} recipes?'), n), L('Die gewählten Rezepte werden aus dem Buch entfernt. Gleich danach lässt es sich rückgängig machen.', 'The selected recipes are removed from the book. You can undo it right afterwards.'), L('Löschen', 'Delete'), () => { const vorher = Z.rezepte; Z.rezepte = Z.rezepte.filter((r) => !weg.has(r.uid)); w.clear(); if (weg.has(s.uid)) s.uid = null; sichern(); zeichne(); melde(fuelle(L('{0} Rezepte gelöscht', '{0} recipes deleted'), n), L('Rückgängig', 'Undo'), () => { Z.rezepte = vorher; sichern(); zeichne(); }); }); },
   'baum-haken': (e) => { const w = s.baum.wahl; if (!w) return; if (w.has(e.dataset.uid)) w.delete(e.dataset.uid); else w.add(e.dataset.uid); zeichne(); },
   'baum-verschieben': () => { const w = s.baum.wahl; if (w?.size) baumZielFenster([...w]); },
   'baum-ziel': (e) => { const w = [...(s.baum.wahl || [])]; fensterZu(); baumAblegen(w, e.dataset.art, e.dataset.id); },
@@ -1500,7 +1537,7 @@ const A = {
   'kat-zuordnen': () => { const r = rezept(s.uid); if (r) katWahlFenster(L('Kategorie zuordnen', 'Assign category'), null, 'kat-setzen', r.uid); },
   'kat-setzen': (e) => { Z.rezepte = Z.rezepte.map((r) => (r.uid === e.dataset.uid ? { ...r, cat: e.dataset.ziel } : r)); sichern(); fensterZu(); zeichne(); melde(L('Kategorie geändert', 'Category changed')); },
   'bilder-filter': (e) => { s.bilder.filter = e.dataset.f; zeichne(); },
-  'bilder-gross': () => { s.bilder.gross = !s.bilder.gross; zeichne(); },
+  'bilder-gross': (e) => { s.bilder.gross = e.dataset.g === '1'; zeichne(); },   /* Klaus 26.11.: zwei Knöpfe, der gedrückte ist der Zustand – kein Knopf, dessen Wort das Gegenteil tut */
   'bild-wahl': (e) => { const w = s.bilder.wahl; if (w.has(e.dataset.uid)) w.delete(e.dataset.uid); else w.add(e.dataset.uid); zeichne(); },
   'bilder-alle-wahl': () => { const w = s.bilder.wahl, alle = [...document.querySelectorAll('.bildkachel')].map((b) => b.dataset.uid); if (w.size === alle.length) w.clear(); else alle.forEach((u) => w.add(u)); zeichne(); },
   'bilder-weg': () => { const w = new Set(s.bilder.wahl), vorher = Z.rezepte; Z.rezepte = Z.rezepte.map((r) => (w.has(r.uid) ? { ...r, img: '' } : r)); s.bilder.wahl.clear(); sichern(); zeichne(); melde(fuelle(L('−{0} Bilder', '−{0} pictures'), w.size), L('Rückgängig', 'Undo'), () => { Z.rezepte = vorher; sichern(); zeichne(); }); },
@@ -1588,6 +1625,8 @@ const A = {
   'datei-dazu': () => { const e = dateiEingang; fensterZu(); if (e) einfuegen(e); },
   'datei-ersetzen': () => { const e = dateiEingang; fensterZu(); if (!e) return; if (!e.rezepte.length) { melde(L('Keine Rezepte in der Datei, nichts ersetzt', 'No recipes in the file, nothing replaced')); return; } ersetze(e, L('Ersetzt: {0} Rezepte', 'Replaced: {0} recipes')); },
   beispiel: () => beispielLaden(),
+  /* Klaus 26.11.: gefallen die Beispiele, werden sie zu eigenen Rezepten – die Marke „Beispiel“ fällt weg, „Eigene“ und die Sicherung zeigen sie wie alle anderen. */
+  'beispiele-uebernehmen': () => { const n = Z.rezepte.filter((r) => r.beispiel).length; if (!n) return; frage(L('Beispiele übernehmen?', 'Keep the examples?'), fuelle(L('{0} Beispiel-Rezepte werden zu deinen eigenen. Danach lassen sie sich nicht mehr gesammelt als Beispiele entfernen.', '{0} example recipes become your own. Afterwards they can no longer be removed together as examples.'), n), L('Übernehmen', 'Keep'), () => { const vorher = Z.rezepte; Z.rezepte = Z.rezepte.map((r) => { if (!r.beispiel) return r; const { beispiel, ...rest } = r; return rest; }); sichern(); zeichne(); melde(fuelle(L('{0} Beispiele übernommen', '{0} examples kept'), n), L('Rückgängig', 'Undo'), () => { Z.rezepte = vorher; sichern(); zeichne(); });  }, false); },
   'beispiele-weg': () => { const n = Z.rezepte.filter((r) => r.beispiel).length; frage(L('Beispiele entfernen?', 'Remove examples?'), fuelle(L('{0} Beispiel-Rezepte werden entfernt. Deine eigenen Rezepte bleiben.', '{0} example recipes will be removed. Your own recipes stay.'), n), L('Entfernen', 'Remove'), () => { tresorAuto(); const vorher = Z.rezepte; Z.rezepte = Z.rezepte.filter((r) => !r.beispiel); sichern(); zeichne(); melde(fuelle(L('−{0} Beispiele', '−{0} examples'), n), L('Rückgängig', 'Undo'), () => { Z.rezepte = vorher; sichern(); zeichne(); }); }); },
   'alles-weg': () => { const n = Z.rezepte.filter(istInhalt).length; frage(L('Alle Rezepte löschen?', 'Delete all recipes?'), fuelle(L('{0} Rezepte werden gelöscht. Der jetzige Stand kommt vorher in den Tresor.', '{0} recipes will be deleted. The current state goes into the vault first.'), n), L('Alle löschen', 'Delete all'), () => { tresorAuto(); const vorher = Z; Z = { ...leererZustand(), kategorien: leereKategorien() }; ergaenze(); E.zuletzt = null; sichern(); geh('start', {}, true); melde(L('Alle Rezepte gelöscht', 'All recipes deleted'), L('Rückgängig', 'Undo'), () => { Z = vorher; sichern(); zeichne(true); }); }); },
   farbe: () => farbFenster(),
@@ -1663,10 +1702,10 @@ document.addEventListener('submit', (ev) => { ev.preventDefault(); const f = ev.
   else if (f === 'plan-port') { const n = +new FormData(ev.target).get('n'); const r = rezept(ev.target.dataset.uid); if (!r || !(n > 0)) return; Z.planPortionen = portionenSetzen(Z.planPortionen, ev.target.dataset.tag, r.uid, n === r.servings ? 0 : n); sichern(); fensterZu(); zeichne(); }
   else if (f === 'ek-eigen') { const t = String(new FormData(ev.target).get('t') || '').trim(); if (!t) return; Z.einkauf = { ...Z.einkauf, eigene: [...Z.einkauf.eigene, { id: Date.now().toString(36), text: t }] }; sichern(); zeichne(); document.querySelector('[data-form="ek-eigen"] input')?.focus(); }
   else if (f === 'baum-suche') { $('baumfeld')?.blur(); }
-  else if (f === 'baum-ordner-neu') { const n = String(new FormData(ev.target).get('n') || '').trim(); if (!n) return; const a = ordAnlegen(Z.ordner, n); Z.ordner = a.ordner; s.baum.auf.add(bzKey('ord', a.id)); sichern(); fensterZu(); zeichne(); melde(a.neu ? fuelle(L('Event-Ordner „{0}“ angelegt – zieh Rezepte hinein', 'Event folder “{0}” created – drag recipes into it'), n) : fuelle(L('Den Event-Ordner „{0}“ gibt es schon', 'The event folder “{0}” already exists'), n)); }
-  else if (f === 'ordner-neu-zu') { const n = String(new FormData(ev.target).get('n') || '').trim(), uid = ev.target.dataset.uid; if (!n || !uid) return; const a = ordAnlegen(Z.ordner, n); Z.ordner = a.ordner; A['ordner-setzen']({ dataset: { uid, oid: a.id } }); }
+  else if (f === 'baum-ordner-neu') { const n = String(new FormData(ev.target).get('n') || '').trim(); if (!n) return; const a = ordNeu(n); s.baum.auf.add(bzKey('ord', a.id)); (s.baum.teilAuf || (s.baum.teilAuf = new Set())).add('ord');   /* sein Ast ist offen */ sichern(); fensterZu(); zeichne(); melde(a.neu ? fuelle(L('Event-Ordner „{0}“ angelegt – zieh Rezepte hinein', 'Event folder “{0}” created – drag recipes into it'), n) : fuelle(L('Den Event-Ordner „{0}“ gibt es schon', 'The event folder “{0}” already exists'), n)); }
+  else if (f === 'ordner-neu-zu') { const n = String(new FormData(ev.target).get('n') || '').trim(), uid = ev.target.dataset.uid; if (!n || !uid) return; const a = ordNeu(n); A['ordner-setzen']({ dataset: { uid, oid: a.id } }); }
   else if (f === 'ein-kat-neu') { const n = String(new FormData(ev.target).get('n') || '').trim(), uid = ev.target.dataset.uid; if (!n || !uid) return; const a = katAnlegen(Z.kategorien, n); Z.kategorien = a.kat; einKat(uid, a.id); document.querySelector('#ein-kat [aria-pressed=true]')?.scrollIntoView({ block: 'center' }); }
-  else if (f === 'ein-ord-neu') { const n = String(new FormData(ev.target).get('n') || '').trim(), uid = ev.target.dataset.uid; if (!n || !uid) return; const a = ordAnlegen(Z.ordner, n); Z.ordner = a.ordner; einOrd(uid, a.id); document.querySelector('#ein-ord [aria-pressed=true]')?.scrollIntoView({ block: 'center' }); }
+  else if (f === 'ein-ord-neu') { const n = String(new FormData(ev.target).get('n') || '').trim(), uid = ev.target.dataset.uid; if (!n || !uid) return; const a = ordNeu(n); einOrd(uid, a.id); document.querySelector('#ein-ord [aria-pressed=true]')?.scrollIntoView({ block: 'center' }); }
   else if (f === 'kat-neu-zu') { const n = String(new FormData(ev.target).get('n') || '').trim(), uid = document.querySelector('[data-a="kat-setzen"]')?.dataset.uid; if (!n || !uid) return; const a = katAnlegen(Z.kategorien, n); Z.kategorien = a.kat; A['kat-setzen']({ dataset: { uid, ziel: a.id } }); }
   else if (f === 'laden') { const n = String(new FormData(ev.target).get('n') || '').trim(); if (!n) return; Z.einkauf = { ...Z.einkauf, laeden: { ...Z.einkauf.laeden, [n]: Z.einkauf.laeden[n] || [...(Z.einkauf.laeden[Z.einkauf.laden] || [])] }, laden: n }; sichern(); fensterZu(); zeichne(); }
 });

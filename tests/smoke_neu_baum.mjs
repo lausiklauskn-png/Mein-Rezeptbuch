@@ -2,6 +2,7 @@
 // Aufruf: node tests/smoke_neu_baum.mjs · WURZEL=<Pfad> misst eine Kopie (Gegenprobe).
 import { createRequire } from 'node:module';
 import { mitThemen } from './neu-hilfe.mjs';
+const aeste = async (p) => { await p.waitForSelector('.bz-teilkopf'); for (let i = 0; i < 2; i++) { const b = p.locator('[data-a=baum-teil][aria-expanded=false]').first(); if (await b.count()) await b.click(); } };   /* Klaus 26.11.: die Ordner öffnen zugeklappt – die Probe klappt beide Äste auf */
 const { chromium } = createRequire(import.meta.url)('playwright');
 import http from 'node:http'; import { readFile } from 'node:fs/promises'; import { extname, join } from 'node:path';
 const WURZEL = process.env.WURZEL || process.cwd();
@@ -16,7 +17,7 @@ async function seite(vorher, breite = 390, hoehe = 800) { const k = await browse
   if (vorher) { await p.goto(URL0.replace('?leer', '') + 'app.css'); await p.evaluate(vorher); } await p.goto(URL0); await p.waitForSelector('.gruss'); return { p, k }; }
 const zustand = async (p) => { await p.waitForTimeout(350); return zustandJetzt(p); };   /* sichern() schreibt kurz verzögert */
 const zustandJetzt = (p) => p.evaluate(() => new Promise((ja) => { const a = indexedDB.open('KuechenKern-rezeptbuch'); a.onsuccess = () => { const q = a.result.transaction('zustand').objectStore('zustand').get('alles'); q.onsuccess = () => ja(q.result.zustand); }; }));
-const zumBaum = async (p) => { if (await p.locator('.rail-n[data-zu=baum]').count()) await p.click('.rail-n[data-zu=baum]'); else { await p.click('#leiste .fl-griff'); await p.click('#leiste [data-zu=baum]'); } await p.waitForSelector('.bz-gruppe'); };
+const zumBaum = async (p) => { if (await p.locator('.rail-n[data-zu=baum]').count()) await p.click('.rail-n[data-zu=baum]'); else { await p.click('#leiste .fl-griff'); await p.click('#leiste [data-zu=baum]'); } await aeste(p); await p.waitForSelector('.bz-gruppe'); };
 const gruppe = (p, name) => p.locator(`.bz-gruppe[data-name="${name}"]`);
 const zahlIn = async (p, name) => +((await gruppe(p, name).first().locator('.bz-zahl').innerText()).match(/^(\d+)/) || [])[1];
 /* Ziehen wie ein Finger: pointerdown (touch), Uhr abwarten, dann bewegen und loslassen; die Ereignisse gehen an das Element unter dem Punkt. */
@@ -48,7 +49,7 @@ try {
   let { p, k } = await seite();
   await p.click('[data-a=beispiel]'); await p.waitForSelector('.karte', { timeout: 20000 });
   await p.click('#leiste .fl-griff'); ok(await p.locator('#leiste [data-zu=baum]').count() === 1 && (await p.locator('#leiste [role=menuitem]').allInnerTexts()).map((t) => t.trim()).slice(0, 2).join('|') === 'Rezepte|Ordner', 'fliegende Leiste: „Ordner“ steht direkt unter „Rezepte“');
-  await p.click('#leiste [data-zu=baum]'); await p.waitForSelector('.bz-gruppe');
+  await p.click('#leiste [data-zu=baum]'); await aeste(p); await p.waitForSelector('.bz-gruppe');
   let z = await zustand(p); const nRez = z.rezepte.filter((r) => r.name && !r.blank).length;
   const zahlen = await p.locator('.bz-baum[data-teil=kat] .bz-zahl').allInnerTexts(), summe = zahlen.reduce((n, t) => n + +t.match(/^(\d+)/)[1], 0);
   ok(summe === nRez && zahlen.length >= 5 && zahlen.every((t) => !/^0 /.test(t)), 'jede Kategorie mit Rezepten steht als Gruppe da; zusammen zählen sie alle Rezepte', `${summe} von ${nRez}, ${zahlen.length} Gruppen`);
@@ -64,12 +65,12 @@ try {
   const erstes = (await gruppe(p, 'Sushi').locator('.bz-rname').first().innerText()).trim();
   await gruppe(p, 'Sushi').locator('.bz-r').first().click(); await p.waitForSelector('.rezept-held h1');
   ok((await p.locator('.rezept-held h1').innerText()).trim() === erstes, 'ein Tipp auf das Rezept öffnet es', erstes);
-  await p.goBack(); await p.waitForSelector('.bz-gruppe');
+  await p.goBack(); await aeste(p); await p.waitForSelector('.bz-gruppe');
   ok(await gruppe(p, 'Sushi').locator('.bz-zeile').count() === sushiN, 'Zurück führt in den Baum, die Gruppe ist noch offen');
 
   console.log('2 · Ordner anlegen und Rezepte hineinziehen (Finger)');
   await p.click('[data-a=baum-ordner-neu]'); await p.fill('#fensterort input[name=n]', 'Für Gäste'); await p.keyboard.press('Enter');
-  await p.waitForSelector('.bz-gruppe[data-art=ord]'); ok((await gruppe(p, 'Für Gäste').locator('.bz-zahl').innerText()).includes('0 Rezepte') && await gruppe(p, 'Für Gäste').locator('.bz-leer').count() === 1, 'der neue Ordner steht da, offen, leer, mit „Zieh eines hierher“');
+  await aeste(p); await p.waitForSelector('.bz-gruppe[data-art=ord]'); ok((await gruppe(p, 'Für Gäste').locator('.bz-zahl').innerText()).includes('0 Rezepte') && await gruppe(p, 'Für Gäste').locator('.bz-leer').count() === 1, 'der neue Ordner steht da, offen, leer, mit „Zieh eines hierher“');
   await fingerZieh(p, gruppe(p, 'Sushi').locator('.bz-rgriff').first(), gruppe(p, 'Für Gäste').locator('.bz-kopf'));
   z = await zustand(p); const o1 = z.ordner.find((o) => o.name === 'Für Gäste'), r1 = z.rezepte.find((r) => r.name === erstes);
   ok(r1 && String(r1.folder) === String(o1.id) && r1.cat === sushiId, 'langer Druck und ziehen: das Rezept liegt im Ordner und behält seine Kategorie', JSON.stringify({ f: r1?.folder, c: r1?.cat }));
@@ -137,7 +138,7 @@ try {
   console.log('7 · Einstellungen zeigen auf den Explorer');
   ({ p, k } = await seite());
   await p.click('#leiste .fl-griff'); await p.click('#leiste [data-zu=werkstatt]'); ok(await p.locator('.zeile[data-zu=baum]').count() === 1 && await p.locator('.zeile[data-zu=ordner]').count() === 0, 'Einstellungen → Ordnung: „Alle Ordner und Kategorien als Baum“; die alte Ordner-Liste ist weg (Klaus 25.11.)');
-  await p.click('.zeile[data-zu=baum]'); await p.waitForSelector('#baumfeld'); ok(await p.locator('.bz-baum').count() === 2, 'führt in den Explorer');
+  await p.click('.zeile[data-zu=baum]'); await p.waitForSelector('#baumfeld'); ok(await p.locator('.bz-block').count() === 2 && await p.locator('.bz-baum').count() === 0, 'führt in den Explorer, beide Äste zugeklappt (Klaus 26.11.)');
   console.log('8 · R12: Kreativbuch als eigener Bereich in der Leiste');
   await p.click('#leiste .fl-griff'); const punkte = (await p.locator('#leiste [role=menuitem]').allInnerTexts()).map((t) => t.trim());
   ok(punkte.indexOf('Kreativbuch') > punkte.indexOf('Einkauf') && punkte.indexOf('Kreativbuch') < punkte.indexOf('Einstellungen'), 'fliegende Leiste: „Kreativbuch“ zwischen Einkauf und Einstellungen', punkte.join('|'));
@@ -146,6 +147,34 @@ try {
   await p.click('[data-a=kreativ-zine]'); await p.waitForSelector('#zs-gitter'); ok(await p.locator('#zine-ansicht #zs').count() === 1, '„Meine Food-Zine-Bilder“ öffnet die Sammlung (seit 0.16 eine eigene, nicht mehr der Bilder-Filter)');
   await p.click('#leiste .fl-griff'); await p.click('#leiste [data-zu=werkstatt]'); ok(await p.locator('.gruppe[data-g=buch]').count() === 0, 'in den Einstellungen steht kein Buch mehr');
   await k.close();
+  console.log('9 · Klaus 26.11.: Äste zugeklappt, Event-Ordner oben, neue Ordner oben, Auswahl wie im E-Mail-Programm, Doppelte suchen, Beispiele übernehmen');
+  { const { p: q, k: k9 } = await seite(null, 1280, 800);
+    await q.click('[data-a=beispiel]'); await q.waitForSelector('.karte', { timeout: 30000 });
+    await q.click('.rail-n[data-zu=baum]'); await q.waitForSelector('.bz-teilkopf');
+    ok((await q.$$eval('.bz-block', (l) => l.map((x) => x.dataset.block))).join(',') === 'ord,kat' && await q.locator('.bz-baum').count() === 0, 'die Ordner öffnen mit beiden Ästen zugeklappt, Event-Ordner oben');
+    for (const n of ['Erster', 'Zweiter']) { await q.click('[data-a=baum-ordner-neu]'); await q.keyboard.type(n); await q.keyboard.press('Enter'); await q.waitForTimeout(200); }
+    ok((await q.locator('.bz-gruppe[data-art=ord] .ord-name').evaluateAll((l) => l.map((x) => x.value))).join('|') === 'Zweiter|Erster', 'ein neuer Event-Ordner steht oben, sein Ast ist offen');
+    const gr = await q.locator('.bz-block[data-block=ord] .bz-tgriff').boundingBox(), kb = await q.locator('.bz-block[data-block=kat]').boundingBox();
+    await q.mouse.move(gr.x + 5, gr.y + 5); await q.mouse.down(); await q.mouse.move(gr.x + 5, kb.y + kb.height - 5, { steps: 8 }); await q.mouse.up(); await q.waitForTimeout(300);
+    ok((await q.$$eval('.bz-block', (l) => l.map((x) => x.dataset.block))).join(',') === 'kat,ord', 'am Griff gezogen: die Äste tauschen den Platz');
+    await q.click('[data-a=baum-teil][data-teil=kat]'); await q.click('[data-a=baum-wahl]');
+    await q.locator('.bz-gruppe[data-art=kat]').first().locator('.bz-auf').click(); await q.waitForTimeout(200);
+    const name = (await q.locator('.bz-r').first().innerText()).trim(); await q.locator('.bz-r').first().click(); await q.waitForTimeout(300);
+    ok((await q.locator('.md-detail h1').innerText()).trim() === name.split('\n')[0].trim() && await q.locator('#bz-wahl-zahl').innerText() === '0 gewählt', 'beim Auswählen zeigt ein Tipp das Rezept rechts, ohne es anzuhaken', name);
+    await q.click('[data-a=baum-alle-haken]'); const alle = await q.locator('#bz-wahl-zahl').innerText(); await q.click('[data-a=baum-alle-haken]');
+    ok(/^4\d gewählt$/.test(alle) && await q.locator('#bz-wahl-zahl').innerText() === '0 gewählt', 'das Viereck „Alle“: Haken rein – alle gewählt, Haken raus – keins', alle);
+    await q.locator('.bz-haken[data-uid]').first().click(); await q.click('[data-a=baum-wahl-weg]'); await q.click('[data-a=ja]'); await q.waitForTimeout(400);
+    ok((await zustand(q)).rezepte.filter((r) => r.name && !r.blank).length === 41, 'gewählte Rezepte lassen sich löschen (mit Rückfrage)');
+    await q.click('[data-a=doppel-buch]'); await q.waitForTimeout(1500);
+    ok(/Keine Doppel gefunden/.test(await q.locator('#toast').innerText()), '„Doppelte suchen“ prüft das ganze Buch (das Beispielbuch hat keine)');
+    await q.click('.rail-n[data-zu=werkstatt]'); await q.waitForTimeout(300); if (!(await q.locator('.zeile[data-zu=bilder]').isVisible())) await q.locator('.zeile[data-zu=bilder]').evaluate((e) => e.closest('.gruppe')?.querySelector('[aria-expanded]')?.click()).catch(() => {}); await q.waitForTimeout(200); await q.locator('.zeile[data-zu=bilder]').click().catch(() => {}); await q.waitForSelector('.bildgitter', { timeout: 5000 }).catch(() => {});
+    if (await q.locator('.bildgitter').count()) {
+      ok(await q.locator('[data-a=bilder-gross][data-g="0"][aria-pressed=true]').count() === 1 && await q.locator('[data-a=bilder-gross][data-g="1"][aria-pressed=false]').count() === 1, 'Klein | Groß: zwei Knöpfe, der gedrückte ist der Zustand');
+      await q.click('[data-a=bilder-gross][data-g="1"]'); ok(await q.locator('.bildgitter.gross').count() === 1 && await q.locator('[data-a=bilder-gross][data-g="1"][aria-pressed=true]').count() === 1, '„Groß“ getippt: groß, und „Groß“ ist gedrückt');
+      await q.click('[data-a=beispiele-uebernehmen]'); await q.click('[data-a=ja]'); await q.waitForTimeout(400);
+      ok((await zustand(q)).rezepte.every((r) => !r.beispiel), '„Beispiele übernehmen“: die Beispiele werden zu eigenen Rezepten');
+    } else ok(false, 'Bilder-Seite nicht gefunden');
+    await k9.close(); }
   ok(fehler.length === 0, 'keine Fehler in der Konsole, kein Netz nach draußen', fehler.join(' · '));
 } catch (e) { rot++; console.log('  ✗ ROT: Probe abgebrochen — ' + e.message.split('\n')[0]); }
 await browser.close(); srv.close();

@@ -2,6 +2,7 @@
 // Einkaufsliste mit Gästezahl, Menükarte, Kalender abgleichen. Echter Browser. Aufruf: node tests/smoke_neu_event.mjs · WURZEL=<Pfad> misst eine Kopie.
 import { createRequire } from 'node:module';
 import { mitThemen } from './neu-hilfe.mjs';
+const aeste = async (p) => { await p.waitForSelector('.bz-teilkopf'); for (let i = 0; i < 2; i++) { const b = p.locator('[data-a=baum-teil][aria-expanded=false]').first(); if (await b.count()) await b.click(); } };   /* Klaus 26.11.: die Ordner öffnen zugeklappt – die Probe klappt beide Äste auf */
 const { chromium } = createRequire(import.meta.url)('playwright');
 import http from 'node:http'; import { readFile } from 'node:fs/promises'; import { extname, join } from 'node:path';
 const WURZEL = process.env.WURZEL || process.cwd();
@@ -16,7 +17,7 @@ async function seite(vorher, breite = 390, hoehe = 800) { const k = await browse
   if (vorher) { await p.goto(URL0.replace('?leer', '') + 'app.css'); await p.evaluate(vorher); } await p.goto(URL0); await p.waitForSelector('.gruss'); return { p, k }; }
 const zustand = async (p) => { await p.waitForTimeout(350); return zustandJetzt(p); };   /* sichern() schreibt kurz verzögert */
 const zustandJetzt = (p) => p.evaluate(() => new Promise((ja) => { const a = indexedDB.open('KuechenKern-rezeptbuch'); a.onsuccess = () => { const q = a.result.transaction('zustand').objectStore('zustand').get('alles'); q.onsuccess = () => ja(q.result.zustand); }; }));
-const zumBaum = async (p) => { if (await p.locator('.rail-n[data-zu=baum]').count()) await p.click('.rail-n[data-zu=baum]'); else { await p.click('#leiste .fl-griff'); await p.click('#leiste [data-zu=baum]'); } await p.waitForSelector('.bz-gruppe'); };
+const zumBaum = async (p) => { if (await p.locator('.rail-n[data-zu=baum]').count()) await p.click('.rail-n[data-zu=baum]'); else { await p.click('#leiste .fl-griff'); await p.click('#leiste [data-zu=baum]'); } await aeste(p); await p.waitForSelector('.bz-gruppe'); };
 const ORD = 'Hochzeit von Jonas und Lisa';
 const ordG = (p) => p.locator(`.bz-gruppe[data-art=ord][data-name="${ORD}"]`);
 const druckFangen = (p) => p.evaluate(() => { window.__gedruckt = 0; const alt = HTMLIFrameElement.prototype.__lookupGetter__('contentWindow'); Object.defineProperty(HTMLIFrameElement.prototype, 'contentWindow', { get() { const w = alt.call(this); if (w && this.hasAttribute('data-kern-druck')) w.print = () => { window.__gedruckt++; }; return w; } }); });
@@ -74,7 +75,7 @@ await ordG(p).locator('[data-a=ev-einkauf]').click(); z = await zustand(p);
     ok(karte.includes('Hochzeit von Jonas und Lisa') && karte.includes('Samstag, 12. Juni 2027') && !/40/.test(karte.replace(/<style>[\s\S]*?<\/style>/, '')) && (karte.match(/<h2>/g) || []).length === 3 && namen.length === 3, 'Menükarte: Anlass, Tag, drei Gänge; die Gästezahl steht nicht darauf');
 
     console.log('4 · Der Ordner ändert sich: Kalender abgleichen');
-    await p.click('[data-a=baum-wahl]'); await ordG(p).locator(`.bz-haken[data-uid="${uids[0]}"]`).click(); await p.click('[data-a=baum-verschieben]'); await p.click('[data-a=baum-ziel][data-art=ord][data-id=""]'); await p.waitForTimeout(150);
+    await aeste(p); if (await ordG(p).locator('.bz-auf[aria-expanded=false]').count()) await ordG(p).locator('.bz-auf').click(); await p.click('[data-a=baum-wahl]'); await ordG(p).locator(`.bz-haken[data-uid="${uids[0]}"]`).click(); await p.click('[data-a=baum-verschieben]'); await p.click('[data-a=baum-ziel][data-art=ord][data-id=""]'); await p.waitForTimeout(150);
     if (await p.locator('.bz-knoepfe [data-a=baum-wahl][aria-pressed=true]').count()) await p.click('.bz-knoepfe [data-a=baum-wahl]');
     await p.fill('.ev-gaeste', '50'); await p.press('.ev-gaeste', 'Tab'); await p.waitForTimeout(200);
     ok(await ordG(p).locator('[data-a=ev-abgleich]').count() === 1, 'am Band steht jetzt „Kalender abgleichen“');

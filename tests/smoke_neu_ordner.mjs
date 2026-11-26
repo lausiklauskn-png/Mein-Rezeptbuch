@@ -2,6 +2,7 @@
 // WURZEL=<Pfad> misst eine Kopie (Gegenprobe).
 import { createRequire } from 'node:module';
 import { mitThemen, themenAuf } from './neu-hilfe.mjs';
+const aeste = async (p) => { await p.waitForSelector('.bz-teilkopf'); for (let i = 0; i < 2; i++) { const b = p.locator('[data-a=baum-teil][aria-expanded=false]').first(); if (await b.count()) await b.click(); } };   /* Klaus 26.11.: die Ordner öffnen zugeklappt – die Probe klappt beide Äste auf */
 const { chromium } = createRequire(import.meta.url)('playwright');
 import http from 'node:http'; import { readFile } from 'node:fs/promises'; import { extname, join } from 'node:path';
 const WURZEL = process.env.WURZEL || process.cwd();
@@ -24,11 +25,11 @@ try {
   await p.click('[data-a=beispiel]'); await p.waitForSelector('.karte', { timeout: 20000 });
   ok(await p.locator('.fotokat .ord').count() === 0, 'ohne Ordner steht in der Leiste kein Ordner');
   await zurWerkstatt(p); ok(await p.locator('.zeile[data-zu=ordner]').count() === 0 && await p.locator('.zeile[data-zu=baum]').count() === 1, 'Einstellungen → Ordnung führt in den Baum (die alte Ordner-Liste ist weg, Klaus 25.11.)');
-  await p.click('.zeile[data-zu=baum]'); await p.waitForSelector('#bz-ord-leer'); ok(await p.locator('.ueber .frag').count() === 1, 'ohne Ordner sagt der Baum „Noch kein Ordner“, Erklärung hinter „?“');
+  await p.click('.zeile[data-zu=baum]'); await aeste(p); await p.waitForSelector('#bz-ord-leer'); ok(await p.locator('.ueber .frag').count() === 1, 'ohne Ordner sagt der Baum „Noch kein Ordner“, Erklärung hinter „?“');
   await p.click('[data-a=baum-ordner-neu]'); ok(await p.evaluate(() => document.activeElement?.name === 'n'), 'ein neuer Ordner: der Zeiger steht gleich im Namensfeld');
   await p.keyboard.type('Für Gäste'); await p.keyboard.press('Enter');
   await p.click('[data-a=baum-ordner-neu]'); await p.keyboard.type('Sommer <b>'); await p.keyboard.press('Enter');
-  ok(await p.locator('.bz-gruppe[data-art=ord]').count() === 2 && await p.locator('.bz-gruppe[data-art=ord]').first().getAttribute('data-name') === 'Für Gäste' && (await p.locator('.bz-gruppe[data-art=ord]').locator('.bz-zahl').allInnerTexts()).every((t) => t.startsWith('0 ')), 'zwei Ordner, noch leer');
+  ok(await p.locator('.bz-gruppe[data-art=ord]').count() === 2 && await p.locator('.bz-gruppe[data-art=ord]').first().getAttribute('data-name') === 'Sommer <b>' &&   /* Klaus 26.11.: der neue steht oben */ (await p.locator('.bz-gruppe[data-art=ord]').locator('.bz-zahl').allInnerTexts()).every((t) => t.startsWith('0 ')), 'zwei Ordner, noch leer');
 
   console.log('2 · Rezept in einen Ordner legen: die Kategorie bleibt');
   await zumStart(p); const vorSushi = (await leiste(p)).find((t) => t.startsWith('Sushi'));
@@ -86,20 +87,20 @@ try {
   ok(await p.locator('.rezept-held .im-ordner').count() === 0 && (await p.locator('#toast').innerText()).includes('Rezept aus dem Event-Ordner genommen'), '✕ in der Zeile nimmt das Rezept heraus; die Meldung sagt „Rezept“ (Klaus 25.11.)');
 
   console.log('5 · Umbenennen, ordnen, Neuladen, Sicherung');
-  await zurWerkstatt(p); await p.click('.zeile[data-zu=baum]'); await p.waitForSelector('.bz-gruppe[data-art=ord]');
+  await zurWerkstatt(p); await p.click('.zeile[data-zu=baum]'); await aeste(p); await p.waitForSelector('.bz-gruppe[data-art=ord]');
   const zahlO = (await p.locator('.bz-gruppe[data-art=ord]').locator('.bz-zahl').allInnerTexts()).map((t) => t.match(/^(\d+)/)[1]).join(',');
   ok(zahlO === '1,0,1' && await p.locator('.bz-gruppe[data-art=ord]').locator('.bz-kopf .sticker').count() === 2, 'Baum: Anzahl je Ordner, Bild aus dem Ordner', zahlO);
-  await p.locator('.bz-gruppe[data-art=ord]').first().locator('.ord-name').fill('Für liebe Gäste'); await p.keyboard.press('Tab');
+  await p.locator('.bz-gruppe[data-art=ord][data-name="Für Gäste"]').locator('.ord-name').fill('Für liebe Gäste'); await p.keyboard.press('Tab');
   await p.locator('.bz-gruppe[data-art=ord]').nth(2).locator('.bz-ggriff').scrollIntoViewIfNeeded(); const g = await p.locator('.bz-gruppe[data-art=ord]').nth(2).locator('.bz-ggriff').boundingBox(), z = await p.locator('.bz-gruppe[data-art=ord]').first().boundingBox();
   await p.mouse.move(g.x + g.width / 2, g.y + g.height / 2); await p.mouse.down(); await p.mouse.move(g.x + g.width / 2, g.y - 20, { steps: 4 }); await p.mouse.move(g.x + g.width / 2, z.y + 8, { steps: 8 }); await p.waitForTimeout(100); await p.mouse.up(); await p.waitForTimeout(150);
-  const folge = await p.locator('.bz-gruppe[data-art=ord] .ord-name').evaluateAll((l) => l.map((x) => x.value)); ok(folge.join('|') === 'Weihnachten|Für liebe Gäste|Sommer <b>', 'ziehen am Griff ordnet die Ordner um', folge.join('|'));
+  const folge = await p.locator('.bz-gruppe[data-art=ord] .ord-name').evaluateAll((l) => l.map((x) => x.value)); ok(folge.join('|') === 'Für liebe Gäste|Weihnachten|Sommer <b>', 'ziehen am Griff ordnet die Ordner um (neue Ordner stehen oben, Klaus 26.11.; gezogen wird der unterste nach oben)', folge.join('|'));
   await p.waitForTimeout(350); await p.reload(); await p.waitForSelector('.gruss'); l = await leiste(p);
-  ok(l.indexOf('Weihnachten 1') > 0 && l.indexOf('Weihnachten 1') < l.indexOf('Für liebe Gäste 1'), 'nach dem Neuladen: neuer Name, neue Reihenfolge in der Leiste', l.slice(-3).join(' | '));
+  ok(l.indexOf('Für liebe Gäste 1') > 0 && l.indexOf('Für liebe Gäste 1') < l.indexOf('Weihnachten 1'), 'nach dem Neuladen: neuer Name, neue Reihenfolge in der Leiste', l.slice(-3).join(' | '));
   await zurWerkstatt(p); const [dl] = await Promise.all([p.waitForEvent('download'), p.click('[data-a=sichern]')]); const sich = JSON.parse(await readFile(await dl.path(), 'utf8'));
   ok(sich.folders.length === 3 && sich.folders.some((o) => o.name === 'Für liebe Gäste') && sich.recipes.filter((r) => r.folder).length === 2 && sich.recipes.find((r) => r.name.startsWith('Dragon Roll')).cat, 'die Sicherung trägt die Ordner und die Zuordnung; die Kategorie steht daneben');
 
   console.log('6 · Ordner löschen: die Rezepte bleiben');
-  await p.click('.zeile[data-zu=baum]'); await p.waitForSelector('.bz-gruppe[data-art=ord]'); const vor = (await zustand(p)).rezepte.length;
+  await p.click('.zeile[data-zu=baum]'); await aeste(p); await p.waitForSelector('.bz-gruppe[data-art=ord]'); const vor = (await zustand(p)).rezepte.length;
   await p.locator('.bz-gruppe[data-art=ord][data-name="Weihnachten"] [data-a=ordner-weg]').click();
   ok(await p.locator('.bz-gruppe[data-art=ord]').count() === 2 && (await p.locator('#toast').innerText()).includes('1 Rezepte bleiben'), 'gelöscht: der Ordner ist weg, die Meldung sagt, dass das Rezept bleibt');
   await p.waitForTimeout(350); let z2 = await zustand(p); ok(z2.rezepte.length === vor && z2.rezepte.find((r) => r.name === zweites).folder === '' && z2.rezepte.find((r) => r.name === zweites).cat, 'das Rezept ist noch da, mit seiner Kategorie, ohne Ordner');

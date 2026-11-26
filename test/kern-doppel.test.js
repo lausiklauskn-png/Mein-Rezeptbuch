@@ -2,7 +2,7 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
-import { vergleiche, findeDoppel, wendeAn, alkoholArt, sindVarianten, merkmalUmschalten, merkmaleVon, zutatenGleich, dHash, bildAbstand, grund } from '../kern/modell/doppel.mjs';
+import { vergleiche, findeDoppel, findeDoppelImBuch, mengenGleich, wendeAn, alkoholArt, sindVarianten, merkmalUmschalten, merkmaleVon, zutatenGleich, dHash, bildAbstand, grund } from '../kern/modell/doppel.mjs';
 import { normalisiere } from '../kern/modell/rezept.mjs';
 
 const buch = JSON.parse(readFileSync(new URL('../beispiele/beispielbuch-mein-rezeptbuch.json', import.meta.url))).recipes.map(normalisiere);
@@ -109,4 +109,32 @@ test('R5 rezeptVerschieben: vor, hinter, unbekannt, auf sich selbst', async () =
   assert.equal(u(rezeptVerschieben(l, 'a', 'd', true)), 'bcda'); assert.equal(rezeptVerschieben(l, 'a', 'x'), l); assert.equal(rezeptVerschieben(l, 'b', 'b'), l);
   assert.equal(rezeptVerschieben(l, 'a', 'b'), l, 'steht schon davor: dieselbe Liste'); assert.equal(rezeptVerschieben(l, 'b', 'a', true), l);
   assert.equal(u(l), 'abcd', 'das Original bleibt unverändert');
+});
+
+/* Klaus 26.11.: „einmal englische Version, dann eine deutsche Version“ – dasselbe Rezept in zwei Sprachen */
+const englisch = (r) => normalisiere({ ...r, uid: r.uid + '-en', id: 9999, name: 'Gyoza (Japanese Pan-Fried Dumplings)', img: '',
+  ings: r.ings.map((z, i) => ({ ...z, name: 'ingredient ' + i })), steps: r.steps.map((x, i) => ({ ...x, txt: 'step ' + i })) });
+test('Gyoza deutsch und englisch (gleiche Mengen, andere Wörter, ein gemeinsames Wort im Namen) → sicher', () => {
+  const de = nach('Gyoza (japanische gebratene Teigtaschen)'), en = englisch(de);
+  assert.ok(mengenGleich(de, en) >= 0.99);
+  const v = vergleiche(en, de); assert.equal(v.stufe, 'sicher'); assert.ok(v.mengen >= 0.8);
+});
+test('… ohne gemeinsames Wort im Namen nur „vielleicht“, und andere Mengen → kein Doppel', () => {
+  const de = nach('Gyoza (japanische gebratene Teigtaschen)'), en = { ...englisch(de), name: 'Pan-Fried Dumplings' };
+  assert.equal(vergleiche(en, de).stufe, 'vielleicht');
+  const anders = { ...en, ings: en.ings.map((z, i) => ({ ...z, amt: String(i * 7 + 3) })) };
+  assert.equal(vergleiche(anders, de).stufe, '');
+});
+test('eine Übersetzung am Rezept wird mitverglichen', () => {
+  const de = nach('Gyoza (japanische gebratene Teigtaschen)'), en = normalisiere({ ...de, uid: 'en-2', id: 9998, name: 'Pan-Fried Dumplings', ings: de.ings.map((z, i) => ({ ...z, amt: '', name: 'x' + i })), steps: [{ txt: 'a' }], img: '',
+    translations: { de: { name: de.name, ingredients: de.ings.map((z) => z.name), steps: ['a'] } } });
+  const v = vergleiche(en, de); assert.equal(v.stufe, 'sicher'); assert.equal(v.uebersetzt, 'de');
+});
+test('das ganze Buch: jedes Rezept in höchstens einem Paar, „neu“ ist das spätere', () => {
+  const de = nach('Gyoza (japanische gebratene Teigtaschen)'), en = englisch(de), kopie = normalisiere({ ...de, uid: 'kopie', id: 9997 });
+  const p = findeDoppelImBuch([...buch, en, kopie]);
+  const gyoza = p.filter((x) => [de.uid, en.uid, kopie.uid].includes(x.neu) || [de.uid, en.uid, kopie.uid].includes(x.alt));
+  assert.equal(gyoza.length, 1); const alle = p.flatMap((x) => [x.neu, x.alt]); assert.equal(new Set(alle).size, alle.length);
+  assert.equal(gyoza[0].alt, de.uid);
+  assert.equal(findeDoppelImBuch(buch).filter((x) => x.stufe === 'sicher').length, 0, 'das Beispielbuch selbst hat keine sicheren Doppel');
 });
