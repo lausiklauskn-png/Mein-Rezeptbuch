@@ -93,8 +93,10 @@ try {
     await q.locator('.md-liste').evaluate((e) => { e.scrollTop = 600; }); await q.locator('.md-liste .karte', { has: q.getByText('Ebi Tempura', { exact: true }) }).click();
     ok((await q.locator('.md-detail h1').innerText()) === 'Ebi Tempura' && await q.locator('.md-liste').evaluate((e) => e.scrollTop) > 300, 'Tipp links wechselt das Rezept rechts, die Liste bleibt an ihrer Stelle', (await q.locator('.md-detail h1').innerText()) + ' / ' + await q.locator('.md-liste').evaluate((e) => e.scrollTop));
     ok(await q.locator('.rezept-held .rund').count() === 0 && await q.locator('.rezept-held .wk-pf:visible').count() === 1, 'es gibt nur den kleinen Pfeil in der Namenszeile');
-    { const lage = await q.evaluate(() => { const b = document.querySelector('.md-detail .rezept-held>img').getBoundingClientRect(), w = document.querySelector('.md-detail [data-a=rleiste]').getBoundingClientRect(), h = document.querySelector('.md-detail h1').getBoundingClientRect(); return { winkel: w.top >= b.bottom - 1, name: h.top >= b.bottom - 1 }; });
-      ok(lage.winkel && lage.name, 'Monitor: Name und Winkel stehen unter dem Bild, nicht darauf (Klaus 23.11.)', JSON.stringify(lage)); }
+    { const lage = await q.evaluate(() => { const b = document.querySelector('.md-detail .rezept-held>img').getBoundingClientRect(), w = document.querySelector('.md-detail [data-a=rleiste]').getBoundingClientRect(), h = document.querySelector('.md-detail h1').getBoundingClientRect(); const unten = b.top + b.height * 0.55; return { winkel: w.top >= unten, name: h.top >= unten }; });
+      /* Tafel-Evolution, benannt: am 23.11. stand der Name UNTER dem Bild; seit Klaus 26.11. („wie Ordnung auf Japanisch“) beginnt er im
+         weich auslaufenden unteren Teil des Bildes. Er steht nie auf dem kräftigen oberen Teil. */
+      ok(lage.winkel && lage.name, 'Monitor: Name und Winkel stehen im auslaufenden unteren Teil des Bildes, nie auf seinem oberen Teil (Klaus 26.11.)', JSON.stringify(lage)); }
     await q.click('.md-detail h1'); ok(await q.locator('.vollbild').count() === 0, 'Monitor: ein Tipp auf den Namen öffnet kein Vollbild');
     await q.click('[data-a=rleiste]'); await q.waitForTimeout(250);
     ok(await q.evaluate(() => { const b = document.querySelector('.md-detail .rezept-held>img').getBoundingClientRect(); return [...document.querySelectorAll('.rwerk .chip')].filter((c) => c.offsetHeight).every((c) => c.getBoundingClientRect().top >= b.bottom - 1); }), 'Monitor: die aufgeklappten Werkzeuge liegen unter dem Bild, keins darauf');
