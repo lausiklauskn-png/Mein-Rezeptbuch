@@ -144,3 +144,11 @@ test('überall dieselbe Menge („2 · 2 · 2 · 2“) trägt nichts: Mojito und
   const b = normalisiere({ uid: 'm2', name: 'Virgin Mojito', ings: z(['Minze', 'Limettensaft', 'Rohrzucker', 'Sprudelwasser']), steps: st });
   assert.equal(mengenGleich(a, b), 0);
 });
+test('Übersetzungen in anderer Schrift: zwei verschiedene russische Namen sind kein gleicher Name (Bolognese ≠ Eierschecke)', () => {
+  const z = (l) => l.map((n, i) => ({ id: i, amt: String(i * 50 + 100), unit: 'g', name: n }));
+  const a = normalisiere({ uid: 'b1', name: 'Bolognese-Sauce', ings: z(['Möhren', 'Sellerie', 'Hackfleisch']), steps: [{ txt: 'Kochen.' }], translations: { ru: { name: 'Болоньезский соус' } } });
+  const b = normalisiere({ uid: 'e1', name: 'Eierschecke', ings: z(['Quark', 'Eier', 'Zucker', 'Pudding']), steps: [{ txt: 'Backen.' }], translations: { ru: { name: 'Айершекке' } } });
+  assert.equal(vergleiche(a, b).stufe, '');
+  const c = normalisiere({ uid: 'b2', name: 'Bolognese mit Gemüse', ings: z(['Möhren', 'Sellerie', 'Hackfleisch']), steps: [{ txt: 'Kochen.' }], translations: { ru: { name: 'Болоньезский соус' } } });
+  assert.equal(vergleiche(c, a).stufe, 'sicher', 'derselbe russische Name bei gleichen Zutaten bleibt ein Treffer');
+});

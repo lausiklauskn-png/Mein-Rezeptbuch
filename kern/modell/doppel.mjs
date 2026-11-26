@@ -30,7 +30,7 @@ const FUELL = new Set(['mit', 'und', 'der', 'die', 'das', 'den', 'dem', 'von', '
 const ZUT_FUELL = new Set(['frisch', 'frische', 'frischer', 'frisches', 'gehackt', 'gehackte', 'klein', 'kleine', 'grosse', 'gross', 'etwas', 'fein', 'feine', 'gemahlen', 'gemahlener', 'zum', 'fuer', 'nach', 'belieben', 'optional']);
 /** Text ohne Akzente, klein, ß → ss, nur Buchstaben und Ziffern. */
 export function grund(t) {
-  return String(t ?? '').normalize('NFKD').replace(/[̀-ͯ]/g, '').toLowerCase().replace(/ß/g, 'ss').replace(/[^a-z0-9]+/g, ' ').trim();
+  return String(t ?? '').normalize('NFKD').replace(/[̀-ͯ]/g, '').toLowerCase().replace(/ß/g, 'ss').replace(/[^\p{L}\p{N}]+/gu, ' ').trim();   // Buchstaben jeder Schrift: ein russischer Name ist kein leerer Name (26.11.)
 }
 const woerter = (t, fuell) => grund(t).split(' ').filter((w) => w.length > 1 && !fuell.has(w));
 const jaccard = (a, b) => { if (!a.size && !b.size) return 0; let n = 0; for (const x of a) if (b.has(x)) n++; return n / (a.size + b.size - n); };
@@ -90,7 +90,7 @@ export function mengenGleich(a, b) {
 }
 function vergleicheEinfach(a, b, bildA, bildB) {
   const ma = merkmal(a), mb = merkmal(b);
-  const nameGleich = ma.schluessel === mb.schluessel, name = jaccard(ma.name, mb.name), zut = zutatenGleich(ma, mb);
+  const nameGleich = !!ma.schluessel && ma.schluessel === mb.schluessel, name = jaccard(ma.name, mb.name), zut = zutatenGleich(ma, mb);
   const bild = !!(a.img && b.img && (a.img === b.img || bildAbstand(bildA, bildB) <= SCHWELLE.bildAbstand));
   const unterschied = { name: nameGleich ? 1 : name, zutaten: zut, bild };
   if ((nameGleich || name >= SCHWELLE.nameAehnlich) && (zut >= SCHWELLE.sicherZutaten || bild)) return { stufe: 'sicher', ...unterschied };
