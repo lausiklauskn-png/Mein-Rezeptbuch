@@ -912,4 +912,11 @@ export default {
   'Die gewählten Rezepte werden aus dem Buch entfernt. Gleich danach lässt es sich rückgängig machen.': '所选食谱将从书中删除。删除后可立即撤销。',
   '{0} Rezepte gelöscht': '已删除 {0} 个食谱',
   '{0} Rezepte löschen?': '删除 {0} 个食谱？',
+  'Bild unscharf ({0} px)': '图片模糊（{0} px）',
+  'Bilder werden platzsparend gespeichert …': '正在紧凑保存图片 …',
+  'Die Bilder sind schon platzsparend gespeichert': '图片已紧凑保存',
+  'Für diese Größe ein schärferes Foto aufnehmen oder ein KI-Bild erzeugen': '按此尺寸请拍更清晰的照片或生成 AI 图片',
+  'Platz sparen': '节省空间',
+  'Rechnet große Bilder platzsparend neu (1600 px, WebP). Ein Bild wird nur ersetzt, wenn es dabei mindestens 10 % kleiner wird.': '将大图重新保存以节省空间（1600 px，WebP）。只有缩小至少 10 % 时才替换。',
+  '{0} Bilder neu gespeichert · {1} MB gespart': '已重新保存 {0} 张图片 · 节省 {1} MB',
 };

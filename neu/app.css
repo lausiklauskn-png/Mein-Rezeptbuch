@@ -1135,3 +1135,8 @@ a.knopf{text-decoration:none}
 .bz-alle-wahl{gap:8px}
 .bz-alle-wahl .bz-haken{width:22px;height:22px;border-radius:6px}
 .bz-alle-wahl[aria-pressed="true"] .bz-haken{background:var(--akz);border-color:var(--akz)}
+/* Klaus 26.11.: ein Bild, das für die Fläche zu klein ist, sagt es */
+.bild-unscharf{position:absolute;left:12px;top:12px;z-index:3;display:flex;align-items:center;gap:6px;padding:5px 10px;border-radius:999px;border:0;background:rgba(20,20,20,.55);color:#fff;font:600 12.5px/1.2 inherit;cursor:pointer;-webkit-backdrop-filter:blur(6px);backdrop-filter:blur(6px)}
+.bild-unscharf .ic{width:15px;height:15px;color:#fff}
+.md-detail .rezept-held:has(>img)>.bild-unscharf{grid-area:1/1;position:relative;left:auto;top:auto;align-self:start;justify-self:start;margin:12px 0 0 calc((100% - min(100%, var(--bildh) * 2.6)) / 2 + 12px)}
+.bildkachel.klein::before{content:"klein";position:absolute;left:6px;top:6px;z-index:2;padding:1px 7px;border-radius:999px;background:rgba(20,20,20,.6);color:#fff;font-size:11px;font-weight:600}

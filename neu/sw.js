@@ -1,7 +1,7 @@
 // Mein Rezeptbuch (neu) · Service Worker: die App läuft nach dem ersten Öffnen ohne Netz.
 // Vorrat = Hülle und alle Module. Beispielbuch und Katalog gehören NICHT dazu (Beispiele liegen nach dem Laden im Gerät).
 // Bei jeder neuen Fassung FASSUNG hochzählen; `node --test` prüft, dass die Liste zu den Modulen passt.
-const FASSUNG = 'rezeptbuch-neu-0.19.6';
+const FASSUNG = 'rezeptbuch-neu-0.19.7';
 const VORRAT = [
  "./",
  "./index.html",
@@ -13,6 +13,8 @@ const VORRAT = [
  "../ausgaben/muttis/ausgabe.json",
  "../icons/icon-book-192.png?v=1",
  "../icons/rezeptbuch-neu-192.png?v=1",
+ "../icons/rezeptbuch-neu-64.webp?v=1",
+ "../icons/icon-book-64.webp?v=1",
  "../icons/ausgeloest-48fb59f123.jpg?v=1",
  "./start-rezepte.json",
  "./zine-beispiele/poster-klein.webp?v=1",
@@ -96,7 +98,7 @@ const VORRAT = [
  "../kern/sprachen/zh.mjs",
  "./app.mjs"
 ];
-self.addEventListener('install', (e) => { e.waitUntil(caches.open(FASSUNG).then((c) => c.addAll(VORRAT)).then(() => self.skipWaiting())); });
+self.addEventListener('install', (e) => { e.waitUntil(caches.open(FASSUNG).then((c) => c.addAll(VORRAT.map((u) => new Request(u, { cache: 'reload' })))   /* frisch vom Server, nicht aus dem HTTP-Speicher des Browsers (GitHub Pages hält 10 min) */).then(() => self.skipWaiting())); });
 self.addEventListener('activate', (e) => { e.waitUntil(caches.keys().then((k) => Promise.all(k.filter((n) => n.startsWith('rezeptbuch-neu-') && n !== FASSUNG).map((n) => caches.delete(n)))).then(() => self.clients.claim())); });
 self.addEventListener('fetch', (e) => {
   const u = new URL(e.request.url);

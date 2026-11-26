@@ -81,10 +81,10 @@ try {
   ok(inhalt[0].source.data.length < 4 * 1024 * 1024, 'die Nutzlast liegt unter dem Deckel von 4 MB', Math.round(inhalt[0].source.data.length / 1024) + ' KB');
   ok(await p.inputValue('[name=name]') === 'Kartoffelsuppe' && await p.inputValue('[name=cat]') === 'suppe' && await p.inputValue('[name=servings]') === '6' && await p.inputValue('[name=prepTime]') === '45', 'das Ergebnis steht im Formular: Name, Kategorie, Portionen, Zeit');
   ok((await p.inputValue('[name=ings]')).split('\n').length === 3 && (await p.inputValue('[name=ings]')).startsWith('500 g Kartoffeln') && (await p.inputValue('[name=steps]')).split('\n\n').length === 2, 'drei Zutaten und zwei Schritte, zum Prüfen vor dem Speichern');
-  ok((await p.locator('.formbild img').getAttribute('src')).startsWith('data:image/jpeg'), 'das Foto liegt als Rezeptbild bereit');
+  ok((await p.locator('.formbild img').getAttribute('src')).startsWith('data:image/webp'), 'das Foto liegt als Rezeptbild bereit (WebP, Klaus 26.11.: hohe Qualität, wenig Platz)');
   await p.click('[data-form=rezept] button[type=submit]'); await p.waitForSelector('.rezept-held h1');
   const bildImRezept = await p.locator('.rezept-held > img').getAttribute('src'), m2 = await bildMasse(p, bildImRezept.split(',')[1]);
-  ok(Math.max(...m2) === 1024 && !Buffer.from(bildImRezept.split(',')[1], 'base64').includes('GEHEIM-ORT'), 'gespeichert: Rezeptbild 1024 px, ohne Aufnahmedaten', m2.join('×'));
+  ok(Math.max(...m2) === 1600 && !Buffer.from(bildImRezept.split(',')[1], 'base64').includes('GEHEIM-ORT'), 'gespeichert: Rezeptbild 1600 px (Klaus 26.11., vorher 1024), ohne Aufnahmedaten', m2.join('×'));
   ok(await p.locator('[data-ki-entfernt]').count() === 0, 'ohne Fund steht kein Vermerk am Rezept');
 
   console.log('3 · Mistral liest den Text, Claude sortiert; Stufe Profi; die Wahl bleibt');

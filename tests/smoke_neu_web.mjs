@@ -45,7 +45,7 @@ try {
   ok(draussen.length === 2 && draussen[0] === 'omas.example/suppe' && draussen[1] === 'omas.example/gross.jpg', 'abgerufen wird NUR die Seite selbst und ihr Bild, kein Dienst dazwischen', draussen.join(' · '));
   ok(await p.inputValue('[name=name]') === 'Omas Kartoffelsuppe' && await p.inputValue('[name=cat]') === 'suppe' && await p.inputValue('[name=servings]') === '6' && await p.inputValue('[name=prepTime]') === '75', 'im Formular: Name, Kategorie (geraten aus „Suppen“), Portionen, Zeit');
   const zut = await p.inputValue('[name=ings]'); ok(zut.split('\n').length === 3 && zut.startsWith('500 g Kartoffeln (mehlig)') && zut.includes('1 l Brühe') && (await p.inputValue('[name=steps]')).startsWith('Kartoffeln schälen.'), 'Zutaten und Schritte, Umlaute richtig', zut.replace(/\n/g, ' | '));
-  ok((await p.locator('.formbild img').getAttribute('src').catch(() => '') || '').startsWith('data:image/jpeg'), 'das Bild der Seite ist als eigene Kopie übernommen');
+  ok((await p.locator('.formbild img').getAttribute('src').catch(() => '') || '').startsWith('data:image/webp'), 'das Bild der Seite ist als eigene Kopie übernommen (WebP, Klaus 26.11.)');
   ok(/Rezeptdaten der Seite/.test(await p.locator('#toast').innerText()) && rufe.length === 0, 'die Meldung sagt, woher es kommt; keine KI im Spiel');
   await p.click('[data-form=rezept] button[type=submit]'); await p.waitForSelector('.rezept-held h1');
   ok((await p.locator('.quelle').innerText()).includes('https://omas.example/suppe'), 'am Rezept steht die Quelle');

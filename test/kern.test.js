@@ -324,3 +324,8 @@ test('Ladebalken: bytesMitAnteil liest vollständig und meldet steigenden Anteil
   ab(); w.dispatchEvent(new CustomEvent('sbkim:embedding-progress', { detail: { file: 'a', loaded: 4 * 1048576, total: 4 * 1048576 } }));
   assert.deepEqual(m, [[0.25, 1, 4], [0.625, 5, 8]]);
 });
+
+test('neu/index.html und neu/muttis.html laden app.css und app.mjs mit der Fassung der App (sonst liefert der Browser-Speicher eine alte)', () => {
+  const fassung = (readFileSync(new URL('../neu/app.mjs', import.meta.url), 'utf8').match(/const FASSUNG = '([^']+)'/) || [])[1];
+  for (const f of ['index.html', 'muttis.html']) { const h = readFileSync(new URL('../neu/' + f, import.meta.url), 'utf8'); assert.ok(h.includes('app.css?v=' + fassung) && h.includes('app.mjs?v=' + fassung), f + ' trägt nicht ?v=' + fassung); }
+});

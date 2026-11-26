@@ -83,7 +83,7 @@ try {
   const b = await bestandWenn(p, (x) => nz(x).length === 1), n = nz(b)[0] || { fotos: [] };
   ok(n.text === 'Kürbis vom Markt' && n.fotos.length === 1 && n.tag === '' && !n.erledigt, 'der Haken legt die Notiz ab: Text und ein Foto, ohne Tag', JSON.stringify({ ...n, fotos: n.fotos.length }));
   const masse = n.fotos[0] ? await p.evaluate(async (src) => { const x = await createImageBitmap(await (await fetch(src)).blob()); return [x.width, x.height]; }, n.fotos[0]) : [0, 0];
-  ok(/^data:image\/jpeg;base64,/.test(n.fotos[0] || '') && Math.max(...masse) === 1200, 'das Foto ist im Gerät verkleinert (lange Kante 1200 px, JPEG)', masse.join('×'));
+  ok(/^data:image\/webp;base64,/.test(n.fotos[0] || '') && Math.max(...masse) === 1200, 'das Foto ist im Gerät verkleinert (lange Kante 1200 px, WebP – Klaus 26.11.)', masse.join('×'));
   ok(!Buffer.from(String(n.fotos[0]).split(',')[1] || '', 'base64').includes(MARKE), 'die Aufnahmedaten der Datei sind nicht im abgelegten Foto');
   ok(await p.locator('#nz-text').inputValue() === '' && await p.locator('#nz-entwurf-fotos img').count() === 0 && await p.locator('.nz-liste .nz-notiz').count() === 1 && await p.evaluate(() => document.activeElement?.id === 'nz-text'), 'danach ist das Feld leer für die nächste, die Notiz steht zugeklappt darunter');
   ok(/Notiz gespeichert/.test(await toast(p)), 'eine kurze Meldung', await toast(p));
