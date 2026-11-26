@@ -1,0 +1,158 @@
+# VORLAGE · wirkt erst, wenn Klaus diese Datei selbst nach .github/workflows/paket-bauen.yml legt.
+#
+# Baut für EINE Ausgabe und EIN Ziel ein Paket zum Ausprobieren und legt es als Artefakt am Lauf ab:
+#   android  eine Debug-APK (trägt nur den Debug-Schlüssel des Baurechners, keinen Release-Schlüssel)
+#   windows  einen Installer (.exe, ohne Signatur)
+# Es gibt KEINEN Start durch push, pull_request oder Zeitplan – nur den Knopf „Run workflow“ (workflow_dispatch).
+# Es wird nichts veröffentlicht: kein Release, kein Store, kein Tag, kein Schreiben ins Repo (permissions: contents: read).
+# Geheimnisse braucht dieser Lauf keine. Anleitung und alles Offene: docs/BAU_APK_WINDOWS.md
+#
+# Stand der Bausteine (nachgesehen am 2026-11-23, auf den Commit festgelegt, damit sich nichts unbemerkt ändert):
+#   actions/checkout v7.0.1 · actions/setup-node v7.1.0 · actions/setup-java v6.3.0 · actions/upload-artifact v7.0.2
+# Nicht gemessen: diese Datei ist noch nie gelaufen.
+
+name: Paket bauen (von Hand)
+
+on:
+  workflow_dispatch:
+    inputs:
+      ausgabe:
+        description: "Ausgabe"
+        type: choice
+        required: true
+        default: rezeptbuch
+        options:
+          - rezeptbuch
+          - muttis
+      ziel:
+        description: "Ziel"
+        type: choice
+        required: true
+        default: android
+        options:
+          - android
+          - windows
+      nummer:
+        description: "Nur Android: versionCode (ganze Zahl ab 1; für eine Probe-APK genügt 1)"
+        type: string
+        required: false
+        default: "1"
+
+permissions:
+  contents: read
+
+concurrency:
+  group: paket-bauen-${{ inputs.ausgabe }}-${{ inputs.ziel }}
+  cancel-in-progress: false
+
+env:
+  AUSGABE: ${{ inputs.ausgabe }}
+  NUMMER: ${{ inputs.nummer }}
+
+jobs:
+  android:
+    if: inputs.ziel == 'android'
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    steps:
+      - name: Repo holen
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - name: Workflow PDF holen (pdf.js und Texterkennung, nur der Ordner vendor)
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          repository: lausiklauskn-png/Workflow-PDF
+          path: .workflow-pdf
+          sparse-checkout: vendor
+          persist-credentials: false
+          # Ist Workflow-PDF privat, braucht dieser Schritt ein Lese-Token (siehe docs/BAU_APK_WINDOWS.md):
+          # token: ${{ secrets.WORKFLOW_PDF_LESEN }}
+
+      - name: Node 22
+        uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version: "22"
+
+      - name: Java 21 (verlangt Capacitor 8)
+        uses: actions/setup-java@d1374f8ac74474200d16ef8ecee22c7ae7a51880 # v6.3.0
+        with:
+          distribution: temurin
+          java-version: "21"
+
+      - name: Zusammenstellen (prüft Ausgabe, Beispiele, Kern-Pin, Vendor-Pin; bricht sonst ab)
+        run: node paket/zusammenstellen.mjs --ausgabe "$AUSGABE" --ziel android --vendor .workflow-pdf/vendor
+
+      - name: Android-Projekt frisch erzeugen (Capacitor), Zeichen einsetzen
+        run: |
+          cd "paket/aus/$AUSGABE-android"
+          npm ci --no-audit --no-fund
+          npx --no-install cap add android
+          npx --no-install capacitor-assets generate --android
+
+      - name: Fassung und Sicherung nachbessern
+        run: node paket/android/nachbessern.mjs --ordner "paket/aus/$AUSGABE-android" --nummer "$NUMMER"
+
+      - name: Debug-APK bauen
+        run: |
+          cd "paket/aus/$AUSGABE-android/android"
+          ./gradlew --no-daemon assembleDebug
+
+      - name: APK als Artefakt ablegen (14 Tage)
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: ${{ inputs.ausgabe }}-android-debug
+          path: paket/aus/${{ inputs.ausgabe }}-android/android/app/build/outputs/apk/debug/*.apk
+          if-no-files-found: error
+          retention-days: 14
+
+  windows:
+    if: inputs.ziel == 'windows'
+    runs-on: windows-latest
+    timeout-minutes: 45
+    defaults:
+      run:
+        shell: bash
+    steps:
+      - name: Zeilenenden nicht umwandeln (sonst stimmen unter Windows die Prüfsummen nicht)
+        run: git config --global core.autocrlf false
+
+      - name: Repo holen
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - name: Workflow PDF holen (pdf.js und Texterkennung, nur der Ordner vendor)
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          repository: lausiklauskn-png/Workflow-PDF
+          path: .workflow-pdf
+          sparse-checkout: vendor
+          persist-credentials: false
+          # Ist Workflow-PDF privat, braucht dieser Schritt ein Lese-Token (siehe docs/BAU_APK_WINDOWS.md):
+          # token: ${{ secrets.WORKFLOW_PDF_LESEN }}
+
+      - name: Node 22
+        uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version: "22"
+
+      - name: Zusammenstellen (prüft Ausgabe, Beispiele, Kern-Pin, Vendor-Pin; bricht sonst ab)
+        run: node paket/zusammenstellen.mjs --ausgabe "$AUSGABE" --ziel windows --vendor .workflow-pdf/vendor
+
+      - name: Installer bauen (ohne Signatur, veröffentlicht nichts)
+        env:
+          CSC_IDENTITY_AUTO_DISCOVERY: "false"
+        run: |
+          cd "paket/aus/$AUSGABE-windows"
+          npm ci --no-audit --no-fund
+          npx --no-install electron-builder --win nsis --x64 --config builder.json --publish never
+
+      - name: Installer als Artefakt ablegen (14 Tage)
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: ${{ inputs.ausgabe }}-windows-setup
+          path: paket/aus/${{ inputs.ausgabe }}-windows/ausgabe/*.exe
+          if-no-files-found: error
+          retention-days: 14
