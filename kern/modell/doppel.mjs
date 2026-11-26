@@ -79,10 +79,12 @@ export function dHash(grau) {
 }
 
 /** Anteil gleicher Mengen an gleicher Stelle (200 · 2 · 1 …), unabhängig von der Sprache. 0, wenn eins weniger als 4 Mengen hat.
+ *  Ebenfalls 0, wenn eins weniger als drei verschiedene Mengen hat (überall „2“ wäre sonst immer gleich).
  *  Klaus 26.11.: ein Rezept liegt einmal deutsch, einmal englisch im Buch – Namen und Zutaten teilen kaum ein Wort, die Mengen schon. */
 export function mengenGleich(a, b) {
   const m = (r) => (r.ings || []).map((z) => String(z.amt ?? '').replace(',', '.').replace(/[^0-9./½¼¾⅓⅔-]/g, '')).filter(Boolean);
   const A = m(a), B = m(b); if (A.length < 4 || B.length < 4) return 0;
+  if (new Set(A).size < 3 || new Set(B).size < 3) return 0;   // „2 · 2 · 2 · 2“ sagt nichts: eine Folge trägt erst mit mindestens drei verschiedenen Mengen
   let n = 0; for (let i = 0; i < Math.min(A.length, B.length); i++) if (A[i] === B[i]) n++;
   return n / Math.max(A.length, B.length);
 }

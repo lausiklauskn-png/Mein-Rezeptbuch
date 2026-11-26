@@ -21,7 +21,10 @@ export const datenGroesse = (u) => Math.round(String(u || '').replace(/^data:[^,
  *  um `mindestens` (Anteil) kleiner wird – dann bleibt das alte. Ein Bild über der Kante wird dabei auf sie verkleinert. */
 export async function platzSparen(adresse, { kante = BILD_SPEICHER.kante, guete = BILD_SPEICHER.guete, mindestens = 0.1 } = {}) {
   if (!/^data:image\//.test(String(adresse || ''))) return null;
-  const blob = await (await fetch(adresse)).blob(), neu = await bildAusDatei(blob, kante, guete);
+  const blob = await (await fetch(adresse)).blob();
+  /* Schon WebP und nicht größer als die Kante: so wurde es gespeichert. Ein zweites Rechnen wäre jedes Mal ein kleiner Verlust. */
+  if (/^data:image\/webp/i.test(adresse) && globalThis.createImageBitmap) { try { const b = await createImageBitmap(blob), gross = Math.max(b.width, b.height); b.close?.(); if (gross <= kante) return null; } catch (e) { /* weiter wie sonst */ } }
+  const neu = await bildAusDatei(blob, kante, guete);
   return datenGroesse(neu) <= datenGroesse(adresse) * (1 - mindestens) ? neu : null;
 }
 /** Reicht die Auflösung für die Fläche, auf der das Bild steht? Zurück { genug, faktor }: faktor = Bildpunkte je benötigtem Bildschirmpunkt. */
