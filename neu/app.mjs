@@ -21,7 +21,7 @@ import { rezeptAusText, zutatAusZeile, zutatZeile } from '../kern/import/text.mj
 import { diktat, diktatAus, diktatMoeglich } from '../kern/oberflaeche/diktat.mjs';
 import { kiBild, gratisBild, KOSTEN } from '../kern/ki/bild.mjs';
 import { hinweiseEinrichten } from '../kern/oberflaeche/hinweis.mjs';
-import { installation, istApple, aktualisieren } from '../kern/oberflaeche/app-pflege.mjs';
+import { installation, istApple, aktualisieren, imPaket } from '../kern/oberflaeche/app-pflege.mjs';
 import { wartenEinrichten, modellFortschritt, bytesMitAnteil } from '../kern/oberflaeche/warten.mjs';
 import { tresor } from '../kern/speicher/tresor.mjs';
 import { zusatz } from './zusatz.mjs';
@@ -43,7 +43,7 @@ import { teilLink, ausTeilLink, qrSvg, passtInQr } from '../kern/teilen/qr.mjs';
 import { rezeptIn } from '../kern/modell/einheiten.mjs';
 import { findeDoppel, findeDoppelImBuch, wendeAn, dHash, MERKMALE, merkmaleVon, merkmalUmschalten } from '../kern/modell/doppel.mjs';
 
-const FASSUNG = '0.19.13';
+const FASSUNG = '0.19.14';
 const breit = () => matchMedia('(min-width:1000px)').matches;
 const $ = (id) => document.getElementById(id);
 const esc = (t) => String(t ?? '').replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
@@ -1128,7 +1128,7 @@ function werkstattHtml() {
   return `<div class="ueber"><h2 style="font-size:19px">${L('Einstellungen', 'Settings')}</h2><small>${fuelle(L('{0} Rezepte', '{0} recipes'), n)}</small></div>
   <div class="themen">${themen.map(([id, i, kc, titel, hilfe, zeilen]) => { const auf = s.werkAuf.has(id);
     return `<div class="gruppe ${auf ? 'auf' : ''}" data-g="${id}" style="--kc:${kc}"><div class="gkopf-zeile"><button class="gkopf" data-a="werk-auf" data-g="${id}" aria-expanded="${auf}">${kfeld(i)}<span>${esc(titel)}</span>${ic(auf ? 'hoch' : 'rechts', 'pf')}</button>${auf && hilfe ? frag(hilfe) : ''}</div>${auf ? `<div class="liste">${zeilen}</div>` : ''}</div>`; }).join('')}</div>
-  <p class="quelle" id="fassung">${esc(ausgabe.titel)} ${FASSUNG}</p><p class="quelle"><a href="../impressum.html" target="_blank" rel="noopener">${L('Impressum · Datenschutz', 'Legal notice · Privacy')}</a></p>`;   /* Pflichtangabe; fehlte in der neuen App bis 0.19.13 */   /* kein Verweis auf die bisherige App (Klaus 23.11.: „Wir müssen nicht auf eine schlechtere Version verweisen.“) */
+  <p class="quelle" id="fassung">${esc(ausgabe.titel)} ${FASSUNG}</p><p class="quelle"><a href="../impressum.html" target="_blank" rel="noopener">${L('Impressum · Datenschutz', 'Legal notice · Privacy')}</a></p>`;   /* Pflichtangabe; fehlte in der neuen App bis 0.19.14 */   /* kein Verweis auf die bisherige App (Klaus 23.11.: „Wir müssen nicht auf eine schlechtere Version verweisen.“) */
 }
 
 /* ---------- Kreativbuch (Klaus 25.11., R12): Bücher und Food-Zine als eigener Bereich in der Leiste, nicht mehr in den Einstellungen ---------- */
@@ -1413,7 +1413,7 @@ addEventListener('resize', () => requestAnimationFrame(spaltenPruefen));
    oder KI-Bild) und in der Bilder-Übersicht (kleine Marke). Gemessen wird nach dem Laden: Bildpunkte gegen die angezeigte Breite × Pixeldichte. */
 function aufloesungPruefen(img) {
   if (!img?.naturalWidth) return;
-  if (img.classList.toggle('vorschau', img.naturalWidth <= 64 && /^data:image\//.test(img.getAttribute('src') || ''))) return;   /* nur eingebettete Rezeptbilder; das Logo (64 px, Datei) war in 0.19.13 mit verwischt (Klaus 26.11.) */   /* Vorschaubild der Startrezepte (48 px): weich gezeichnet, kein „Bild unscharf“, das scharfe kommt gleich */ const a = aufloesung(img.naturalWidth, img.getBoundingClientRect().width, devicePixelRatio);
+  if (img.classList.toggle('vorschau', img.naturalWidth <= 64 && /^data:image\//.test(img.getAttribute('src') || ''))) return;   /* nur eingebettete Rezeptbilder; das Logo (64 px, Datei) war in 0.19.14 mit verwischt (Klaus 26.11.) */   /* Vorschaubild der Startrezepte (48 px): weich gezeichnet, kein „Bild unscharf“, das scharfe kommt gleich */ const a = aufloesung(img.naturalWidth, img.getBoundingClientRect().width, devicePixelRatio);
   if (img.matches('.rezept-held>img')) {
     const held = img.parentElement; held.querySelector('.bild-unscharf')?.remove(); if (a.genug) return;
     if (aufloesungPruefen.gezeigt?.has(img.currentSrc || img.src)) return; (aufloesungPruefen.gezeigt ||= new Set()).add(img.currentSrc || img.src);   /* Klaus 26.11.: nur ein kurzer Hinweis, einmal je Bild; er blendet nach 4 s aus (CSS) */
@@ -1513,7 +1513,16 @@ const A = {
     melde(r.sicher ? fuelle(L('{0} Zutaten und {1} Schritte erkannt. Bitte prüfen.', '{0} ingredients and {1} steps found. Please check.'), r.ings.length, r.steps.length) : L('Ohne Überschriften aufgeteilt. Bitte Zutaten und Schritte prüfen.', 'Split without headings. Please check ingredients and steps.')); },
   diktat: (e) => { const f = document.querySelector(e.dataset.feld); if (!f) return; diktat(f, spr(), (an) => { e.setAttribute('aria-pressed', String(an)); }, { beiFehler: (satz) => melde(satz) }); f.focus(); },   /* Kern 0.20: schreibt an der Schreibmarke, kennt „Komma“, „Punkt“, „neue Zeile“; Fehler (kein Mikrofon, keine Erlaubnis) werden gesagt */
   installieren: async () => { if (INST.kannFragen()) await INST.fragen(); else melde(istApple() ? L('Teilen → „Zum Home-Bildschirm“', 'Share → “Add to Home Screen”') : L('Browser-Menü ⋮ → „App installieren“', 'Browser menu ⋮ → “Install app”')); kopfZeichnen(); if (s.ansicht === 'werkstatt') zeichne(); },
-  aktualisieren: async () => { melde(L('Neueste Fassung wird geholt …', 'Fetching the latest version …')); const e = await aktualisieren({ cachePrefix: 'rezeptbuch-neu-', probe: './sw.js' }); if (e === 'offline') melde(L('Ohne Netz – die App bleibt, wie sie ist', 'Offline – the app stays as it is')); else location.reload(); },
+  aktualisieren: async () => {
+    /* In der APK und unter Windows gibt es keinen Service Worker: eine neue Fassung ist eine neue App-Datei (Klaus 26.11.2026:
+       „Update zeigt ‚ohne Netz‘“). Mein Rezeptbuch öffnet die Seite mit der neuesten Fassung; andere Ausgaben haben keine. */
+    if (imPaket()) {
+      const seite = ausgabe?.name === 'rezeptbuch' ? 'https://github.com/lausiklauskn-png/Mein-Rezeptbuch/releases/latest' : '';
+      melde(seite ? L('Neue Fassungen kommen als neue App-Datei – die Seite dazu öffnet sich.', 'New versions come as a new app file – opening the page.') : L('Neue Fassungen kommen als neue App-Datei.', 'New versions come as a new app file.'));
+      if (seite) setTimeout(() => { location.href = seite; }, 1200);
+      return;
+    }
+    melde(L('Neueste Fassung wird geholt …', 'Fetching the latest version …')); const e = await aktualisieren({ cachePrefix: 'rezeptbuch-neu-', probe: './sw.js' }); if (e === 'offline') melde(L('Ohne Netz – die App bleibt, wie sie ist', 'Offline – the app stays as it is')); else location.reload(); },
   bearbeiten: () => { const r = rezept(s.uid); if (!r) return; const ueb = uebGezeigt(r); s.form = { ...formAus(ueb ? sicht(r, ueb) : r), ueb }; geh('form'); },   /* bearbeitet wird, was dasteht (Klaus 25.11.) */
   abschnitt: (e) => { const t = e.dataset.t; s.abschnitt = s.abschnitt?.uid === s.uid && s.abschnitt.teil === t ? null : { uid: s.uid, teil: t }; zeichne(); document.querySelector('.abschnitt textarea')?.focus(); },
   'ab-zu': () => { s.abschnitt = null; zeichne(); },

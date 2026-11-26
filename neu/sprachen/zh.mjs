@@ -923,4 +923,6 @@ export default {
   "vor dem Weitergeben: eigene Worte, eigenes Bild": "分享之前：用自己的话、自己的图片",
   "Zutaten und Arbeitsschritte eines Rezepts gehören niemandem. Fotos sind aber immer geschützt, und ein persönlich geschriebener Text kann es sein. Wer ein geholtes Rezept weitergibt oder veröffentlicht, schreibt es deshalb in eigenen Worten und nimmt ein eigenes Foto oder ein KI-Bild. Die Adresse der Seite bleibt als Quelle am Rezept.": "食谱的配料和步骤不属于任何人。但照片始终受保护，带有个人风格的文字也可能受保护。因此，分享或发布获取的食谱时，请用自己的话改写，并使用自己的照片或 AI 图片。网页地址会作为来源保留在食谱中。",
   "Impressum · Datenschutz": "法律声明 · 隐私",
+  "Neue Fassungen kommen als neue App-Datei – die Seite dazu öffnet sich.": "新版本以新的应用文件形式提供——正在打开页面。",
+  "Neue Fassungen kommen als neue App-Datei.": "新版本以新的应用文件形式提供。",
 };

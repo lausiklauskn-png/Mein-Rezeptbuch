@@ -10,8 +10,8 @@
 <link rel="preload" as="image" type="image/webp" href="../icons/rezeptbuch-neu-64.webp?v=1" data-logo>
 <link rel="manifest" href="./manifest.webmanifest">
 <script>/* Beim allerersten Start füllen die Startrezepte das Buch (Texte mit 48-px-Vorschau, die scharfen Bilder kommen danach); ihr Abruf beginnt hier, parallel zu den Modulen, nicht erst nach ihnen. Wer die App schon einmal geöffnet hat, holt nichts. */try{if(!localStorage.getItem('rb-neu-da')&&!/[?&]leer\b/.test(location.search))window.__startRezepte=fetch('./start-rezepte.json')}catch(e){}try{if(/\/[^/]+\/neu\//.test(location.pathname))window.__ausgabe=fetch('../ausgaben/rezeptbuch/ausgabe.json')}catch(e){}/* nur auf der Web-Adresse (…/Mein-Rezeptbuch/neu/); im Paket liegt alles im Gerät, und dort nutzen alle Ausgaben diese Seite */</script>
-<link rel="stylesheet" href="./app.css?v=0.19.13">
-<script type="module" src="./app.mjs?v=0.19.13"></script>
+<link rel="stylesheet" href="./app.css?v=0.19.14">
+<script type="module" src="./app.mjs?v=0.19.14"></script>
 </head>
 <body>
 <div class="app" id="app">

@@ -923,4 +923,6 @@ export default {
   "vor dem Weitergeben: eigene Worte, eigenes Bild": "antes de partilhar: palavras suas, imagem própria",
   "Zutaten und Arbeitsschritte eines Rezepts gehören niemandem. Fotos sind aber immer geschützt, und ein persönlich geschriebener Text kann es sein. Wer ein geholtes Rezept weitergibt oder veröffentlicht, schreibt es deshalb in eigenen Worten und nimmt ein eigenes Foto oder ein KI-Bild. Die Adresse der Seite bleibt als Quelle am Rezept.": "Os ingredientes e os passos de uma receita não pertencem a ninguém. As fotografias, porém, estão sempre protegidas, e um texto escrito de forma pessoal também pode estar. Por isso, quem partilha ou publica uma receita obtida deve reescrevê-la por palavras suas e usar uma fotografia própria ou uma imagem de IA. O endereço da página fica na receita como fonte.",
   "Impressum · Datenschutz": "Ficha técnica · Privacidade",
+  "Neue Fassungen kommen als neue App-Datei – die Seite dazu öffnet sich.": "As novas versões chegam como um novo ficheiro da app – a página abre-se.",
+  "Neue Fassungen kommen als neue App-Datei.": "As novas versões chegam como um novo ficheiro da app.",
 };
