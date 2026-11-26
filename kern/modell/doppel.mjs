@@ -4,7 +4,7 @@
 // „Mit Alkohol“ und „alkoholfrei“ sind NIE ein Doppel, auch wenn sich nur dieses Wort unterscheidet; ebenso zwei Rezepte mit
 // verschiedenen Merkmalen (die laktosefreie Variante bleibt neben dem Original stehen, Klaus 25.11.).
 // Das Bild wird hier nicht gelesen: die App gibt je Rezept einen kleinen Bild-Fingerabdruck (64 Bit als Hex, dHash 9×8) mit.
-import { istInhalt } from './rezept.mjs';
+import { istInhalt, sicht } from './rezept.mjs';
 import { text } from '../oberflaeche/sprache.mjs';
 
 /** Merkmale einer Variante, in dieser Reihenfolge an der Leiste. */
@@ -24,7 +24,7 @@ export function merkmalUmschalten(r, m) {
   const { merkmale, ...rest } = r; return neu.length ? { ...rest, merkmale: neu } : rest;
 }
 
-export const SCHWELLE = { sicherZutaten: 0.7, vielleichtZutaten: 0.6, nameAehnlich: 0.75, nameVielleicht: 0.5, nurZutaten: 0.9, bildAbstand: 6 };
+export const SCHWELLE = { sicherZutaten: 0.7, vielleichtZutaten: 0.6, nameAehnlich: 0.75, nameVielleicht: 0.5, nurZutaten: 0.9, bildAbstand: 6, mengen: 0.8 };
 
 const FUELL = new Set(['mit', 'und', 'der', 'die', 'das', 'den', 'dem', 'von', 'vom', 'im', 'in', 'auf', 'aus', 'nach', 'art', 'a', 'an', 'the', 'and', 'with', 'of', 'la', 'le', 'les', 'al', 'alla', 'con', 'de', 'del', 'et', 'e', 'y', 'com', 'ein', 'eine']);
 const ZUT_FUELL = new Set(['frisch', 'frische', 'frischer', 'frisches', 'gehackt', 'gehackte', 'klein', 'kleine', 'grosse', 'gross', 'etwas', 'fein', 'feine', 'gemahlen', 'gemahlener', 'zum', 'fuer', 'nach', 'belieben', 'optional']);
@@ -78,16 +78,38 @@ export function dHash(grau) {
   return hex;
 }
 
-/** Vergleicht zwei Rezepte. bild: gleiches Bild (gleiche Adresse oder kleiner Abstand der Fingerabdrücke). Ergebnis 'sicher' | 'vielleicht' | ''. */
-export function vergleiche(a, b, { bildA = '', bildB = '' } = {}) {
-  if (!istInhalt(a) || !istInhalt(b) || sindVarianten(a, b)) return { stufe: '' };
+/** Anteil gleicher Mengen an gleicher Stelle (200 · 2 · 1 …), unabhängig von der Sprache. 0, wenn eins weniger als 4 Mengen hat.
+ *  Klaus 26.11.: ein Rezept liegt einmal deutsch, einmal englisch im Buch – Namen und Zutaten teilen kaum ein Wort, die Mengen schon. */
+export function mengenGleich(a, b) {
+  const m = (r) => (r.ings || []).map((z) => String(z.amt ?? '').replace(',', '.').replace(/[^0-9./½¼¾⅓⅔-]/g, '')).filter(Boolean);
+  const A = m(a), B = m(b); if (A.length < 4 || B.length < 4) return 0;
+  let n = 0; for (let i = 0; i < Math.min(A.length, B.length); i++) if (A[i] === B[i]) n++;
+  return n / Math.max(A.length, B.length);
+}
+function vergleicheEinfach(a, b, bildA, bildB) {
   const ma = merkmal(a), mb = merkmal(b);
   const nameGleich = ma.schluessel === mb.schluessel, name = jaccard(ma.name, mb.name), zut = zutatenGleich(ma, mb);
   const bild = !!(a.img && b.img && (a.img === b.img || bildAbstand(bildA, bildB) <= SCHWELLE.bildAbstand));
   const unterschied = { name: nameGleich ? 1 : name, zutaten: zut, bild };
   if ((nameGleich || name >= SCHWELLE.nameAehnlich) && (zut >= SCHWELLE.sicherZutaten || bild)) return { stufe: 'sicher', ...unterschied };
   if (bild || nameGleich || (name >= SCHWELLE.nameVielleicht && zut >= SCHWELLE.vielleichtZutaten) || zut >= SCHWELLE.nurZutaten) return { stufe: 'vielleicht', ...unterschied };
+  /* gleiche Mengen in gleicher Folge, gleich viele Zutaten und fast gleich viele Schritte: dasselbe Rezept in einer anderen Sprache */
+  const mg = mengenGleich(a, b), gleichGebaut = (a.ings || []).length === (b.ings || []).length && Math.abs((a.steps || []).length - (b.steps || []).length) <= 1;
+  if (mg >= SCHWELLE.mengen && gleichGebaut) return { stufe: name > 0 || bild ? 'sicher' : 'vielleicht', ...unterschied, mengen: mg };
   return { stufe: '' };
+}
+const RANG = { sicher: 2, vielleicht: 1, '': 0 };
+/** Vergleicht zwei Rezepte. bild: gleiches Bild (gleiche Adresse oder kleiner Abstand der Fingerabdrücke). Ergebnis 'sicher' | 'vielleicht' | ''.
+ *  Liegt an einem der beiden eine Übersetzung, wird auch sie verglichen (die deutsche Fassung eines englischen Rezepts ist ein Doppel). */
+export function vergleiche(a, b, { bildA = '', bildB = '' } = {}) {
+  if (!istInhalt(a) || !istInhalt(b) || sindVarianten(a, b)) return { stufe: '' };
+  let best = vergleicheEinfach(a, b, bildA, bildB);
+  const spr = new Set([...Object.keys(a.translations || {}), ...Object.keys(b.translations || {})]);
+  for (const l of spr) {
+    if (best.stufe === 'sicher') break;
+    for (const [x, y] of [[sicht(a, l), b], [a, sicht(b, l)], [sicht(a, l), sicht(b, l)]]) { const v = vergleicheEinfach(x, y, bildA, bildB); if (RANG[v.stufe] > RANG[best.stufe]) best = { ...v, uebersetzt: l }; }
+  }
+  return best;
 }
 
 /** Sucht zu jedem der `neue` (Rezepte oder uids aus `alle`) das ähnlichste andere Rezept unter `alle`, das nicht selbst neu ist.
@@ -107,6 +129,20 @@ export function findeDoppel(alle, neue, { hash = {} } = {}) {
     }
     if (best) { const { w, ...rest } = best; aus.push(rest); }
   }
+  return aus.sort((x, y) => (x.stufe === y.stufe ? 0 : x.stufe === 'sicher' ? -1 : 1));
+}
+
+/** Das ganze Buch gegen sich selbst (Klaus 26.11.: „Wo kann ich Rezeptdoppelungen entfernen?“). Jedes Rezept steht in höchstens einem Paar;
+ *  „neu“ ist das, das später im Buch steht (meist später dazugekommen), „alt“ das frühere. Stärkste Paare zuerst. */
+export function findeDoppelImBuch(alle, { hash = {} } = {}) {
+  const h = (u) => (hash instanceof Map ? hash.get(u) : hash[u]) || '';
+  const r = (alle || []).filter(istInhalt), kand = [];
+  for (let i = 0; i < r.length; i++) for (let j = i + 1; j < r.length; j++) {
+    const v = vergleiche(r[i], r[j], { bildA: h(r[i].uid), bildB: h(r[j].uid) }); if (!v.stufe) continue;
+    kand.push({ w: (v.stufe === 'sicher' ? 10 : 0) + v.name + v.zutaten + (v.bild ? 1 : 0) + (v.mengen || 0), neu: r[j].uid, alt: r[i].uid, ...v });
+  }
+  const belegt = new Set(), aus = [];
+  for (const k of kand.sort((x, y) => y.w - x.w)) { if (belegt.has(k.neu) || belegt.has(k.alt)) continue; belegt.add(k.neu); belegt.add(k.alt); const { w, ...rest } = k; aus.push(rest); }
   return aus.sort((x, y) => (x.stufe === y.stufe ? 0 : x.stufe === 'sicher' ? -1 : 1));
 }
 

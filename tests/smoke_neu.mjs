@@ -175,7 +175,7 @@ try {
   ok((await p.locator('.rezept-held .meta').innerText()).includes('Sommerküche'), 'aus dem Rezept: neue Kategorie anlegen und zuordnen in einem Griff');
 
   await zuWerk('bilder'); await p.waitForSelector('.bildkachel'); const nB = await p.locator('.bildkachel').count(); ok(nB === 30, 'Bilder-Ordner zeigt alle 30 Bilder', String(nB));
-  await p.click('[data-a=bilder-gross]'); ok(await p.locator('.bildgitter.gross').count() === 1, 'große Vorschau per Tipp');
+  await p.click('[data-a=bilder-gross][data-g="1"]'); ok(await p.locator('.bildgitter.gross').count() === 1, 'große Vorschau per Tipp');
   await p.locator('.bildkachel').nth(0).click(); await p.locator('.bildkachel').nth(1).click(); await p.click('[data-a=bilder-weg]');
   ok(await p.locator('.bildkachel').count() === 28 && await p.locator('[data-a=bild-dazu]').count() === 14, 'zwei Bilder gelöscht, die Rezepte stehen jetzt unter „ohne Bild“');
   await p.click('[data-a=toast-tun]'); ok(await p.locator('.bildkachel').count() === 30, 'Rückgängig holt die Bilder zurück');
@@ -345,7 +345,7 @@ try {
     ok(Math.min(...feld.m.slice(0, 3)) > 190 && new Set(feld.m.slice(0, 3)).size > 1 && feld.b <= 40, 'die Zeichen stehen in dezenten Farbfeldern (Wasserfarbe: hell, nicht grau, nicht kräftig)', JSON.stringify(feld));
     await q.click('[data-a=werk-auf][data-g=beispiele]'); await q.waitForSelector('.gruppe.auf[data-g=beispiele] [data-a=zine-beispiele]', { timeout: 6000 }).catch(() => {});   /* die Zeile kommt mit dem Katalog */
     const bz = await q.locator('.gruppe.auf[data-g=beispiele] .zeile').evaluateAll((l) => l.map((b) => b.dataset.a).join(' '));
-    ok(bz === 'beispiel zine-beispiele beispiele-weg' && await q.locator('.themen .gruppe.auf').count() === 1, 'ein Tipp klappt ein Thema auf: Beispielbuch laden, Food-Zine-Beispiele laden, Beispiele entfernen', bz);
+    ok(bz === 'beispiel zine-beispiele beispiele-uebernehmen beispiele-weg' && await q.locator('.themen .gruppe.auf').count() === 1, 'ein Tipp klappt ein Thema auf: Beispielbuch laden, Food-Zine-Beispiele laden, Beispiele übernehmen (Klaus 26.11.), Beispiele entfernen', bz);
     await q.click('[data-a=werk-auf][data-g=sichern]'); ok(await q.locator('.gruppe.auf[data-g=sichern] .gkopf-zeile .frag').count() === 1 && (await q.locator('.gruppe.auf[data-g=sichern] .gkopf-zeile').boundingBox()).height < 60, 'die Erklärung eines Themas steht hinter „?“ in seiner Kopfzeile, ohne eigene Zeile');
     await q.click('[data-a=beispiele-weg]'); await q.click('.fenster [data-a=ja]');
     const meld = await q.locator('#toast').evaluate((t) => ({ text: t.innerText.replace(/\s+/g, ' ').trim(), h: t.offsetHeight }));
