@@ -1,5 +1,5 @@
 {
- "fassung": "0.33.2",
+ "fassung": "0.33.3",
  "inhalt": "Ausgaben-Schalter, Rezeptmodell, Kategorien, Suche, Sicherung, Übernahme, Speicher, Mengen, Symbole, Farben, Bild, Kochansicht (Zutaten je Schritt, Zeit, Geräte), Einkaufsliste, Wochenplan, Text-Import, Spracheingabe, Bildauftrag je Ausgabe, englische Namen für Farben, Töne, Geräte und Schrift-Regler, Kategorien und Einkauf je Ausgabe (kategorienMit mit Familien-Namen, einkaufMit), Sticker-Bild je Kategorie (katBild), Text-Import mit Bar- und US-Einheiten, Hinweis-Blasen (Tooltips), Ladebalken für alle Wartezeiten, Sprache der Oberfläche (acht Sprachen, Tabellen), KI-Schlüssel (Anthropic, OpenAI, Mistral), Claude-Aufruf, Mistral OCR, Reinigung vor der KI, Foto-Scan, Datei prüfen, Web-Import ohne Weiterleiter, Ordner, App installieren und aktualisieren (app-pflege), Food-Zine: Poster-Auftrag und Sammlung (ausgabe/zine), Kreativbuch (ausgabe/kreativbuch), eigenes Buch aus Bildern (ausgabe/eigenbuch), Notizbuch (modell/notiz, zeit/tag, ausgabe/ics, import/idee), Event-Ordner (Anlass mit Datum und Gästen, in den Kalender, abgleichen, Einkauf, Menükarte; Portionen im Plan), Doppelungen nach Inhalt, Bild, Mengen und Übersetzung, auch im ganzen Buch (findeDoppelImBuch), und Merkmale einer Variante als Hinweis in Suche, Bedeutungssuche, Druck und Teilen (modell/doppel), eigene Reihenfolge der Rezepte (rezeptVerschieben), Bilder in hoher Qualität platzsparend (WebP 1600 px, platzSparen, aufloesung)",
  "dateien": {
   "kern/README.md": "5c951eac33c1fe5f429efe46a0272c1e1d9b5937a1ef852c0a7000d19752d880",
@@ -14,14 +14,14 @@
   "kern/import/scan.mjs": "ee3ee428a7af8fa1965cb8f7f244da078cc2a1c78ccd655fb70482f4fa384c61",
   "kern/import/text.mjs": "261a6fb5f36b8d8e27816c2396a6453df13b47e6b0f1a88c870bc989bfb141e0",
   "kern/import/web.mjs": "44ba458cb87934b492d8b2a3dd3208a44327042a42466c36353c7781760ce87d",
-  "kern/kern-stand.mjs": "0d28fb8a080b36add8f576d68d3f401d09d2aff02c4ea60ee47f6f9a1e7fea5e",
+  "kern/kern-stand.mjs": "5280b6fc36ee708230d209dc58ce8b75c0ac4e25cd105e9fb22d0db151a67737",
   "kern/ki/bild.mjs": "4e7d0873f438849b11129c26dec2f30e87285e4034a133d2569e6e07c5a0b269",
   "kern/ki/claude.mjs": "15aa25bf1ef63985982de2ef607eb4a6be36ab822e1ddee0b6c86545cc1a427c",
   "kern/ki/helfer.mjs": "4f1e9a20f0928b921058f4fdd62912c18050484d34650d1b53a915e2475d7f07",
   "kern/ki/ocr.mjs": "8e2952ad4fead2742ef56ae58dab661016dc1a1d8c8ef3bac86a2d28b125258b",
   "kern/ki/reinigung.mjs": "5e7475e7b17001ca7617ba0e08dea8b69325151d9cc6308e1989115ccffa95cb",
   "kern/ki/schluessel.mjs": "c7dc29d6bea185ef00a08ea474e11407ece55708c27138a4393b3935946584aa",
-  "kern/modell/doppel.mjs": "a0a7704d61977f1683d3a5d9a668bf1ee0b76ab1dc1355e7e002da9b3477c915",
+  "kern/modell/doppel.mjs": "b70541bf706fd14fdd839ad94bb49ffb64072e628d32017a87876e63ecadde20",
   "kern/modell/einheiten.mjs": "8390dec54d9c1f61fd644495a0ef6fa3b830c55ec6b37bf20ecf6bc23a941638",
   "kern/modell/einkauf.mjs": "fc7af5526a66c1ca704c97aec1c69dc1be9d7cb901f6aa90b5a9935eea663cbb",
   "kern/modell/kategorien-fest.mjs": "d7d5acf5934bb92898d04ef299f69638a33fb482586c2491555e5299733e010f",
