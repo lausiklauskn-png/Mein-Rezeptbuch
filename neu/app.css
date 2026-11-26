@@ -1107,13 +1107,13 @@ a.knopf{text-decoration:none}
    auslaufenden Bild. Der Hintergrund ist der des Themas; dunkle Themen tragen helle Schrift, also bleibt sie lesbar.
    Höher als bisher, damit das breite Bild nicht zum Streifen wird; nie breiter als 2,2 : 1. Ein gewählter Ausschnitt (style) gilt weiter. */
 @media(min-width:1000px){
- .md-detail{--bildh:min(44vh,560px)}
+ .md-detail{--bildh:min(44vh,560px);--ueber:clamp(36px,5vw,60px)}   /* Klaus 26.11.: so weit ragt der Name ins Bild; scharf bleibt das Bild bis gut 5 mm (24 px) darüber */
  .md-detail.spalten3{--bildh:min(38vh,520px)}
  .md-detail .rezept-held>img,.md-detail .rezept-held>img:not([style]),.md-detail.spalten3 .rezept-held>img,.md-detail.spalten3 .rezept-held>img:not([style]){
   justify-self:center;width:min(100%,calc(var(--bildh) * 2.6));height:auto;max-height:var(--bildh);aspect-ratio:auto;object-fit:cover;background:none;
-  -webkit-mask-image:linear-gradient(90deg,transparent,#000 4%,#000 96%,transparent),linear-gradient(180deg,transparent,#000 3%,#000 62%,rgba(0,0,0,.3) 88%,transparent);
-  -webkit-mask-composite:source-in;mask-image:linear-gradient(90deg,transparent,#000 4%,#000 96%,transparent),linear-gradient(180deg,transparent,#000 3%,#000 62%,rgba(0,0,0,.3) 88%,transparent);mask-composite:intersect}
- .md-detail .rezept-held:has(>img) .verlauf{z-index:1;margin-top:calc(-1 * clamp(36px,5vw,60px));text-shadow:0 0 16px var(--bg),0 0 6px var(--bg),0 0 2px var(--bg)}
+  -webkit-mask-image:linear-gradient(90deg,transparent,#000 4%,#000 96%,transparent),linear-gradient(180deg,transparent,#000 3%,#000 calc(100% - var(--ueber) - 24px),rgba(0,0,0,.35) calc(100% - var(--ueber) / 2),transparent);
+  -webkit-mask-composite:source-in;mask-image:linear-gradient(90deg,transparent,#000 4%,#000 96%,transparent),linear-gradient(180deg,transparent,#000 3%,#000 calc(100% - var(--ueber) - 24px),rgba(0,0,0,.35) calc(100% - var(--ueber) / 2),transparent);mask-composite:intersect}
+ .md-detail .rezept-held:has(>img) .verlauf{z-index:1;margin-top:calc(-1 * var(--ueber));text-shadow:0 0 16px var(--bg),0 0 6px var(--bg),0 0 2px var(--bg)}
  .md-detail .rezept-held:has(>img)>:is(.held-voll,.blatt-pfeil,.blatt-stand){z-index:3}
  .md-detail .rezept-held:has(>img)>.held-voll{align-self:end;margin:0 calc((100% - min(100%, var(--bildh) * 2.6)) / 2 + 12px) calc(clamp(36px,5vw,60px) + 12px) 0}   /* unten rechts im Bild, über dem Auslauf, in dem der Name steht; auch wenn das Bild schmaler als die Spalte ist */
 }
