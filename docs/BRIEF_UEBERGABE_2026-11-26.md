@@ -43,7 +43,7 @@ kreativbuch 99 · 2 (vorbestehend: Warnung des Testbrowsers und fehlender Workfl
 ## Wo beide Stände sich berühren – bitte entscheiden lassen
 
 1. **Name der Pro-Fassung – ENTSCHIEDEN (Klaus 26.11.): „Mein Mixarium Pro“, wie beim Rezeptbuch.** Euer #313 setzt noch
-   „App Mein Mixarium“ (E4 vom 25.11. tagsüber) – das ist damit abgelöst. Anzeige in der App (beide Apps gleich): Zeile 1: der Name („Mein Rezeptbuch“ bzw. „Mein Mixarium“). Zeile 2, darunter: „**Pro**“ und direkt dahinter die **Versionsnummer**; die Versionsnummer ist der **Knopf** für Updates und trägt ein kleines **Fähnchen „neu“**, wenn ein neues Update da ist (Klaus 26.11.).
+   „App Mein Mixarium“ (E4 vom 25.11. tagsüber) – das ist damit abgelöst. Anzeige in der App (beide Apps gleich): Zeile 1: der Name („Mein Rezeptbuch“ bzw. „Mein Mixarium“). Zeile 2, darunter: „**Pro**“ und direkt dahinter die **Versionsnummer**; die Versionsnummer ist der **Knopf** für Updates und zeigt, wenn ein neues Update da ist, ein kleines **rotes Feld mit der Aufschrift „Update“** – keine Fahne als Bild, sondern ein Schild wie in Private Akte (Klaus 26.11.; dort nachsehen und gleich bauen).
    `paket/ausgaben.json` und M2 nachziehen.
 2. **Zeichen der Pro-Fassung.** Euer Mixarium: Wasserfarben-Zeichen für Pro, transparentes für die PWA. Rezeptbuch nach
    Klaus: dasselbe Strich-Logo, „wie Workflow PDF Pro“ – ganze Kachel orange im Ton des Logos (gemessen `#E05000`–`#F06000`,
