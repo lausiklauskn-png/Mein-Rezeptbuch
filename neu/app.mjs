@@ -43,7 +43,7 @@ import { teilLink, ausTeilLink, qrSvg, passtInQr } from '../kern/teilen/qr.mjs';
 import { rezeptIn } from '../kern/modell/einheiten.mjs';
 import { findeDoppel, findeDoppelImBuch, wendeAn, dHash, MERKMALE, merkmaleVon, merkmalUmschalten } from '../kern/modell/doppel.mjs';
 
-const FASSUNG = '0.19.12';
+const FASSUNG = '0.19.13';
 const breit = () => matchMedia('(min-width:1000px)').matches;
 const $ = (id) => document.getElementById(id);
 const esc = (t) => String(t ?? '').replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
@@ -1128,7 +1128,7 @@ function werkstattHtml() {
   return `<div class="ueber"><h2 style="font-size:19px">${L('Einstellungen', 'Settings')}</h2><small>${fuelle(L('{0} Rezepte', '{0} recipes'), n)}</small></div>
   <div class="themen">${themen.map(([id, i, kc, titel, hilfe, zeilen]) => { const auf = s.werkAuf.has(id);
     return `<div class="gruppe ${auf ? 'auf' : ''}" data-g="${id}" style="--kc:${kc}"><div class="gkopf-zeile"><button class="gkopf" data-a="werk-auf" data-g="${id}" aria-expanded="${auf}">${kfeld(i)}<span>${esc(titel)}</span>${ic(auf ? 'hoch' : 'rechts', 'pf')}</button>${auf && hilfe ? frag(hilfe) : ''}</div>${auf ? `<div class="liste">${zeilen}</div>` : ''}</div>`; }).join('')}</div>
-  <p class="quelle" id="fassung">${esc(ausgabe.titel)} ${FASSUNG}</p><p class="quelle"><a href="../impressum.html" target="_blank" rel="noopener">${L('Impressum · Datenschutz', 'Legal notice · Privacy')}</a></p>`;   /* Pflichtangabe; fehlte in der neuen App bis 0.19.12 */   /* kein Verweis auf die bisherige App (Klaus 23.11.: „Wir müssen nicht auf eine schlechtere Version verweisen.“) */
+  <p class="quelle" id="fassung">${esc(ausgabe.titel)} ${FASSUNG}</p><p class="quelle"><a href="../impressum.html" target="_blank" rel="noopener">${L('Impressum · Datenschutz', 'Legal notice · Privacy')}</a></p>`;   /* Pflichtangabe; fehlte in der neuen App bis 0.19.13 */   /* kein Verweis auf die bisherige App (Klaus 23.11.: „Wir müssen nicht auf eine schlechtere Version verweisen.“) */
 }
 
 /* ---------- Kreativbuch (Klaus 25.11., R12): Bücher und Food-Zine als eigener Bereich in der Leiste, nicht mehr in den Einstellungen ---------- */
@@ -1413,7 +1413,7 @@ addEventListener('resize', () => requestAnimationFrame(spaltenPruefen));
    oder KI-Bild) und in der Bilder-Übersicht (kleine Marke). Gemessen wird nach dem Laden: Bildpunkte gegen die angezeigte Breite × Pixeldichte. */
 function aufloesungPruefen(img) {
   if (!img?.naturalWidth) return;
-  if (img.classList.toggle('vorschau', img.naturalWidth <= 64 && /^data:image\//.test(img.getAttribute('src') || ''))) return;   /* nur eingebettete Rezeptbilder; das Logo (64 px, Datei) war in 0.19.12 mit verwischt (Klaus 26.11.) */   /* Vorschaubild der Startrezepte (48 px): weich gezeichnet, kein „Bild unscharf“, das scharfe kommt gleich */ const a = aufloesung(img.naturalWidth, img.getBoundingClientRect().width, devicePixelRatio);
+  if (img.classList.toggle('vorschau', img.naturalWidth <= 64 && /^data:image\//.test(img.getAttribute('src') || ''))) return;   /* nur eingebettete Rezeptbilder; das Logo (64 px, Datei) war in 0.19.13 mit verwischt (Klaus 26.11.) */   /* Vorschaubild der Startrezepte (48 px): weich gezeichnet, kein „Bild unscharf“, das scharfe kommt gleich */ const a = aufloesung(img.naturalWidth, img.getBoundingClientRect().width, devicePixelRatio);
   if (img.matches('.rezept-held>img')) {
     const held = img.parentElement; held.querySelector('.bild-unscharf')?.remove(); if (a.genug) return;
     if (aufloesungPruefen.gezeigt?.has(img.currentSrc || img.src)) return; (aufloesungPruefen.gezeigt ||= new Set()).add(img.currentSrc || img.src);   /* Klaus 26.11.: nur ein kurzer Hinweis, einmal je Bild; er blendet nach 4 s aus (CSS) */
@@ -1809,9 +1809,14 @@ async function altBilderNachtragen() {
   const von = new Map(alt.rezepte.map((r) => [String(r.id), r])), e = bilderAnhaengen(Z.rezepte, bilder, (r) => { const a = von.get(String(r.id)); return !!a && (a.uid === r.uid || a.name === r.name); });
   E.altBilder = true; if (e.dazu) { Z.rezepte = e.rezepte; zeichne(); setTimeout(() => melde(e.dazu === 1 ? L('+1 Bild übernommen', '+1 picture taken over') : fuelle(L('+{0} Bilder übernommen', '+{0} pictures taken over'), e.dazu)), 600); } sichern();
 }
+/* index.html holt die Ausgabe der Web-Fassung schon vor den Modulen (window.__ausgabe, fest „rezeptbuch“). Im Paket nutzen alle Ausgaben
+   diese eine Seite, und das Bauwerkzeug ersetzt nur den Abruf unten (die „Weiche“). Der Vorab-Abruf zählt deshalb nur, wenn die Weiche
+   noch auf „rezeptbuch“ steht – sonst hätte sich eine Muttis-App als Mein Rezeptbuch ausgegeben (gefunden von der Paket-Probe, 26.11.). */
+const ausgabeAbruf = () => fetch('../ausgaben/rezeptbuch/ausgabe.json');
+const ausgabeVorab = () => (String(ausgabeAbruf).includes('/rezeptbuch/') ? window.__ausgabe : null);
 async function start() {
   const andere = document.documentElement.dataset.ausgabe || '';   /* eine Einstiegsseite kann eine andere Ausgabe nennen (neu/muttis.html) */
-  ausgabe = await (await (/^[a-z-]+$/.test(andere) ? fetch('../ausgaben/' + andere + '/ausgabe.json') : (window.__ausgabe || fetch('../ausgaben/rezeptbuch/ausgabe.json')))).json();   /* index.html stößt den Abruf schon vor den Modulen an */
+  ausgabe = await (await (/^[a-z-]+$/.test(andere) ? fetch('../ausgaben/' + andere + '/ausgabe.json') : (ausgabeVorab() || ausgabeAbruf()))).json();   /* index.html stößt den Abruf schon vor den Modulen an */
   lager = speicher('KuechenKern-' + ausgabe.name); tr = tresor(lager);
   { const e = ausgabe.speicher.endung; S = schluesselLager(lager, { altNamen: { anthropic: ['claudeKey' + e], openai: ['openaiImgKey' + e, 'openaiKey' + e], mistral: ['mistralKey' + e] } }); await schlLaden(); }
   const da = await lager.lies().catch(() => null);

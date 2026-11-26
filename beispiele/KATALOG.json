@@ -8,8 +8,8 @@
    "art": "rezepte",
    "alkohol": false,
    "anzahl": 42,
-   "bytes": 13884952,
-   "sha256": "ed90a18d00ccb918698e2ffc988aa7e9dd1112ecb2d5b0a95c7387a5591ea200",
+   "bytes": 13885112,
+   "sha256": "c631e79f7aa50aa14b02f3b14ac4dbeb44128e82606d675c501d29310494a5ef",
    "fuer": [
     "rezeptbuch",
     "muttis"

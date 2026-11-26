@@ -6,12 +6,13 @@
   { "ordner": "assets", "nur": [".js"] },
   { "datei": "sbkim/03_embedding.js" },
   { "datei": "sbkim/04_match.js" },
+  { "datei": "impressum.html" },
   { "datei": "LICENSE" },
   { "datei": "THIRD_PARTY.md" }
  ],
  "dienstarbeiter": "neu/sw.js",
  "weiche": { "datei": "neu/app.mjs", "muster": "fetch('../ausgaben/{ausgabe}/ausgabe.json')", "fest": "rezeptbuch" },
- "verweiseOhneZiel": {},
+ "verweiseOhneZiel": { "ausgaben/rezeptbuch/ausgabe.json": "nur der Vorab-Abruf der Web-Fassung in neu/index.html; er läuft nur unter …/Mein-Rezeptbuch/neu/, im Paket nie, und app.mjs nähme ihn in einer anderen Ausgabe auch nicht an" },
  "ausgaben": {
   "rezeptbuch": { "appId": "de.family_projekt.rezeptbuch", "appName": "Mein Rezeptbuch", "grund": "#2a1a10" },
   "muttis": { "appId": "de.family_projekt.muttis", "appName": "Muttis Rezeptbuch", "grund": "#2e1a3a" }

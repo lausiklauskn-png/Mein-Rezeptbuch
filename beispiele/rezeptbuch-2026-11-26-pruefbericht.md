@@ -48,3 +48,4 @@ Daraus gebaut (`python3 tools/start-rezepte.py`): `beispiele/rezeptbuch-geschenk
 - Raspberry Cooler: neues KI-Bild statt fremdem Bild
 - Nachträge: Gulasch-Kommentar „intensiver“, „Fleisch“; Würzfleisch: falsche Quelle (Hühnerfrikassee) entfernt
 - Tropical-Sunrise-Bowle: Einheit stand im Mengenfeld („2 Stück“, „1 Handvoll“), getrennt (gefunden vom Paket-Test)
+- Solero und Frucht-Shake mit zwei Schritten, Eiswürfel beim Amaretto Sunrise, Zutaten des Pizza-Toasts und das Pflanzenöl der Gyoza in den Schritten genannt (gefunden von der Paket-Prüfung des Mixariums)
