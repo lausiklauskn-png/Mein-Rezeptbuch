@@ -138,3 +138,9 @@ test('das ganze Buch: jedes Rezept in höchstens einem Paar, „neu“ ist das s
   assert.equal(gyoza[0].alt, de.uid);
   assert.equal(findeDoppelImBuch(buch).filter((x) => x.stufe === 'sicher').length, 0, 'das Beispielbuch selbst hat keine sicheren Doppel');
 });
+test('überall dieselbe Menge („2 · 2 · 2 · 2“) trägt nichts: Mojito und Virgin Mojito sind kein Doppel', () => {
+  const z = (l) => l.map((n, i) => ({ id: i, amt: '2', unit: 'cl', name: n })), st = [{ txt: 'Alles auf Eis verrühren.' }];
+  const a = normalisiere({ uid: 'm1', name: 'Mojito', ings: z(['Rum', 'Minze', 'Limettensaft', 'Rohrzucker']), steps: st });
+  const b = normalisiere({ uid: 'm2', name: 'Virgin Mojito', ings: z(['Minze', 'Limettensaft', 'Rohrzucker', 'Sprudelwasser']), steps: st });
+  assert.equal(mengenGleich(a, b), 0);
+});
