@@ -14,7 +14,20 @@ Klaus 23.11.2026: „Brief lesen, bevor gebaut wird. Und dann Brief ergänzen, s
 
 ---
 
-## Runde K · 26.11.2026 · Kern 0.33.2, PWA 0.19.9 (Fotos, Doppelungen im ganzen Buch, Blättern)
+## Runde L · 26.11.2026 abends · Kern 0.33.4, PWA 0.19.14 (APK: kein Installieren-Knopf, Aktualisieren ohne „ohne Netz“)
+
+| Kern | neu |
+|---|---|
+| 0.33.4 | `oberflaeche/app-pflege.mjs`: `imPaket(w)` (Capacitor-APK oder `app://` unter Windows); `laeuftAlsApp` zählt das Paket mit, also zeigt `installation().zeigen()` dort keinen Knopf |
+
+- **Klaus 26.11., an der signierten APK v0.19.13:** der Installieren-Knopf blieb stehen, und „Aktualisieren“ meldete „Ohne Netz“
+  (in der APK gibt es keinen Service Worker, die Probe `HEAD ./sw.js` schlägt fehl). Das Rezeptbuch öffnet jetzt im Paket die
+  Release-Seite (`…/Mein-Rezeptbuch/releases/latest`).
+- **Fürs Mixarium:** `kopfInstall` prüfte schon `PRO`. Nachziehen trotzdem, damit beide Apps dieselbe Erkennung nutzen. Ohne DoUpdates
+  meldete „pro-update“ bisher „Updates sind in dieser Fassung noch nicht eingerichtet“. Besser ist die Release-Seite.
+- Releases werden über `.github/workflows/veroeffentlichen.yml` gebaut (signierte APK und Windows-Setup), Regel in `docs/VEROEFFENTLICHEN.md`.
+
+## Runde K · 26.11.2026 · Kern 0.33.2, PWA 0.19.9 (Fotos, Doppelungen im ganzen Buch, Blättern) (vorige Fassung)
 
 | Kern | neu |
 |---|---|
@@ -26,22 +39,3 @@ Klaus 23.11.2026: „Brief lesen, bevor gebaut wird. Und dann Brief ergänzen, s
 - **Mixarium hat es übernommen (vor42):** „Doppelte suchen“ und „Platz sparen“ auf der Bilder-Seite, Proben `smoke_neu_doppel` (40), `scan` (56), `web` (29).
 - **Klaus 26.11.:** Mixarium misst live 96 · 99 · 100 · 100. Fürs Rezeptbuch ist geplant: App zuerst, Startbilder unscharf vorab, scharf im Hintergrund.
   Neu fürs Mixarium: Getränke aus dem Rezeptbuch, die dort fehlen, und eine Kategorie **Fingerfood**. Der Verlauf im Mixarium-Bild bleibt, wie er ist.
-
-## Runde J · 25.11.2026 spätabends · Kern 0.31.0, PWA 0.19.0 (R6 Doppelungen, Merkmale einer Variante) (vorige Fassung)
-
-| Kern | neu |
-|---|---|
-| 0.31.0 | `modell/rezept.mjs`: `rezeptVerschieben(rezepte, uid, zielUid, nach)` (eigene Reihenfolge, R5) |
-| 0.30.0 | `modell/doppel.mjs`: `vergleiche`, `findeDoppel(alle, neue, { hash })` (Name bereinigt, Zutaten mit Wortformen, Bild-Fingerabdruck dHash 9×8 von der App), `wendeAn(alt, neu, wahl)` mit `meins · bild · text · ganz · beide`; `alkoholArt`, `sindVarianten`; `MERKMALE` (vegan, laktosefrei, glutenfrei), `merkmaleVon`, `merkmalUmschalten` |
-
-- **Klaus' Regeln (25.11.):** „mit Alkohol“ und „alkoholfrei“ sind **nie** ein Doppel (Feld `alcohol` oder Wörter wie alkoholfrei, Virgin,
-  Mocktail); ebenso zwei Rezepte mit **verschiedenen Merkmalen** (die laktosefreie Variante bleibt neben dem Original). Gezeigt werden „sicher“
-  (Vorgabe „Meins behalten“) und „vielleicht“ (Vorgabe „Beide behalten“).
-- **R5 (PWA 0.19.0, nur `neu/`):** Karte lange drücken und ziehen (umsortieren, auf Kategorie/Event-Ordner) und Wischen zwischen den
-  Bildschirmen am Handy. ⚠ Fürs Mixarium prüfen: zeigt es die Getränke noch als Karussell (eine Karte sichtbar), passt das Umsortieren
-  dort nicht, und das Wischen zwischen Bildschirmen stieße sich mit dem Wischen im Karussell.
-- **Fürs Mixarium (beim nächsten `kern-nachziehen`):** neu, nichts Bestehendes ändert sich. Das Getränke-Feld `alcohol` wird schon gelesen;
-  gemessen über alle 2072 Paare der Beispielbücher beider Apps: kein falscher Treffer. Die App-Seite (`neu/app.mjs`: `bildFingerabdruck`,
-  `doppelPruefen` nach dem Einlesen und dem Stapel-Scan, `formDoppelBand` im Formular) ist übernehmbar. **Die Merkmal-Leiste NICHT** – Klaus
-  25.11.: „Mixarium soll nicht betroffen sein.“ Kern 0.30.1 liest `merkmale` in Suche, Bedeutungssuche, Druck und Teilen nur, wo das Feld
-  gesetzt ist; ohne Feld bleibt alles wie bisher (der Text für die Bedeutungssuche ändert sich nicht, nichts wird neu eingelesen).

@@ -926,4 +926,6 @@ export default {
   "vor dem Weitergeben: eigene Worte, eigenes Bild": "prima di condividere: parole tue, immagine tua",
   "Zutaten und Arbeitsschritte eines Rezepts gehören niemandem. Fotos sind aber immer geschützt, und ein persönlich geschriebener Text kann es sein. Wer ein geholtes Rezept weitergibt oder veröffentlicht, schreibt es deshalb in eigenen Worten und nimmt ein eigenes Foto oder ein KI-Bild. Die Adresse der Seite bleibt als Quelle am Rezept.": "Gli ingredienti e i passaggi di una ricetta non appartengono a nessuno. Le foto invece sono sempre protette, e anche un testo scritto in modo personale può esserlo. Se condividi o pubblichi una ricetta presa dal web, riscrivila quindi con parole tue e usa una tua foto o un’immagine IA. L’indirizzo della pagina resta nella ricetta come fonte.",
   "Impressum · Datenschutz": "Note legali · Privacy",
+  "Neue Fassungen kommen als neue App-Datei – die Seite dazu öffnet sich.": "Le nuove versioni arrivano come un nuovo file dell’app: si apre la pagina.",
+  "Neue Fassungen kommen als neue App-Datei.": "Le nuove versioni arrivano come un nuovo file dell’app.",
 };

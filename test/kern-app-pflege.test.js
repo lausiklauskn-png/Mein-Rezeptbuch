@@ -1,12 +1,19 @@
 // Proben: Installieren und Aktualisieren (kern/oberflaeche/app-pflege.mjs). Fenster, Service Worker und Speicher sind gestellt.
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { laeuftAlsApp, installation, aktualisieren, istApple } from '../kern/oberflaeche/app-pflege.mjs';
+import { laeuftAlsApp, imPaket, installation, aktualisieren, istApple } from '../kern/oberflaeche/app-pflege.mjs';
 
 const fenster = ({ standalone = false, ua = 'Mozilla/5.0 (Linux; Android 14)' } = {}) => { const h = {}; return { h, matchMedia: (q) => ({ matches: standalone && q.includes('standalone') }), navigator: { userAgent: ua, platform: 'Linux' }, addEventListener: (n, f) => { h[n] = f; } }; };
 test('als App erkannt: eigenes Fenster ja, Browser-Tab nein', () => {
   assert.equal(laeuftAlsApp(fenster({ standalone: true })), true); assert.equal(laeuftAlsApp(fenster()), false);
   assert.equal(istApple(fenster({ ua: 'Mozilla/5.0 (iPhone; CPU iPhone OS 18_0)' })), true); assert.equal(istApple(fenster()), false);
+});
+test('als Paket erkannt (Klaus 26.11.: Installieren-Knopf in der APK): Capacitor und app:// ja, Browser nein', () => {
+  const apk = { ...fenster(), Capacitor: { isNativePlatform: () => true } }, web = { ...fenster(), Capacitor: { isNativePlatform: () => false } };
+  const exe = { ...fenster(), location: { protocol: 'app:' } }, seite = { ...fenster(), location: { protocol: 'https:' } };
+  assert.equal(imPaket(apk), true); assert.equal(imPaket(exe), true); assert.equal(imPaket(web), false); assert.equal(imPaket(seite), false); assert.equal(imPaket(fenster()), false);
+  assert.equal(laeuftAlsApp(apk), true, 'in der APK läuft sie als App'); assert.equal(installation(() => {}, apk).zeigen(), false, 'APK: kein Installieren-Knopf');
+  assert.equal(installation(() => {}, exe).zeigen(), false, 'Windows: kein Installieren-Knopf'); assert.equal(installation(() => {}, seite).zeigen(), true, 'Browser: Knopf bleibt');
 });
 test('Installieren: Knopf im Browser da, als App nicht; das Angebot des Browsers wird gezeigt; nach der Installation ist der Knopf weg', async () => {
   const w = fenster(); let n = 0; const i = installation(() => n++, w);

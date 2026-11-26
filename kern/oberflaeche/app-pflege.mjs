@@ -2,7 +2,11 @@
 // ein Tipp auf die Versionsnummer holt die neueste Fassung, ohne hartes Neuladen am Handy).
 
 /** Läuft die Seite als installierte App (eigenes Fenster statt Browser-Tab)? */
-export const laeuftAlsApp = (w = globalThis) => !!(w.matchMedia?.('(display-mode: standalone)').matches || w.matchMedia?.('(display-mode: window-controls-overlay)').matches || w.navigator?.standalone);
+/** Läuft die App als Paket (Android-APK über Capacitor, Windows über Electron mit eigener Adresse app://)? Dort gibt es keinen
+ *  Browser, der installiert, und keinen Service Worker, der aktualisiert (Klaus 26.11.2026: „Der Installationsbutton verschwindet
+ *  nicht … Und Update zeigt ‚ohne Netz‘“). */
+export const imPaket = (w = globalThis) => { try { return w.location?.protocol === 'app:' || !!w.Capacitor?.isNativePlatform?.(); } catch { return false; } };
+export const laeuftAlsApp = (w = globalThis) => imPaket(w) || !!(w.matchMedia?.('(display-mode: standalone)').matches || w.matchMedia?.('(display-mode: window-controls-overlay)').matches || w.navigator?.standalone);
 
 /** Merkt sich das Angebot des Browsers zur Installation. beiAenderung(): die App zeichnet ihren Knopf neu.
  *  Zurück: { zeigen() – Knopf zeigen?, kannFragen() – bietet der Browser selbst an?, fragen() – Angebot zeigen → 'accepted' | 'dismissed' | null }. */

@@ -923,4 +923,6 @@ export default {
   "vor dem Weitergeben: eigene Worte, eigenes Bild": "прежде чем делиться: своими словами, своё изображение",
   "Zutaten und Arbeitsschritte eines Rezepts gehören niemandem. Fotos sind aber immer geschützt, und ein persönlich geschriebener Text kann es sein. Wer ein geholtes Rezept weitergibt oder veröffentlicht, schreibt es deshalb in eigenen Worten und nimmt ein eigenes Foto oder ein KI-Bild. Die Adresse der Seite bleibt als Quelle am Rezept.": "Ингредиенты и шаги рецепта никому не принадлежат. Фотографии же всегда защищены, а текст, написанный в личном стиле, тоже может быть защищён. Поэтому, если вы делитесь полученным рецептом или публикуете его, перепишите его своими словами и используйте собственное фото или изображение от ИИ. Адрес страницы остаётся в рецепте как источник.",
   "Impressum · Datenschutz": "Выходные данные · Конфиденциальность",
+  "Neue Fassungen kommen als neue App-Datei – die Seite dazu öffnet sich.": "Новые версии приходят в виде нового файла приложения — открывается страница.",
+  "Neue Fassungen kommen als neue App-Datei.": "Новые версии приходят в виде нового файла приложения.",
 };
