@@ -101,8 +101,10 @@ try {
   ok(r6.nochmal === null, '… und ein schon sparsames Bild bleibt, wie es ist (nur ersetzen, wenn es mindestens 10 % kleiner wird)');
   ok(r6.a1 === false && r6.a2 === true, 'Auflösung: 640 px auf 1060 px Fläche reichen nicht, 1600 px reichen');
   await p.locator('.karte').first().click(); await p.waitForTimeout(800);
+  /* seit 0.19.11 sind die Startbilder scharf (1600 px, Klaus 26.11.): gemessen wird an einem gestellten 640-px-Bild im großen Bild */
+  await p.evaluate(() => new Promise((ja) => { const c = document.createElement('canvas'); c.width = 640; c.height = 427; const g = c.getContext('2d'); g.fillStyle = '#c0392b'; g.fillRect(0, 0, 640, 427); const im = document.querySelector('.rezept-held>img'); im.addEventListener('load', () => setTimeout(ja, 100), { once: true }); im.src = c.toDataURL('image/webp', 0.8); }));
   const nw = await p.evaluate(() => document.querySelector('.rezept-held>img')?.naturalWidth || 0);
-  ok(nw < 800 && await p.locator('.bild-unscharf').count() === 1 && /Bild unscharf \(\d+ px\)/.test(await p.locator('.bild-unscharf').innerText()), 'ein Startrezept-Bild (640 px) auf großer Fläche trägt „Bild unscharf (… px)“', String(nw));
+  ok(nw === 640 && await p.locator('.bild-unscharf').count() === 1 && /Bild unscharf \(\d+ px\)/.test(await p.locator('.bild-unscharf').innerText()), 'ein 640-px-Bild auf großer Fläche trägt „Bild unscharf (… px)“', String(nw));
   await p.click('.bild-unscharf'); ok(await p.locator('.fenster [data-a=ki-bild], .fenster [data-a=bild-dazu]').count() >= 1, '… ein Tipp darauf öffnet das Bild-Blatt (neues Foto oder KI-Bild)');
   await k.close();
   ok(fehler.length === 0, 'keine Fehler in der Konsole', fehler.join(' · '));

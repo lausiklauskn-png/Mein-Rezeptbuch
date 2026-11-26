@@ -9,9 +9,9 @@
 <link rel="icon" type="image/png" sizes="192x192" href="../icons/rezeptbuch-neu-192.png?v=1">
 <link rel="preload" as="image" type="image/webp" href="../icons/rezeptbuch-neu-64.webp?v=1" data-logo>
 <link rel="manifest" href="./manifest.webmanifest">
-<script>/* Beim allerersten Start füllen acht Startrezepte das Buch; ihr Abruf beginnt hier, parallel zu den Modulen, nicht erst nach ihnen. Wer die App schon einmal geöffnet hat, holt nichts. */try{if(!localStorage.getItem('rb-neu-da')&&!/[?&]leer\b/.test(location.search))window.__startRezepte=fetch('./start-rezepte.json')}catch(e){}try{window.__ausgabe=fetch('../ausgaben/rezeptbuch/ausgabe.json')}catch(e){}</script>
-<link rel="stylesheet" href="./app.css?v=0.19.10">
-<script type="module" src="./app.mjs?v=0.19.10"></script>
+<script>/* Beim allerersten Start füllen die Startrezepte das Buch (Texte mit 48-px-Vorschau, die scharfen Bilder kommen danach); ihr Abruf beginnt hier, parallel zu den Modulen, nicht erst nach ihnen. Wer die App schon einmal geöffnet hat, holt nichts. */try{if(!localStorage.getItem('rb-neu-da')&&!/[?&]leer\b/.test(location.search))window.__startRezepte=fetch('./start-rezepte.json')}catch(e){}try{window.__ausgabe=fetch('../ausgaben/rezeptbuch/ausgabe.json')}catch(e){}</script>
+<link rel="stylesheet" href="./app.css?v=0.19.11">
+<script type="module" src="./app.mjs?v=0.19.11"></script>
 </head>
 <body>
 <div class="app" id="app">

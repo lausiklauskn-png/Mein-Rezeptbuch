@@ -66,7 +66,7 @@ try {
 
   console.log('7 · Leiste, Farbe, Breite');
   ({ p, k } = await seite());
-  const g = await p.locator('#leiste .fl-griff').boundingBox(); await p.mouse.move(g.x + 5, g.y + 30); await p.mouse.down(); await p.waitForTimeout(500); await p.mouse.move(30, 300, { steps: 6 }); await p.mouse.up();
+  let g = null; for (let i = 0; i < 20 && !g; i++) { g = await p.locator('#leiste .fl-griff').boundingBox().catch(() => null); if (!g) await p.waitForTimeout(100); }   /* die Leiste wird nach dem Laden des Katalogs einmal neu gezeichnet: der Griff kann kurz fehlen */ await p.mouse.move(g.x + 5, g.y + 30); await p.mouse.down(); await p.waitForTimeout(500); await p.mouse.move(30, 300, { steps: 6 }); await p.mouse.up();
   ok(await p.locator('#leiste.l').count() === 1, 'Leiste rastet links ein'); await p.waitForTimeout(350); await p.reload(); await p.waitForSelector('.gruss'); ok(await p.locator('#leiste.l').count() === 1, 'die Lage ist gemerkt');
   await p.click('#leiste .fl-griff'); await p.click('#leiste [data-a=farbe]'); await p.click('[data-farbe=dunkel]'); ok(await p.evaluate(() => document.documentElement.dataset.hell === 'dunkel'), 'Farbe Dunkelbraun gewählt');
   ok(await p.evaluate(() => document.documentElement.scrollWidth <= innerWidth), 'kein seitliches Verrutschen bei 390 px');
@@ -326,10 +326,20 @@ try {
   { const ks = await browser.newContext({ locale: 'de-DE', viewport: { width: 390, height: 800 }, serviceWorkers: 'block' }), q = await ks.newPage(); /* ohne mitThemen: hier wird das Einklappen selbst gemessen */ q.on('pageerror', (e) => fehler.push(e.message));
     await q.route(/^https?:\/\/(?!localhost)/, (r) => { fehler.push('Netz nach draußen: ' + r.request().url()); r.abort(); });
     await q.goto(URL0.replace('?leer', '')); await q.waitForSelector('.karte', { timeout: 20000 });
-    ok(await q.locator('.gitter .karte').count() === 8 && await q.locator('.karte img').count() === 8 && await q.locator('.held img').count() === 1 && await q.locator('.leer').count() === 0, 'der erste Start zeigt acht Rezepte mit Bild und das große Bild, keine leere Seite');
+    const START = JSON.parse(await readFile(join(WURZEL, 'neu', 'start-rezepte.json'), 'utf8')).recipes, nStart = START.length, nKat = new Set(START.map((r) => r.cat)).size;
+    ok(await q.locator('.gitter .karte').count() === nStart && await q.locator('.karte img').count() === nStart && await q.locator('.held img').count() === 1 && await q.locator('.leer').count() === 0, `der erste Start zeigt alle ${nStart} Startrezepte mit Bild und das große Bild, keine leere Seite`);
+    /* Klaus 26.11.: erst die App mit unscharfen Vorschaubildern, die scharfen kommen ein paar Sekunden später im Hintergrund */
+    const v0 = await q.evaluate(() => [...document.querySelectorAll('.karte img, .held img')].map((i) => [i.getAttribute('src').length, i.naturalWidth, i.classList.contains('vorschau')]));   /* loading=lazy: Bilder außerhalb des Schirms sind noch nicht dekodiert (Breite 0) */
+    ok(v0.length > 0 && v0.every(([n, w, v]) => n < 8000 && (w === 0 || (w <= 64 && v))), 'beim ersten Bild stehen nur Vorschaubilder (≤ 64 px, weich gezeichnet)', JSON.stringify(v0.slice(0, 3)));
+    await q.waitForFunction(() => { const l = [...document.querySelectorAll('.karte img, .held img')]; return l.length && l.every((i) => i.getAttribute('src').length > 8000 && !i.classList.contains('vorschau')); }, null, { timeout: 25000 }).catch(() => {});
+    const v1 = await q.evaluate(() => [...document.querySelectorAll('.karte img, .held img')].map((i) => [i.getAttribute('src').length, i.naturalWidth]));
+    const lies = () => q.evaluate(() => new Promise((ja) => { const a = indexedDB.open('KuechenKern-rezeptbuch'); a.onsuccess = () => { const g = a.result.transaction('zustand').objectStore('zustand').get('alles'); g.onsuccess = () => ja(g.result?.zustand?.rezepte || []); }; }));
+    let gesp = await lies(); for (let i = 0; i < 60 && !gesp.every((r) => !r.bildNach); i++) { await q.waitForTimeout(500); gesp = await lies(); }   /* alle 44 nacheinander, auch die außerhalb des Schirms */
+    ok(v1.every(([n, w]) => n > 8000 && (w === 0 || w > 400)), 'ein paar Sekunden später sind alle Bilder scharf (an Ort und Stelle getauscht)', JSON.stringify(v1.slice(0, 5)));
+    ok(gesp.length === nStart && gesp.every((r) => !r.bildNach && r.img.length > 8000), '… und so gespeichert: kein Rezept trägt danach noch eine Vorschau');
     ok((await q.locator('#toast').innerText()).trim() === '' && await q.locator('.fenster').count() === 0, 'ohne Frage, ohne Meldung');
     ok(await q.locator('#start-rest .ueber h2').count() === 0 && await q.locator('.karte small').count() === 0 || !/Sushi|Suppen|Fisch/.test((await q.locator('.karte small').allInnerTexts()).join(' ')), 'ein Raster, keine Überschrift je Kategorie; auf den Karten steht die Kategorie nicht noch einmal');
-    ok(await q.locator('.fotokat button').count() === 9, 'die Kategorien stehen als Fotos darüber (Alle und acht Kategorien)', String(await q.locator('.fotokat button').count()));
+    ok(await q.locator('.fotokat button').count() === nKat + 1, `die Kategorien stehen als Fotos darüber (Alle und ${nKat} Kategorien)`, String(await q.locator('.fotokat button').count()));
     /* Klaus' Fund in der Vorschau: bei größerer Schrift liefen die Namen ineinander. Gemessen bei Schrift 130 % und zwei Breiten. */
     for (const breite of [390, 700]) { await q.setViewportSize({ width: breite, height: 800 }); await q.evaluate(() => { document.documentElement.style.fontSize = '130%'; });
       const lage = await q.locator('.fotokat button > span:last-child').evaluateAll((l) => l.map((e) => { const r = e.getBoundingClientRect(); return { l: r.left, r: r.right, h: r.height, z: parseFloat(getComputedStyle(e).lineHeight) || parseFloat(getComputedStyle(e).fontSize) * 1.2, t: e.innerText }; }));
@@ -349,12 +359,14 @@ try {
     await q.click('[data-a=werk-auf][data-g=sichern]'); ok(await q.locator('.gruppe.auf[data-g=sichern] .gkopf-zeile .frag').count() === 1 && (await q.locator('.gruppe.auf[data-g=sichern] .gkopf-zeile').boundingBox()).height < 60, 'die Erklärung eines Themas steht hinter „?“ in seiner Kopfzeile, ohne eigene Zeile');
     await q.click('[data-a=beispiele-weg]'); await q.click('.fenster [data-a=ja]');
     const meld = await q.locator('#toast').evaluate((t) => ({ text: t.innerText.replace(/\s+/g, ' ').trim(), h: t.offsetHeight }));
-    ok(/^−8 Beispiele/.test(meld.text) && meld.h <= 34, 'die Meldung ist kurz und einzeilig: „−8 Beispiele · Rückgängig“', JSON.stringify(meld));
+    ok(meld.text.startsWith(`−${nStart} Beispiele`) && meld.h <= 34, `die Meldung ist kurz und einzeilig: „−${nStart} Beispiele · Rückgängig“`, JSON.stringify(meld));
     await q.goBack(); await q.waitForSelector('.gruss'); ok(await q.locator('.leer.einladung img').count() === 1 && await q.locator('.leer .knopf').count() === 2 && await q.locator('.leer .frag').count() === 0, 'leer: ein Bild, eine Zeile, zwei Knöpfe');
     await q.waitForTimeout(400); await q.goto(URL0.replace('?leer', '')); await q.waitForSelector('.gruss'); ok(await q.locator('.karte').count() === 0, 'nach dem Entfernen kommen die Startrezepte nicht von selbst wieder');
     await ks.close(); }
-  { const sw = await readFile(join(WURZEL, 'neu', 'sw.js'), 'utf8'), st = JSON.parse(await readFile(join(WURZEL, 'neu', 'start-rezepte.json'), 'utf8')), buch = JSON.parse(await readFile(join(WURZEL, 'beispiele', 'beispielbuch-mein-rezeptbuch.json'), 'utf8'));
-    ok(sw.includes('"./start-rezepte.json"') && st.recipes.length === 8 && st.recipes.every((r) => r.img && r.uid && buch.recipes.some((b) => b.uid === r.uid && b.name === r.name)), 'die Startrezepte liegen im Offline-Vorrat, haben Bilder und dieselbe Kennung wie im Beispielbuch (kein Doppel beim Laden)');
+  { const sw = await readFile(join(WURZEL, 'neu', 'sw.js'), 'utf8'), st = JSON.parse(await readFile(join(WURZEL, 'neu', 'start-rezepte.json'), 'utf8')), buch = JSON.parse(await readFile(join(WURZEL, 'beispiele', 'rezeptbuch-geschenk.json'), 'utf8'));
+    ok(sw.includes('"./start-rezepte.json"') && st.recipes.length === buch.recipes.length && st.recipes.every((r) => r.img && r.uid && buch.recipes.some((b) => b.uid === r.uid && b.name === r.name)), 'die Startrezepte liegen im Offline-Vorrat, haben Bilder und dieselbe Kennung wie im Geschenkbuch (kein Doppel beim Laden)');
+    const fehlt = []; for (const r of st.recipes) { try { await readFile(join(WURZEL, 'neu', r.bildNach)); } catch { fehlt.push(r.name); } }
+    ok(st.recipes.every((r) => /^start-bilder\/[\w-]+\.webp$/.test(r.bildNach || '')) && !fehlt.length && !sw.includes('start-bilder'), 'jedes Startrezept nennt sein volles Bild, die Datei liegt da, und die vollen Bilder stehen NICHT im Installations-Vorrat', fehlt.join(', '));
     ok((await readFile(join(WURZEL, 'neu', 'start-rezepte.json'))).length < 900 * 1024, 'die Datei bleibt unter 900 KB'); }
   console.log('9 · Klaus 25.11.: ohne/unbekannte Kategorie zuordnen, Sicherung teilen, Foto über Pollinations');
   { const { p: q, k: kz } = await seite(() => { localStorage.setItem('mrz9m', JSON.stringify([{ id: 1, name: 'Ohne Kat', cat: '', ings: [], steps: [{ txt: 'a' }] }, { id: 2, name: 'Fremd Kat', cat: 'xyz_raetsel', ings: [], steps: [{ txt: 'b' }] }, { id: 3, name: 'Forelle', cat: 'fisch', ings: [{ name: 'Forelle' }], steps: [{ txt: 'braten' }] }])); });

@@ -1140,3 +1140,4 @@ a.knopf{text-decoration:none}
 .bild-unscharf .ic{width:15px;height:15px;color:#fff}
 .md-detail .rezept-held:has(>img)>.bild-unscharf{grid-area:1/1;position:relative;left:auto;top:auto;align-self:start;justify-self:start;margin:12px 0 0 calc((100% - min(100%, var(--bildh) * 2.6)) / 2 + 12px)}
 .bildkachel.klein::before{content:"klein";position:absolute;left:6px;top:6px;z-index:2;padding:1px 7px;border-radius:999px;background:rgba(20,20,20,.6);color:#fff;font-size:11px;font-weight:600}
+img.vorschau{filter:blur(6px)}   /* Vorschaubild der Startrezepte, bis das scharfe nachgeladen ist (Klaus 26.11.) */

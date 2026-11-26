@@ -48,3 +48,4 @@ Klaus 26.11.: „Fehler selber beheben … vollständige Revision, die ich dann 
 - Quarkstollen: Foto platzsparend gespeichert (4070 → 438 KB, ohne Metadaten)
 - Sächsische Eierschecke ohne Boden: Foto platzsparend gespeichert (4041 → 331 KB, ohne Metadaten)
 - Nachträge: Gulasch-Kommentar „intensiver“, „Fleisch“; Würzfleisch: falsche Quelle (Hühnerfrikassee) entfernt
+- Tropical-Sunrise-Bowle: Einheit stand im Mengenfeld („2 Stück“, „1 Handvoll“), getrennt (gefunden vom Paket-Test)

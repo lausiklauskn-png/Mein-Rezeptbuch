@@ -43,7 +43,7 @@ import { teilLink, ausTeilLink, qrSvg, passtInQr } from '../kern/teilen/qr.mjs';
 import { rezeptIn } from '../kern/modell/einheiten.mjs';
 import { findeDoppel, findeDoppelImBuch, wendeAn, dHash, MERKMALE, merkmaleVon, merkmalUmschalten } from '../kern/modell/doppel.mjs';
 
-const FASSUNG = '0.19.10';
+const FASSUNG = '0.19.11';
 const breit = () => matchMedia('(min-width:1000px)').matches;
 const $ = (id) => document.getElementById(id);
 const esc = (t) => String(t ?? '').replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
@@ -1311,11 +1311,35 @@ async function beispielLaden() {
 }
 
 /* Klaus 23.11.: „Man kann doch schon ein paar kleine Beispielrezepte mit reinnehmen. Man muss ja nicht erst fragen.“
-   Nur beim allerersten Start (leerer Speicher, nichts aus der bisherigen App): acht Rezepte mit Bild, als Beispiele markiert
+   Nur beim allerersten Start (leerer Speicher, nichts aus der bisherigen App): seit 26.11. die 44 alkoholfreien Rezepte aus Klaus’ Geschenkbuch, als Beispiele markiert
    und damit mit einem Tipp entfernbar. Sie liegen neben der App (neu/start-rezepte.json, im Offline-Vorrat); fehlt die Datei, bleibt die App leer. */
 async function startRezepte() {
   try { const a = await (window.__startRezepte || fetch('./start-rezepte.json')); if (!a.ok) return;   /* index.html beginnt den Abruf schon vor den Modulen (Lighthouse 26.11.: er stand sonst ~5 s hinter ihnen) */ const e = lies(await a.text());
     Z = fuehreZusammen(Z, { ...e, rezepte: e.rezepte.map((r) => ({ ...r, beispiel: true })) }).zustand; await lager.schreibe({ fassung: 1, zustand: Z, einstellungen: E }); } catch { /* ohne Startrezepte beginnt die App leer */ }
+}
+
+/* Klaus 26.11.: „die App erst laden und dann … die Rezepte nachziehen … die Bilder erst in einer schlechteren Version, ein paar
+   Sekunden später sind sie scharf.“ Startrezepte tragen ein 48-px-Vorschaubild und `bildNach` (neu/start-bilder/<uid>.webp, nicht im
+   Offline-Vorrat). Nach dem ersten Tipp oder spätestens nach 4 s holt die App die vollen Bilder, eins nach dem anderen, und tauscht sie
+   an Ort und Stelle aus (ohne neu zu zeichnen: ein offenes Formular bleibt, wie es ist). Ohne Netz bleibt die Vorschau, beim nächsten
+   Start geht es weiter. Ein Bild, das inzwischen ersetzt wurde (größer als eine Vorschau), wird nie überschrieben. */
+const istVorschau = (r) => !!r?.bildNach && String(r.img || '').length < 8000;
+async function bilderNachladen() {
+  if (bilderNachladen.laeuft) return; bilderNachladen.laeuft = true; let neu = 0;
+  try {
+    for (const uid of Z.rezepte.filter(istVorschau).map((r) => r.uid)) {
+      const r = Z.rezepte.find((x) => x.uid === uid); if (!istVorschau(r)) continue;
+      let url; try { const a = await fetch('./' + r.bildNach); if (!a.ok) continue; const b = await a.blob(); url = await new Promise((ja, nein) => { const f = new FileReader(); f.onload = () => ja(f.result); f.onerror = nein; f.readAsDataURL(b); }); } catch { break; }   /* ohne Netz: beim nächsten Start */
+      const jetzt = Z.rezepte.find((x) => x.uid === uid); if (!istVorschau(jetzt)) continue;
+      const alt = jetzt.img; Z = { ...Z, rezepte: Z.rezepte.map((x) => { if (x.uid !== uid) return x; const { bildNach, ...rest } = x; return { ...rest, img: url }; }) }; neu++;
+      document.querySelectorAll('img').forEach((im) => { if (im.getAttribute('src') === alt) im.src = url; });
+      if (neu % 6 === 0) sichern();
+    }
+  } finally { bilderNachladen.laeuft = false; if (neu) sichern(); }
+}
+function bilderNachladenPlanen() {
+  if (!Z.rezepte.some(istVorschau)) return; let los = false; const start = () => { if (los) return; los = true; ['pointerdown', 'keydown'].forEach((e) => removeEventListener(e, start, true)); bilderNachladen(); };
+  ['pointerdown', 'keydown'].forEach((e) => addEventListener(e, start, { capture: true, passive: true })); setTimeout(start, 4000);
 }
 
 /* ---------- Flying Widget ---------- */
@@ -1387,7 +1411,8 @@ addEventListener('resize', () => requestAnimationFrame(spaltenPruefen));
 /* Klaus 26.11.: ist ein Bild für die Fläche zu klein, sagt die App es – im Rezept („Bild unscharf“, Tipp öffnet das Bild-Blatt: neues Foto
    oder KI-Bild) und in der Bilder-Übersicht (kleine Marke). Gemessen wird nach dem Laden: Bildpunkte gegen die angezeigte Breite × Pixeldichte. */
 function aufloesungPruefen(img) {
-  if (!img?.naturalWidth) return; const a = aufloesung(img.naturalWidth, img.getBoundingClientRect().width, devicePixelRatio);
+  if (!img?.naturalWidth) return;
+  if (img.classList.toggle('vorschau', img.naturalWidth <= 64)) return;   /* Vorschaubild der Startrezepte (48 px): weich gezeichnet, kein „Bild unscharf“, das scharfe kommt gleich */ const a = aufloesung(img.naturalWidth, img.getBoundingClientRect().width, devicePixelRatio);
   if (img.matches('.rezept-held>img')) {
     const held = img.parentElement; held.querySelector('.bild-unscharf')?.remove(); if (a.genug) return;
     held.insertAdjacentHTML('beforeend', `<button class="bild-unscharf" data-a="bild-blatt" title="${esc(L('Für diese Größe ein schärferes Foto aufnehmen oder ein KI-Bild erzeugen', 'Take a sharper photo for this size or create an AI picture'))}">${ic('bild')}${esc(fuelle(L('Bild unscharf ({0} px)', 'Picture blurry ({0} px)'), img.naturalWidth))}</button>`);
@@ -1813,6 +1838,7 @@ async function start() {
   lager.dauerhaft();
   ZU.altTresor().catch(() => {});   /* Tresor-Stände der bisherigen App, einmal */
   if ('serviceWorker' in navigator) navigator.serviceWorker.register('./sw.js').catch(() => {});   // Offline-Vorrat; ohne ihn läuft die App genauso, nur nicht ohne Netz
+  bilderNachladenPlanen();
   (globalThis.requestIdleCallback || ((f) => setTimeout(f, 1500)))(() => fetch('../beispiele/KATALOG.json').then((a) => a.json()).then((k) => { katalog = k; if (s.ansicht === 'start' || s.ansicht === 'werkstatt') zeichne(); }).catch(() => {}));   /* erst nach dem Start: der Katalog nennt nur die Größe des Beispielbuchs (PageSpeed 26.11.: er stand am Ende der Ladekette) */
 }
 /* Bis der Bestand gelesen ist, steht der Wartesatz der Seite da (index.html, deutsch); er folgt gleich der Sprache des Geräts. */
