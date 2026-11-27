@@ -6,6 +6,9 @@
 //      KI-Schlüssel, und die sollen das Gerät nicht verlassen; gesichert wird über den Tresor und die Sicherungsdatei der App.
 //      Mit --android-sicherung an bleibt es bei „true“ (Klaus entscheidet, siehe docs/BAU_APK_WINDOWS.md).
 //   3. Gegenkontrolle: die App-Kennung im Projekt ist die aus capacitor.config.json.
+//   4. Echtes Vollbild (Klaus 27.11.2026): Capacitor beendet das Vollbild der Seite sofort wieder (onCustomViewHidden). Darum bekommt die
+//      MainActivity ein kleines Plugin „AppVollbild“ (setzen {an}), das die Leisten des Systems aus- und einblendet; die Seite ruft es
+//      über kern/oberflaeche/vollbild.mjs. Die MainActivity muss genau die leere Vorlage von Capacitor sein, sonst Abbruch.
 // Jede Stelle muss GENAU EINMAL treffen, sonst Abbruch ohne Änderung (die Vorlage von Capacitor hat sich dann geändert).
 //
 //   Für ein Release setzt --fassung X.Y.Z den versionName (aus paket/release-fassung.mjs; sonst gilt die Fassung der App).
@@ -31,5 +34,60 @@ if ((g.match(/applicationId "([^"]+)"/) || [])[1] !== cap.appId) halt(`App-Kennu
 g = einmal(g, /^([ \t]*)versionCode \d+[ \t]*$/m, `$1versionCode ${nummer}`, 'versionCode');
 g = einmal(g, /^([ \t]*)versionName "[^"]*"[ \t]*$/m, `$1versionName "${fassung}"`, 'versionName');
 m = einmal(m, /android:allowBackup="(true|false)"/, `android:allowBackup="${sicherung === 'an' ? 'true' : 'false'}"`, 'allowBackup');
+const javaOrdner = join(ordner, 'android', 'app', 'src', 'main', 'java', ...cap.appId.split('.')), aktivitaet = join(javaOrdner, 'MainActivity.java');
+if (!existsSync(aktivitaet)) halt(`fehlt: ${aktivitaet}`);
+const leer = `package ${cap.appId};\n\nimport com.getcapacitor.BridgeActivity;\n\npublic class MainActivity extends BridgeActivity {}\n`;
+if (readFileSync(aktivitaet, 'utf8').replace(/\r\n/g, '\n') !== leer) halt('MainActivity.java ist nicht die leere Vorlage von Capacitor – nachbessern.mjs anpassen.');
 writeFileSync(gradle, g); writeFileSync(manifest, m);
-console.log(`✓ nachgebessert: ${cap.appId} · versionName ${fassung} · versionCode ${nummer} · Sicherung durch Android ${sicherung}`);
+writeFileSync(aktivitaet, `package ${cap.appId};
+
+import android.os.Bundle;
+import com.getcapacitor.BridgeActivity;
+
+public class MainActivity extends BridgeActivity {
+    @Override
+    public void onCreate(Bundle savedInstanceState) {
+        registerPlugin(VollbildPlugin.class);
+        super.onCreate(savedInstanceState);
+    }
+}
+`);
+writeFileSync(join(javaOrdner, 'VollbildPlugin.java'), `package ${cap.appId};
+
+import androidx.core.view.WindowCompat;
+import androidx.core.view.WindowInsetsCompat;
+import androidx.core.view.WindowInsetsControllerCompat;
+import com.getcapacitor.Plugin;
+import com.getcapacitor.PluginCall;
+import com.getcapacitor.PluginMethod;
+import com.getcapacitor.annotation.CapacitorPlugin;
+
+// Echtes Vollbild: blendet die Leisten des Systems aus (Wischen vom Rand holt sie kurz zurück) und wieder ein.
+@CapacitorPlugin(name = "AppVollbild")
+public class VollbildPlugin extends Plugin {
+    private boolean an = false;
+
+    @PluginMethod
+    public void setzen(PluginCall call) {
+        boolean wunsch = Boolean.TRUE.equals(call.getBoolean("an", false));
+        getActivity().runOnUiThread(() -> { an = wunsch; anwenden(); call.resolve(); });
+    }
+
+    @Override
+    protected void handleOnResume() {
+        super.handleOnResume();
+        if (an) getActivity().runOnUiThread(this::anwenden);
+    }
+
+    private void anwenden() {
+        WindowInsetsControllerCompat c = WindowCompat.getInsetsController(getActivity().getWindow(), getActivity().getWindow().getDecorView());
+        if (an) {
+            c.setSystemBarsBehavior(WindowInsetsControllerCompat.BEHAVIOR_SHOW_TRANSIENT_BARS_BY_SWIPE);
+            c.hide(WindowInsetsCompat.Type.systemBars());
+        } else {
+            c.show(WindowInsetsCompat.Type.systemBars());
+        }
+    }
+}
+`);
+console.log(`✓ nachgebessert: ${cap.appId} · versionName ${fassung} · versionCode ${nummer} · Sicherung durch Android ${sicherung} · Vollbild-Plugin`);

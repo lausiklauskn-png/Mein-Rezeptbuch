@@ -17,7 +17,7 @@ try {
   console.log('1 · geteilter Schirm (1000 × 900): Bild so hoch wie nötig (unter der Obergrenze, sonst wäre es nicht zu unterscheiden)');
   let k = await browser.newContext({ locale: 'de-DE', viewport: { width: 1000, height: 900 }, serviceWorkers: 'block' }), p = await k.newPage(); p.on('pageerror', (e) => fehler.push(e.message));
   await zuRezept(p, 'Gyoza'); let m = await mass(p);
-  ok(Math.abs(m.ih - Math.min(m.iw / m.ratio, 900 * 0.36)) <= 2, 'die Bildhöhe ist die des Bildes bei dieser Breite (keine leere Fläche darüber und darunter), höchstens ein gutes Drittel der Höhe', JSON.stringify(m));
+  ok(Math.abs(m.ih - Math.min(900 * 0.44, 560)) <= 2, 'Klaus 27.11.: jedes Bild ist gleich hoch (44 % der Höhe, höchstens 560 px), damit Pfeile und Vollbild-Knopf beim Blättern nicht wandern (ersetzt 25.11. „so hoch wie das Bild“)', JSON.stringify(m));
   ok(m.knopfImBild, 'der Vollbild-Knopf sitzt im Bild', JSON.stringify(m));
   ok(m.titelImAuslauf && m.kanteWeich, 'Klaus 26.11. (wie „Ordnung auf Japanisch“): die Ränder des Bildes laufen weich aus, der Name beginnt im auslaufenden unteren Teil', JSON.stringify(m));
   ok(m.spalten === '', 'im schmalen Teil keine zweite Spalte (zu schmal)'); await k.close();
