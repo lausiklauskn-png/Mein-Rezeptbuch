@@ -932,13 +932,20 @@ a.knopf{text-decoration:none}
 .bv-kopf h2{flex:1;min-width:0;font-size:17px}
 .bv-kopf h2 small{display:block;font-weight:400;font-size:12.5px;opacity:.75;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .bv-kopf .voll-x{position:static;flex:none}
-.bv-bildort{position:relative;align-self:center;width:min(100%,calc(62svh * var(--vh,1.5)))}
-.bildvoll .zs-rahmen{aspect-ratio:var(--vh,1.5);width:100%;outline-color:#fff}
+.bv-bildort{position:relative;align-self:center;width:min(100%,calc(62svh * var(--bild,var(--vh,1.5))))}
+.bildvoll .zs-rahmen{aspect-ratio:var(--bild,var(--vh,1.5));width:100%;outline-color:#fff;position:relative}
+.bildvoll .zs-rahmen #zs-bild{object-fit:fill}
+/* Klaus 27.11.: die Maske zeigt, wo das Bild in der Ausgabe sitzt */
+.zs-maske,.bildvoll .zs-maske{position:absolute;pointer-events:none;border-radius:6px;transition:none;background:none;display:block;margin:0;padding:0}
+.zs-maske i{position:absolute;left:6px;top:4px;font-style:normal;font-size:11px;font-weight:700;color:#fff;text-shadow:0 1px 3px rgba(0,0,0,.8)}
+.zs-maske.kopf{border:2px solid #fff;box-shadow:0 0 0 9999px rgba(0,0,0,.55)}
+.zs-maske.karte{border:2px dashed rgba(255,255,255,.9)}.zs-maske.karte i{top:auto;bottom:4px}
 .bv-werk{position:absolute;right:8px;bottom:8px;display:flex;gap:6px;flex-wrap:wrap;justify-content:flex-end;max-width:calc(100% - 16px)}
 .bv-k{height:38px;min-width:38px;padding:0 10px;border-radius:19px;display:inline-flex;align-items:center;justify-content:center;gap:6px;cursor:pointer;background:rgba(12,8,4,.62);color:#fff;border:1px solid rgba(255,255,255,.3);font-size:13px;font-weight:600;-webkit-backdrop-filter:blur(8px);backdrop-filter:blur(8px)}
 .bv-k .ic{width:18px;height:18px}.bv-k.rot{color:#ffc2b5}
 .bv-k span{display:none}
-@media(min-width:1000px){.bv-k span{display:inline}}
+.bv-bildort{container-type:inline-size}
+@container (min-width:1200px){.bv-k span{display:inline}}   /* Klaus 27.11.: Text nur, wenn das Bild breit genug ist – sonst deckt er es zu (vorher ab 1000 px Schirm) */
 .bv-regler{width:min(100%,720px);align-self:center;display:grid;gap:8px}
 .bildvoll .chip{background:rgba(255,255,255,.1);color:#fff;border-color:rgba(255,255,255,.22)}
 .bildvoll .zs-regler,.bildvoll .zs-vor{color:rgba(244,236,226,.8)}
@@ -1149,3 +1156,22 @@ a.knopf{text-decoration:none}
 .md-detail .rezept-held:has(>img)>.bild-unscharf{grid-area:1/1;position:relative;left:auto;top:auto;align-self:start;justify-self:start;margin:12px 0 0 calc((100% - min(100%, var(--bildh) * 2.6)) / 2 + 12px)}
 .bildkachel.klein::before{content:"klein";position:absolute;left:6px;top:6px;z-index:2;padding:1px 7px;border-radius:999px;background:rgba(20,20,20,.6);color:#fff;font-size:11px;font-weight:600}
 img.vorschau{filter:blur(6px)}   /* Vorschaubild der Startrezepte, bis das scharfe nachgeladen ist (Klaus 26.11.) */
+/* Klaus 27.11.: im großen Bild nur das Symbol, der Text erst an sehr breiten Schirmen */
+.voll-werk>span{display:none}.voll-werk{padding:0;width:40px;justify-content:center}
+@media(min-width:1400px){.voll-werk>span{display:inline}.voll-werk{width:auto;padding:0 14px 0 11px}}
+/* Klaus 27.11.: „unterschiedliche Bildschirmbreiten zeigen das Bild immer unterschiedlich“ – das Kopfbild hat jetzt auf JEDER Breite
+   dasselbe Format (16 : 9). Der gewählte Ausschnitt zeigt damit überall denselben Teil, und die Maske in „Bild anpassen“ stimmt genau.
+   Ersetzt die wechselnden Höhen (56vh / 340 px / 58vh mit „ganzes Bild“ / 2,6 : 1 am breiten Schirm). */
+.rezept-held,.md-detail .rezept-held,body[data-fl] .md-detail .rezept-held{height:auto;aspect-ratio:16/9;max-height:none}
+.rezept-held>img,.rezept-held>img:not([style]){object-fit:cover}
+@media(min-width:1000px){
+ .md-detail .rezept-held,body[data-fl] .md-detail .rezept-held{aspect-ratio:auto}
+ .md-detail .rezept-held>img,.md-detail .rezept-held>img:not([style]),.md-detail.spalten3 .rezept-held>img,.md-detail.spalten3 .rezept-held>img:not([style]){width:min(100%,calc(var(--bildh) * 16 / 9));height:auto;max-height:none;aspect-ratio:16/9}
+}
+@media(max-width:999px){.rezept-held>img{position:absolute;inset:0;width:100%;height:100%}}
+/* Klaus 27.11.: am Handy deckte der Name das halbe Bild ab. Kleiner (17–21 px, mit der Breite), höchstens zwei Zeilen, flacherer Verlauf;
+   auffallen darf er weiter: fett, weiß, mit Schatten. */
+@media(max-width:999px){
+ .rezept-held .verlauf{padding:34px 14px 30px}
+ .rezept-held h1{font-size:clamp(17px,4.6vw,21px);line-height:1.2;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;text-shadow:0 1px 6px rgba(0,0,0,.45)}
+}
