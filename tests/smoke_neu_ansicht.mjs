@@ -17,7 +17,7 @@ try {
   console.log('1 · geteilter Schirm (1000 × 900): Bild so hoch wie nötig (unter der Obergrenze, sonst wäre es nicht zu unterscheiden)');
   let k = await browser.newContext({ locale: 'de-DE', viewport: { width: 1000, height: 900 }, serviceWorkers: 'block' }), p = await k.newPage(); p.on('pageerror', (e) => fehler.push(e.message));
   await zuRezept(p, 'Gyoza'); let m = await mass(p);
-  ok(Math.abs(m.ih - Math.min(900 * 0.44, 560)) <= 2, 'Klaus 27.11.: jedes Bild ist gleich hoch (44 % der Höhe, höchstens 560 px), damit Pfeile und Vollbild-Knopf beim Blättern nicht wandern (ersetzt 25.11. „so hoch wie das Bild“)', JSON.stringify(m));
+  ok(Math.abs(m.iw / m.ih - 16 / 9) < 0.02 && m.ih <= Math.min(900 * 0.44, 560) + 2, 'Klaus 27.11.: das Kopfbild ist auf jeder Breite 16 : 9 (gleicher Ausschnitt beim Verkleinern und Vergrößern, Pfeile wandern nicht; ersetzt 25.11. „so hoch wie das Bild“)', JSON.stringify(m));
   ok(m.knopfImBild, 'der Vollbild-Knopf sitzt im Bild', JSON.stringify(m));
   ok(m.titelImAuslauf && m.kanteWeich, 'Klaus 26.11. (wie „Ordnung auf Japanisch“): die Ränder des Bildes laufen weich aus, der Name beginnt im auslaufenden unteren Teil', JSON.stringify(m));
   ok(m.spalten === '', 'im schmalen Teil keine zweite Spalte (zu schmal)'); await k.close();
@@ -101,12 +101,12 @@ try {
   ok(r6.nochmal === null, '… und ein schon sparsames Bild bleibt, wie es ist (nur ersetzen, wenn es mindestens 10 % kleiner wird)');
   ok(r6.a1 === false && r6.a2 === true, 'Auflösung: 640 px auf 1060 px Fläche reichen nicht, 1600 px reichen');
   await p.locator('.karte').first().click(); await p.waitForTimeout(800);
-  /* seit 0.19.11 sind die Startbilder scharf (1600 px, Klaus 26.11.): gemessen wird an einem gestellten 640-px-Bild im großen Bild */
-  await p.evaluate(() => new Promise((ja) => { const c = document.createElement('canvas'); c.width = 640; c.height = 427; const g = c.getContext('2d'); g.fillStyle = '#c0392b'; g.fillRect(0, 0, 640, 427); const im = document.querySelector('.rezept-held>img'); im.addEventListener('load', () => setTimeout(ja, 100), { once: true }); im.src = c.toDataURL('image/webp', 0.8); }));
+  /* seit 0.19.11 sind die Startbilder scharf (1600 px, Klaus 26.11.): gemessen wird an einem gestellten 360-px-Bild im großen Bild (seit 27.11. ist das Kopfbild 16 : 9 und damit schmaler) */
+  await p.evaluate(() => new Promise((ja) => { const c = document.createElement('canvas'); c.width = 360; c.height = 240; const g = c.getContext('2d'); g.fillStyle = '#c0392b'; g.fillRect(0, 0, 640, 427); const im = document.querySelector('.rezept-held>img'); im.addEventListener('load', () => setTimeout(ja, 100), { once: true }); im.src = c.toDataURL('image/webp', 0.8); }));
   const nw = await p.evaluate(() => document.querySelector('.rezept-held>img')?.naturalWidth || 0);
-  ok(nw === 640 && await p.locator('.bild-unscharf').count() === 1 && /Bild unscharf \(\d+ px\)/.test(await p.locator('.bild-unscharf').innerText()), 'ein 640-px-Bild auf großer Fläche trägt „Bild unscharf (… px)“', String(nw));
+  ok(nw === 360 && await p.locator('.bild-unscharf').count() === 1 && /Bild unscharf \(\d+ px\)/.test(await p.locator('.bild-unscharf').innerText()), 'ein 360-px-Bild im Kopfbild (rund 600 px, 16 : 9) trägt „Bild unscharf (… px)“', String(nw));
   await p.click('.bild-unscharf'); ok(await p.locator('.fenster [data-a=ki-bild], .fenster [data-a=bild-dazu]').count() >= 1, '… ein Tipp darauf öffnet das Bild-Blatt (neues Foto oder KI-Bild)');
-  ok(/640 px/.test(await p.locator('.fenster .bb-hinweis').innerText().catch(() => '')), '… und im Bild-Blatt steht der Hinweis dauerhaft, mit der Pixelzahl (Klaus 26.11.: dort, wo man ein Bild holt)');
+  ok(/360 px/.test(await p.locator('.fenster .bb-hinweis').innerText().catch(() => '')), '… und im Bild-Blatt steht der Hinweis dauerhaft, mit der Pixelzahl (Klaus 26.11.: dort, wo man ein Bild holt)');
   await p.keyboard.press('Escape'); await p.waitForTimeout(4800);
   const weg = await p.evaluate(() => { const b = document.querySelector('.bild-unscharf'); return b ? [getComputedStyle(b).opacity, getComputedStyle(b).visibility] : ['fehlt']; });
   ok(weg[0] === 'fehlt' || (weg[0] === '0' && weg[1] === 'hidden'), 'auf dem Bild ist „Bild unscharf“ nach gut 4 s ausgeblendet (Klaus 26.11.: „soll nicht oben bleiben und das Bild belästigen“)', JSON.stringify(weg));

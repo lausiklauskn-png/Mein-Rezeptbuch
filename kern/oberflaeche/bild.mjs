@@ -45,3 +45,13 @@ export async function bildGroessen(quelle, kanten, guete = 0.84) {
     });
   } finally { if (eigen) bmp.close?.(); }
 }
+
+/** Klaus 27.11.: welcher Teil des Bildes in einem Rahmen mit dem Seitenverhältnis `ziel` zu sehen ist (object-fit: cover,
+ *  object-position x% y%, Zoom z um denselben Punkt). Ergebnis in Bruchteilen des ganzen Bildes: { l, t, w, h }.
+ *  Damit zeigt „Bild anpassen“ eine Maske über dem ganzen Bild. */
+export function ausschnittRechteck(bildSeiten, ziel, x = 50, y = 50, z = 1) {
+  const r = bildSeiten > 0 ? bildSeiten : 1, a = ziel > 0 ? ziel : 1, zz = Math.min(3, Math.max(1, Number(z) || 1));
+  const w = (r > a ? a / r : 1) / zz, h = (r > a ? 1 : r / a) / zz;
+  const px = Math.min(100, Math.max(0, Number(x))), py = Math.min(100, Math.max(0, Number(y)));
+  return { l: (1 - w) * px / 100, t: (1 - h) * py / 100, w, h };
+}

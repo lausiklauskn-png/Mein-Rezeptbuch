@@ -14,7 +14,7 @@ Klaus 23.11.2026: „Brief lesen, bevor gebaut wird. Und dann Brief ergänzen, s
 
 ---
 
-## Runde M · 27.11.2026 · Kern 0.33.5, PWA 0.19.15 (echtes Vollbild, Kategorie aus der Leiste, Bilder gleich hoch)
+## Runde M · 27.11.2026 · Kern 0.33.6, PWA 0.19.16 (echtes Vollbild, Kategorie aus der Leiste, Kopfbild 16 : 9, Maske)
 
 - **Neu im Kern:** `kern/oberflaeche/vollbild.mjs` (`vollbildSetzen(an)`). Browser und Windows: requestFullscreen; APK: das Plugin
   `AppVollbild`, das `paket/android/nachbessern.mjs` in die MainActivity schreibt (Capacitor beendet das Browser-Vollbild sonst sofort).
@@ -24,6 +24,10 @@ Klaus 23.11.2026: „Brief lesen, bevor gebaut wird. Und dann Brief ergänzen, s
   neue Kategorie). Im Mixarium nachgebaut (`katBearbeiten`).
 - **App:** am breiten Schirm oben `padding-top: env(safe-area-inset-top)` (APK am DeX lag unter der Leiste); Vollbild-Knopf immer ganz außen
   unter dem rechten Pfeil; jedes Kopfbild gleich hoch (Pfeile wandern nicht). Prüfen, ob das Mixarium das braucht.
+- **Kern 0.33.6:** `ausschnittRechteck(seiten, ziel, x, y, z)` in `oberflaeche/bild.mjs` – „Bild anpassen“ zeigt das ganze Bild mit einer Maske
+  (Kopfbild hell mit Rahmen, Karte gestrichelt); beim Ziehen folgt das helle Feld dem Finger. Im Mixarium übernommen.
+- **App:** Kopfbild auf JEDER Breite 16 : 9 (Klaus: im geteilten Schirm zeigte jede Breite einen anderen Ausschnitt); Werkzeug-Knöpfe
+  im Bild nur mit Text, wenn der Rahmen breit genug ist (Container-Abfrage); Name im Kopfbild am Handy kleiner (17–21 px, zwei Zeilen).
 
 ## Runde L · 26.11.2026 abends · Kern 0.33.4, PWA 0.19.14 (APK: kein Installieren-Knopf, Aktualisieren ohne „ohne Netz“)
 

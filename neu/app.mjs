@@ -13,7 +13,7 @@ import { speicher } from '../kern/speicher/speicher.mjs';
 import { symbol as ic } from '../kern/oberflaeche/symbole.mjs';
 import { FARBEN, TOENE, TOENE_EN, farbeSetzen, istDunkel } from '../kern/oberflaeche/farben.mjs';
 import { schriftSetzen, schriftRegler, schriftWert } from '../kern/oberflaeche/schrift.mjs';
-import { bildAusDatei, platzSparen, datenGroesse, aufloesung } from '../kern/oberflaeche/bild.mjs';
+import { bildAusDatei, platzSparen, datenGroesse, aufloesung, ausschnittRechteck } from '../kern/oberflaeche/bild.mjs';
 import { zutatenFuerSchritt, zeitImSchritt } from '../kern/modell/kochen.mjs';
 import { GERAETE, erkenne, geraetSvg } from '../kern/oberflaeche/geraete.mjs';
 import { einkaufsliste, gruppenFolge, gruppeVerschieben, WARENGRUPPEN } from '../kern/modell/einkauf.mjs';
@@ -44,7 +44,7 @@ import { teilLink, ausTeilLink, qrSvg, passtInQr } from '../kern/teilen/qr.mjs';
 import { rezeptIn } from '../kern/modell/einheiten.mjs';
 import { findeDoppel, findeDoppelImBuch, wendeAn, dHash, MERKMALE, merkmaleVon, merkmalUmschalten } from '../kern/modell/doppel.mjs';
 
-const FASSUNG = '0.19.15';
+const FASSUNG = '0.19.16';
 const breit = () => matchMedia('(min-width:1000px)').matches;
 const $ = (id) => document.getElementById(id);
 const esc = (t) => String(t ?? '').replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
@@ -337,7 +337,7 @@ const blaetterPfeile = (imBild = false) => {
   const l = imBild ? blaetterListe().filter((r) => zeig(r)?.img) : blattFolge(), i = l.findIndex((r) => r.uid === s.uid); if (i < 0 || l.length < 2) return '';
   return `<button class="blatt-pfeil links" data-a="blatt" data-d="-1" ${i > 0 ? '' : 'disabled'} aria-label="${L('Voriges Rezept', 'Previous recipe')}" title="${L('Voriges Rezept', 'Previous recipe')}">${ic('links')}</button><button class="blatt-pfeil rechts" data-a="blatt" data-d="1" ${i < l.length - 1 ? '' : 'disabled'} aria-label="${L('Nächstes Rezept', 'Next recipe')}" title="${L('Nächstes Rezept', 'Next recipe')}">${ic('rechts')}</button><span class="blatt-stand" aria-hidden="true">${i + 1} / ${l.length}</span>`;
 };
-const vollbildHtml = (r) => `<div class="vollbild" data-a="voll-zu" role="dialog" aria-modal="true" aria-label="${esc(r.name)}"><img src="${esc(r.img)}" alt="${esc(r.name)}"><button class="voll-werk" data-a="voll-werk">${ic('bild')}${L('Bild bearbeiten', 'Edit picture')}</button><button class="voll-x" data-a="voll-zu" aria-label="${L('Schließen', 'Close')}">${ic('x')}</button><p>${esc(r.name)}</p>${blaetterPfeile(true)}</div>`;
+const vollbildHtml = (r) => `<div class="vollbild" data-a="voll-zu" role="dialog" aria-modal="true" aria-label="${esc(r.name)}"><img src="${esc(r.img)}" alt="${esc(r.name)}"><button class="voll-werk" data-a="voll-werk" aria-label="${L('Bild bearbeiten', 'Edit picture')}" title="${L('Bild bearbeiten', 'Edit picture')}">${ic('bild')}<span>${L('Bild bearbeiten', 'Edit picture')}</span></button><button class="voll-x" data-a="voll-zu" aria-label="${L('Schließen', 'Close')}">${ic('x')}</button><p>${esc(r.name)}</p>${blaetterPfeile(true)}</div>`;
 function blaettern(d) {
   if (!blaetternAn()) return false; const n = nachbar(d); if (!n) return false; const bild = bildOffen();
   s.uid = n.uid; E.zuletzt = n.uid; s.rleiste = false; s.original = null; sichern();
@@ -925,12 +925,13 @@ function bildMasse() {
 }
 function zuschnittFenster(uid) {
   const r = rezept(uid); if (!r?.img) { bildBlatt(uid); return; }
-  zs = { uid, x: zahl(r.imgCrop?.x, 50), y: zahl(r.imgCrop?.y, 50), z: Math.min(3, Math.max(1, zahl(r.imgCrop?.scale, 1))) };
-  const m = bildMasse(), bw = (w, i, t, kl = '') => `<button class="bv-k ${kl}" data-a="bv-werk" data-w="${w}" aria-label="${esc(t)}" title="${esc(t)}">${ic(i)}<span>${esc(t)}</span></button>`;
+  const m = bildMasse();
+  zs = { uid, x: zahl(r.imgCrop?.x, 50), y: zahl(r.imgCrop?.y, 50), z: Math.min(3, Math.max(1, zahl(r.imgCrop?.scale, 1))), vh: m.kopf, vk: m.karte, bild: 0, kopf: null };
+  const bw = (w, i, t, kl = '') => `<button class="bv-k ${kl}" data-a="bv-werk" data-w="${w}" aria-label="${esc(t)}" title="${esc(t)}">${ic(i)}<span>${esc(t)}</span></button>`;
   fensterZu();
   $('fensterort').innerHTML = `<div class="bildvoll" role="dialog" aria-modal="true" aria-label="${L('Bild anpassen', 'Adjust picture')}" style="--vh:${m.kopf};--vk:${m.karte}">
    <div class="bv-kopf"><h2>${L('Bild anpassen', 'Adjust picture')}<small>${esc(zeig(r).name)}</small></h2><button class="voll-x" data-a="bv-zu" aria-label="${L('Schließen', 'Close')}">${ic('x')}</button></div>
-   <div class="bv-bildort"><div class="zs-rahmen" id="zs-rahmen"><img src="${esc(r.img)}" alt="" draggable="false" id="zs-bild"></div>
+   <div class="bv-bildort"><div class="zs-rahmen" id="zs-rahmen"><img src="${esc(r.img)}" alt="" draggable="false" id="zs-bild"><span class="zs-maske karte" id="zs-mk" aria-hidden="true"><i>${L('Karte', 'Card')}</i></span><span class="zs-maske kopf" id="zs-mh" aria-hidden="true"><i>${L('Kopfbild', 'Header picture')}</i></span></div>
     <div class="bv-werk" role="toolbar" aria-label="${L('Bild', 'Picture')}">${bw('bild-dazu', 'kamera', L('Bild ersetzen', 'Replace picture'))}${bw('ki-bild', 'funken', L('Bild von der KI erzeugen', 'Create picture with AI'))}${bw('gratis-bild', 'bild', L('Foto über Pollinations', 'Photo via Pollinations'))}${bw('zine', 'zine', L('Food-Zine', 'Food zine'))}${bw('bild-entfernen', 'muell', L('Bild entfernen', 'Remove picture'), 'rot')}</div></div>
    <div class="bv-regler"><div class="laeden">${[[L('Mitte', 'Centre'), '50,50'], [L('Oben', 'Top'), '50,0'], [L('Unten', 'Bottom'), '50,100'], [L('Links', 'Left'), '0,50'], [L('Rechts', 'Right'), '100,50']].map(([t, l]) => `<button class="chip" data-a="zs-lage" data-l="${l}">${t}</button>`).join('')}</div>
    <label class="zs-regler">${L('Zoom', 'Zoom')}<input type="range" id="zs-zoom" min="100" max="300" value="${Math.round(zs.z * 100)}"><b id="zs-wert"></b></label>
@@ -939,10 +940,19 @@ function zuschnittFenster(uid) {
   history.pushState({ ...(history.state || { ansicht: s.ansicht, uid: s.uid }), voll: true }, '');
   zsZeigen();
 }
-function zsZeigen() { if (!zs) return; document.querySelectorAll('#zs-bild, .zs-vor img').forEach((i) => { i.style.objectPosition = `${zs.x}% ${zs.y}%`; i.style.transformOrigin = `${zs.x}% ${zs.y}%`; i.style.transform = `scale(${zs.z})`; }); const w = $('zs-wert'); if (w) w.textContent = zs.z.toLocaleString(geb(), { minimumFractionDigits: 1, maximumFractionDigits: 1 }) + '×'; }
+/* Klaus 27.11.: im Rahmen steht das GANZE Bild; abgedunkelt ist, was im Kopfbild nicht zu sehen ist, gestrichelt der Teil der Karte. */
+function zsMaske() {
+  const i = $('zs-bild'); if (!zs || !i) return;
+  if (!zs.bild && i.naturalWidth) { zs.bild = i.naturalWidth / i.naturalHeight; i.closest('.bv-bildort')?.style.setProperty('--bild', zs.bild); }
+  if (!zs.bild) { i.addEventListener('load', zsZeigen, { once: true }); return; }
+  const setz = (el, q) => { if (el) Object.assign(el.style, { left: q.l * 100 + '%', top: q.t * 100 + '%', width: q.w * 100 + '%', height: q.h * 100 + '%' }); };
+  zs.kopf = ausschnittRechteck(zs.bild, zs.vh, zs.x, zs.y, zs.z); setz($('zs-mh'), zs.kopf); setz($('zs-mk'), ausschnittRechteck(zs.bild, zs.vk, zs.x, zs.y, zs.z));
+}
+function zsZeigen() { if (!zs) return; zsMaske(); document.querySelectorAll('.zs-vor img').forEach((i) => { i.style.objectPosition = `${zs.x}% ${zs.y}%`; i.style.transformOrigin = `${zs.x}% ${zs.y}%`; i.style.transform = `scale(${zs.z})`; }); const w = $('zs-wert'); if (w) w.textContent = zs.z.toLocaleString(geb(), { minimumFractionDigits: 1, maximumFractionDigits: 1 }) + '×'; }
 let zsZug = null;
 document.addEventListener('pointerdown', (ev) => { const b = ev.target.closest?.('#zs-rahmen'); if (!b || !zs) return; zsZug = { b, x: ev.clientX, y: ev.clientY, cx: zs.x, cy: zs.y }; try { b.setPointerCapture(ev.pointerId); } catch { /* ohne */ } });
-document.addEventListener('pointermove', (ev) => { if (!zsZug || !zs) return; const r = zsZug.b.getBoundingClientRect(); zs.x = Math.min(100, Math.max(0, zsZug.cx - (ev.clientX - zsZug.x) / r.width * 100 / zs.z)); zs.y = Math.min(100, Math.max(0, zsZug.cy - (ev.clientY - zsZug.y) / r.height * 100 / zs.z)); zsZeigen(); });
+document.addEventListener('pointermove', (ev) => { if (!zsZug || !zs) return; const r = zsZug.b.getBoundingClientRect(); const k = zs.kopf || { w: 1 / zs.z, h: 1 / zs.z }, fw = 1 - k.w, fh = 1 - k.h;   /* das helle Feld folgt dem Finger */
+  if (fw > 0.001) zs.x = Math.min(100, Math.max(0, zsZug.cx + (ev.clientX - zsZug.x) / r.width / fw * 100)); if (fh > 0.001) zs.y = Math.min(100, Math.max(0, zsZug.cy + (ev.clientY - zsZug.y) / r.height / fh * 100)); zsZeigen(); });
 document.addEventListener('pointerup', () => { zsZug = null; }); document.addEventListener('pointercancel', () => { zsZug = null; });
 
 /* ---------- Blatt hinter +: jeder Weg zu einem neuen Rezept ---------- */
