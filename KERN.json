@@ -1,6 +1,6 @@
 {
- "fassung": "0.33.4",
- "inhalt": "Ausgaben-Schalter, Rezeptmodell, Kategorien, Suche, Sicherung, Übernahme, Speicher, Mengen, Symbole, Farben, Bild, Kochansicht (Zutaten je Schritt, Zeit, Geräte), Einkaufsliste, Wochenplan, Text-Import, Spracheingabe, Bildauftrag je Ausgabe, englische Namen für Farben, Töne, Geräte und Schrift-Regler, Kategorien und Einkauf je Ausgabe (kategorienMit mit Familien-Namen, einkaufMit), Sticker-Bild je Kategorie (katBild), Text-Import mit Bar- und US-Einheiten, Hinweis-Blasen (Tooltips), Ladebalken für alle Wartezeiten, Sprache der Oberfläche (acht Sprachen, Tabellen), KI-Schlüssel (Anthropic, OpenAI, Mistral), Claude-Aufruf, Mistral OCR, Reinigung vor der KI, Foto-Scan, Datei prüfen, Web-Import ohne Weiterleiter, Ordner, App installieren und aktualisieren (app-pflege), Food-Zine: Poster-Auftrag und Sammlung (ausgabe/zine), Kreativbuch (ausgabe/kreativbuch), eigenes Buch aus Bildern (ausgabe/eigenbuch), Notizbuch (modell/notiz, zeit/tag, ausgabe/ics, import/idee), Event-Ordner (Anlass mit Datum und Gästen, in den Kalender, abgleichen, Einkauf, Menükarte; Portionen im Plan), Doppelungen nach Inhalt, Bild, Mengen und Übersetzung, auch im ganzen Buch (findeDoppelImBuch), und Merkmale einer Variante als Hinweis in Suche, Bedeutungssuche, Druck und Teilen (modell/doppel), eigene Reihenfolge der Rezepte (rezeptVerschieben), Bilder in hoher Qualität platzsparend (WebP 1600 px, platzSparen, aufloesung)",
+ "fassung": "0.33.5",
+ "inhalt": "Ausgaben-Schalter, Rezeptmodell, Kategorien, Suche, Sicherung, Übernahme, Speicher, Mengen, Symbole, Farben, Bild, Kochansicht (Zutaten je Schritt, Zeit, Geräte), Einkaufsliste, Wochenplan, Text-Import, Spracheingabe, Bildauftrag je Ausgabe, englische Namen für Farben, Töne, Geräte und Schrift-Regler, Kategorien und Einkauf je Ausgabe (kategorienMit mit Familien-Namen, einkaufMit), Sticker-Bild je Kategorie (katBild), Text-Import mit Bar- und US-Einheiten, Hinweis-Blasen (Tooltips), Ladebalken für alle Wartezeiten, Sprache der Oberfläche (acht Sprachen, Tabellen), KI-Schlüssel (Anthropic, OpenAI, Mistral), Claude-Aufruf, Mistral OCR, Reinigung vor der KI, Foto-Scan, Datei prüfen, Web-Import ohne Weiterleiter, Ordner, App installieren und aktualisieren (app-pflege), Food-Zine: Poster-Auftrag und Sammlung (ausgabe/zine), Kreativbuch (ausgabe/kreativbuch), eigenes Buch aus Bildern (ausgabe/eigenbuch), Notizbuch (modell/notiz, zeit/tag, ausgabe/ics, import/idee), Event-Ordner (Anlass mit Datum und Gästen, in den Kalender, abgleichen, Einkauf, Menükarte; Portionen im Plan), Doppelungen nach Inhalt, Bild, Mengen und Übersetzung, auch im ganzen Buch (findeDoppelImBuch), und Merkmale einer Variante als Hinweis in Suche, Bedeutungssuche, Druck und Teilen (modell/doppel), eigene Reihenfolge der Rezepte (rezeptVerschieben), Bilder in hoher Qualität platzsparend (WebP 1600 px, platzSparen, aufloesung), echtes Vollbild auch in der APK (oberflaeche/vollbild)",
  "dateien": {
   "kern/README.md": "5c951eac33c1fe5f429efe46a0272c1e1d9b5937a1ef852c0a7000d19752d880",
   "kern/ausgabe/ausgabe.mjs": "56d01a3a8b5855af233956c5ecf83d66df138ddc0896cede65a74192fd626ecf",
@@ -14,7 +14,7 @@
   "kern/import/scan.mjs": "ee3ee428a7af8fa1965cb8f7f244da078cc2a1c78ccd655fb70482f4fa384c61",
   "kern/import/text.mjs": "261a6fb5f36b8d8e27816c2396a6453df13b47e6b0f1a88c870bc989bfb141e0",
   "kern/import/web.mjs": "44ba458cb87934b492d8b2a3dd3208a44327042a42466c36353c7781760ce87d",
-  "kern/kern-stand.mjs": "5c9b22d8676a9b4c163cccd66bc160b62134b3cc03c8a6a9c3e52257a5619759",
+  "kern/kern-stand.mjs": "e01ffe22291bfe5eb1a8ffe1071bcd409e1300aabcce1fb515ddbcaa11337d86",
   "kern/ki/bild.mjs": "4e7d0873f438849b11129c26dec2f30e87285e4034a133d2569e6e07c5a0b269",
   "kern/ki/claude.mjs": "15aa25bf1ef63985982de2ef607eb4a6be36ab822e1ddee0b6c86545cc1a427c",
   "kern/ki/helfer.mjs": "4f1e9a20f0928b921058f4fdd62912c18050484d34650d1b53a915e2475d7f07",
@@ -44,6 +44,7 @@
   "kern/oberflaeche/schrift.mjs": "38b1e78dd15ecfc6c8f7249600b37419988513c84fca920800204531d4df97cc",
   "kern/oberflaeche/sprache.mjs": "561e95125c8261e0c90d46e4a49f4b8d9bd84f31e90f9afcb99a433ecd0dac4b",
   "kern/oberflaeche/symbole.mjs": "21171819e46a0cef5818e0f1625fa34e2d715ab7edb3836fd342f1fada49b219",
+  "kern/oberflaeche/vollbild.mjs": "e0064fd1758a69065a578b0f0281caded75afd1c672d5e416f36f41cc4774c3e",
   "kern/oberflaeche/warten.mjs": "2987d4e43bd5e30a48b6c16bce82c267a27ce510435cf8cb005ded360f8283b5",
   "kern/pruefung/datei.mjs": "3b80ca3587e323a4d4853cfb4a6029cc52c310ccce81b3427ca0635b4bc073a2",
   "kern/pruefung/paket.mjs": "07aafc7db36b5fc553c044a72a0a9ac2668a0343b1308092c22f3339506d8b11",

@@ -928,4 +928,11 @@ export default {
   "Impressum · Datenschutz": "Aviso legal · Privacidad",
   "Neue Fassungen kommen als neue App-Datei – die Seite dazu öffnet sich.": "Las nuevas versiones llegan como un nuevo archivo de la app: se abre la página.",
   "Neue Fassungen kommen als neue App-Datei.": "Las nuevas versiones llegan como un nuevo archivo de la app.",
+  "Noch einmal tippen: umbenennen oder alle verschieben": "Toca otra vez: renombrar o mover todo",
+  "Umbenennen": "Renombrar",
+  "Neuer Name": "Nuevo nombre",
+  "Alle {0} Rezepte verschieben nach …": "Mover las {0} recetas a …",
+  "Neue Kategorie anlegen und alle dorthin": "Crear categoría nueva y mover todo allí",
+  "Alle Kategorien verwalten": "Gestionar todas las categorías",
+  "Kategorie umbenannt": "Categoría renombrada",
 };

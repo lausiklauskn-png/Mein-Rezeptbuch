@@ -925,4 +925,11 @@ export default {
   "Impressum · Datenschutz": "Ficha técnica · Privacidade",
   "Neue Fassungen kommen als neue App-Datei – die Seite dazu öffnet sich.": "As novas versões chegam como um novo ficheiro da app – a página abre-se.",
   "Neue Fassungen kommen als neue App-Datei.": "As novas versões chegam como um novo ficheiro da app.",
+  "Noch einmal tippen: umbenennen oder alle verschieben": "Toque novamente: renomear ou mover tudo",
+  "Umbenennen": "Renomear",
+  "Neuer Name": "Novo nome",
+  "Alle {0} Rezepte verschieben nach …": "Mover as {0} receitas para …",
+  "Neue Kategorie anlegen und alle dorthin": "Criar nova categoria e mover tudo para lá",
+  "Alle Kategorien verwalten": "Gerir todas as categorias",
+  "Kategorie umbenannt": "Categoria renomeada",
 };

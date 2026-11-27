@@ -925,4 +925,11 @@ export default {
   "Impressum · Datenschutz": "法律声明 · 隐私",
   "Neue Fassungen kommen als neue App-Datei – die Seite dazu öffnet sich.": "新版本以新的应用文件形式提供——正在打开页面。",
   "Neue Fassungen kommen als neue App-Datei.": "新版本以新的应用文件形式提供。",
+  "Noch einmal tippen: umbenennen oder alle verschieben": "再点一次：重命名或全部移动",
+  "Umbenennen": "重命名",
+  "Neuer Name": "新名称",
+  "Alle {0} Rezepte verschieben nach …": "将全部 {0} 个食谱移到 …",
+  "Neue Kategorie anlegen und alle dorthin": "新建分类并全部移入",
+  "Alle Kategorien verwalten": "管理所有分类",
+  "Kategorie umbenannt": "分类已重命名",
 };

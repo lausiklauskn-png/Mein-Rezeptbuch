@@ -925,4 +925,11 @@ export default {
   "Impressum · Datenschutz": "Выходные данные · Конфиденциальность",
   "Neue Fassungen kommen als neue App-Datei – die Seite dazu öffnet sich.": "Новые версии приходят в виде нового файла приложения — открывается страница.",
   "Neue Fassungen kommen als neue App-Datei.": "Новые версии приходят в виде нового файла приложения.",
+  "Noch einmal tippen: umbenennen oder alle verschieben": "Нажмите ещё раз: переименовать или переместить всё",
+  "Umbenennen": "Переименовать",
+  "Neuer Name": "Новое название",
+  "Alle {0} Rezepte verschieben nach …": "Переместить все рецепты ({0}) в …",
+  "Neue Kategorie anlegen und alle dorthin": "Создать категорию и переместить всё туда",
+  "Alle Kategorien verwalten": "Управлять всеми категориями",
+  "Kategorie umbenannt": "Категория переименована",
 };

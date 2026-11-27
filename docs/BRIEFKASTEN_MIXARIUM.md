@@ -14,6 +14,17 @@ Klaus 23.11.2026: „Brief lesen, bevor gebaut wird. Und dann Brief ergänzen, s
 
 ---
 
+## Runde M · 27.11.2026 · Kern 0.33.5, PWA 0.19.15 (echtes Vollbild, Kategorie aus der Leiste, Bilder gleich hoch)
+
+- **Neu im Kern:** `kern/oberflaeche/vollbild.mjs` (`vollbildSetzen(an)`). Browser und Windows: requestFullscreen; APK: das Plugin
+  `AppVollbild`, das `paket/android/nachbessern.mjs` in die MainActivity schreibt (Capacitor beendet das Browser-Vollbild sonst sofort).
+  Übernehmen: Kern nachziehen, `nachbessern.mjs` byte-gleich, `vollbild.mjs` in den Vorrat (sw.js), und nach jedem Zeichnen abgleichen
+  (soll = „nur das Getränk“ an ODER Bild groß). Im Mixarium schon gebaut.
+- **App, nicht Kern:** zweiter Tipp auf die gewählte Kategorie in der Leiste öffnet Umbenennen + „Alle N verschieben nach …“ (auch in eine
+  neue Kategorie). Im Mixarium nachgebaut (`katBearbeiten`).
+- **App:** am breiten Schirm oben `padding-top: env(safe-area-inset-top)` (APK am DeX lag unter der Leiste); Vollbild-Knopf immer ganz außen
+  unter dem rechten Pfeil; jedes Kopfbild gleich hoch (Pfeile wandern nicht). Prüfen, ob das Mixarium das braucht.
+
 ## Runde L · 26.11.2026 abends · Kern 0.33.4, PWA 0.19.14 (APK: kein Installieren-Knopf, Aktualisieren ohne „ohne Netz“)
 
 | Kern | neu |
@@ -26,16 +37,3 @@ Klaus 23.11.2026: „Brief lesen, bevor gebaut wird. Und dann Brief ergänzen, s
 - **Fürs Mixarium:** `kopfInstall` prüfte schon `PRO`. Nachziehen trotzdem, damit beide Apps dieselbe Erkennung nutzen. Ohne DoUpdates
   meldete „pro-update“ bisher „Updates sind in dieser Fassung noch nicht eingerichtet“. Besser ist die Release-Seite.
 - Releases werden über `.github/workflows/veroeffentlichen.yml` gebaut (signierte APK und Windows-Setup), Regel in `docs/VEROEFFENTLICHEN.md`.
-
-## Runde K · 26.11.2026 · Kern 0.33.2, PWA 0.19.9 (Fotos, Doppelungen im ganzen Buch, Blättern) (vorige Fassung)
-
-| Kern | neu |
-|---|---|
-| 0.32 | `modell/doppel.mjs`: `findeDoppelImBuch(alle, {hash})` (ganzes Buch, jedes Rezept in höchstens einem Paar), Mengen-Regel (`mengenGleich`, gleiche Mengen in gleicher Folge = dieselbe Übersetzung), Vergleich auch über `sicht(r, sprache)` |
-| 0.33 | `oberflaeche/bild.mjs`: Fotos als WebP 0.86 mit 1600 px (`BILD_SPEICHER`, `alsDatenAdresse`), `platzSparen`, `datenGroesse`, `aufloesung` |
-| 0.33.1 | `mengenGleich` zählt erst ab drei verschiedenen Mengen (überall „2 cl“ machte den Virgin Mojito zum Doppel des Mojito; gefunden in der Mixarium-Probe) |
-| 0.33.2 | `platzSparen` rechnet ein schon gespeichertes WebP bis 1600 px nicht noch einmal (Absicherung; die 10-%-Schwelle fing es im Test schon ab) |
-
-- **Mixarium hat es übernommen (vor42):** „Doppelte suchen“ und „Platz sparen“ auf der Bilder-Seite, Proben `smoke_neu_doppel` (40), `scan` (56), `web` (29).
-- **Klaus 26.11.:** Mixarium misst live 96 · 99 · 100 · 100. Fürs Rezeptbuch ist geplant: App zuerst, Startbilder unscharf vorab, scharf im Hintergrund.
-  Neu fürs Mixarium: Getränke aus dem Rezeptbuch, die dort fehlen, und eine Kategorie **Fingerfood**. Der Verlauf im Mixarium-Bild bleibt, wie er ist.
