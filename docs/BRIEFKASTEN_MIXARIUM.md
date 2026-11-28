@@ -14,6 +14,14 @@ Klaus 23.11.2026: „Brief lesen, bevor gebaut wird. Und dann Brief ergänzen, s
 
 ---
 
+## Runde N · 28.11.2026 · PWA 0.19.17 (Namen in „Weiterkochen“ und im Kopfbild)
+
+- **App, nicht Kern:** Klaus 28.11.: Namen von Rezepten aus Foto oder KI-Scan sind lang und standen zu groß da. „Weiterkochen“ auf der
+  Startseite jetzt 16–19 px, höchstens zwei Zeilen (vorher 20 px, drei Zeilen und mehr); im Namen des Kopfbilds wird ein langes Wort
+  getrennt statt rechts abgeschnitten (`hyphens:auto`, `overflow-wrap:anywhere`). Probe `smoke_neu_ansicht.mjs` (drei neue Zeilen).
+  Im Mixarium gleich nachgezogen (Name im Kopfbild am Handy).
+- **Vorschlag offen (Klaus entscheidet):** die vier Ecken aus dem Scanner von Workflow PDF für den Foto-Scan – siehe Antwort in der Sitzung.
+
 ## Runde M · 27.11.2026 · Kern 0.33.6, PWA 0.19.16 (echtes Vollbild, Kategorie aus der Leiste, Kopfbild 16 : 9, Maske)
 
 - **Neu im Kern:** `kern/oberflaeche/vollbild.mjs` (`vollbildSetzen(an)`). Browser und Windows: requestFullscreen; APK: das Plugin
@@ -29,15 +37,3 @@ Klaus 23.11.2026: „Brief lesen, bevor gebaut wird. Und dann Brief ergänzen, s
 - **App:** Kopfbild auf JEDER Breite 16 : 9 (Klaus: im geteilten Schirm zeigte jede Breite einen anderen Ausschnitt); Werkzeug-Knöpfe
   im Bild nur mit Text, wenn der Rahmen breit genug ist (Container-Abfrage); Name im Kopfbild am Handy kleiner (17–21 px, zwei Zeilen).
 
-## Runde L · 26.11.2026 abends · Kern 0.33.4, PWA 0.19.14 (APK: kein Installieren-Knopf, Aktualisieren ohne „ohne Netz“)
-
-| Kern | neu |
-|---|---|
-| 0.33.4 | `oberflaeche/app-pflege.mjs`: `imPaket(w)` (Capacitor-APK oder `app://` unter Windows); `laeuftAlsApp` zählt das Paket mit, also zeigt `installation().zeigen()` dort keinen Knopf |
-
-- **Klaus 26.11., an der signierten APK v0.19.13:** der Installieren-Knopf blieb stehen, und „Aktualisieren“ meldete „Ohne Netz“
-  (in der APK gibt es keinen Service Worker, die Probe `HEAD ./sw.js` schlägt fehl). Das Rezeptbuch öffnet jetzt im Paket die
-  Release-Seite (`…/Mein-Rezeptbuch/releases/latest`).
-- **Fürs Mixarium:** `kopfInstall` prüfte schon `PRO`. Nachziehen trotzdem, damit beide Apps dieselbe Erkennung nutzen. Ohne DoUpdates
-  meldete „pro-update“ bisher „Updates sind in dieser Fassung noch nicht eingerichtet“. Besser ist die Release-Seite.
-- Releases werden über `.github/workflows/veroeffentlichen.yml` gebaut (signierte APK und Windows-Setup), Regel in `docs/VEROEFFENTLICHEN.md`.

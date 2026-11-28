@@ -111,6 +111,19 @@ try {
   const weg = await p.evaluate(() => { const b = document.querySelector('.bild-unscharf'); return b ? [getComputedStyle(b).opacity, getComputedStyle(b).visibility] : ['fehlt']; });
   ok(weg[0] === 'fehlt' || (weg[0] === '0' && weg[1] === 'hidden'), 'auf dem Bild ist „Bild unscharf“ nach gut 4 s ausgeblendet (Klaus 26.11.: „soll nicht oben bleiben und das Bild belästigen“)', JSON.stringify(weg));
   await k.close();
+  { /* Klaus 28.11.: Name im „Weiterkochen“-Bild und im Kopfbild am Handy zu groß; ein langes Wort lief aus dem Bild */
+    const h = await browser.newContext({ viewport: { width: 412, height: 860 }, deviceScaleFactor: 1 }); const p = await h.newPage(); p.on('pageerror', (e) => fehler.push(e.message));
+    await p.goto(URL0); await p.waitForSelector('.gruss'); await p.click('[data-a=beispiel]'); await p.waitForSelector('.karte', { timeout: 20000 });
+    await p.locator('.karte').first().click(); await p.waitForSelector('.rezept-held h1'); await p.goBack(); await p.waitForSelector('.held .verlauf strong');
+    const lang = 'Frühlingskartoffelsuppe mit Spargel und Bärlauch und noch viel mehr Text aus dem KI-Scan';
+    const st = await p.evaluate((t) => { const s = document.querySelector('.held .verlauf strong'); s.textContent = t; const c = getComputedStyle(s), r = s.getBoundingClientRect(), b = document.querySelector('.held').getBoundingClientRect(); return { gr: parseFloat(c.fontSize), zeilen: Math.round(r.height / parseFloat(c.lineHeight)), raus: s.scrollWidth > s.clientWidth + 1 || r.right > b.right + 1 }; }, lang);
+    ok(st.gr >= 16 && st.gr <= 19, '„Weiterkochen“: Name am Handy 16–19 px (vorher 20)', String(st.gr));
+    ok(st.zeilen <= 2 && !st.raus, '… höchstens zwei Zeilen, nichts läuft aus dem Bild', JSON.stringify(st));
+    await p.locator('.held').click(); await p.waitForSelector('.rezept-held h1');
+    const kh = await p.evaluate(() => { const s = document.querySelector('.rezept-held h1'); s.textContent = 'Frühlingskartoffelsuppenwürfelbrühenkessel'; return { raus: s.scrollWidth > s.clientWidth + 1, hy: getComputedStyle(s).hyphens }; });
+    ok(!kh.raus, 'Kopfbild: ein sehr langes Wort wird umbrochen statt rechts abgeschnitten', JSON.stringify(kh));
+    await h.close();
+  }
   ok(fehler.length === 0, 'keine Fehler in der Konsole', fehler.join(' · '));
 } catch (e) { rot++; console.log('  ✗ ROT: Probe abgebrochen — ' + e.message.split('\n')[0]); }
 await browser.close(); srv.close();
