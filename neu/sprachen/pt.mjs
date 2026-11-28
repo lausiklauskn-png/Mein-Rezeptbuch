@@ -947,4 +947,8 @@ export default {
   "Ecken von Hand gesetzt.": "Cantos colocados à mão.",
   "Bild gerade gezogen und verbessert": "Imagem endireitada e melhorada",
   "Gerade ziehen": "Endireitar",
+  "Gespeichert. Ein schöneres Bild von der KI?": "Guardado. Uma imagem mais bonita da IA?",
+  "Gespeichert. Für ein KI-Bild fehlt noch der OpenAI-Schlüssel.": "Guardado. Para uma imagem de IA falta ainda a chave da OpenAI.",
+  "KI-Bild erzeugen": "Criar imagem com IA",
+  "Schlüssel eintragen": "Inserir chave",
 };

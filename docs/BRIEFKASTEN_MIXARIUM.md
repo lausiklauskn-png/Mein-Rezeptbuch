@@ -14,6 +14,13 @@ Klaus 23.11.2026: „Brief lesen, bevor gebaut wird. Und dann Brief ergänzen, s
 
 ---
 
+## Runde P · 28.11.2026 · PWA 0.20.1 (nach dem Foto-Scan gleich ein KI-Bild anbieten)
+
+- **App, nicht Kern:** Klaus 28.11.: das Foto war nur zum Lesen da – nach dem Speichern eines gescannten Rezepts bietet die Meldung
+  „KI-Bild erzeugen“ an; ohne OpenAI-Schlüssel steht dort „Schlüssel eintragen“, das Schlüsselfenster öffnet sich, und nach dem
+  Speichern geht es gleich zum KI-Bild (Rückfrage mit Kosten). Markiert über `s.form.ausScan`. Probe `smoke_neu_scan` (3 neue Zeilen).
+- **Im Mixarium gleich nachgezogen** (`Z.fenster.ausScan`, `bildErzeugen` macht nach dem Schlüssel weiter; dort ohne Kostenfrage wie bisher).
+
 ## Runde O · 28.11.2026 · Kern 0.34.0, PWA 0.20.0 (Gerade ziehen & verbessern)
 
 - **Neu im Kern:** `oberflaeche/blatt.mjs` (Rechnung ohne DOM: `findeBlatt`, `entzerren`, `verbessern`, `drehen`, `eckenOrdnen`; nach
@@ -24,11 +31,3 @@ Klaus 23.11.2026: „Brief lesen, bevor gebaut wird. Und dann Brief ergänzen, s
   Übernehmen ersetzt `img`, nimmt `imgCrop` weg, mit „Rückgängig“. Nichts geändert → kein neues Speichern.
 - ⚠ **Der Name `blatt` war in A schon vergeben** (Blättern) – der Knopf tat nichts. Wächter `test/neu-aktionen.test.js`.
 - **Ins Mixarium:** Kern nachziehen, Werkzeug in „Bild anpassen“ und nach dem Einfügen. Probe `tests/smoke_neu_blatt.mjs`.
-
-## Runde N · 28.11.2026 · PWA 0.19.17 (Namen in „Weiterkochen“ und im Kopfbild)
-
-- **App, nicht Kern:** Klaus 28.11.: Namen von Rezepten aus Foto oder KI-Scan sind lang und standen zu groß da. „Weiterkochen“ auf der
-  Startseite jetzt 16–19 px, höchstens zwei Zeilen (vorher 20 px, drei Zeilen und mehr); im Namen des Kopfbilds wird ein langes Wort
-  getrennt statt rechts abgeschnitten (`hyphens:auto`, `overflow-wrap:anywhere`). Probe `smoke_neu_ansicht.mjs` (drei neue Zeilen).
-  Im Mixarium gleich nachgezogen (Name im Kopfbild am Handy).
-- **Vorschlag offen (Klaus entscheidet):** die vier Ecken aus dem Scanner von Workflow PDF für den Foto-Scan – siehe Antwort in der Sitzung.

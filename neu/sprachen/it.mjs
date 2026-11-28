@@ -950,4 +950,8 @@ export default {
   "Ecken von Hand gesetzt.": "Angoli impostati a mano.",
   "Bild gerade gezogen und verbessert": "Immagine raddrizzata e migliorata",
   "Gerade ziehen": "Raddrizza",
+  "Gespeichert. Ein schöneres Bild von der KI?": "Salvato. Un’immagine più bella dall’IA?",
+  "Gespeichert. Für ein KI-Bild fehlt noch der OpenAI-Schlüssel.": "Salvato. Per un’immagine IA manca ancora la chiave OpenAI.",
+  "KI-Bild erzeugen": "Crea immagine IA",
+  "Schlüssel eintragen": "Inserisci chiave",
 };

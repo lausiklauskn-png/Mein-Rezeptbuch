@@ -947,4 +947,8 @@ export default {
   "Ecken von Hand gesetzt.": "已手动设置四角。",
   "Bild gerade gezogen und verbessert": "图片已拉直并优化",
   "Gerade ziehen": "拉直",
+  "Gespeichert. Ein schöneres Bild von der KI?": "已保存。要用 AI 生成更好看的图片吗？",
+  "Gespeichert. Für ein KI-Bild fehlt noch der OpenAI-Schlüssel.": "已保存。生成 AI 图片还需要 OpenAI 密钥。",
+  "KI-Bild erzeugen": "生成 AI 图片",
+  "Schlüssel eintragen": "输入密钥",
 };

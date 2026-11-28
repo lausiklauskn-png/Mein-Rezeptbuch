@@ -86,6 +86,14 @@ try {
   const bildImRezept = await p.locator('.rezept-held > img').getAttribute('src'), m2 = await bildMasse(p, bildImRezept.split(',')[1]);
   ok(Math.max(...m2) === 1600 && !Buffer.from(bildImRezept.split(',')[1], 'base64').includes('GEHEIM-ORT'), 'gespeichert: Rezeptbild 1600 px (Klaus 26.11., vorher 1024), ohne Aufnahmedaten', m2.join('×'));
   ok(await p.locator('[data-ki-entfernt]').count() === 0, 'ohne Fund steht kein Vermerk am Rezept');
+  /* Klaus 28.11.: nach dem Foto-Scan gleich ein KI-Bild anbieten; ohne OpenAI-Schlüssel führt der Knopf erst zum Schlüssel, dann weiter zum Bild */
+  const toastTxt = await p.locator('#toast').innerText().catch(() => '');
+  ok(/OpenAI-Schlüssel/.test(toastTxt) && await p.locator('#toast button', { hasText: 'Schlüssel eintragen' }).count() === 1, 'nach dem Speichern: Angebot für ein KI-Bild, ohne Schlüssel mit „Schlüssel eintragen“', toastTxt);
+  await p.locator('#toast button', { hasText: 'Schlüssel eintragen' }).click().catch(() => {});
+  ok(await p.locator('[data-form=schluessel][data-anbieter=openai]').count() === 1, '… der Knopf öffnet direkt das Fenster für den OpenAI-Schlüssel');
+  await p.fill('#schl-feld', 'sk-proj-probe-0000000000000000000000').catch(() => {}); await p.click('[data-form=schluessel] button[type=submit]').catch(() => {}); await p.waitForTimeout(300);
+  ok(/Bild von der KI erzeugen\?/.test(await p.locator('.fenster').innerText().catch(() => '')) && rufe.every((r) => !/openai/.test(r.wer || '')), '… und nach dem Speichern des Schlüssels geht es gleich zum KI-Bild (Rückfrage mit Kosten, noch nichts gesendet)');
+  await p.click('.fenster [data-a=fenster-zu]').catch(() => {}); await p.waitForTimeout(150);
 
   console.log('3 · Mistral liest den Text, Claude sortiert; Stufe Profi; die Wahl bleibt');
   rufe.length = 0; await p.click('[data-a=zurueck]').catch(() => {}); await p.goto(URL0); await p.waitForSelector('.gruss'); await scanAuf(p);
