@@ -14,6 +14,17 @@ Klaus 23.11.2026: „Brief lesen, bevor gebaut wird. Und dann Brief ergänzen, s
 
 ---
 
+## Runde O · 28.11.2026 · Kern 0.34.0, PWA 0.20.0 (Gerade ziehen & verbessern)
+
+- **Neu im Kern:** `oberflaeche/blatt.mjs` (Rechnung ohne DOM: `findeBlatt`, `entzerren`, `verbessern`, `drehen`, `eckenOrdnen`; nach
+  Workflow PDF `blatt.js`/`scan-bild.js`, ohne Modell, ohne A4 – das Bild behält das Seitenverhältnis des Blatts) und
+  `oberflaeche/blatt-fenster.mjs` (das Fenster mit eigenem Stil, zwei Reiter „Ecken“/„Ergebnis“, Regler Helligkeit, Kontrast,
+  Farbe ±40, Schärfe). Die Texte reicht die App übersetzt hinein (`t`). Probe `test/kern-blatt.test.js`.
+- **App:** in „Bild anpassen“ das Werkzeug `blatt-gerade` (Symbol `zuschnitt`); nach „Bild eingefügt“ bietet die Meldung „Gerade ziehen“ an.
+  Übernehmen ersetzt `img`, nimmt `imgCrop` weg, mit „Rückgängig“. Nichts geändert → kein neues Speichern.
+- ⚠ **Der Name `blatt` war in A schon vergeben** (Blättern) – der Knopf tat nichts. Wächter `test/neu-aktionen.test.js`.
+- **Ins Mixarium:** Kern nachziehen, Werkzeug in „Bild anpassen“ und nach dem Einfügen. Probe `tests/smoke_neu_blatt.mjs`.
+
 ## Runde N · 28.11.2026 · PWA 0.19.17 (Namen in „Weiterkochen“ und im Kopfbild)
 
 - **App, nicht Kern:** Klaus 28.11.: Namen von Rezepten aus Foto oder KI-Scan sind lang und standen zu groß da. „Weiterkochen“ auf der
@@ -21,19 +32,3 @@ Klaus 23.11.2026: „Brief lesen, bevor gebaut wird. Und dann Brief ergänzen, s
   getrennt statt rechts abgeschnitten (`hyphens:auto`, `overflow-wrap:anywhere`). Probe `smoke_neu_ansicht.mjs` (drei neue Zeilen).
   Im Mixarium gleich nachgezogen (Name im Kopfbild am Handy).
 - **Vorschlag offen (Klaus entscheidet):** die vier Ecken aus dem Scanner von Workflow PDF für den Foto-Scan – siehe Antwort in der Sitzung.
-
-## Runde M · 27.11.2026 · Kern 0.33.6, PWA 0.19.16 (echtes Vollbild, Kategorie aus der Leiste, Kopfbild 16 : 9, Maske)
-
-- **Neu im Kern:** `kern/oberflaeche/vollbild.mjs` (`vollbildSetzen(an)`). Browser und Windows: requestFullscreen; APK: das Plugin
-  `AppVollbild`, das `paket/android/nachbessern.mjs` in die MainActivity schreibt (Capacitor beendet das Browser-Vollbild sonst sofort).
-  Übernehmen: Kern nachziehen, `nachbessern.mjs` byte-gleich, `vollbild.mjs` in den Vorrat (sw.js), und nach jedem Zeichnen abgleichen
-  (soll = „nur das Getränk“ an ODER Bild groß). Im Mixarium schon gebaut.
-- **App, nicht Kern:** zweiter Tipp auf die gewählte Kategorie in der Leiste öffnet Umbenennen + „Alle N verschieben nach …“ (auch in eine
-  neue Kategorie). Im Mixarium nachgebaut (`katBearbeiten`).
-- **App:** am breiten Schirm oben `padding-top: env(safe-area-inset-top)` (APK am DeX lag unter der Leiste); Vollbild-Knopf immer ganz außen
-  unter dem rechten Pfeil; jedes Kopfbild gleich hoch (Pfeile wandern nicht). Prüfen, ob das Mixarium das braucht.
-- **Kern 0.33.6:** `ausschnittRechteck(seiten, ziel, x, y, z)` in `oberflaeche/bild.mjs` – „Bild anpassen“ zeigt das ganze Bild mit einer Maske
-  (Kopfbild hell mit Rahmen, Karte gestrichelt); beim Ziehen folgt das helle Feld dem Finger. Im Mixarium übernommen.
-- **App:** Kopfbild auf JEDER Breite 16 : 9 (Klaus: im geteilten Schirm zeigte jede Breite einen anderen Ausschnitt); Werkzeug-Knöpfe
-  im Bild nur mit Text, wenn der Rahmen breit genug ist (Container-Abfrage); Name im Kopfbild am Handy kleiner (17–21 px, zwei Zeilen).
-

@@ -1784,3 +1784,18 @@ Bis 359 px weicht die Versions-Pille (steht in den Einstellungen), nur im Browse
 Gemessen (Playwright, `/Mein-Rezeptbuch/`): sichtbar bei 320 · 360 · 412 · 1280 px ohne Angebot · kein Querlaufen,
 Kopfhöhe unverändert 30 px · standalone: Kopf- und Einstellungs-Knopf weg · nach `appinstalled` weg · mit gestelltem
 Angebot ruft er `prompt()` · keine Installierbarkeits-Fehler. ⚠ Am Tablet nicht gemessen.
+
+## 📐 Gerade ziehen & verbessern (Klaus 2026-11-28)
+
+Klaus: *„nur ein kleines Modell … die Fixierung der Seiten … das automatische Ausrichten und Erkennen … die Perspektive angepasst …
+für schlechte Fotos … Schärfe … Kontrast … die Farbe, aber nicht viel.“* „Bild anpassen“ → **Gerade ziehen & verbessern**
+(`blatt-gerade`), auch direkt aus der Meldung nach „Bild eingefügt“. Reiter **Ecken** (vier Punkte, von selbst auf das Blatt gesetzt,
+ziehen, „Ecken finden“, „Ganzes Bild“, „Drehen“) und **Ergebnis** (gerade gezogen; Helligkeit, Kontrast, Farbe ±40, Schärfe).
+- Rechnung `kern/oberflaeche/blatt.mjs` (ohne DOM, nach Workflow PDF `blatt.js`/`scan-bild.js`, kein Modell, kein Netz), Fenster
+  `kern/oberflaeche/blatt-fenster.mjs` (gemeinsam mit dem Mixarium). Kern **0.34.0**, PWA **0.20.0**.
+- Unsicher erkannt → die Punkte liegen auf dem ganzen Bild, und das steht da. Nichts geändert → das Bild bleibt Byte für Byte.
+- ⚠ Der Name `blatt` war in `A` schon vergeben (Blättern); die spätere Fassung gewann, der Knopf tat nichts. `test/neu-aktionen.test.js`
+  verbietet doppelte Aktionsnamen.
+- Proben: `test/kern-blatt.test.js` (8) · `tests/smoke_neu_blatt.mjs` (24 grün; von Hand gegengeprüft: 8 Sabotagen, jede rot mit ihrem Namen).
+  `smoke_neu_bedienung` zählt das neue Werkzeug mit. ⚠ Nur an einem gestellten Foto gemessen; am Tablet und an echten Kochbuchseiten nicht.
+
