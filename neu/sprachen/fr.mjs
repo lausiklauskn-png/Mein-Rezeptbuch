@@ -950,4 +950,8 @@ export default {
   "Ecken von Hand gesetzt.": "Coins placés à la main.",
   "Bild gerade gezogen und verbessert": "Image redressée et améliorée",
   "Gerade ziehen": "Redresser",
+  "Gespeichert. Ein schöneres Bild von der KI?": "Enregistré. Une plus belle image par l’IA ?",
+  "Gespeichert. Für ein KI-Bild fehlt noch der OpenAI-Schlüssel.": "Enregistré. Pour une image IA, il manque encore la clé OpenAI.",
+  "KI-Bild erzeugen": "Créer une image IA",
+  "Schlüssel eintragen": "Saisir la clé",
 };

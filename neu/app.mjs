@@ -45,7 +45,7 @@ import { teilLink, ausTeilLink, qrSvg, passtInQr } from '../kern/teilen/qr.mjs';
 import { rezeptIn } from '../kern/modell/einheiten.mjs';
 import { findeDoppel, findeDoppelImBuch, wendeAn, dHash, MERKMALE, merkmaleVon, merkmalUmschalten } from '../kern/modell/doppel.mjs';
 
-const FASSUNG = '0.20.0';
+const FASSUNG = '0.20.1';
 const breit = () => matchMedia('(min-width:1000px)').matches;
 const $ = (id) => document.getElementById(id);
 const esc = (t) => String(t ?? '').replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
@@ -1059,7 +1059,7 @@ async function scanSenden() {
   if (n === 1) {
     try {
       const roh = await W.mit(sc.teller ? L('Claude sieht sich das Gericht an …', 'Claude is looking at the dish …') : L('Rezept wird gelesen …', 'Reading the recipe …'), (w) => erkennen(sc.v, { ...opt, vomTeller: !!sc.teller, fortschritt: (t) => w.text(t), beiAnweisung: befehlFrage })), r = rezeptAusScan(roh, { kategorien: kats, bild: sc.v.store, sprache: spr() });
-      s.form = { ...formAus(null), name: r.name, cat: r.cat, servings: r.servings, prepTime: r.prepTime ?? '', img: r.img, ings: r.ings.map(zutatZeile).join('\n'), steps: r.steps.map((x) => x.txt).join('\n\n'), flavors: r.flavors, kiEntfernt: sc.v.liste.filter((e) => e.grund === 'meta' || sc.v.zugedeckt) };
+      s.form = { ...formAus(null), name: r.name, cat: r.cat, servings: r.servings, prepTime: r.prepTime ?? '', img: r.img, ings: r.ings.map(zutatZeile).join('\n'), steps: r.steps.map((x) => x.txt).join('\n\n'), flavors: r.flavors, kiEntfernt: sc.v.liste.filter((e) => e.grund === 'meta' || sc.v.zugedeckt), ausScan: true };
       const vorschlag = !!sc.teller; s.scan = null; geh('form'); melde(vorschlag ? L('Ein Vorschlag. Bitte prüfen.', 'A suggestion. Please check.') : L('Gelesen. Bitte prüfen.', 'Read. Please check.'));
     } catch (f) { if (!f.abgebrochen) melde(f.message); neuFenster('scan'); }
     return;
@@ -1129,12 +1129,15 @@ async function formSpeichern(form, wahl = '') {
     if (s.form !== f) return;
     if (p) { f.doppel = p; zeichne(); document.getElementById('form-doppel')?.scrollIntoView({ block: 'center' }); return; }
   }
-  const danach = (uid) => { s.form = null; if (!(f.notiz && NB.uebernommen(f.notiz, uid))) melde(L('Gespeichert', 'Saved')); geh(s.formVon === 'baum' && breit() ? 'baum' : 'rezept', { uid }, true); };
+  /* Klaus 28.11.: nach einem Foto-Scan ist das Bild meist die abfotografierte Seite – das Foto war nur zum Lesen da. Darum gleich ein
+     KI-Bild anbieten. Ohne OpenAI-Schlüssel öffnet „KI-Bild“ erst das Schlüsselfenster und macht danach mit dem Bild weiter. */
+  const kiAngebot = !alt && f.ausScan;
+  const danach = (uid) => { s.form = null; if (!(f.notiz && NB.uebernommen(f.notiz, uid))) { if (kiAngebot) melde(SK.openai ? L('Gespeichert. Ein schöneres Bild von der KI?', 'Saved. A nicer picture from AI?') : L('Gespeichert. Für ein KI-Bild fehlt noch der OpenAI-Schlüssel.', 'Saved. An AI picture still needs the OpenAI key.'), SK.openai ? L('KI-Bild erzeugen', 'Create AI picture') : L('Schlüssel eintragen', 'Enter key'), () => A['ki-bild']({ dataset: { uid } })); else melde(L('Gespeichert', 'Saved')); } geh(s.formVon === 'baum' && breit() ? 'baum' : 'rezept', { uid }, true); };
   if (alt && f.ueb && !textBlieb) { fassungFrage(alt, roh, f.ueb, () => danach(alt.uid)); return; }   /* eine Übersetzung bearbeitet: einmal fragen */
   const neu = ohneAlteUebersetzung(alt, alt && (f.ueb || textBlieb) ? { ...roh, name: alt.name, ings: alt.ings, steps: alt.steps } : roh, textBlieb);   /* Text unverändert: Name, Zutaten und Schritte bleiben, wie sie waren (nichts wird neu zerlegt, etwa „1 kleine Zwiebel“) */
   delete neu.beispiel; if (f.neu && f.flavors?.length) neu.flavors = f.flavors; if (f.neu && f.source) neu.source = f.source; if (f.kiEntfernt?.length) vermerken(neu, f.kiEntfernt, 'scan');   /* was vor der KI herausgenommen wurde, steht am Rezept */
   Z.rezepte = alt ? Z.rezepte.map((r) => (r.uid === alt.uid ? neu : r)) : [...Z.rezepte, neu];
-  sichern(); danach(neu.uid); if (!alt) setTimeout(() => nachEinlesen([neu.uid]), 3600); else neuUebersetzen(alt, neu);   /* nach der Meldung „Gespeichert“ */
+  sichern(); danach(neu.uid); if (!alt) setTimeout(() => nachEinlesen([neu.uid]), kiAngebot ? 7600 : 3600); else neuUebersetzen(alt, neu);   /* nach der Meldung „Gespeichert“ */
 
 }
 

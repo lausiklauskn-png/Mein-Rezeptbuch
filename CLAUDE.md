@@ -1798,4 +1798,7 @@ ziehen, „Ecken finden“, „Ganzes Bild“, „Drehen“) und **Ergebnis** (g
   verbietet doppelte Aktionsnamen.
 - Proben: `test/kern-blatt.test.js` (8) · `tests/smoke_neu_blatt.mjs` (24 grün; von Hand gegengeprüft: 8 Sabotagen, jede rot mit ihrem Namen).
   `smoke_neu_bedienung` zählt das neue Werkzeug mit. ⚠ Nur an einem gestellten Foto gemessen; am Tablet und an echten Kochbuchseiten nicht.
+- **Nach dem Foto-Scan gleich ein KI-Bild (Klaus 28.11., 0.20.1):** wird ein gescanntes Rezept gespeichert (`s.form.ausScan`), bietet die Meldung
+  „KI-Bild erzeugen“ an; ohne OpenAI-Schlüssel „Schlüssel eintragen“ → Schlüsselfenster → danach gleich die Rückfrage zum KI-Bild.
+  `smoke_neu_scan` prüft beides (ohne die Markierung 3 ROT). ⚠ `smoke_neu_scan` bricht in diesem Behälter im PDF-Teil ab, auf main genauso.
 

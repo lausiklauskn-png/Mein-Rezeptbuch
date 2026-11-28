@@ -947,4 +947,8 @@ export default {
   "Ecken von Hand gesetzt.": "Углы заданы вручную.",
   "Bild gerade gezogen und verbessert": "Изображение выпрямлено и улучшено",
   "Gerade ziehen": "Выпрямить",
+  "Gespeichert. Ein schöneres Bild von der KI?": "Сохранено. Красивее изображение от ИИ?",
+  "Gespeichert. Für ein KI-Bild fehlt noch der OpenAI-Schlüssel.": "Сохранено. Для изображения ИИ ещё нужен ключ OpenAI.",
+  "KI-Bild erzeugen": "Создать изображение ИИ",
+  "Schlüssel eintragen": "Ввести ключ",
 };
