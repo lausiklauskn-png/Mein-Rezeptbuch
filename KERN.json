@@ -1,6 +1,6 @@
 {
- "fassung": "0.33.6",
- "inhalt": "Ausgaben-Schalter, Rezeptmodell, Kategorien, Suche, Sicherung, Übernahme, Speicher, Mengen, Symbole, Farben, Bild, Kochansicht (Zutaten je Schritt, Zeit, Geräte), Einkaufsliste, Wochenplan, Text-Import, Spracheingabe, Bildauftrag je Ausgabe, englische Namen für Farben, Töne, Geräte und Schrift-Regler, Kategorien und Einkauf je Ausgabe (kategorienMit mit Familien-Namen, einkaufMit), Sticker-Bild je Kategorie (katBild), Text-Import mit Bar- und US-Einheiten, Hinweis-Blasen (Tooltips), Ladebalken für alle Wartezeiten, Sprache der Oberfläche (acht Sprachen, Tabellen), KI-Schlüssel (Anthropic, OpenAI, Mistral), Claude-Aufruf, Mistral OCR, Reinigung vor der KI, Foto-Scan, Datei prüfen, Web-Import ohne Weiterleiter, Ordner, App installieren und aktualisieren (app-pflege), Food-Zine: Poster-Auftrag und Sammlung (ausgabe/zine), Kreativbuch (ausgabe/kreativbuch), eigenes Buch aus Bildern (ausgabe/eigenbuch), Notizbuch (modell/notiz, zeit/tag, ausgabe/ics, import/idee), Event-Ordner (Anlass mit Datum und Gästen, in den Kalender, abgleichen, Einkauf, Menükarte; Portionen im Plan), Doppelungen nach Inhalt, Bild, Mengen und Übersetzung, auch im ganzen Buch (findeDoppelImBuch), und Merkmale einer Variante als Hinweis in Suche, Bedeutungssuche, Druck und Teilen (modell/doppel), eigene Reihenfolge der Rezepte (rezeptVerschieben), Bilder in hoher Qualität platzsparend (WebP 1600 px, platzSparen, aufloesung), echtes Vollbild auch in der APK (oberflaeche/vollbild), Maske beim Bild anpassen (ausschnittRechteck)",
+ "fassung": "0.34.0",
+ "inhalt": "Ausgaben-Schalter, Rezeptmodell, Kategorien, Suche, Sicherung, Übernahme, Speicher, Mengen, Symbole, Farben, Bild, Kochansicht (Zutaten je Schritt, Zeit, Geräte), Einkaufsliste, Wochenplan, Text-Import, Spracheingabe, Bildauftrag je Ausgabe, englische Namen für Farben, Töne, Geräte und Schrift-Regler, Kategorien und Einkauf je Ausgabe (kategorienMit mit Familien-Namen, einkaufMit), Sticker-Bild je Kategorie (katBild), Text-Import mit Bar- und US-Einheiten, Hinweis-Blasen (Tooltips), Ladebalken für alle Wartezeiten, Sprache der Oberfläche (acht Sprachen, Tabellen), KI-Schlüssel (Anthropic, OpenAI, Mistral), Claude-Aufruf, Mistral OCR, Reinigung vor der KI, Foto-Scan, Datei prüfen, Web-Import ohne Weiterleiter, Ordner, App installieren und aktualisieren (app-pflege), Food-Zine: Poster-Auftrag und Sammlung (ausgabe/zine), Kreativbuch (ausgabe/kreativbuch), eigenes Buch aus Bildern (ausgabe/eigenbuch), Notizbuch (modell/notiz, zeit/tag, ausgabe/ics, import/idee), Event-Ordner (Anlass mit Datum und Gästen, in den Kalender, abgleichen, Einkauf, Menükarte; Portionen im Plan), Doppelungen nach Inhalt, Bild, Mengen und Übersetzung, auch im ganzen Buch (findeDoppelImBuch), und Merkmale einer Variante als Hinweis in Suche, Bedeutungssuche, Druck und Teilen (modell/doppel), eigene Reihenfolge der Rezepte (rezeptVerschieben), Bilder in hoher Qualität platzsparend (WebP 1600 px, platzSparen, aufloesung), echtes Vollbild auch in der APK (oberflaeche/vollbild), Maske beim Bild anpassen (ausschnittRechteck), Blatt im Foto: vier Ecken finden, Perspektive gerade ziehen und Foto verbessern ohne Modell (oberflaeche/blatt, blatt-fenster)",
  "dateien": {
   "kern/README.md": "5c951eac33c1fe5f429efe46a0272c1e1d9b5937a1ef852c0a7000d19752d880",
   "kern/ausgabe/ausgabe.mjs": "56d01a3a8b5855af233956c5ecf83d66df138ddc0896cede65a74192fd626ecf",
@@ -14,7 +14,7 @@
   "kern/import/scan.mjs": "ee3ee428a7af8fa1965cb8f7f244da078cc2a1c78ccd655fb70482f4fa384c61",
   "kern/import/text.mjs": "261a6fb5f36b8d8e27816c2396a6453df13b47e6b0f1a88c870bc989bfb141e0",
   "kern/import/web.mjs": "44ba458cb87934b492d8b2a3dd3208a44327042a42466c36353c7781760ce87d",
-  "kern/kern-stand.mjs": "803a74530d68f150416c8da6c5f91d2b1ce3ba7d66e43d949c479581344e7ae1",
+  "kern/kern-stand.mjs": "891c2bbd2185ad3250ca12b0ee7613b689bdf5de4e20d5d4f9796d8b8f255ee2",
   "kern/ki/bild.mjs": "4e7d0873f438849b11129c26dec2f30e87285e4034a133d2569e6e07c5a0b269",
   "kern/ki/claude.mjs": "15aa25bf1ef63985982de2ef607eb4a6be36ab822e1ddee0b6c86545cc1a427c",
   "kern/ki/helfer.mjs": "4f1e9a20f0928b921058f4fdd62912c18050484d34650d1b53a915e2475d7f07",
@@ -37,6 +37,8 @@
   "kern/modell/zustand.mjs": "f3e7db34eb49f3dd5a5755e4f39bb0528e237328142bc9a4967bec5caed3508b",
   "kern/oberflaeche/app-pflege.mjs": "579ad2fc40ac6e525e40f09aaf0490b65204cad64ff2b7fd7281aa5a8d42814d",
   "kern/oberflaeche/bild.mjs": "a5923ac0d035a9ff0cdfbe898481797034d77737e355da3352b4bf56f6d41405",
+  "kern/oberflaeche/blatt-fenster.mjs": "eef40dd63bfab4a926799811a0a0b297bcca07feca9e9b407c037d87a7470692",
+  "kern/oberflaeche/blatt.mjs": "812bb3d8142bcb854b89dffa56f3ee34f855f084ae2acc1bd12edf11ad789da3",
   "kern/oberflaeche/diktat.mjs": "4c18a27fa41a0f57f470a4b558153b0fc2421775d0dce48a0e223e84aaa3737f",
   "kern/oberflaeche/farben.mjs": "d4d52f86dcf40b943113b9aad20a55f4fcef7400510e1a014efbf39827f881d5",
   "kern/oberflaeche/geraete.mjs": "47f1ae28940bad565c0d51942f8e95432369fef620655dba3bf1e17456bede32",

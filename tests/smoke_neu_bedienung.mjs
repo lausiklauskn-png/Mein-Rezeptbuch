@@ -191,7 +191,7 @@ try {
     ok(Math.abs(bv.w - vp[0]) < 2 && Math.abs(bv.h - vp[1]) < 2 && await p.locator('.bildvoll #zs-rahmen').count() === 1, 'ein Tipp aufs Bild öffnet gleich „Bild anpassen“ im Vollbild', JSON.stringify(bv));
     const ra = await box(p, '#zs-rahmen'), wz = await box(p, '.bv-werk');
     ok(wz.r <= ra.r && wz.r > ra.r - 20 && wz.b <= ra.b && wz.b > ra.b - 20, 'die Bildwege stehen unten rechts am Bild', JSON.stringify({ ra, wz }));
-    ok((await p.$$eval('.bv-werk [data-w]', (l) => l.map((x) => x.dataset.w))).join() === 'bild-dazu,ki-bild,gratis-bild,zine,bild-entfernen', 'ersetzen, KI, Pollinations, Food-Zine, entfernen');
+    ok((await p.$$eval('.bv-werk [data-w]', (l) => l.map((x) => x.dataset.w))).join() === 'bild-dazu,blatt-gerade,ki-bild,gratis-bild,zine,bild-entfernen', 'ersetzen, gerade ziehen & verbessern (28.11.), KI, Pollinations, Food-Zine, entfernen');
     const vh = await box(p, '.zs-vor .vh'), vk = await box(p, '.zs-vor .vk'), soll = breite >= 1000 ? karte.w / karte.h : 1;
     ok(Math.abs(vh.w / vh.h - kopf.w / kopf.h) < 0.03 && Math.abs(ra.w / ra.h - kopf.w / kopf.h) < 0.03, 'Rahmen und Vorschau „Kopfbild“ haben die echte Form des Kopfbilds', `${(vh.w / vh.h).toFixed(3)} / ${(kopf.w / kopf.h).toFixed(3)}`);
     ok(Math.abs(vk.w / vk.h - soll) < 0.03, 'die Vorschau „Karte“ hat die echte Form der Karte', `${(vk.w / vk.h).toFixed(3)} / ${soll.toFixed(3)}`);
